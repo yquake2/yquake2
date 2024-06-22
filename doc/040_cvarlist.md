@@ -114,8 +114,8 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
 `cl_http_bw_limit_tmout` variable. Set `0` by default.
 
 * **cl_http_bw_limit_tmout**: Seconds before the download is aborted
-when the speed transfer is below the var set by `cl_http_bw_limit_rate`.
-Set `0` by default.
+  when the speed transfer is below the var set by
+  `cl_http_bw_limit_rate`.  Set `0` by default.
 
 * **cl_kickangles**: If set to `0` angle kicks (weapon recoil, damage
   hits and the like) are ignored. Cheat-protected. Defaults to `1`.
@@ -138,8 +138,13 @@ Set `0` by default.
   loading. If set to `0` pause mode is never entered, this is the
   Vanilla Quake II behaviour.
 
-* **cl_unpaused_scvis**: If set to `1` (the default) the client unpause
-  when the screen becomes visible.
+* **cl_model_preview_start**: start frame value in multiplayer model
+  preview.  `-1` - don't show animation. Defaults to `84` for show
+  salute animation.
+
+* **cl_model_preview_end**: end frame value in multiplayer model
+  preview.  `-1` - don't show animation. Defaults to `94` for show
+  salute animation.
 
 * **cl_r1q2_lightstyle**: Since the first release Yamagi Quake II used
   the R1Q2 colors for the dynamic lights of rockets. Set to `0` to get
@@ -153,11 +158,8 @@ Set `0` by default.
   the top right corner of the screen.  Set to `2` to show only the horizontal 
   speed under the crosshair.
   
-* **cl_model_preview_start**: start frame value in multiplayer model preview.
-  `-1` - don't show animation. Defaults to `84` for show salute animation.
-
-* **cl_model_preview_end**: end frame value in multiplayer model preview.
-  `-1` - don't show animation. Defaults to `94` for show salute animation.
+* **cl_unpaused_scvis**: If set to `1` (the default) the client unpause
+  when the screen becomes visible.
 
 * **in_grab**: Defines how the mouse is grabbed by Yamagi Quake IIs
   window. If set to `0` the mouse is never grabbed and if set to `1`
