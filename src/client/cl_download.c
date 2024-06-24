@@ -543,6 +543,49 @@ CL_DownloadFileName(char *dest, int destlen, char *fn)
 }
 
 /*
+ * Returns true if a file is filtered and
+ * should not be downloaded, false otherwise.
+ */
+static qboolean
+CL_DownloadFilter(const char *filename)
+{
+	if (FS_LoadFile(      (char *) filename, NULL) != -1)
+	{
+		/* it exists, no need to download */
+		return true;
+	}
+
+	if (strstr(filename, "..") || strstr(filename, ":") || (*filename == '.') || (*filename == '/'))
+	{
+		Com_Printf("Refusing to download a path containing '..' or ':' or starting with '.' or '/': %s\n", filename);
+		return true;
+	}
+
+	if (strstr(filename, ".dll") || strstr(filename, ".dylib") || strstr(filename, ".so"))
+	{
+		Com_Printf("Refusing to download a path containing '.dll', '.dylib' or '.so': %s\n", filename);
+		return true;
+	}
+
+	char *nodownload = strdup(cl_nodownload_list->string);
+	char *nodownload_token = strtok(nodownload, " ");
+	while (nodownload_token != NULL)
+	{
+		Com_Printf("Token: %s\n", nodownload_token);
+		if (Q_strcasestr(filename, nodownload_token))
+		{
+			Com_Printf("Filename is filtered by cl_nodownload_list: %s\n", filename);
+			free(nodownload);
+			return true;
+		}
+		nodownload_token = strtok(NULL, " ");
+	}
+	free(nodownload);
+
+	return false;
+}
+
+/*
  * Returns true if the file exists, otherwise it attempts
  * to start a download from the server.
  */
@@ -559,27 +602,9 @@ CL_CheckOrDownloadFile(char *filename)
 		*ptr = '/';
 	}
 
-	if (FS_LoadFile(filename, NULL) != -1)
+	if (CL_DownloadFilter(filename))
 	{
-		/* it exists, no need to download */
 		return true;
-	}
-
-	if (strstr(filename, "..") || strstr(filename, ":") || (*filename == '.') || (*filename == '/'))
-	{
-		Com_Printf("Refusing to download a path with ..: %s\n", filename);
-		return true;
-	}
-
-	char *nodownload = strtok(cl_nodownload_list->string, " ");
-	while (nodownload != NULL)
-	{
-		if (Q_strcasestr(filename, nodownload))
-		{
-			Com_Printf("Filename is filtered by cl_nodownload_list: %s\n", filename);
-			return true;
-		}
-		nodownload = strtok(NULL, " ");
 	}
 
 #ifdef USE_CURL
@@ -685,16 +710,8 @@ CL_Download_f(void)
 
 	Com_sprintf(filename, sizeof(filename), "%s", Cmd_Argv(1));
 
-	if (strstr(filename, ".."))
+	if (CL_DownloadFilter(filename))
 	{
-		Com_Printf("Refusing to download a path with ..\n");
-		return;
-	}
-
-	if (FS_LoadFile(filename, NULL) != -1)
-	{
-		/* it exists, no need to download */
-		Com_Printf("File already exists.\n");
 		return;
 	}
 
