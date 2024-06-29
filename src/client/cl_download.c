@@ -555,7 +555,7 @@ CL_DownloadFilter(const char *filename)
 		return true;
 	}
 
-	if (strstr(filename, "..") || strstr(filename, ":") || (*filename == '.') || (*filename == '/'))
+	if (strstr(filename, "..") || strchr(filename, ':') || (*filename == '.') || (*filename == '/'))
 	{
 		Com_Printf("Refusing to download a path containing '..' or ':' or starting with '.' or '/': %s\n", filename);
 		return true;

@@ -406,7 +406,7 @@ QAL_Init()
 	/* DEFAULT_OPENAL_DRIVER is defined at compile time via the compiler */
 	al_driver = Cvar_Get("al_driver", DEFAULT_OPENAL_DRIVER, CVAR_ARCHIVE);
 
-	if (strstr(al_driver->string, "..") || strstr(al_driver->string, ":") || strstr(al_driver->string,         "/") || strstr(al_driver->string, "\\"))
+	if (strstr(al_driver->string, "..") || strchr(al_driver->string, ':') || strchr(al_driver->string,         '/') || strchr(al_driver->string, '\\'))
 	{
 		Com_Printf("al_driver must not contain '..', ':', '/' or '\': %s\n", al_driver->string);
 		return false;
