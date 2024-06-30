@@ -402,7 +402,8 @@ Sys_UnloadGame(void)
 void *
 Sys_GetGameAPI(void *parms)
 {
-	void *(*GetGameAPI)(void *);
+	typedef void *(*fnAPI)(void *);
+	fnAPI GetGameAPI; 
 
 	char name[MAX_OSPATH];
 	char *path;
@@ -479,7 +480,7 @@ Sys_GetGameAPI(void *parms)
 		}
 	}
 
-	GetGameAPI = (void *)dlsym(game_library, "GetGameAPI");
+	GetGameAPI = (fnAPI)dlsym(game_library, "GetGameAPI");
 
 	if (!GetGameAPI)
 	{
