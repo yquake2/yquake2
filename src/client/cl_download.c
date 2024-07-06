@@ -549,7 +549,7 @@ CL_DownloadFileName(char *dest, int destlen, char *fn)
 static qboolean
 CL_DownloadFilter(const char *filename)
 {
-	if (FS_LoadFile(      (char *) filename, NULL) != -1)
+	if (FS_LoadFile((char *) filename, NULL) != -1)
 	{
 		/* it exists, no need to download */
 		return true;
