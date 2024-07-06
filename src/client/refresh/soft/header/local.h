@@ -221,6 +221,8 @@ typedef struct
 	pixel_t	*pskin;
 	int	skinwidth;
 	int	skinheight;
+	float	scalewidth;
+	float	scaleheight;
 } affinetridesc_t;
 
 typedef struct
