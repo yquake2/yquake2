@@ -343,7 +343,6 @@ extern qboolean	r_dowarp;
 extern affinetridesc_t	r_affinetridesc;
 
 void D_WarpScreen(void);
-void R_PolysetUpdateTables(void);
 
 //=======================================================================//
 

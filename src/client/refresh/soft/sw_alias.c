@@ -529,8 +529,6 @@ R_AliasSetupSkin(const entity_t *currententity, const model_t *currentmodel)
 	r_affinetridesc.skinwidth = pskindesc->width;
 	r_affinetridesc.skinheight = pskindesc->height;
 
-	R_PolysetUpdateTables (); // FIXME: precalc edge lookups
-
 	return true;
 }
 

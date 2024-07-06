@@ -77,10 +77,6 @@ static light3_t	d_lightbasestep, d_lightextrastep;
 static int	d_sfracbasestep, d_tfracbasestep;
 static zvalue_t	d_ziextrastep, d_zibasestep;
 
-static byte	*skintable[MAX_LBM_HEIGHT];
-int		skinwidth;
-static pixel_t	*skinstart;
-
 void	(*d_pdrawspans)(const entity_t *currententity, spanpackage_t *pspanpackage);
 
 static void R_PolysetSetEdgeTable(void);
@@ -130,29 +126,6 @@ static const byte irtable[256] = {
 	66, 68, 70, 64, 65, 66, 67, 68};		// mishmash2
 
 // ======================
-
-/*
-================
-R_PolysetUpdateTables
-================
-*/
-void
-R_PolysetUpdateTables (void)
-{
-	byte	*s;
-
-	if (r_affinetridesc.skinwidth != skinwidth ||
-		r_affinetridesc.pskin != skinstart)
-	{
-		int i;
-
-		skinwidth = r_affinetridesc.skinwidth;
-		skinstart = r_affinetridesc.pskin;
-		s = skinstart;
-		for (i=0 ; i<MAX_LBM_HEIGHT ; i++, s+=skinwidth)
-			skintable[i] = s;
-	}
-}
 
 /*
 ================
