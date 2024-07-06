@@ -413,7 +413,7 @@ VID_LoadRenderer(void)
 	}
 
 	// Mkay, let's load the requested renderer.
-	GetRefAPI = Sys_LoadLibrary(reflib_path, "GetRefAPI", &reflib_handle);
+	GetRefAPI = (GetRefAPI_t)Sys_LoadLibrary(reflib_path, "GetRefAPI", &reflib_handle);
 
 	// Okay, we couldn't load it. It's up to the
 	// caller to recover from this.
