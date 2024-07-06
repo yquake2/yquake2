@@ -173,6 +173,12 @@ LoadPCX(const char *origname, byte **pic, byte **palette, int *width, int *heigh
 		return;
 	}
 
+	if (pcx->bytes_per_line <= pcx_width)
+	{
+		pcx->bytes_per_line = pcx_width + 1;
+		image_issues = true;
+	}
+
 	full_size = (pcx_height + 1) * (pcx_width + 1);
 	out = malloc(full_size);
 	if (!out)
@@ -218,7 +224,7 @@ LoadPCX(const char *origname, byte **pic, byte **palette, int *width, int *heigh
 
 	for (y = 0; y <= pcx_height; y++, pix += pcx_width + 1)
 	{
-		for (x = 0; x <= pcx_width; )
+		for (x = 0; x < pcx->bytes_per_line; )
 		{
 			if (raw - (byte *)pcx > len)
 			{

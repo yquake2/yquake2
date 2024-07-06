@@ -221,6 +221,8 @@ typedef struct
 	pixel_t	*pskin;
 	int	skinwidth;
 	int	skinheight;
+	float	scalewidth;
+	float	scaleheight;
 } affinetridesc_t;
 
 typedef struct
@@ -343,7 +345,6 @@ extern qboolean	r_dowarp;
 extern affinetridesc_t	r_affinetridesc;
 
 void D_WarpScreen(void);
-void R_PolysetUpdateTables(void);
 
 //=======================================================================//
 
