@@ -723,6 +723,7 @@
 {"use_target_secret", (byte *)use_target_secret},
 {"SP_target_help", (byte *)SP_target_help},
 {"Use_Target_Help", (byte *)Use_Target_Help},
+{"Target_Help_Think", (byte *)Target_Help_Think},
 {"SP_target_speaker", (byte *)SP_target_speaker},
 {"Use_Target_Speaker", (byte *)Use_Target_Speaker},
 {"SP_target_temp_entity", (byte *)SP_target_temp_entity},
