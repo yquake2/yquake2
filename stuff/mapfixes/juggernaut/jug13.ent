@@ -14,6 +14,8 @@
 // 4. Shootable button that reveals red key remains permanently pressed (b#4)
 //
 // 5. Cleared unused 4096 spawnflag (b#5)
+//
+// 6. Fixed help icon appearing on every savegame load (b#6)
 {
 "sky" "env4_"
 "light" "0"
@@ -832,11 +834,11 @@
 {
 "model" "*15"
 "style" "32"
-"target" "shaft"
+//"target" "shaft" // b#1: unused target
 "lip" "0"
 "wait" "1"
-"speed" "100"
 "classname" "trigger_multiple"
+"spawnflags" "3840" // b#1: added this
 }
 {
 "origin" "-1344 0 400"
@@ -2712,6 +2714,7 @@
 {
 "origin" "-8 104 376"
 "target" "helpmsg"
+"delay" "0.3" // b#6: added this
 "classname" "trigger_always"
 }
 {

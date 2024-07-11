@@ -1,20 +1,22 @@
 // FIXED ENTITY STRING (by BjossiAlfreds)
 //
-// 1. Moved monster_soldier_ss (2689) out of solid
+// 1. Moved monster_soldier_ss out of solid space (b#1)
 //
-// Changed his vertical origin from -320 to -208 like the guy next to him.
+// 2. Added misc_teleporter and destination to get out of sled area (b#2)
 //
-// 2. Added misc_teleporter (4161) to get out of sled area
+// 3. Removed func_door and trigger_key (b#3)
 //
-// Teleports back to the start of the level (4156).
+// There is no power cube in the level and the doors served no purpose.
+// 
+// 4. Added Power Shield to sled area to give it a purpose (b#4)
 //
-// 3. Removed func_door (1409, 1423) and trigger_key (2080)
+// 5. Removed unused entities and targets (b#5)
 //
-// There is no power cube in the level and the doors serve no purpose.
-// Removed by setting spawnflags from 2048 to 3840 (never spawn).
-// This ensures entity alignment is unchanged.
+// The targetless trigger_relay might have something to do with
+// the light entities with unused targetnames, judging by origins.
+// Not enough context to know what the intention was.
 //
-// 4. Added Power Shield (4166) to sled area to give it a purpose
+// 6. Fixed help icon appearing after every savegame load (b#6)
 {
 "sky" "env2_"
 "skyrotate" "0"
@@ -255,7 +257,7 @@
 {
 "origin" "1088 -1296 -141"
 "_color" ".8 .5 .8"
-"targetname" "part"
+//"targetname" "part" // b#5: never targeted
 "style" "32"
 "light" "500"
 "classname" "light"
@@ -263,7 +265,7 @@
 {
 "origin" "683 -1280 -1"
 "_color" "1 0 0"
-"targetname" "full"
+//"targetname" "full" // b#5: never targeted
 "style" "33"
 "light" "300"
 "spawnflags" "1"
@@ -484,7 +486,7 @@
 {
 "origin" "1088 -1256 -139"
 "_color" ".8 .5 .8"
-"targetname" "full"
+//"targetname" "full" // b#5: never targeted
 "style" "33"
 "light" "500"
 "spawnflags" "1"
@@ -943,8 +945,6 @@
 {
 "model" "*1"
 "delay" "2"
-"health" "0"
-"dmg" "0"
 "lip" "16"
 "wait" "4"
 "sounds" "1"
@@ -954,8 +954,6 @@
 }
 {
 "model" "*2"
-"health" "0"
-"dmg" "0"
 "lip" "16"
 "wait" "4"
 "sounds" "1"
@@ -1030,8 +1028,6 @@
 {
 "model" "*3"
 "targetname" "p1"
-"health" "0"
-"dmg" "0"
 "lip" "96"
 "wait" "4"
 "sounds" "2"
@@ -1042,10 +1038,8 @@
 {
 "model" "*4"
 "target" "p1"
-"health" "0"
 "wait" "0.2"
 "delay" "2"
-"sounds" "0"
 "classname" "trigger_multiple"
 }
 {
@@ -1063,7 +1057,6 @@
 {
 "model" "*5"
 "delay" "2"
-"health" "0"
 "dmg" "220"
 "lip" "-960"
 "wait" "3"
@@ -1099,7 +1092,7 @@
 {
 "origin" "692 -1280 0"
 "_color" "1 0 0"
-"targetname" "part"
+//"targetname" "part" // b#5: never targeted
 "style" "32"
 "light" "250"
 "classname" "light"
@@ -1237,10 +1230,8 @@
 }
 {
 "model" "*6"
-"health" "0"
 "wait" "5"
 "delay" ".5"
-"sounds" "0"
 "target" "m"
 "classname" "trigger_multiple"
 }
@@ -1269,8 +1260,6 @@
 {
 "model" "*7"
 "delay" "2"
-"health" "0"
-"dmg" "0"
 "lip" "16"
 "wait" "4"
 "sounds" "1"
@@ -1280,8 +1269,6 @@
 }
 {
 "model" "*8"
-"health" "0"
-"dmg" "0"
 "lip" "16"
 "wait" "4"
 "sounds" "1"
@@ -1292,8 +1279,6 @@
 {
 "model" "*9"
 "delay" "2"
-"health" "0"
-"dmg" "0"
 "lip" "16"
 "wait" "4"
 "sounds" "1"
@@ -1303,8 +1288,6 @@
 }
 {
 "model" "*10"
-"health" "0"
-"dmg" "0"
 "lip" "16"
 "wait" "4"
 "sounds" "1"
@@ -1315,8 +1298,6 @@
 {
 "model" "*11"
 "message" "Contamination - Sect4AQ Sealed"
-"health" "0"
-"dmg" "0"
 "lip" "16"
 "wait" "4"
 "sounds" "1"
@@ -1326,8 +1307,6 @@
 }
 {
 "model" "*12"
-"health" "0"
-"dmg" "0"
 "lip" "16"
 "wait" "4"
 "sounds" "1"
@@ -1339,7 +1318,6 @@
 "model" "*13"
 "delay" "4"
 "target" "sled"
-"health" "0"
 "wait" "4"
 "sounds" "1"
 "speed" "100"
@@ -1400,37 +1378,29 @@
 {
 "model" "*14"
 "target" "sled"
-"health" "0"
 "wait" "5"
 "delay" "2"
-"sounds" "0"
 "classname" "trigger_multiple"
 }
 {
 "model" "*15"
 "targetname" "enddoor"
-"delay" "0"
-"health" "0"
-"dmg" "0"
 "lip" "24"
 "wait" "-1"
 "sounds" "1"
 "speed" "112"
-"spawnflags" "3840"
+"spawnflags" "3840" // b#3: added this
 "angle" "-1"
 "classname" "func_door"
 }
 {
 "model" "*16"
-"delay" "0"
 "targetname" "enddoor"
-"health" "0"
-"dmg" "0"
 "lip" "24"
 "wait" "-1"
 "sounds" "1"
 "speed" "56"
-"spawnflags" "3840"
+"spawnflags" "3840" // b#3: added this
 "angle" "-2"
 "classname" "func_door"
 }
@@ -1536,8 +1506,6 @@
 }
 {
 "model" "*17"
-"health" "0"
-"dmg" "0"
 "lip" "16"
 "wait" "10"
 "sounds" "1"
@@ -1547,8 +1515,6 @@
 }
 {
 "model" "*18"
-"health" "0"
-"dmg" "0"
 "lip" "16"
 "wait" "10"
 "sounds" "1"
@@ -1820,15 +1786,13 @@
 {
 "origin" "-1350 -302 52"
 "_color" "1 .6 0"
-"targetname" "secret5"
+//"targetname" "secret5" // b#5: never targeted
 "style" "34"
 "light" "150"
 "classname" "light"
 }
 {
 "model" "*20"
-"health" "0"
-"dmg" "0"
 "lip" "16"
 "wait" "10"
 "sounds" "1"
@@ -1838,8 +1802,6 @@
 }
 {
 "model" "*21"
-"health" "0"
-"dmg" "0"
 "lip" "16"
 "wait" "10"
 "sounds" "1"
@@ -1863,11 +1825,7 @@
 {
 "model" "*22"
 "targetname" "o"
-"delay" "0"
-"health" "0"
-"dmg" "0"
 "lip" "-1"
-"wait" "0"
 "sounds" "1"
 "speed" "100"
 "spawnflags" "32"
@@ -1877,11 +1835,7 @@
 {
 "model" "*23"
 "targetname" "m"
-"delay" "0"
-"health" "0"
-"dmg" "0"
 "lip" "16"
-"wait" "0"
 "sounds" "1"
 "speed" "100"
 "spawnflags" "32"
@@ -1894,28 +1848,30 @@
 }
 {
 "model" "*24"
-"health" "0"
 "wait" "0.2"
-"delay" "0"
-"sounds" "0"
 "target" "endkey"
 "classname" "trigger_multiple"
+"spawnflags" "3840" // b#5: added this
 }
 {
 "origin" "672 -1132 -224"
 "classname" "trigger_relay"
+"spawnflags" "3840" // b#5: added this
 }
 {
 "origin" "-204 12 -147"
 "classname" "trigger_relay"
+"spawnflags" "3840" // b#5: added this
 }
 {
 "origin" "-204 -478 68"
 "classname" "trigger_relay"
+"spawnflags" "3840" // b#5: added this
 }
 {
 "origin" "-184 40 -146"
 "classname" "trigger_relay"
+"spawnflags" "3840" // b#5: added this
 }
 {
 "origin" "-1320 16 40"
@@ -1934,20 +1890,15 @@
 {
 "origin" "584 -1104 -112"
 "item" "key_commander_head"
-"health" "0"
 "wait" "0.2"
-"delay" "0"
-"sounds" "0"
 "target" "headdoor"
 "targetname" "headkey"
 "classname" "trigger_key"
 }
 {
 "model" "*25"
-"health" "0"
 "wait" "5"
 "delay" "2"
-"sounds" "0"
 "target" "o"
 "classname" "trigger_multiple"
 }
@@ -2080,21 +2031,15 @@
 {
 "origin" "344 -804 -188"
 "item" "key_power_cube"
-"health" "0"
 "wait" "0.2"
-"delay" "0"
-"sounds" "0"
 "target" "enddoor"
 "targetname" "endkey"
 "classname" "trigger_key"
-"spawnflags" "3840"
+"spawnflags" "3840" // b#3: added this
 }
 {
 "model" "*29"
 "dmg" "200"
-"health" "0"
-"wait" "0"
-"delay" "0"
 "targetname" "rumboom"
 "mass" "800"
 "classname" "func_explosive"
@@ -2109,7 +2054,7 @@
 {
 "origin" "-1344 -384 64"
 "_color" "1 .6 0"
-"targetname" "secret5"
+//"targetname" "secret5" // b#5: never targeted
 "style" "34"
 "light" "150"
 "classname" "light"
@@ -2271,7 +2216,6 @@
 }
 {
 "origin" "112 -416 -112"
-"wait" "0"
 "delay" "7"
 "target" "rumboom"
 "targetname" "rumb"
@@ -2490,12 +2434,10 @@
 "origin" "-72 812 488"
 "targetname" "fball1"
 "dmg" "100"
-"delay" "0"
 "classname" "target_explosion"
 }
 {
 "origin" "-100 812 492"
-"delay" "0"
 "random" "2"
 "target" "fball1"
 "pausetime" "0"
@@ -2507,12 +2449,10 @@
 "origin" "-60 296 520"
 "targetname" "fball3"
 "dmg" "100"
-"delay" "0"
 "classname" "target_explosion"
 }
 {
 "origin" "-88 296 524"
-"delay" "0"
 "random" "1"
 "target" "fball3"
 "pausetime" "0"
@@ -2524,12 +2464,10 @@
 "origin" "132 292 468"
 "targetname" "fball2"
 "dmg" "100"
-"delay" "0"
 "classname" "target_explosion"
 }
 {
 "origin" "104 292 472"
-"delay" "0"
 "random" "1"
 "target" "fball2"
 "pausetime" "1"
@@ -2695,7 +2633,7 @@
 "classname" "monster_flipper"
 }
 {
-"origin" "-720 -456 -208"
+"origin" "-720 -456 -208" // b#1: -320 -> -208
 "spawnflags" "1"
 "classname" "monster_soldier_ss"
 }
@@ -3249,9 +3187,6 @@
 {
 "model" "*30"
 "targetname" "headdoor"
-"delay" "0"
-"health" "0"
-"dmg" "0"
 "lip" "16"
 "wait" "-1"
 "sounds" "1"
@@ -3261,10 +3196,7 @@
 }
 {
 "model" "*31"
-"delay" "0"
 "targetname" "headdoor"
-"health" "0"
-"dmg" "0"
 "lip" "16"
 "wait" "-1"
 "sounds" "1"
@@ -3274,16 +3206,13 @@
 }
 {
 "model" "*32"
-"delay" "0"
 "target" "headkey"
 "classname" "trigger_multiple"
 }
 {
 "origin" "928 -1320 -64"
-"health" "0"
 "wait" "0.2"
 "delay" "6"
-"sounds" "0"
 "target" "te"
 "targetname" "theend"
 "classname" "trigger_relay"
@@ -4106,8 +4035,8 @@
 }
 {
 "origin" "-1334 4 36"
-"targetname" "msgtrig"
 "target" "helpmsg"
+"delay" "0.3" // b#x: added this
 "classname" "trigger_always"
 }
 {
@@ -4153,17 +4082,17 @@
 "angle" "-29"
 "classname" "info_player_coop"
 }
-{
+{ // b#2: added this
 "classname" "path_corner"
 "targetname" "teledest"
 "origin" "-1320 16 0"
 }
-{
+{ // b#2: added this
 "classname" "misc_teleporter"
 "origin" "315 -635 -223"
 "target" "teledest"
 }
-{
+{ // b#4: added this
 "classname" "item_power_shield"
 "origin" "-845 -965 8"
 }

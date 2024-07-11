@@ -724,6 +724,7 @@ extern void SP_target_secret ( edict_t * ent ) ;
 extern void use_target_secret ( edict_t * ent , edict_t * other , edict_t * activator ) ;
 extern void SP_target_help ( edict_t * ent ) ;
 extern void Use_Target_Help ( edict_t * ent , edict_t * other , edict_t * activator ) ;
+extern void Target_Help_Think ( edict_t * ent );
 extern void SP_target_speaker ( edict_t * ent ) ;
 extern void Use_Target_Speaker ( edict_t * ent , edict_t * other , edict_t * activator ) ;
 extern void SP_target_temp_entity ( edict_t * ent ) ;
