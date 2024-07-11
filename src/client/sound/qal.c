@@ -561,18 +561,18 @@ QAL_Init()
 	}
 
 	if (qalcIsExtensionPresent(device, "ALC_EXT_EFX") != AL_FALSE) {
-		qalGenFilters = qalGetProcAddress("alGenFilters");
-		qalFilteri = qalGetProcAddress("alFilteri");
-		qalFilterf = qalGetProcAddress("alFilterf");
-		qalDeleteFilters = qalGetProcAddress("alDeleteFilters");
-		qalAuxiliaryEffectSloti = qalGetProcAddress("alAuxiliaryEffectSloti");
-		qalGenEffects = qalGetProcAddress("alGenEffects");
-		qalGenAuxiliaryEffectSlots = qalGetProcAddress("alGenAuxiliaryEffectSlots");
-		qalEffectf = qalGetProcAddress("alEffectf");
-		qalEffecti = qalGetProcAddress("alEffecti");
-		qalEffectfv = qalGetProcAddress("alEffectfv");
-		qalDeleteAuxiliaryEffectSlots = qalGetProcAddress("alDeleteAuxiliaryEffectSlots");
-		qalDeleteEffects = qalGetProcAddress("alDeleteEffects");
+		qalGenFilters = (LPALGENFILTERS)qalGetProcAddress("alGenFilters");
+		qalFilteri = (LPALFILTERI)qalGetProcAddress("alFilteri");
+		qalFilterf = (LPALFILTERF)qalGetProcAddress("alFilterf");
+		qalDeleteFilters = (LPALDELETEFILTERS)qalGetProcAddress("alDeleteFilters");
+		qalAuxiliaryEffectSloti = (LPALAUXILIARYEFFECTSLOTI)qalGetProcAddress("alAuxiliaryEffectSloti");
+		qalGenEffects = (LPALGENEFFECTS)qalGetProcAddress("alGenEffects");
+		qalGenAuxiliaryEffectSlots = (LPALGENAUXILIARYEFFECTSLOTS)qalGetProcAddress("alGenAuxiliaryEffectSlots");
+		qalEffectf = (LPALEFFECTF)qalGetProcAddress("alEffectf");
+		qalEffecti = (LPALEFFECTI)qalGetProcAddress("alEffecti");
+		qalEffectfv = (LPALEFFECTFV)qalGetProcAddress("alEffectfv");
+		qalDeleteAuxiliaryEffectSlots = (LPALDELETEAUXILIARYEFFECTSLOTS)qalGetProcAddress("alDeleteAuxiliaryEffectSlots");
+		qalDeleteEffects = (LPALDELETEEFFECTS)qalGetProcAddress("alDeleteEffects");
 	} else {
 		qalGenFilters = NULL;
 		qalFilteri = NULL;
