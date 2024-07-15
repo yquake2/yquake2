@@ -719,28 +719,6 @@ R_RenderLightmappedPoly(entity_t *currententity, msurface_t *surf)
 	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 }
 
-static void
-R_UploadDynamicLights(msurface_t *surf)
-{
-	int map, smax, tmax;
-
-	if ( !gl_config.multitexture || !R_HasDynamicLights(surf, &map) )
-	{
-		return;
-	}
-	YQ2_VLA(byte, temp, gl_state.block_width * gl_state.block_height);
-
-	smax = (surf->extents[0] >> 4) + 1;
-	tmax = (surf->extents[1] >> 4) + 1;
-	R_BuildLightMap(surf, (void *) temp, smax * LIGHTMAP_BYTES);
-	R_UpdateSurfCache(surf, map);
-
-	R_Bind(gl_state.lightmap_textures + surf->lightmaptexturenum);
-	glTexSubImage2D(GL_TEXTURE_2D, 0, surf->light_s, surf->light_t, smax,
-					tmax, GL_LIGHTMAP_FORMAT, GL_UNSIGNED_BYTE, temp);
-	YQ2_VLAFREE(temp);
-}
-
 /* Upload dynamic lights to each lightmap texture (multitexture path only) */
 static void
 R_RegenAllLightmaps()
@@ -928,7 +906,7 @@ R_DrawInlineBModel(entity_t *currententity, const model_t *currentmodel)
 	image_t *image;
 
 	/* calculate dynamic lighting for bmodel */
-	if (!gl1_flashblend->value)
+	if (!gl_config.multitexture && !gl1_flashblend->value)
 	{
 		lt = r_newrefdef.dlights;
 
@@ -973,7 +951,7 @@ R_DrawInlineBModel(entity_t *currententity, const model_t *currentmodel)
 
 				if (gl_config.multitexture && !(psurf->flags & SURF_DRAWTURB))
 				{
-					R_UploadDynamicLights(psurf);
+					// Dynamic lighting already generated in R_GetBrushesLighting()
 					R_EnableMultitexture(true);
 					R_MBind(GL_TEXTURE0, image->texnum);
 					R_RenderLightmappedPoly(currententity, psurf);
@@ -1214,6 +1192,96 @@ R_RecursiveWorldNode(entity_t *currententity, mnode_t *node)
 	R_RecursiveWorldNode(currententity, node->children[!side]);
 }
 
+/*
+ * This is for the RegenAllLightmaps() function to be able to regenerate
+ * lighting not only for the world, but also for the brushes in the entity list.
+ * Logic extracted from R_DrawBrushModel() & R_DrawInlineBModel().
+ */
+static void
+R_GetBrushesLighting(void)
+{
+	int i, k;
+	vec3_t mins, maxs;
+	msurface_t *surf;
+	cplane_t *pplane;
+	dlight_t *lt;
+	float dot;
+
+	if (!gl_config.multitexture || !r_drawentities->value || gl1_flashblend->value)
+	{
+		return;
+	}
+
+	for (i = 0; i < r_newrefdef.num_entities; i++)
+	{
+		entity_t *currententity = &r_newrefdef.entities[i];
+
+		if (currententity->flags & RF_BEAM)
+		{
+			continue;
+		}
+
+		const model_t *currentmodel = currententity->model;
+
+		if (!currentmodel || currentmodel->type != mod_brush || currentmodel->nummodelsurfaces == 0)
+		{
+			continue;
+		}
+
+		// from R_DrawBrushModel()
+		if (currententity->angles[0] || currententity->angles[1] || currententity->angles[2])
+		{
+			for (k = 0; k < 3; k++)
+			{
+				mins[k] = currententity->origin[k] - currentmodel->radius;
+				maxs[k] = currententity->origin[k] + currentmodel->radius;
+			}
+		}
+		else
+		{
+			VectorAdd(currententity->origin, currentmodel->mins, mins);
+			VectorAdd(currententity->origin, currentmodel->maxs, maxs);
+		}
+
+		if (r_cull->value && R_CullBox(mins, maxs, frustum))
+		{
+			continue;
+		}
+
+		// from R_DrawInlineBModel()
+		lt = r_newrefdef.dlights;
+
+		for (k = 0; k < r_newrefdef.num_dlights; k++, lt++)
+		{
+			R_MarkLights(lt, 1 << k,
+				currentmodel->nodes + currentmodel->firstnode,
+				r_dlightframecount, R_MarkSurfaceLights);
+		}
+
+		surf = &currentmodel->surfaces[currentmodel->firstmodelsurface];
+
+		for (k = 0; k < currentmodel->nummodelsurfaces; k++, surf++)
+		{
+			if (surf->texinfo->flags & (SURF_TRANS33 | SURF_TRANS66 | SURF_WARP)
+				|| surf->flags & SURF_DRAWTURB)
+			{
+				continue;
+			}
+
+			// find which side of the node we are on
+			pplane = surf->plane;
+			dot = DotProduct(modelorg, pplane->normal) - pplane->dist;
+
+			if (((surf->flags & SURF_PLANEBACK) && (dot < -BACKFACE_EPSILON)) ||
+				(!(surf->flags & SURF_PLANEBACK) && (dot > BACKFACE_EPSILON)))
+			{
+				surf->lightmapchain = gl_lms.lightmap_surfaces[surf->lightmaptexturenum];
+				gl_lms.lightmap_surfaces[surf->lightmaptexturenum] = surf;
+			}
+		}
+	}
+}
+
 void
 R_DrawWorld(void)
 {
@@ -1242,6 +1310,7 @@ R_DrawWorld(void)
 
 	R_ClearSkyBox();
 	R_RecursiveWorldNode(&ent, r_worldmodel->nodes);
+	R_GetBrushesLighting();
 	R_RegenAllLightmaps();
 	R_DrawTextureChains(&ent);
 	R_BlendLightmaps(r_worldmodel);
