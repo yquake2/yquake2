@@ -959,6 +959,7 @@ REFGL1_OBJS_ := \
 	src/client/refresh/gl1/gl1_surf.o \
 	src/client/refresh/gl1/gl1_warp.o \
 	src/client/refresh/gl1/gl1_sdl.o \
+	src/client/refresh/gl1/gl1_buffer.o \
 	src/client/refresh/files/surf.o \
 	src/client/refresh/files/models.o \
 	src/client/refresh/files/pcx.o \

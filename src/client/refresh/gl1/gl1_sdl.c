@@ -46,6 +46,7 @@ static qboolean vsyncActive = false;
 void
 RI_EndFrame(void)
 {
+	R_ApplyGLBuffer();	// to draw buffered 2D text
 	SDL_GL_SwapWindow(window);
 }
 

@@ -590,6 +590,7 @@ set(GL1-Source
 	${REF_SRC_DIR}/gl1/gl1_surf.c
 	${REF_SRC_DIR}/gl1/gl1_warp.c
 	${REF_SRC_DIR}/gl1/gl1_sdl.c
+	${REF_SRC_DIR}/gl1/gl1_buffer.c
 	${REF_SRC_DIR}/files/models.c
 	${REF_SRC_DIR}/files/pcx.c
 	${REF_SRC_DIR}/files/stb.c

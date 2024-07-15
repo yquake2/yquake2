@@ -77,31 +77,10 @@ RDraw_CharScaled(int x, int y, int num, float scale)
 
 	scaledSize = 8*scale;
 
-	R_Bind(draw_chars->texnum);
+	R_UpdateGLBuffer(buf_2d, draw_chars->texnum, 0, 0, 1);
 
-	GLfloat vtx[] = {
-		x, y,
-		x + scaledSize, y,
-		x + scaledSize, y + scaledSize,
-		x, y + scaledSize
-	};
-
-	GLfloat tex[] = {
-		fcol, frow,
-		fcol + size, frow,
-		fcol + size, frow + size,
-		fcol, frow + size
-	};
-
-	glEnableClientState( GL_VERTEX_ARRAY );
-	glEnableClientState( GL_TEXTURE_COORD_ARRAY );
-
-	glVertexPointer( 2, GL_FLOAT, 0, vtx );
-	glTexCoordPointer( 2, GL_FLOAT, 0, tex );
-	glDrawArrays( GL_TRIANGLE_FAN, 0, 4 );
-
-	glDisableClientState( GL_VERTEX_ARRAY );
-	glDisableClientState( GL_TEXTURE_COORD_ARRAY );
+	R_Buffer2DQuad(x, y, x + scaledSize, y + scaledSize,
+		fcol, frow, fcol + size, frow + size);
 }
 
 image_t *
@@ -190,6 +169,14 @@ RDraw_PicScaled(int x, int y, char *pic, float factor)
 		Scrap_Upload();
 	}
 
+	if (gl->texnum == TEXNUM_SCRAPS)
+	{
+		R_UpdateGLBuffer(buf_2d, TEXNUM_SCRAPS, 0, 0, 1);
+		R_Buffer2DQuad(x, y, x + gl->width * factor, y + gl->height * factor,
+			gl->sl, gl->tl, gl->sh, gl->th);
+		return;
+	}
+
 	R_Bind(gl->texnum);
 
 	GLfloat vtx[] = {
@@ -235,31 +222,10 @@ RDraw_TileClear(int x, int y, int w, int h, char *pic)
 		return;
 	}
 
-	R_Bind(image->texnum);
+	R_UpdateGLBuffer(buf_2d, image->texnum, 0, 0, 1);
 
-	GLfloat vtx[] = {
-		x, y,
-		x + w, y,
-		x + w, y + h,
-		x, y + h
-	};
-
-	GLfloat tex[] = {
-		x / 64.0, y / 64.0,
-		( x + w ) / 64.0, y / 64.0,
-		( x + w ) / 64.0, ( y + h ) / 64.0,
-		x / 64.0, ( y + h ) / 64.0
-	};
-
-	glEnableClientState( GL_VERTEX_ARRAY );
-	glEnableClientState( GL_TEXTURE_COORD_ARRAY );
-
-	glVertexPointer( 2, GL_FLOAT, 0, vtx );
-	glTexCoordPointer( 2, GL_FLOAT, 0, tex );
-	glDrawArrays( GL_TRIANGLE_FAN, 0, 4 );
-
-	glDisableClientState( GL_VERTEX_ARRAY );
-	glDisableClientState( GL_TEXTURE_COORD_ARRAY );
+	R_Buffer2DQuad(x, y, x + w, y + h, x / 64.0, y / 64.0,
+		( x + w ) / 64.0, ( y + h ) / 64.0);
 }
 
 /*
@@ -306,6 +272,7 @@ RDraw_Fill(int x, int y, int w, int h, int c)
 void
 RDraw_FadeScreen(void)
 {
+	R_ApplyGLBuffer();	// draw what needs to be hidden
 	glEnable(GL_BLEND);
 	glDisable(GL_TEXTURE_2D);
 	glColor4f(0, 0, 0, 0.8);

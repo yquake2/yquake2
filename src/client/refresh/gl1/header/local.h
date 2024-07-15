@@ -39,17 +39,18 @@
  #define GL_COLOR_INDEX8_EXT GL_COLOR_INDEX
 #endif
 
-#define TEXNUM_LIGHTMAPS 1024
-#define TEXNUM_SCRAPS 1152
-#define TEXNUM_IMAGES 1153
-#define MAX_GLTEXTURES 1024
+#define MAX_LIGHTMAPS 128
 #define MAX_SCRAPS 1
+#define TEXNUM_LIGHTMAPS 1024
+#define TEXNUM_SCRAPS (TEXNUM_LIGHTMAPS + MAX_LIGHTMAPS)
+#define TEXNUM_IMAGES (TEXNUM_SCRAPS + MAX_SCRAPS)
+#define MAX_GLTEXTURES 1024
 #define BLOCK_WIDTH 128		// default values; now defined in glstate_t
 #define BLOCK_HEIGHT 128
 #define REF_VERSION "Yamagi Quake II OpenGL Refresher"
 #define BACKFACE_EPSILON 0.01
 #define LIGHTMAP_BYTES 4
-#define MAX_LIGHTMAPS 128
+#define MAX_TEXTURE_UNITS 2
 #define GL_LIGHTMAP_FORMAT GL_RGBA
 
 /* up / down */
@@ -106,18 +107,16 @@ typedef enum
 	rserr_unknown
 } rserr_t;
 
+typedef enum
+{
+	buf_2d
+} buffered_draw_t;
+
 #include "model.h"
 
 void R_SetDefaultState(void);
 
 extern float gldepthmin, gldepthmax;
-
-typedef struct
-{
-	float x, y, z;
-	float s, t;
-	float r, g, b;
-} glvert_t;
 
 extern image_t gltextures[MAX_GLTEXTURES];
 extern int numgltextures;
@@ -287,6 +286,11 @@ void R_TextureAlphaMode(char *string);
 void R_TextureSolidMode(char *string);
 int Scrap_AllocBlock(int w, int h, int *x, int *y);
 
+void R_ApplyGLBuffer(void);
+void R_UpdateGLBuffer(buffered_draw_t type, int colortex, int lighttex, int flags, float alpha);
+void R_Buffer2DQuad(GLfloat ul_vx, GLfloat ul_vy, GLfloat dr_vx, GLfloat dr_vy,
+	GLfloat ul_tx, GLfloat ul_ty, GLfloat dr_tx, GLfloat dr_ty);
+
 #ifdef DEBUG
 void glCheckError_(const char *file, const char *function, int line);
 // Ideally, the following list should contain all OpenGL calls.
@@ -380,7 +384,7 @@ typedef struct
 
 	int lightmap_textures;
 
-	int currenttextures[2];
+	int currenttextures[MAX_TEXTURE_UNITS];
 	int currenttmu;
 	GLenum currenttarget;
 
