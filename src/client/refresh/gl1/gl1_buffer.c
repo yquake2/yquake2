@@ -61,7 +61,8 @@ R_ApplyGLBuffer(void)
 {
 	// Properties of batched draws here
 	GLint vtx_size;
-	qboolean texture, mtex, alpha, color, texenv_set;
+	qboolean texture, mtex, alpha, color, alias, texenv_set;
+	float fovy, dist;
 
 	if (gl_buf.vtx_ptr == 0 || gl_buf.idx_ptr == 0)
 	{
@@ -71,7 +72,7 @@ R_ApplyGLBuffer(void)
 	// defaults for drawing (mostly buf_singletex features)
 	vtx_size = 3;
 	texture = true;
-	mtex = alpha = color = texenv_set = false;
+	mtex = alpha = color = alias = texenv_set = false;
 
 	// choosing features by type
 	switch (gl_buf.type)
@@ -85,6 +86,9 @@ R_ApplyGLBuffer(void)
 		case buf_alpha:
 			alpha = true;
 			break;
+		case buf_alias:
+			alias = color = true;
+			break;
 		case buf_flash:
 			color = true;
 			texture = false;
@@ -94,6 +98,53 @@ R_ApplyGLBuffer(void)
 	}
 
 	R_EnableMultitexture(mtex);
+
+	if (alias)
+	{
+		if (gl_buf.flags & RF_DEPTHHACK)
+		{
+			// hack the depth range to prevent view model from poking into walls
+			glDepthRange(gldepthmin, gldepthmin + 0.3 * (gldepthmax - gldepthmin));
+		}
+
+		if (gl_buf.flags & RF_WEAPONMODEL)
+		{
+			glMatrixMode(GL_PROJECTION);
+			glPushMatrix();
+			glLoadIdentity();
+
+			if (gl_lefthand->value == 1.0f)
+			{
+				glScalef(-1, 1, 1);
+			}
+
+			fovy = (r_gunfov->value < 0) ? r_newrefdef.fov_y : r_gunfov->value;
+			dist = (r_farsee->value == 0) ? 4096.0f : 8192.0f;
+			R_MYgluPerspective(fovy, (float)r_newrefdef.width / r_newrefdef.height, 4, dist);
+
+			glMatrixMode(GL_MODELVIEW);
+
+			if (gl_lefthand->value == 1.0f)
+			{
+				glCullFace(GL_BACK);
+			}
+		}
+
+		glShadeModel(GL_SMOOTH);
+		R_TexEnv(GL_MODULATE);
+
+		if (gl_buf.flags & RF_TRANSLUCENT)
+		{
+			glEnable(GL_BLEND);
+		}
+
+		if (gl_buf.flags & (RF_SHELL_RED | RF_SHELL_GREEN |
+			RF_SHELL_BLUE | RF_SHELL_DOUBLE | RF_SHELL_HALF_DAM))
+		{
+			texture = false;
+			glDisable(GL_TEXTURE_2D);
+		}
+	}
 
 	if (alpha)
 	{
@@ -192,6 +243,39 @@ R_ApplyGLBuffer(void)
 		R_TexEnv(GL_REPLACE);
 	}
 
+	if (alias)
+	{
+		if (gl_buf.flags & (RF_SHELL_RED | RF_SHELL_GREEN |
+			RF_SHELL_BLUE | RF_SHELL_DOUBLE | RF_SHELL_HALF_DAM))
+		{
+			glEnable(GL_TEXTURE_2D);
+		}
+
+		if (gl_buf.flags & RF_TRANSLUCENT)
+		{
+			glDisable(GL_BLEND);
+		}
+
+		R_TexEnv(GL_REPLACE);
+		glShadeModel(GL_FLAT);
+
+		if (gl_buf.flags & RF_WEAPONMODEL)
+		{
+			glMatrixMode(GL_PROJECTION);
+			glPopMatrix();
+			glMatrixMode(GL_MODELVIEW);
+			if (gl_lefthand->value == 1.0F)
+			{
+				glCullFace(GL_FRONT);
+			}
+		}
+
+		if (gl_buf.flags & RF_DEPTHHACK)
+		{
+			glDepthRange(gldepthmin, gldepthmax);
+		}
+	}
+
 	gl_buf.vtx_ptr = gl_buf.idx_ptr = 0;
 }
 
@@ -200,7 +284,7 @@ R_UpdateGLBuffer(buffered_draw_t type, int colortex, int lighttex, int flags, fl
 {
 	if ( gl_buf.type != type || gl_buf.texture[0] != colortex ||
 		(gl_config.multitexture && type == buf_mtex && gl_buf.texture[1] != lighttex) ||
-		(type == buf_singletex && gl_buf.flags != flags) ||
+		((type == buf_singletex || type == buf_alias) && gl_buf.flags != flags) ||
 		(type == buf_alpha && gl_buf.alpha != alpha))
 	{
 		R_ApplyGLBuffer();
@@ -283,6 +367,23 @@ R_SetBufferIndices(GLenum type, GLuint vertices_num)
 				gl_buf.idx[gl_buf.idx_ptr++] = gl_buf.vtx_ptr;
 				gl_buf.idx[gl_buf.idx_ptr++] = gl_buf.vtx_ptr+i+1;
 				gl_buf.idx[gl_buf.idx_ptr++] = gl_buf.vtx_ptr+i+2;
+			}
+			break;
+		case GL_TRIANGLE_STRIP:
+			for (i = 0; i < vertices_num-2; i++)
+			{
+				if (i % 2 == 0)
+				{
+					gl_buf.idx[gl_buf.idx_ptr++] = gl_buf.vtx_ptr+i;
+					gl_buf.idx[gl_buf.idx_ptr++] = gl_buf.vtx_ptr+i+1;
+					gl_buf.idx[gl_buf.idx_ptr++] = gl_buf.vtx_ptr+i+2;
+				}
+				else	// backwards order
+				{
+					gl_buf.idx[gl_buf.idx_ptr++] = gl_buf.vtx_ptr+i+2;
+					gl_buf.idx[gl_buf.idx_ptr++] = gl_buf.vtx_ptr+i+1;
+					gl_buf.idx[gl_buf.idx_ptr++] = gl_buf.vtx_ptr+i;
+				}
 			}
 			break;
 		default:

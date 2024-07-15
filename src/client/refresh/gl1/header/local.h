@@ -113,6 +113,7 @@ typedef enum
 	buf_singletex,
 	buf_mtex,
 	buf_alpha,
+	buf_alias,
 	buf_flash
 } buffered_draw_t;
 
