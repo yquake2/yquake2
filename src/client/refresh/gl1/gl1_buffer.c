@@ -61,7 +61,7 @@ R_ApplyGLBuffer(void)
 {
 	// Properties of batched draws here
 	GLint vtx_size;
-	qboolean texture, alpha, texenv_set;
+	qboolean texture, mtex, alpha, texenv_set;
 
 	if (gl_buf.vtx_ptr == 0 || gl_buf.idx_ptr == 0)
 	{
@@ -71,7 +71,7 @@ R_ApplyGLBuffer(void)
 	// defaults for drawing (mostly buf_singletex features)
 	vtx_size = 3;
 	texture = true;
-	alpha = texenv_set = false;
+	mtex = alpha = texenv_set = false;
 
 	// choosing features by type
 	switch (gl_buf.type)
@@ -79,12 +79,17 @@ R_ApplyGLBuffer(void)
 		case buf_2d:
 			vtx_size = 2;
 			break;
+		case buf_mtex:
+			mtex = true;
+			break;
 		case buf_alpha:
 			alpha = true;
 			break;
 		default:
 			break;
 	}
+
+	R_EnableMultitexture(mtex);
 
 	if (alpha)
 	{
@@ -130,7 +135,27 @@ R_ApplyGLBuffer(void)
 
 	if (texture)
 	{
-		R_Bind(gl_buf.texture[0]);
+		if (mtex)
+		{
+			// TMU 1: Lightmap texture
+			R_MBind(GL_TEXTURE1, gl_state.lightmap_textures + gl_buf.texture[1]);
+
+			if (gl1_overbrightbits->value)
+			{
+				R_TexEnv(GL_COMBINE);
+				glTexEnvi(GL_TEXTURE_ENV, GL_RGB_SCALE, gl1_overbrightbits->value);
+			}
+
+			glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+			glTexCoordPointer(2, GL_FLOAT, 0, gl_buf.tex[1]);
+
+			// TMU 0: Color texture
+			R_MBind(GL_TEXTURE0, gl_buf.texture[0]);
+		}
+		else
+		{
+			R_Bind(gl_buf.texture[0]);
+		}
 
 		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 		glTexCoordPointer(2, GL_FLOAT, 0, gl_buf.tex[0]);
@@ -159,6 +184,7 @@ void
 R_UpdateGLBuffer(buffered_draw_t type, int colortex, int lighttex, int flags, float alpha)
 {
 	if ( gl_buf.type != type || gl_buf.texture[0] != colortex ||
+		(gl_config.multitexture && type == buf_mtex && gl_buf.texture[1] != lighttex) ||
 		(type == buf_singletex && gl_buf.flags != flags) ||
 		(type == buf_alpha && gl_buf.alpha != alpha))
 	{
@@ -278,4 +304,17 @@ R_BufferSingleTex(GLfloat s, GLfloat t)
 	// tx should be set before this is called, by R_SetBufferIndices
 	gl_buf.tex[0][tx++] = s;
 	gl_buf.tex[0][tx++] = t;
+}
+
+/*
+ * Adds texture coordinates for color and lightmap
+ */
+void
+R_BufferMultiTex(GLfloat cs, GLfloat ct, GLfloat ls, GLfloat lt)
+{
+	gl_buf.tex[0][tx]   = cs;
+	gl_buf.tex[0][tx+1] = ct;
+	gl_buf.tex[1][tx]   = ls;
+	gl_buf.tex[1][tx+1] = lt;
+	tx += 2;
 }

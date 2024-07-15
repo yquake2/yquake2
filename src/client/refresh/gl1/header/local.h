@@ -111,6 +111,7 @@ typedef enum
 {
 	buf_2d,
 	buf_singletex,
+	buf_mtex,
 	buf_alpha
 } buffered_draw_t;
 
@@ -295,6 +296,7 @@ void R_Buffer2DQuad(GLfloat ul_vx, GLfloat ul_vy, GLfloat dr_vx, GLfloat dr_vy,
 void R_SetBufferIndices(GLenum type, GLuint vertices_num);
 void R_BufferVertex(GLfloat x, GLfloat y, GLfloat z);
 void R_BufferSingleTex(GLfloat s, GLfloat t);
+void R_BufferMultiTex(GLfloat cs, GLfloat ct, GLfloat ls, GLfloat lt);
 
 #ifdef DEBUG
 void glCheckError_(const char *file, const char *function, int line);
