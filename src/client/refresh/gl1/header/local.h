@@ -165,7 +165,6 @@ extern cvar_t *gl1_overbrightbits;
 extern cvar_t *gl1_palettedtexture;
 extern cvar_t *gl1_pointparameters;
 extern cvar_t *gl1_multitexture;
-extern cvar_t *gl1_biglightmaps;
 
 extern cvar_t *gl1_particle_min_size;
 extern cvar_t *gl1_particle_max_size;
