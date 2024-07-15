@@ -207,8 +207,6 @@ R_DrawAliasFrameLerp(entity_t *currententity, dmdl_t *paliashdr, float backlerp)
 static void
 R_DrawAliasShadow(entity_t *currententity, dmdl_t *paliashdr, int posenum)
 {
-    unsigned short total;
-    GLenum type;
 	int *order;
 	vec3_t point;
 	float height = 0, lheight;
@@ -218,6 +216,8 @@ R_DrawAliasShadow(entity_t *currententity, dmdl_t *paliashdr, int posenum)
 	order = (int *)((byte *)paliashdr + paliashdr->ofs_glcmds);
 	height = -lheight + 0.1f;
 
+	R_UpdateGLBuffer(buf_shadow, 0, 0, 0, 1);
+
 	/* stencilbuffer shadows */
 	if (gl_state.stencil && gl1_stencilshadow->value)
 	{
@@ -225,25 +225,6 @@ R_DrawAliasShadow(entity_t *currententity, dmdl_t *paliashdr, int posenum)
 		glStencilFunc(GL_EQUAL, 1, 2);
 		glStencilOp(GL_KEEP, GL_KEEP, GL_INCR);
 	}
-
-#ifdef _MSC_VER // workaround for lack of VLAs (=> our workaround uses alloca() which is bad in loops)
-	int maxCount = 0;
-	const int* tmpOrder = order;
-	while (1)
-	{
-		int c = *tmpOrder++;
-		if (!c)
-			break;
-		if (c < 0)
-			c = -c;
-		if (c > maxCount)
-			maxCount = c;
-
-		tmpOrder += 3 * c;
-	}
-
-	YQ2_VLA(GLfloat, vtx, 3 * maxCount);
-#endif
 
 	while (1)
 	{
@@ -258,20 +239,12 @@ R_DrawAliasShadow(entity_t *currententity, dmdl_t *paliashdr, int posenum)
 		if (count < 0)
 		{
 			count = -count;
-
-            type = GL_TRIANGLE_FAN;
+			R_SetBufferIndices(GL_TRIANGLE_FAN, count);
 		}
 		else
 		{
-            type = GL_TRIANGLE_STRIP;
+			R_SetBufferIndices(GL_TRIANGLE_STRIP, count);
 		}
-
-        total = count;
-
-#ifndef _MSC_VER // we have real VLAs, so it's safe to use one in this loop
-        YQ2_VLA(GLfloat, vtx, 3*total);
-#endif
-        unsigned int index_vtx = 0;
 
 		do
 		{
@@ -282,22 +255,14 @@ R_DrawAliasShadow(entity_t *currententity, dmdl_t *paliashdr, int posenum)
 			point[1] -= shadevector[1] * (point[2] + lheight);
 			point[2] = height;
 
-            vtx[index_vtx++] = point [ 0 ];
-            vtx[index_vtx++] = point [ 1 ];
-            vtx[index_vtx++] = point [ 2 ];
+			R_BufferVertex( point[0], point[1], point[2] );
 
 			order += 3;
 		}
 		while (--count);
-
-        glEnableClientState( GL_VERTEX_ARRAY );
-
-        glVertexPointer( 3, GL_FLOAT, 0, vtx );
-        glDrawArrays( type, 0, total );
-
-        glDisableClientState( GL_VERTEX_ARRAY );
 	}
-	YQ2_VLAFREE(vtx);
+
+	R_ApplyGLBuffer();
 
 	/* stencilbuffer shadows */
 	if (gl_state.stencil && gl1_stencilshadow->value)

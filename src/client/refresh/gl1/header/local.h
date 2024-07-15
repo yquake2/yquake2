@@ -114,7 +114,8 @@ typedef enum
 	buf_mtex,
 	buf_alpha,
 	buf_alias,
-	buf_flash
+	buf_flash,
+	buf_shadow
 } buffered_draw_t;
 
 #include "model.h"
