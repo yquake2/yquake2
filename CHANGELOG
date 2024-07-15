@@ -1,6 +1,8 @@
 Quake II 8.30 to 8.40:
-- Implement `g_quick_swap` to make the weapon switch speed
-  configurable. (by protocultor)
+- Implement `g_quick_weap`. If set to 1, both weapprev and weapnext
+  commands will count how many times they have been called, making
+  possible to skip weapons by quickly tapping one of these keys. (by
+  protocultor)
 - Fix `gl1_overbrightbits`, allowed values are now 0, 1, 2 and 4. (by
   protocultor)
 - Sort player skins case insensitive. (by apartfromtime)
@@ -9,7 +11,7 @@ Quake II 8.30 to 8.40:
 - Add texture filtering options to the video menu (by apartfromtime)
 - Implement `cl_laseralpha` to control how transparent laser beams are.
   (by BjossiAlfreds)
-- Experimental support for SDL 3. Requires SDL 3.1.1.
+- Experimental support for SDL 3. Requires SDL 3.1.2.
 - Reimplement multitexturing for the OpenGL 1.4 renderer. Controlled by
   `gl1_multitexture`, enabled by default. (by protocultor)
 - Optimize dynamic lights and texture allocation in the OpenGL 1.4
