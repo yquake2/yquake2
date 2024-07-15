@@ -61,7 +61,7 @@ R_ApplyGLBuffer(void)
 {
 	// Properties of batched draws here
 	GLint vtx_size;
-	qboolean texture, mtex, alpha, texenv_set;
+	qboolean texture, mtex, alpha, color, texenv_set;
 
 	if (gl_buf.vtx_ptr == 0 || gl_buf.idx_ptr == 0)
 	{
@@ -71,7 +71,7 @@ R_ApplyGLBuffer(void)
 	// defaults for drawing (mostly buf_singletex features)
 	vtx_size = 3;
 	texture = true;
-	mtex = alpha = texenv_set = false;
+	mtex = alpha = color = texenv_set = false;
 
 	// choosing features by type
 	switch (gl_buf.type)
@@ -84,6 +84,10 @@ R_ApplyGLBuffer(void)
 			break;
 		case buf_alpha:
 			alpha = true;
+			break;
+		case buf_flash:
+			color = true;
+			texture = false;
 			break;
 		default:
 			break;
@@ -161,9 +165,20 @@ R_ApplyGLBuffer(void)
 		glTexCoordPointer(2, GL_FLOAT, 0, gl_buf.tex[0]);
 	}
 
+	if (color)
+	{
+		glEnableClientState(GL_COLOR_ARRAY);
+		glColorPointer(4, GL_FLOAT, 0, gl_buf.clr);
+	}
+
 	// All set, we can finally draw
 	glDrawElements(GL_TRIANGLES, gl_buf.idx_ptr, GL_UNSIGNED_SHORT, gl_buf.idx);
 	// ... and now, turn back everything as it was
+
+	if (color)
+	{
+		glDisableClientState(GL_COLOR_ARRAY);
+	}
 
 	if (texture)
 	{
@@ -317,4 +332,16 @@ R_BufferMultiTex(GLfloat cs, GLfloat ct, GLfloat ls, GLfloat lt)
 	gl_buf.tex[1][tx]   = ls;
 	gl_buf.tex[1][tx+1] = lt;
 	tx += 2;
+}
+
+/*
+ * Adds color components of vertex
+ */
+void
+R_BufferColor(GLfloat r, GLfloat g, GLfloat b, GLfloat a)
+{
+	gl_buf.clr[cl++] = r;
+	gl_buf.clr[cl++] = g;
+	gl_buf.clr[cl++] = b;
+	gl_buf.clr[cl++] = a;
 }

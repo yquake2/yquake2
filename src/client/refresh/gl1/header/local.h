@@ -112,7 +112,8 @@ typedef enum
 	buf_2d,
 	buf_singletex,
 	buf_mtex,
-	buf_alpha
+	buf_alpha,
+	buf_flash
 } buffered_draw_t;
 
 #include "model.h"
@@ -297,6 +298,7 @@ void R_SetBufferIndices(GLenum type, GLuint vertices_num);
 void R_BufferVertex(GLfloat x, GLfloat y, GLfloat z);
 void R_BufferSingleTex(GLfloat s, GLfloat t);
 void R_BufferMultiTex(GLfloat cs, GLfloat ct, GLfloat ls, GLfloat lt);
+void R_BufferColor(GLfloat r, GLfloat g, GLfloat b, GLfloat a);
 
 #ifdef DEBUG
 void glCheckError_(const char *file, const char *function, int line);

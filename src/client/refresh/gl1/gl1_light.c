@@ -35,53 +35,34 @@ static float s_blocklights[34 * 34 * 3];
 void
 R_RenderDlight(dlight_t *light)
 {
+	const float rad = light->intensity * 0.35;
 	int i, j;
-	float a;
-	float rad;
+	float vtx[3], a;
 
-	rad = light->intensity * 0.35;
-
-	GLfloat vtx[3*18];
-	GLfloat clr[4*18];
-
-	unsigned int index_vtx = 3;
-	unsigned int index_clr = 0;
-
-	glEnableClientState( GL_VERTEX_ARRAY );
-	glEnableClientState( GL_COLOR_ARRAY );
-
-	clr[index_clr++] = light->color [ 0 ] * 0.2;
-	clr[index_clr++] = light->color [ 1 ] * 0.2;
-	clr[index_clr++] = light->color [ 2 ] * 0.2;
-	clr[index_clr++] = 1;
+	R_SetBufferIndices(GL_TRIANGLE_FAN, 18);
 
 	for ( i = 0; i < 3; i++ )
 	{
 		vtx [ i ] = light->origin [ i ] - vpn [ i ] * rad;
 	}
 
+	R_BufferVertex( vtx[0], vtx[1], vtx[2] );
+	R_BufferColor( light->color[0] * 0.2, light->color[1] * 0.2,
+		light->color[2] * 0.2, 1 );
+
 	for ( i = 16; i >= 0; i-- )
 	{
-		clr[index_clr++] = 0;
-		clr[index_clr++] = 0;
-		clr[index_clr++] = 0;
-		clr[index_clr++] = 1;
-
 		a = i / 16.0 * M_PI * 2;
 
 		for ( j = 0; j < 3; j++ )
 		{
-			vtx[index_vtx++] = light->origin [ j ] + vright [ j ] * cos( a ) * rad
+			vtx[ j ] = light->origin [ j ] + vright [ j ] * cos( a ) * rad
 				+ vup [ j ] * sin( a ) * rad;
 		}
+
+		R_BufferVertex( vtx[0], vtx[1], vtx[2] );
+		R_BufferColor( 0, 0, 0, 1 );
 	}
-
-	glVertexPointer( 3, GL_FLOAT, 0, vtx );
-	glColorPointer( 4, GL_FLOAT, 0, clr );
-	glDrawArrays( GL_TRIANGLE_FAN, 0, 18 );
-
-	glDisableClientState( GL_VERTEX_ARRAY );
-	glDisableClientState( GL_COLOR_ARRAY );
 }
 
 void
@@ -94,6 +75,7 @@ R_RenderDlights(void)
 	{
 		return;
 	}
+	R_UpdateGLBuffer(buf_flash, 0, 0, 0, 1);
 
 	/* because the count hasn't advanced yet for this frame */
 	r_dlightframecount = r_framecount + 1;
@@ -110,6 +92,7 @@ R_RenderDlights(void)
 	{
 		R_RenderDlight(l);
 	}
+	R_ApplyGLBuffer();
 
 	glColor4f(1, 1, 1, 1);
 	glDisable(GL_BLEND);
