@@ -246,7 +246,7 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
 * **g_quick_weap**: If set to `1`, both *weapprev* and *weapnext*
   commands will "count" how many times they have been called, making
   possible to skip weapons by quickly tapping one of these keys.
-  By default this cvar is set to `0`, and will only work if the
+  By default this cvar is set to `1`, and will only work if the
   game.dll implements this behaviour.
 
 * **g_swap_speed**: Sets the speed of the "changing weapon" animation.
