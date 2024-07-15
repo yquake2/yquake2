@@ -43,63 +43,35 @@ void R_SetCacheState(msurface_t *surf);
 void R_BuildLightMap(msurface_t *surf, byte *dest, int stride);
 
 static void
-R_DrawGLPoly(glpoly_t *p)
+R_DrawGLPoly(msurface_t *fa)
 {
-	float *v;
+	int i, nv;
+	float *v, scroll;
 
-	v = p->verts[0];
+	v = fa->polys->verts[0];
+	nv = fa->polys->numverts;
 
-    glEnableClientState( GL_VERTEX_ARRAY );
-    glEnableClientState( GL_TEXTURE_COORD_ARRAY );
-
-    glVertexPointer( 3, GL_FLOAT, VERTEXSIZE*sizeof(GLfloat), v );
-    glTexCoordPointer( 2, GL_FLOAT, VERTEXSIZE*sizeof(GLfloat), v+3 );
-    glDrawArrays( GL_TRIANGLE_FAN, 0, p->numverts );
-
-    glDisableClientState( GL_VERTEX_ARRAY );
-    glDisableClientState( GL_TEXTURE_COORD_ARRAY );
-}
-
-static void
-R_DrawGLFlowingPoly(msurface_t *fa)
-{
-	int i;
-	float *v;
-	glpoly_t *p;
-	float scroll;
-
-	p = fa->polys;
-
-	scroll = -64 * ((r_newrefdef.time / 40.0) - (int)(r_newrefdef.time / 40.0));
-
-	if (scroll == 0.0)
+	if (fa->texinfo->flags & SURF_FLOWING)
 	{
-		scroll = -64.0;
+		scroll = -64 * ((r_newrefdef.time / 40.0) - (int)(r_newrefdef.time / 40.0));
+
+		if (scroll == 0.0)
+		{
+			scroll = -64.0;
+		}
+	}
+	else
+	{
+		scroll = 0.0;
 	}
 
-    YQ2_VLA(GLfloat, tex, 2*p->numverts);
-    unsigned int index_tex = 0;
+	R_SetBufferIndices(GL_TRIANGLE_FAN, nv);
 
-    v = p->verts [ 0 ];
-
-	for ( i = 0; i < p->numverts; i++, v += VERTEXSIZE )
-    {
-        tex[index_tex++] = v [ 3 ] + scroll;
-        tex[index_tex++] = v [ 4 ];
-    }
-    v = p->verts [ 0 ];
-
-    glEnableClientState( GL_VERTEX_ARRAY );
-    glEnableClientState( GL_TEXTURE_COORD_ARRAY );
-
-    glVertexPointer( 3, GL_FLOAT, VERTEXSIZE*sizeof(GLfloat), v );
-    glTexCoordPointer( 2, GL_FLOAT, 0, tex );
-    glDrawArrays( GL_TRIANGLE_FAN, 0, p->numverts );
-
-    glDisableClientState( GL_VERTEX_ARRAY );
-    glDisableClientState( GL_TEXTURE_COORD_ARRAY );
-
-	YQ2_VLAFREE(tex);
+	for ( i = 0; i < nv; i++, v += VERTEXSIZE )
+	{
+		R_BufferVertex(v[0], v[1], v[2]);
+		R_BufferSingleTex(v[3] + scroll, v[4]);
+	}
 }
 
 static void
@@ -419,47 +391,11 @@ R_RenderBrushPoly(entity_t *currententity, msurface_t *fa)
 
 	if (fa->flags & SURF_DRAWTURB)
 	{
-		/* This is a hack ontop of a hack. Warping surfaces like those generated
-		   by R_EmitWaterPolys() don't have a lightmap. Original Quake II therefore
-		   negated the global intensity on those surfaces, because otherwise they
-		   would show up much too bright. When we implemented overbright bits this
-		   hack modified the global GL state in an incompatible way. So implement
-		   a new hack, based on overbright bits... Depending on the value set to
-		   gl1_overbrightbits the result is different:
-
-		    0: Old behaviour.
-		    1: No overbright bits on the global scene but correct lighting on
-		       warping surfaces.
-		    2: Overbright bits on the global scene but not on warping surfaces.
-		        They oversaturate otherwise. */
-		if (gl1_overbrightbits->value)
-		{
-			R_TexEnv(GL_COMBINE);
-			glTexEnvi(GL_TEXTURE_ENV, GL_RGB_SCALE, 1);
-		}
-		else
-		{
-			R_TexEnv(GL_MODULATE);
-			glColor4f(gl_state.inverse_intensity, gl_state.inverse_intensity,
-					  gl_state.inverse_intensity, 1.0f);
-		}
-
 		R_EmitWaterPolys(fa);
-		R_TexEnv(GL_REPLACE);
-
 		return;
 	}
 
-	R_TexEnv(GL_REPLACE);
-
-	if (fa->texinfo->flags & SURF_FLOWING)
-	{
-		R_DrawGLFlowingPoly(fa);
-	}
-	else
-	{
-		R_DrawGLPoly(fa->polys);
-	}
+	R_DrawGLPoly(fa);
 
 	if (gl_config.multitexture)
 	{
@@ -538,7 +474,7 @@ void
 R_DrawAlphaSurfaces(void)
 {
 	msurface_t *s;
-	float intens;
+	float alpha;
 
 	/* go back to the world matrix */
 	glLoadMatrixf(r_world_matrix);
@@ -546,41 +482,35 @@ R_DrawAlphaSurfaces(void)
 	glEnable(GL_BLEND);
 	R_TexEnv(GL_MODULATE);
 
-	/* the textures are prescaled up for a better
-	   lighting range, so scale it back down */
-	intens = gl_state.inverse_intensity;
-
 	for (s = r_alpha_surfaces; s; s = s->texturechain)
 	{
-		R_Bind(s->texinfo->image->texnum);
 		c_brush_polys++;
 
 		if (s->texinfo->flags & SURF_TRANS33)
 		{
-			glColor4f(intens, intens, intens, 0.33);
+			alpha = 0.33f;
 		}
 		else if (s->texinfo->flags & SURF_TRANS66)
 		{
-			glColor4f(intens, intens, intens, 0.66);
+			alpha = 0.66f;
 		}
 		else
 		{
-			glColor4f(intens, intens, intens, 1);
+			alpha = 1.0f;
 		}
+
+		R_UpdateGLBuffer(buf_alpha, s->texinfo->image->texnum, 0, 0, alpha);
 
 		if (s->flags & SURF_DRAWTURB)
 		{
 			R_EmitWaterPolys(s);
 		}
-		else if (s->texinfo->flags & SURF_FLOWING)
-		{
-			R_DrawGLFlowingPoly(s);
-		}
 		else
 		{
-			R_DrawGLPoly(s->polys);
+			R_DrawGLPoly(s);
 		}
 	}
+	R_ApplyGLBuffer();	// Flush the last batched array
 
 	R_TexEnv(GL_REPLACE);
 	glColor4f(1, 1, 1, 1);
@@ -842,12 +772,13 @@ R_DrawTextureChains(entity_t *currententity)
 
 			for ( ; s; s = s->texturechain)
 			{
-				R_Bind(image->texnum);  // may reset because of dynamic lighting in R_RenderBrushPoly
+				R_UpdateGLBuffer(buf_singletex, image->texnum, 0, s->flags, 1);
 				R_RenderBrushPoly(currententity, s);
 			}
 
 			image->texturechain = NULL;
 		}
+		R_ApplyGLBuffer();	// Flush the last batched array
 	}
 	else	// multitexture
 	{
@@ -872,7 +803,7 @@ R_DrawTextureChains(entity_t *currententity)
 			}
 		}
 
-		R_EnableMultitexture(false);
+		R_EnableMultitexture(false);	// force disabling, SURF_DRAWTURB surfaces may not exist
 
 		for (i = 0, image = gltextures; i < numgltextures; i++, image++)
 		{
@@ -885,13 +816,14 @@ R_DrawTextureChains(entity_t *currententity)
 			{
 				if (s->flags & SURF_DRAWTURB)
 				{
-					R_Bind(image->texnum);
+					R_UpdateGLBuffer(buf_singletex, image->texnum, 0, s->flags, 1);
 					R_RenderBrushPoly(currententity, s);
 				}
 			}
 
 			image->texturechain = NULL;
 		}
+		R_ApplyGLBuffer();
 	}
 }
 
@@ -958,13 +890,14 @@ R_DrawInlineBModel(entity_t *currententity, const model_t *currentmodel)
 				}
 				else
 				{
-					R_EnableMultitexture(false);
-					R_Bind(image->texnum);
+					R_UpdateGLBuffer(buf_singletex, image->texnum, 0, psurf->flags, 1);
 					R_RenderBrushPoly(currententity, psurf);
 				}
 			}
 		}
 	}
+	R_EnableMultitexture(false);
+	R_ApplyGLBuffer();
 
 	if (!(currententity->flags & RF_TRANSLUCENT))
 	{

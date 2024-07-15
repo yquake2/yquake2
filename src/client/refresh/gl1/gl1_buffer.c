@@ -61,16 +61,17 @@ R_ApplyGLBuffer(void)
 {
 	// Properties of batched draws here
 	GLint vtx_size;
-	qboolean texture;
+	qboolean texture, alpha, texenv_set;
 
 	if (gl_buf.vtx_ptr == 0 || gl_buf.idx_ptr == 0)
 	{
 		return;
 	}
 
-	// defaults for drawing
+	// defaults for drawing (mostly buf_singletex features)
 	vtx_size = 3;
 	texture = true;
+	alpha = texenv_set = false;
 
 	// choosing features by type
 	switch (gl_buf.type)
@@ -78,8 +79,50 @@ R_ApplyGLBuffer(void)
 		case buf_2d:
 			vtx_size = 2;
 			break;
+		case buf_alpha:
+			alpha = true;
+			break;
 		default:
 			break;
+	}
+
+	if (alpha)
+	{
+		// the textures are prescaled up for a better
+		// lighting range, so scale it back down
+		glColor4f(gl_state.inverse_intensity, gl_state.inverse_intensity,
+				  gl_state.inverse_intensity, gl_buf.alpha);
+
+	}
+	else if (gl_buf.flags & SURF_DRAWTURB)
+	{
+		texenv_set = true;
+
+		// This is a hack ontop of a hack. Warping surfaces like those generated
+		// by R_EmitWaterPolys() don't have a lightmap. Original Quake II therefore
+		// negated the global intensity on those surfaces, because otherwise they
+		// would show up much too bright. When we implemented overbright bits this
+		// hack modified the global GL state in an incompatible way. So implement
+		// a new hack, based on overbright bits... Depending on the value set to
+		// gl1_overbrightbits the result is different:
+
+		//  0: Old behaviour.
+		//  1: No overbright bits on the global scene but correct lighting on
+		//     warping surfaces.
+		//  2,4: Overbright bits on the global scene but not on warping surfaces.
+		//       They oversaturate otherwise.
+
+		if (gl1_overbrightbits->value)
+		{
+			R_TexEnv(GL_COMBINE);
+			glTexEnvi(GL_TEXTURE_ENV, GL_RGB_SCALE, 1);
+		}
+		else
+		{
+			R_TexEnv(GL_MODULATE);
+			glColor4f(gl_state.inverse_intensity, gl_state.inverse_intensity,
+					  gl_state.inverse_intensity, 1.0f);
+		}
 	}
 
 	glEnableClientState( GL_VERTEX_ARRAY );
@@ -104,13 +147,20 @@ R_ApplyGLBuffer(void)
 
 	glDisableClientState( GL_VERTEX_ARRAY );
 
+	if (texenv_set)
+	{
+		R_TexEnv(GL_REPLACE);
+	}
+
 	gl_buf.vtx_ptr = gl_buf.idx_ptr = 0;
 }
 
 void
 R_UpdateGLBuffer(buffered_draw_t type, int colortex, int lighttex, int flags, float alpha)
 {
-	if ( gl_buf.type != type || gl_buf.texture[0] != colortex )
+	if ( gl_buf.type != type || gl_buf.texture[0] != colortex ||
+		(type == buf_singletex && gl_buf.flags != flags) ||
+		(type == buf_alpha && gl_buf.alpha != alpha))
 	{
 		R_ApplyGLBuffer();
 
@@ -168,4 +218,64 @@ R_Buffer2DQuad(GLfloat ul_vx, GLfloat ul_vy, GLfloat dr_vx, GLfloat dr_vy,
 	gl_buf.tex[0][i+7] = dr_ty;
 
 	gl_buf.vtx_ptr += 4;
+}
+
+/*
+ * Set up indices with the proper shape for the next buffered vertices
+ */
+void
+R_SetBufferIndices(GLenum type, GLuint vertices_num)
+{
+	int i;
+
+	if ( gl_buf.vtx_ptr + vertices_num >= MAX_VERTICES ||
+		gl_buf.idx_ptr + ( (vertices_num - 2) * 3 ) >= MAX_INDICES )
+	{
+		R_ApplyGLBuffer();
+	}
+
+	switch (type)
+	{
+		case GL_TRIANGLE_FAN:
+			for (i = 0; i < vertices_num-2; i++)
+			{
+				gl_buf.idx[gl_buf.idx_ptr++] = gl_buf.vtx_ptr;
+				gl_buf.idx[gl_buf.idx_ptr++] = gl_buf.vtx_ptr+i+1;
+				gl_buf.idx[gl_buf.idx_ptr++] = gl_buf.vtx_ptr+i+2;
+			}
+			break;
+		default:
+			R_Printf(PRINT_DEVELOPER, "R_SetBufferIndices: no such type %d\n", type);
+			return;
+	}
+
+	// These affect the functions that follow in this file
+	vt = gl_buf.vtx_ptr * 3;	// vertex index
+	tx = gl_buf.vtx_ptr * 2;	// texcoord index
+	cl = gl_buf.vtx_ptr * 4;	// color index
+
+	// R_BufferVertex() must be called as many times as vertices_num
+	gl_buf.vtx_ptr += vertices_num;
+}
+
+/*
+ * Adds a single vertex to buffer
+ */
+void
+R_BufferVertex(GLfloat x, GLfloat y, GLfloat z)
+{
+	gl_buf.vtx[vt++] = x;
+	gl_buf.vtx[vt++] = y;
+	gl_buf.vtx[vt++] = z;
+}
+
+/*
+ * Adds texture coordinates for color texture (no lightmap coords)
+ */
+void
+R_BufferSingleTex(GLfloat s, GLfloat t)
+{
+	// tx should be set before this is called, by R_SetBufferIndices
+	gl_buf.tex[0][tx++] = s;
+	gl_buf.tex[0][tx++] = t;
 }
