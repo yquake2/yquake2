@@ -71,9 +71,6 @@ void M_Menu_Credits(void);
 
 qboolean m_entersound; /* play after drawing a frame, so caching won't disrupt the sound */
 
-void (*m_drawfunc)(void);
-const char *(*m_keyfunc)(int key);
-
 /* Maximal number of submenus */
 #define MAX_MENU_DEPTH 8
 
@@ -84,6 +81,7 @@ typedef struct
 } menulayer_t;
 
 menulayer_t m_layers[MAX_MENU_DEPTH];
+menulayer_t m_active;		/* active menu layer */
 int m_menudepth;
 
 static qboolean
@@ -113,11 +111,11 @@ M_Banner(char *name)
 void
 M_ForceMenuOff(void)
 {
-    m_drawfunc = NULL;
-    m_keyfunc = NULL;
     cls.key_dest = key_game;
+    m_active.draw = NULL;
+    m_active.key  = NULL;
     m_menudepth = 0;
-	Key_MarkAllUp();
+    Key_MarkAllUp();
     Cvar_Set("paused", "0");
 }
 
@@ -133,8 +131,8 @@ M_PopMenu(void)
 
     m_menudepth--;
 
-    m_drawfunc = m_layers[m_menudepth].draw;
-    m_keyfunc  = m_layers[m_menudepth].key;
+    m_active.draw = m_layers[m_menudepth].draw;
+    m_active.key  = m_layers[m_menudepth].key;
 
     if (!m_menudepth)
     {
@@ -199,7 +197,8 @@ M_PushMenu(menuframework_s* menu)
 
     /* if this menu is already open (and on top),
        close it => toggling behaviour */
-    if ((m_drawfunc == menu->draw) && (m_keyfunc == menu->key))
+    if ((m_active.draw == menu->draw) &&
+	(m_active.key  == menu->key))
     {
 	M_PopMenu();
 	return;
@@ -229,12 +228,12 @@ M_PushMenu(menuframework_s* menu)
         return;
     }
 
-    m_layers[m_menudepth].draw = m_drawfunc;
-    m_layers[m_menudepth].key  = m_keyfunc;
+    m_layers[m_menudepth].draw = m_active.draw;
+    m_layers[m_menudepth].key  = m_active.key;
     m_menudepth++;
 
-    m_drawfunc = menu->draw;
-    m_keyfunc  = menu->key;
+    m_active.draw = menu->draw;
+    m_active.key  = menu->key;
 
     m_entersound = true;
 
@@ -6260,8 +6259,11 @@ M_Draw(void)
         Draw_FadeScreen();
     }
 
-    m_drawfunc();
-
+    if (m_active.draw)
+    {
+	m_active.draw();
+    }
+    
     /* delay playing the enter sound until after the
        menu has been drawn, to avoid delay while
        caching images */
@@ -6275,10 +6277,10 @@ M_Draw(void)
 void
 M_Keydown(int key)
 {
-    if (m_keyfunc)
+    if (m_active.key)
     {
         const char *s;
-        if ((s = m_keyfunc(key)) != 0)
+        if ((s = m_active.key(key)) != 0)
         {
             S_StartLocalSound((char *)s);
         }
