@@ -147,21 +147,12 @@ R_SetTexturePalette(unsigned palette[256])
 void
 R_SelectTexture(GLenum texture)
 {
-	int tmu;
-
-	if (!gl_config.multitexture)
+	if (!gl_config.multitexture || gl_state.currenttarget == texture)
 	{
 		return;
 	}
 
-	tmu = texture - GL_TEXTURE0;
-
-	if (tmu == gl_state.currenttmu)
-	{
-		return;
-	}
-
-	gl_state.currenttmu = tmu;
+	gl_state.currenttmu = texture - GL_TEXTURE0;
 	gl_state.currenttarget = texture;
 
 	qglActiveTexture(texture);
@@ -180,7 +171,7 @@ R_TexEnv(GLenum mode)
 	}
 }
 
-void
+qboolean
 R_Bind(int texnum)
 {
 	extern image_t *draw_chars;
@@ -192,11 +183,12 @@ R_Bind(int texnum)
 
 	if (gl_state.currenttextures[gl_state.currenttmu] == texnum)
 	{
-		return;
+		return false;
 	}
 
 	gl_state.currenttextures[gl_state.currenttmu] = texnum;
 	glBindTexture(GL_TEXTURE_2D, texnum);
+	return true;
 }
 
 void
@@ -308,7 +300,11 @@ R_TextureMode(char *string)
 			nolerp = true;
 		}
 
-		R_Bind(glt->texnum);
+		if ( !R_Bind(glt->texnum) )
+		{
+			continue;	// don't bother changing anything if texture was already set
+		}
+
 		if ((glt->type != it_pic) && (glt->type != it_sky)) /* mipmapped texture */
 		{
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gl_filter_min);
