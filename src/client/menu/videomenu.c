@@ -882,3 +882,18 @@ VID_MenuKey(int key)
 	return sound;
 }
 
+/*
+ * VIDEO MENU
+ */
+
+void
+M_Menu_Video_f(void)
+{
+    VID_MenuInit();
+    s_opengl_menu.draw = VID_MenuDraw;
+    s_opengl_menu.key  = VID_MenuKey;
+
+    M_PushMenu(&s_opengl_menu);
+}
+
+
