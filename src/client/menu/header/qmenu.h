@@ -63,6 +63,8 @@ typedef struct _tag_menuframework
 
 	const char *statusbar;
 
+	void (*draw)(void);
+    	const char *(*key)(int k);
 	void (*cursordraw)(struct _tag_menuframework *m);
 } menuframework_s;
 
@@ -134,6 +136,8 @@ typedef struct
 {
 	menucommon_s generic;
 } menuseparator_s;
+
+void M_PushMenu(menuframework_s* menu);
 
 qboolean Field_Key(menufield_s *field, int key);
 
