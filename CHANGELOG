@@ -16,7 +16,6 @@ Quake II 8.30 to 8.40:
   `gl1_multitexture`, enabled by default. (by protocultor)
 - Optimize dynamic lights and texture allocation in the OpenGL 1.4
   renderer. (by protocultor)
-- Support big lightmaps in the OpenGL 1.4 renderer. (by protocultor)
 - Implement gyro tightening for gamepads and joysticks. (by protocultor)
 - Support long player skin names. (by 0lvin)
 - Add a very simple download filter. Files ending in .dll, .dylib and
@@ -24,6 +23,8 @@ Quake II 8.30 to 8.40:
 - Don't load OpenAL and cURL libraries if thy are configured with a full
   or relative path.
 - Work around naggy help icons. (by BjossiAlfreds)
+- Group draw call in GL1. This yields huge performance gains on slow
+  GPUs. (by protocultor)
 
 Quake II 8.20 to 8.30:
 - Use the same image loading code in all renderers. (by 0lvin)
