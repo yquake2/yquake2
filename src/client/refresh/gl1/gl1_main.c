@@ -1161,6 +1161,7 @@ R_SetLightLevel(entity_t *currententity)
 static void
 RI_RenderFrame(refdef_t *fd)
 {
+	R_ApplyGLBuffer();	// menu rendering when needed
 	R_RenderView(fd);
 	R_SetLightLevel (NULL);
 	R_SetGL2D();
