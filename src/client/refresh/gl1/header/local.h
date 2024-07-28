@@ -50,9 +50,10 @@
 #endif
 
 #define MAX_LIGHTMAPS 128
+#define MAX_LIGHTMAP_COPIES 3	// Meant for tile / deferred rendering platforms
 #define MAX_SCRAPS 1
 #define TEXNUM_LIGHTMAPS 1024
-#define TEXNUM_SCRAPS (TEXNUM_LIGHTMAPS + MAX_LIGHTMAPS)
+#define TEXNUM_SCRAPS (TEXNUM_LIGHTMAPS + MAX_LIGHTMAPS * MAX_LIGHTMAP_COPIES)
 #define TEXNUM_IMAGES (TEXNUM_SCRAPS + MAX_SCRAPS)
 #define MAX_GLTEXTURES 1024
 #define BLOCK_WIDTH 128		// default values; now defined in glstate_t
@@ -429,6 +430,7 @@ typedef struct
 	qboolean palettedtexture;
 	qboolean pointparameters;
 	qboolean multitexture;
+	qboolean lightmapcopies;	// many copies of same lightmap, for embedded
 	qboolean discardfb;
 
 	// ----

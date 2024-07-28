@@ -32,6 +32,7 @@
 #define GLBUFFER_RESET	vtx_ptr = idx_ptr = 0; gl_buf.vt = gl_buf.tx = gl_buf.cl = 0;
 
 glbuffer_t gl_buf;	// our drawing buffer, used globally
+int cur_lm_copy;	// which lightmap copy to use (when lightmapcopies=on)
 
 static GLushort vtx_ptr, idx_ptr;	// pointers for array positions in gl_buf
 
@@ -181,7 +182,13 @@ R_ApplyGLBuffer(void)
 		if (mtex)
 		{
 			// TMU 1: Lightmap texture
-			R_MBind(GL_TEXTURE1, gl_state.lightmap_textures + gl_buf.texture[1]);
+			int lmtexture = gl_state.lightmap_textures + gl_buf.texture[1];
+			if (gl_config.lightmapcopies)
+			{
+				// Bind appropiate lightmap copy for this frame
+				lmtexture += gl_state.max_lightmaps * cur_lm_copy;
+			}
+			R_MBind(GL_TEXTURE1, lmtexture);
 
 			if (gl1_overbrightbits->value)
 			{

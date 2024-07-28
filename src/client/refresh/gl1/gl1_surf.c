@@ -28,12 +28,18 @@
 
 #include "header/local.h"
 
+typedef struct
+{
+	int top, bottom, left, right;
+} lmrect_t;
+
 int c_visible_lightmaps;
 int c_visible_textures;
 static vec3_t modelorg; /* relative to viewpoint */
 msurface_t *r_alpha_surfaces;
 
 gllightmapstate_t gl_lms;
+extern int cur_lm_copy;
 
 void LM_InitBlock(void);
 void LM_UploadBlock(qboolean dynamic);
@@ -519,52 +525,6 @@ R_DrawAlphaSurfaces(void)
 	r_alpha_surfaces = NULL;
 }
 
-static qboolean
-R_HasDynamicLights(msurface_t *surf, int *mapNum)
-{
-	int map;
-	qboolean is_dynamic = false;
-
-	if ( r_fullbright->value || !gl1_dynamic->value ||
-		(surf->texinfo->flags & (SURF_SKY | SURF_TRANS33 | SURF_TRANS66 | SURF_WARP)) )
-	{
-		return false;
-	}
-
-	// Any dynamic lights on this surface?
-	for (map = 0; map < MAXLIGHTMAPS && surf->styles[map] != 255; map++)
-	{
-		if (r_newrefdef.lightstyles[surf->styles[map]].white != surf->cached_light[map])
-		{
-			is_dynamic = true;
-			break;
-		}
-	}
-
-	// No matter if it is this frame or was in the previous one: has dynamic lights
-	if ( !is_dynamic && (surf->dlightframe == r_framecount || surf->dirty_lightmap) )
-	{
-		is_dynamic = true;
-	}
-
-	if (mapNum)
-	{
-		*mapNum = map;
-	}
-	return is_dynamic;
-}
-
-static void
-R_UpdateSurfCache(msurface_t *surf, int map)
-{
-	if ( ((surf->styles[map] >= 32) || (surf->styles[map] == 0))
-		&& (surf->dlightframe != r_framecount) )
-	{
-		R_SetCacheState(surf);
-	}
-	surf->dirty_lightmap = (surf->dlightframe == r_framecount);
-}
-
 static void
 R_RenderLightmappedPoly(entity_t *currententity, msurface_t *surf)
 {
@@ -599,11 +559,37 @@ R_RenderLightmappedPoly(entity_t *currententity, msurface_t *surf)
 	}
 }
 
+/* Add "adding" area to "obj" */
+static void
+R_JoinAreas(lmrect_t *adding, lmrect_t *obj)
+{
+	if (adding->top < obj->top)
+	{
+		obj->top = adding->top;
+	}
+	if (adding->bottom > obj->bottom)
+	{
+		obj->bottom = adding->bottom;
+	}
+	if (adding->left < obj->left)
+	{
+		obj->left = adding->left;
+	}
+	if (adding->right > obj->right)
+	{
+		obj->right = adding->right;
+	}
+}
+
 /* Upload dynamic lights to each lightmap texture (multitexture path only) */
 static void
 R_RegenAllLightmaps()
 {
-	int i, map, smax, tmax, top, bottom, left, right, bt, bb, bl, br;
+	static lmrect_t lmchange[MAX_LIGHTMAP_COPIES][MAX_LIGHTMAPS];
+	static qboolean altered[MAX_LIGHTMAP_COPIES][MAX_LIGHTMAPS];
+
+	int i, map, smax, tmax, cc, lmtex;
+	lmrect_t current, best;
 	msurface_t *surf;
 	byte *base;
 	qboolean affected_lightmap;
@@ -611,9 +597,17 @@ R_RegenAllLightmaps()
 	qboolean pixelstore_set = false;
 #endif
 
-	if ( !gl_config.multitexture )
+	if ( !gl_config.multitexture || r_fullbright->value || !gl1_dynamic->value )
 	{
 		return;
+	}
+
+	cc = lmtex = 0;
+	if (gl_config.lightmapcopies)
+	{
+		cur_lm_copy = (cur_lm_copy + 1) % MAX_LIGHTMAP_COPIES;	// alternate between calls
+		cc = cur_lm_copy;
+		lmtex = gl_state.max_lightmaps * cc;
 	}
 
 	for (i = 1; i < gl_state.max_lightmaps; i++)
@@ -624,55 +618,92 @@ R_RegenAllLightmaps()
 		}
 
 		affected_lightmap = false;
-		bt = gl_state.block_height;
-		bl = gl_state.block_width;
-		bb = br = 0;
+		best.top = gl_state.block_height;
+		best.left = gl_state.block_width;
+		best.bottom = best.right = 0;
 
 		for (surf = gl_lms.lightmap_surfaces[i];
 			 surf != 0;
 			 surf = surf->lightmapchain)
 		{
-			if ( !R_HasDynamicLights(surf, &map) )
+			if (surf->texinfo->flags & (SURF_SKY | SURF_TRANS33 | SURF_TRANS66 | SURF_WARP))
 			{
 				continue;
 			}
 
+			// Any dynamic lights on this surface?
+			for (map = 0; map < MAXLIGHTMAPS && surf->styles[map] != 255; map++)
+			{
+				if (r_newrefdef.lightstyles[surf->styles[map]].white != surf->cached_light[map])
+				{
+					goto dynamic_surf;
+				}
+			}
+
+			// Doesn't matter if it is this frame or was in the previous one: surface has dynamic lights
+			if ( surf->dlightframe == r_framecount || surf->dirty_lightmap )
+			{
+				goto dynamic_surf;
+			}
+
+			continue;	// no dynamic lights affect this surface in this frame
+
+dynamic_surf:
 			affected_lightmap = true;
 			smax = (surf->extents[0] >> 4) + 1;
 			tmax = (surf->extents[1] >> 4) + 1;
 
-			left = surf->light_s;
-			right = surf->light_s + smax;
-			top = surf->light_t;
-			bottom = surf->light_t + tmax;
+			current.left = surf->light_s;
+			current.right = surf->light_s + smax;
+			current.top = surf->light_t;
+			current.bottom = surf->light_t + tmax;
 
 			base = gl_lms.lightmap_buffer[i];
-			base += (top * gl_state.block_width + left) * LIGHTMAP_BYTES;
+			base += (current.top * gl_state.block_width + current.left) * LIGHTMAP_BYTES;
 
 			R_BuildLightMap(surf, base, gl_state.block_width * LIGHTMAP_BYTES);
-			R_UpdateSurfCache(surf, map);
 
-			if (left < bl)
+			if ( ((surf->styles[map] >= 32) || (surf->styles[map] == 0))
+				&& (surf->dlightframe != r_framecount) )
 			{
-				bl = left;
+				R_SetCacheState(surf);
 			}
-			if (right > br)
-			{
-				br = right;
-			}
-			if (top < bt)
-			{
-				bt = top;
-			}
-			if (bottom > bb)
-			{
-				bb = bottom;
-			}
+
+			surf->dirty_lightmap = (surf->dlightframe == r_framecount);
+			R_JoinAreas(&current, &best);
 		}
 
-		if (!affected_lightmap)
+		if (!gl_config.lightmapcopies && !affected_lightmap)
 		{
 			continue;
+		}
+
+		if (gl_config.lightmapcopies)
+		{
+			// add all the changes that have happened in the last few frames,
+			// at least just for consistency between them...
+			qboolean apply_changes = affected_lightmap;
+			current = best;		// save state for next frames... +
+
+			for (int k = 0; k < MAX_LIGHTMAP_COPIES; k++)
+			{
+				if (altered[k][i])
+				{
+					apply_changes = true;
+					R_JoinAreas(&lmchange[k][i], &best);
+				}
+			}
+
+			altered[cc][i] = affected_lightmap;
+			if (affected_lightmap)
+			{
+				lmchange[cc][i] = current;	// + ...here
+			}
+
+			if (!apply_changes)
+			{
+				continue;
+			}
 		}
 
 #ifndef YQ2_GL1_GLES
@@ -687,17 +718,21 @@ R_RegenAllLightmaps()
 		base = gl_lms.lightmap_buffer[i];
 
 #ifdef YQ2_GL1_GLES
-		base += (bt * gl_state.block_width) * LIGHTMAP_BYTES;
+		base += (best.top * gl_state.block_width) * LIGHTMAP_BYTES;
 
-		R_Bind(gl_state.lightmap_textures + i);
-		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, bt, gl_state.block_width, bb - bt,
-						GL_LIGHTMAP_FORMAT, GL_UNSIGNED_BYTE, base);
+		R_Bind(gl_state.lightmap_textures + i + lmtex);
+
+		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, best.top,
+			gl_state.block_width, best.bottom - best.top,
+			GL_LIGHTMAP_FORMAT, GL_UNSIGNED_BYTE, base);
 #else
-		base += (bt * gl_state.block_width + bl) * LIGHTMAP_BYTES;
+		base += (best.top * gl_state.block_width + best.left) * LIGHTMAP_BYTES;
 
-		R_Bind(gl_state.lightmap_textures + i);
-		glTexSubImage2D(GL_TEXTURE_2D, 0, bl, bt, br - bl, bb - bt,
-						GL_LIGHTMAP_FORMAT, GL_UNSIGNED_BYTE, base);
+		R_Bind(gl_state.lightmap_textures + i + lmtex);
+
+		glTexSubImage2D(GL_TEXTURE_2D, 0, best.left, best.top,
+			best.right - best.left, best.bottom - best.top,
+			GL_LIGHTMAP_FORMAT, GL_UNSIGNED_BYTE, base);
 #endif
 	}
 

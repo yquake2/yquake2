@@ -91,6 +91,7 @@ cvar_t *gl1_particle_square;
 cvar_t *gl1_palettedtexture;
 cvar_t *gl1_pointparameters;
 cvar_t *gl1_multitexture;
+cvar_t *gl1_lightmapcopies;
 cvar_t *gl1_discardfb;
 
 cvar_t *gl_drawbuffer;
@@ -1171,6 +1172,12 @@ RI_RenderFrame(refdef_t *fd)
 	R_SetGL2D();
 }
 
+#ifdef YQ2_GL1_GLES
+#define DEFAULT_LMCOPIES	"1"
+#else
+#define DEFAULT_LMCOPIES	"0"
+#endif
+
 void
 R_Register(void)
 {
@@ -1225,6 +1232,7 @@ R_Register(void)
 	gl1_palettedtexture = ri.Cvar_Get("r_palettedtextures", "0", CVAR_ARCHIVE);
 	gl1_pointparameters = ri.Cvar_Get("gl1_pointparameters", "1", CVAR_ARCHIVE);
 	gl1_multitexture = ri.Cvar_Get("gl1_multitexture", "1", CVAR_ARCHIVE);
+	gl1_lightmapcopies = ri.Cvar_Get("gl1_lightmapcopies", DEFAULT_LMCOPIES, CVAR_ARCHIVE);
 #ifdef YQ2_GL1_GLES
 	gl1_discardfb = ri.Cvar_Get("gl1_discardfb", "1", CVAR_ARCHIVE);
 #endif
@@ -1264,6 +1272,8 @@ R_Register(void)
 	ri.Cmd_AddCommand("modellist", Mod_Modellist_f);
 	ri.Cmd_AddCommand("gl_strings", R_Strings);
 }
+
+#undef DEFAULT_LMCOPIES
 
 /*
  * Changes the video mode
@@ -1637,6 +1647,28 @@ RI_Init(void)
 		{
 			R_Printf(PRINT_ALL, "Failed\n");
 		}
+	}
+	else
+	{
+		R_Printf(PRINT_ALL, "Disabled\n");
+	}
+
+	// ----
+
+	/* Lightmap copies: keep multiple copies of "the same" lightmap on video memory.
+	 * All of them are actually different, because they are affected by different dynamic lighting,
+	 * in different frames. This is not meant for Immediate-Mode Rendering systems (desktop),
+	 * but for Tile-Based / Deferred Rendering ones (embedded / mobile), since active manipulation
+	 * of textures already being used in the last few frames can cause slowdown on these systems.
+	 * Needless to say, GPU memory usage is highly increased, so watch out in low memory situations.
+	 */
+
+	R_Printf(PRINT_ALL, " - Lightmap copies: ");
+	gl_config.lightmapcopies = false;
+	if (gl_config.multitexture && gl1_lightmapcopies->value)
+	{
+		gl_config.lightmapcopies = true;
+		R_Printf(PRINT_ALL, "Okay\n");
 	}
 	else
 	{
