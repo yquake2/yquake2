@@ -31,12 +31,22 @@
 #include <ctype.h>
 #include <math.h>
 
+#ifdef YQ2_GL1_GLES
+#include "../glad-gles1/include/glad/glad.h"
+#endif
+
 #include "../../ref_shared.h"
 #include "qgl.h"
 
-
+#ifdef YQ2_GL1_GLES
+#define REF_VERSION "Yamagi Quake II OpenGL ES1 Refresher"
+#define GL_COLOR_INDEX	GL_RGBA
+#define GL_COLOR_INDEX8_EXT	GL_RGBA
+#else
+#define REF_VERSION "Yamagi Quake II OpenGL Refresher"
 #ifndef GL_COLOR_INDEX8_EXT
- #define GL_COLOR_INDEX8_EXT GL_COLOR_INDEX
+#define GL_COLOR_INDEX8_EXT	GL_COLOR_INDEX
+#endif
 #endif
 
 #define MAX_LIGHTMAPS 128
@@ -47,7 +57,6 @@
 #define MAX_GLTEXTURES 1024
 #define BLOCK_WIDTH 128		// default values; now defined in glstate_t
 #define BLOCK_HEIGHT 128
-#define REF_VERSION "Yamagi Quake II OpenGL Refresher"
 #define BACKFACE_EPSILON 0.01
 #define LIGHTMAP_BYTES 4
 #define MAX_TEXTURE_UNITS 2
@@ -337,6 +346,12 @@ void R_Buffer2DQuad(GLfloat ul_vx, GLfloat ul_vy, GLfloat dr_vx, GLfloat dr_vy,
 	GLfloat ul_tx, GLfloat ul_ty, GLfloat dr_tx, GLfloat dr_ty);
 void R_SetBufferIndices(GLenum type, GLuint vertices_num);
 
+#ifdef YQ2_GL1_GLES
+#define glPolygonMode(...)
+#define glFrustum(...) glFrustumf(__VA_ARGS__)
+#define glDepthRange(...) glDepthRangef(__VA_ARGS__)
+#define glOrtho(...) glOrthof(__VA_ARGS__)
+#else
 #ifdef DEBUG
 void glCheckError_(const char *file, const char *function, int line);
 // Ideally, the following list should contain all OpenGL calls.
@@ -385,6 +400,7 @@ void glCheckError_(const char *file, const char *function, int line);
 #define glLoadIdentity() glLoadIdentity(); glCheckError_(__FILE__, __func__, __LINE__)
 #define glBegin(...) glBegin(__VA_ARGS__); glCheckError_(__FILE__, __func__, __LINE__)
 #define glEnd() glEnd(); glCheckError_(__FILE__, __func__, __LINE__)
+#endif
 #endif
 
 /* GL extension emulation functions */

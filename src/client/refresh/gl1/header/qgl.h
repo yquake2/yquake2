@@ -35,9 +35,16 @@
 
 #if defined(__APPLE__)
 #define GL_SILENCE_DEPRECATION
+#endif
+
+#ifdef YQ2_GL1_GLES
+#include <GLES/gl.h>
+#else
+#if defined(__APPLE__)
 #include <OpenGL/gl.h>
 #else
 #include <GL/gl.h>
+#endif
 #endif
 
 #ifndef APIENTRY

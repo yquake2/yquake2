@@ -8,7 +8,7 @@ have been renamed. The prefixes are:
 * No prefix: General stuff.
 * `cl_`: Client.
 * `gl_`: Common to all OpenGL renderers.
-* `gl1_`: OpenGL 1.4 renderer.
+* `gl1_`: OpenGL 1.4 and OpenGL ES1 renderers.
 * `gl3_`: OpenGL 3.2 and OpenGL ES3 renderers.
 * `ogg_`: Ogg/Vorbis music playback.
 * `r_`: Common to all renderers.
@@ -469,7 +469,7 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
   `GL_NEAREST_MIPMAP_LINEAR`, `GL_LINEAR_MIPMAP_LINEAR`
 
 
-## Graphics (OpenGL 1.4 only)
+## Graphics (OpenGL 1.4 and OpenGL ES1 only)
 
 * **gl1_intensity**: Sets the color intensity. Must be a floating point
   value, at least `1.0` - default is `2.0`. Applied when textures are

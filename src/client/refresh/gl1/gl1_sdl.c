@@ -80,6 +80,7 @@ int RI_PrepareForWindow(void)
 	SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
 	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+	SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
 
 	if (SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8) == 0)
 	{
@@ -89,6 +90,12 @@ int RI_PrepareForWindow(void)
 	{
 		gl_state.stencil = false;
 	}
+
+#ifdef YQ2_GL1_GLES
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 1);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
+#endif
 
 	// Let's see if the driver supports MSAA.
 	int msaa_samples = 0;
@@ -220,6 +227,21 @@ int RI_InitContext(void* win)
 		return false;
 	}
 
+#ifdef YQ2_GL1_GLES
+
+	// Load GL pointers through GLAD and check context.
+	if( !gladLoadGLES1Loader(SDL_GL_GetProcAddress))
+	{
+		R_Printf(PRINT_ALL, "RI_InitContext(): ERROR: loading OpenGL ES function pointers failed!\n");
+		return false;
+	}
+
+	gl_config.major_version = GLVersion.major;
+	gl_config.minor_version = GLVersion.minor;
+	R_Printf(PRINT_ALL, "Initialized OpenGL ES version %d.%d context\n", gl_config.major_version, gl_config.minor_version);
+
+#else
+
 	// Check if it's really OpenGL 1.4.
 	const char* glver = (char *)glGetString(GL_VERSION);
 	sscanf(glver, "%d.%d", &gl_config.major_version, &gl_config.minor_version);
@@ -230,6 +252,8 @@ int RI_InitContext(void* win)
 
 		return false;
 	}
+
+#endif
 
 	// Check if we've got the requested MSAA.
 	int msaa_samples = 0;
@@ -262,7 +286,11 @@ int RI_InitContext(void* win)
 	// Window title - set here so we can display renderer name in it.
 	char title[40] = {0};
 
+#ifdef YQ2_GL1_GLES
+	snprintf(title, sizeof(title), "Yamagi Quake II %s - OpenGL ES 1.0", YQ2VERSION);
+#else
 	snprintf(title, sizeof(title), "Yamagi Quake II %s - OpenGL 1.4", YQ2VERSION);
+#endif
 	SDL_SetWindowTitle(window, title);
 
 #if SDL_VERSION_ATLEAST(2, 26, 0)

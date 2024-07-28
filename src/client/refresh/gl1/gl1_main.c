@@ -925,6 +925,7 @@ R_SetGL2D(void)
 static void
 R_RenderView(refdef_t *fd)
 {
+#ifndef YQ2_GL1_GLES
 	if ((gl_state.stereo_mode != STEREO_MODE_NONE) && gl_state.camera_separation) {
 
 		qboolean drawing_left_eye = gl_state.camera_separation < 0;
@@ -1032,7 +1033,7 @@ R_RenderView(refdef_t *fd)
 				break;
 		}
 	}
-
+#endif
 
 	if (r_norefresh->value)
 	{
@@ -1400,12 +1401,27 @@ R_SetMode(void)
 	return true;
 }
 
+// just to avoid too many preprocessor directives in RI_Init()
+typedef enum
+{
+	rf_opengl14,
+	rf_opengles10
+} refresher_t;
+
 qboolean
 RI_Init(void)
 {
 	int j;
 	byte *colormap;
 	extern float r_turbsin[256];
+
+#ifdef YQ2_GL1_GLES
+#define GLEXTENSION_NPOT	"GL_OES_texture_npot"
+	static const refresher_t refresher = rf_opengles10;
+#else
+#define GLEXTENSION_NPOT	"GL_ARB_texture_non_power_of_two"
+	static const refresher_t refresher = rf_opengl14;
+#endif
 
 	Swap_Init();
 
@@ -1462,7 +1478,7 @@ RI_Init(void)
 
 	sscanf(gl_config.version_string, "%d.%d", &gl_config.major_version, &gl_config.minor_version);
 
-	if (gl_config.major_version == 1)
+	if (refresher == rf_opengl14 && gl_config.major_version == 1)
 	{
 		if (gl_config.minor_version < 4)
 		{
@@ -1480,7 +1496,8 @@ RI_Init(void)
 	/* Point parameters */
 	R_Printf(PRINT_ALL, " - Point parameters: ");
 
-	if ( strstr(gl_config.extensions_string, "GL_ARB_point_parameters") ||
+	if ( refresher == rf_opengles10 ||
+		strstr(gl_config.extensions_string, "GL_ARB_point_parameters") ||
 		strstr(gl_config.extensions_string, "GL_EXT_point_parameters") )	// should exist for all OGL 1.4 hw...
 	{
 		qglPointParameterf = (void (APIENTRY *)(GLenum, GLfloat))RI_GetProcAddress ( "glPointParameterf" );
@@ -1573,7 +1590,7 @@ RI_Init(void)
 	/* Non power of two textures */
 	R_Printf(PRINT_ALL, " - Non power of two textures: ");
 
-	if (strstr(gl_config.extensions_string, "GL_ARB_texture_non_power_of_two"))
+	if (strstr(gl_config.extensions_string, GLEXTENSION_NPOT))
 	{
 		gl_config.npottextures = true;
 		R_Printf(PRINT_ALL, "Okay\n");
@@ -1584,6 +1601,8 @@ RI_Init(void)
 		R_Printf(PRINT_ALL, "Failed\n");
 	}
 
+#undef GLEXTENSION_NPOT
+
 	// ----
 
 	/* Multitexturing */
@@ -1591,7 +1610,7 @@ RI_Init(void)
 
 	R_Printf(PRINT_ALL, " - Multitexturing: ");
 
-	if (strstr(gl_config.extensions_string, "GL_ARB_multitexture"))
+	if ( refresher == rf_opengles10 || strstr(gl_config.extensions_string, "GL_ARB_multitexture") )
 	{
 		qglActiveTexture = (void (APIENTRY *)(GLenum))RI_GetProcAddress ("glActiveTexture");
 		qglClientActiveTexture = (void (APIENTRY *)(GLenum))RI_GetProcAddress ("glClientActiveTexture");
@@ -1780,6 +1799,7 @@ RI_BeginFrame(float camera_separation)
 		gl1_particle_square->modified = false;
 	}
 
+#ifndef YQ2_GL1_GLES
 	/* draw buffer stuff */
 	if (gl_drawbuffer->modified)
 	{
@@ -1797,6 +1817,7 @@ RI_BeginFrame(float camera_separation)
 			}
 		}
 	}
+#endif
 
 	/* texturemode stuff */
 	if (gl_texturemode->modified || (gl_config.anisotropic && gl_anisotropic->modified)

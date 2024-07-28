@@ -47,8 +47,16 @@ qboolean R_Upload32(unsigned *data, int width, int height, qboolean mipmap);
 int gl_solid_format = GL_RGB;
 int gl_alpha_format = GL_RGBA;
 
-int gl_tex_solid_format = GL_RGB;
+#ifdef YQ2_GL1_GLES
+#define DEFAULT_SOLID_FORMAT GL_RGBA
+#else
+#define DEFAULT_SOLID_FORMAT GL_RGB
+#endif
+
+int gl_tex_solid_format = DEFAULT_SOLID_FORMAT;
 int gl_tex_alpha_format = GL_RGBA;
+
+#undef DEFAULT_SOLID_FORMAT
 
 int gl_filter_min = GL_LINEAR_MIPMAP_NEAREST;
 int gl_filter_max = GL_LINEAR;
@@ -76,6 +84,20 @@ typedef struct
 	int mode;
 } gltmode_t;
 
+#ifdef YQ2_GL1_GLES
+
+gltmode_t gl_alpha_modes[] = {
+	{"default", GL_RGBA},
+	{"GL_RGBA", GL_RGBA},
+};
+
+gltmode_t gl_solid_modes[] = {
+	{"default", GL_RGBA},
+	{"GL_RGBA", GL_RGBA},
+};
+
+#else
+
 gltmode_t gl_alpha_modes[] = {
 	{"default", GL_RGBA},
 	{"GL_RGBA", GL_RGBA},
@@ -84,8 +106,6 @@ gltmode_t gl_alpha_modes[] = {
 	{"GL_RGBA4", GL_RGBA4},
 	{"GL_RGBA2", GL_RGBA2},
 };
-
-#define NUM_GL_ALPHA_MODES (sizeof(gl_alpha_modes) / sizeof(gltmode_t))
 
 gltmode_t gl_solid_modes[] = {
 	{"default", GL_RGB},
@@ -96,6 +116,9 @@ gltmode_t gl_solid_modes[] = {
 	{"GL_R3_G3_B2", GL_R3_G3_B2},
 };
 
+#endif
+
+#define NUM_GL_ALPHA_MODES (sizeof(gl_alpha_modes) / sizeof(gltmode_t))
 #define NUM_GL_SOLID_MODES (sizeof(gl_solid_modes) / sizeof(gltmode_t))
 
 typedef struct

@@ -72,8 +72,8 @@ static menuaction_s s_apply_action;
 
 // --------
 
-// gl1, gl3, gles3, gl4, vk, soft
-#define MAXRENDERERS 6
+// gl1, gl3, gles1, gles3, gl4, vk, soft
+#define MAXRENDERERS 7
 
 typedef struct
 {
@@ -94,6 +94,13 @@ Renderer_FillRenderdef(void)
 		numrenderer++;
 		rendererlist[numrenderer].boxstr = "[OpenGL 1.4]";
 		rendererlist[numrenderer].cvarstr = "gl1";
+	}
+
+	if (VID_HasRenderer("gles1"))
+	{
+		numrenderer++;
+		rendererlist[numrenderer].boxstr = "[OpenGL ES1]";
+		rendererlist[numrenderer].cvarstr = "gles1";
 	}
 
 	if (VID_HasRenderer("gl3"))
@@ -188,7 +195,7 @@ static void
 ApplyFilter(void* unused)
 {
 	if (Q_stricmp(vid_renderer->string, "gl3") == 0 || Q_stricmp(vid_renderer->string, "gles3") == 0 ||
-		Q_stricmp(vid_renderer->string, "gl1") == 0)
+		Q_stricmp(vid_renderer->string, "gl1") == 0 || Q_stricmp(vid_renderer->string, "gles1") == 0)
 	{
 		if (s_filter_list.curvalue == 0)
 		{
@@ -715,7 +722,7 @@ VID_MenuInit(void)
 	int mode = 0;
 	
 	if (Q_stricmp(vid_renderer->string, "gl3") == 0 || Q_stricmp(vid_renderer->string, "gles3") == 0 ||
-		Q_stricmp(vid_renderer->string, "gl1") == 0)
+		Q_stricmp(vid_renderer->string, "gl1") == 0 || Q_stricmp(vid_renderer->string, "gles1") == 0)
 	{	
 		s_filter_list.generic.x = 0;
 		s_filter_list.generic.y = (y += 10);
@@ -789,7 +796,7 @@ VID_MenuInit(void)
 		Menu_AddItem(&s_opengl_menu, (void *)&s_vk_overbrightbits_slider);
 		Menu_AddItem(&s_opengl_menu, (void *)&s_vk_dynamic_list);
 	}
-	else if (strcmp(vid_renderer->string, "gl1") == 0)
+	else if (strcmp(vid_renderer->string, "gl1") == 0 || strcmp(vid_renderer->string, "gles1") == 0)
 	{
 		Menu_AddItem(&s_opengl_menu, (void *)&s_gl1_intensity_slider);
 		Menu_AddItem(&s_opengl_menu, (void *)&s_gl1_overbrightbits_slider);
@@ -800,7 +807,8 @@ VID_MenuInit(void)
 	Menu_AddItem(&s_opengl_menu, (void *)&s_af_list);
 	Menu_AddItem(&s_opengl_menu, (void *)&s_msaa_list);
 	if (Q_stricmp(vid_renderer->string, "gl3") == 0 || Q_stricmp(vid_renderer->string, "gles3") == 0 ||
-		Q_stricmp(vid_renderer->string, "gl1") == 0 || Q_stricmp(vid_renderer->string, "soft") == 0)
+		Q_stricmp(vid_renderer->string, "gl1") == 0 || Q_stricmp(vid_renderer->string, "gles1") == 0 ||
+		Q_stricmp(vid_renderer->string, "soft") == 0)
 	{
 		Menu_AddItem(&s_opengl_menu, (void *)&s_filter_list);
 	}
