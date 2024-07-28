@@ -492,6 +492,10 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
 * **gl1_stencilshadow**: If `gl_shadows` is set to `1`, this makes them
   look a bit better (no flickering) by using the stencil buffer.
 
+* **gl1_discardfb**: Only available in ES1. If set to `1` (default),
+  send a hint to discard framebuffers after finishing a frame. Useful
+  for GPUs that attempt to reuse them, something Quake 2 doesn't do.
+
 
 ## Graphics (OpenGL 3.2 and OpenGL ES3 only)
 

@@ -91,6 +91,7 @@ cvar_t *gl1_particle_square;
 cvar_t *gl1_palettedtexture;
 cvar_t *gl1_pointparameters;
 cvar_t *gl1_multitexture;
+cvar_t *gl1_discardfb;
 
 cvar_t *gl_drawbuffer;
 cvar_t *gl_lightmap;
@@ -1224,6 +1225,9 @@ R_Register(void)
 	gl1_palettedtexture = ri.Cvar_Get("r_palettedtextures", "0", CVAR_ARCHIVE);
 	gl1_pointparameters = ri.Cvar_Get("gl1_pointparameters", "1", CVAR_ARCHIVE);
 	gl1_multitexture = ri.Cvar_Get("gl1_multitexture", "1", CVAR_ARCHIVE);
+#ifdef YQ2_GL1_GLES
+	gl1_discardfb = ri.Cvar_Get("gl1_discardfb", "1", CVAR_ARCHIVE);
+#endif
 
 	gl_drawbuffer = ri.Cvar_Get("gl_drawbuffer", "GL_BACK", 0);
 	r_vsync = ri.Cvar_Get("r_vsync", "1", CVAR_ARCHIVE);
@@ -1638,6 +1642,43 @@ RI_Init(void)
 	{
 		R_Printf(PRINT_ALL, "Disabled\n");
 	}
+
+	// ----
+
+	/* Discard framebuffer: Available only on GLES1, enables the use of a "performance hint"
+	 * to the graphic driver, to get rid of the contents of the depth and stencil buffers.
+	 * Useful for some GPUs that may attempt to keep them and/or write them back to
+	 * external/uniform memory, actions that are useless for Quake 2 rendering path.
+	 * https://registry.khronos.org/OpenGL/extensions/EXT/EXT_discard_framebuffer.txt
+	 */
+	gl_config.discardfb = false;
+
+#ifdef YQ2_GL1_GLES
+	R_Printf(PRINT_ALL, " - Discard framebuffer: ");
+
+	if (strstr(gl_config.extensions_string, "GL_EXT_discard_framebuffer"))
+	{
+			qglDiscardFramebufferEXT = (void (APIENTRY *)(GLenum, GLsizei, const GLenum *))
+					RI_GetProcAddress ("glDiscardFramebufferEXT");
+	}
+
+	if (gl1_discardfb->value)
+	{
+		if (qglDiscardFramebufferEXT)
+		{
+			gl_config.discardfb = true;
+			R_Printf(PRINT_ALL, "Okay\n");
+		}
+		else
+		{
+			R_Printf(PRINT_ALL, "Failed\n");
+		}
+	}
+	else
+	{
+		R_Printf(PRINT_ALL, "Disabled\n");
+	}
+#endif
 
 	// ----
 

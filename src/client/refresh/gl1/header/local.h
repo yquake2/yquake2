@@ -429,6 +429,7 @@ typedef struct
 	qboolean palettedtexture;
 	qboolean pointparameters;
 	qboolean multitexture;
+	qboolean discardfb;
 
 	// ----
 

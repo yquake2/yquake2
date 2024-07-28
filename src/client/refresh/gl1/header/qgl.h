@@ -100,5 +100,7 @@ extern void ( APIENTRY *qglColorTableEXT ) ( GLenum, GLenum, GLsizei, GLenum,
 		GLenum, const GLvoid * );
 extern void ( APIENTRY *qglActiveTexture ) ( GLenum texture );
 extern void ( APIENTRY *qglClientActiveTexture ) ( GLenum texture );
+extern void ( APIENTRY *qglDiscardFramebufferEXT ) ( GLenum target,
+		GLsizei numAttachments, const GLenum *attachments );
 
 #endif
