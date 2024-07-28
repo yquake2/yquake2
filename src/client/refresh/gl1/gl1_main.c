@@ -148,6 +148,8 @@ void LM_FreeLightmapBuffers(void);
 void Scrap_Free(void);
 void Scrap_Init(void);
 
+extern void R_ResetGLBuffer(void);
+
 void
 R_RotateForEntity(entity_t *e)
 {
@@ -1641,6 +1643,7 @@ RI_Init(void)
 	Mod_Init();
 	R_InitParticleTexture();
 	Draw_InitLocal();
+	R_ResetGLBuffer();
 
 	return true;
 }

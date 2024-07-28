@@ -53,6 +53,10 @@
 #define MAX_TEXTURE_UNITS 2
 #define GL_LIGHTMAP_FORMAT GL_RGBA
 
+// GL buffer definitions
+#define MAX_VERTICES	16384
+#define MAX_INDICES 	(MAX_VERTICES * 4)
+
 /* up / down */
 #define PITCH 0
 
@@ -118,10 +122,29 @@ typedef enum
 	buf_shadow
 } buffered_draw_t;
 
+typedef struct	//	832k aprox.
+{
+	buffered_draw_t	type;
+
+	GLfloat
+		vtx[MAX_VERTICES * 3],	// vertexes
+		tex[MAX_TEXTURE_UNITS][MAX_VERTICES * 2],	// texture coords
+		clr[MAX_VERTICES * 4];	// color components
+
+	GLushort idx[MAX_INDICES];	// indices for the draw call
+
+	GLuint vt, tx, cl;	// indices for GLfloat arrays above
+
+	int	texture[MAX_TEXTURE_UNITS];
+	int	flags;	// entity flags
+	float	alpha;
+} glbuffer_t;
+
 #include "model.h"
 
 void R_SetDefaultState(void);
 
+extern glbuffer_t gl_buf;
 extern float gldepthmin, gldepthmax;
 
 extern image_t gltextures[MAX_GLTEXTURES];
@@ -291,15 +314,28 @@ void R_TextureAlphaMode(char *string);
 void R_TextureSolidMode(char *string);
 int Scrap_AllocBlock(int w, int h, int *x, int *y);
 
+// GL buffer operations
+
+#define GLBUFFER_VERTEX(X, Y, Z) \
+	gl_buf.vtx[gl_buf.vt] = X; gl_buf.vtx[gl_buf.vt+1] = Y; \
+	gl_buf.vtx[gl_buf.vt+2] = Z; gl_buf.vt += 3;
+
+#define GLBUFFER_SINGLETEX(S, T) \
+	gl_buf.tex[0][gl_buf.tx] = S; gl_buf.tex[0][gl_buf.tx+1] = T; gl_buf.tx += 2;
+
+#define GLBUFFER_MULTITEX(CS, CT, LS, LT) \
+	gl_buf.tex[0][gl_buf.tx] = CS; gl_buf.tex[0][gl_buf.tx+1] = CT; \
+	gl_buf.tex[1][gl_buf.tx] = LS; gl_buf.tex[1][gl_buf.tx+1] = LT; gl_buf.tx += 2;
+
+#define GLBUFFER_COLOR(R, G, B, A) \
+	gl_buf.clr[gl_buf.cl] = R; gl_buf.clr[gl_buf.cl+1] = G; \
+	gl_buf.clr[gl_buf.cl+2] = B; gl_buf.clr[gl_buf.cl+3] = A; gl_buf.cl += 4;
+
 void R_ApplyGLBuffer(void);
 void R_UpdateGLBuffer(buffered_draw_t type, int colortex, int lighttex, int flags, float alpha);
 void R_Buffer2DQuad(GLfloat ul_vx, GLfloat ul_vy, GLfloat dr_vx, GLfloat dr_vy,
 	GLfloat ul_tx, GLfloat ul_ty, GLfloat dr_tx, GLfloat dr_ty);
 void R_SetBufferIndices(GLenum type, GLuint vertices_num);
-void R_BufferVertex(GLfloat x, GLfloat y, GLfloat z);
-void R_BufferSingleTex(GLfloat s, GLfloat t);
-void R_BufferMultiTex(GLfloat cs, GLfloat ct, GLfloat ls, GLfloat lt);
-void R_BufferColor(GLfloat r, GLfloat g, GLfloat b, GLfloat a);
 
 #ifdef DEBUG
 void glCheckError_(const char *file, const char *function, int line);

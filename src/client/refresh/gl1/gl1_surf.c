@@ -69,8 +69,8 @@ R_DrawGLPoly(msurface_t *fa)
 
 	for ( i = 0; i < nv; i++, v += VERTEXSIZE )
 	{
-		R_BufferVertex(v[0], v[1], v[2]);
-		R_BufferSingleTex(v[3] + scroll, v[4]);
+		GLBUFFER_VERTEX( v[0], v[1], v[2] )
+		GLBUFFER_SINGLETEX( v[3] + scroll, v[4] )
 	}
 }
 
@@ -594,8 +594,8 @@ R_RenderLightmappedPoly(entity_t *currententity, msurface_t *surf)
 
 	for (i = 0; i < nv; i++, v += VERTEXSIZE)
 	{
-		R_BufferVertex( v[0], v[1], v[2] );
-		R_BufferMultiTex( v[3] + scroll, v[4], v[5], v[6] );
+		GLBUFFER_VERTEX( v[0], v[1], v[2] )
+		GLBUFFER_MULTITEX( v[3] + scroll, v[4], v[5], v[6] )
 	}
 }
 
