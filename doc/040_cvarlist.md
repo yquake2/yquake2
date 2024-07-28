@@ -458,6 +458,10 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
   the overlapping surfaces to mitigate the flickering. This may make
   things better or worse, depending on the map.
 
+* **gl_polyblend**: Toggles the palette blending effect, a.k.a. the
+  "flash" you see when getting injured or picking up an item. In GL1 is
+  also used for looking underwater. Default is `1` (enabled).
+
 * **gl_texturemode**: How textures are filtered.
   - `GL_NEAREST`: No filtering (using value of *nearest* source pixel),
     mipmaps not used
@@ -492,11 +496,11 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
 * **gl1_stencilshadow**: If `gl_shadows` is set to `1`, this makes them
   look a bit better (no flickering) by using the stencil buffer.
 
-* **gl1_lightmapcopies**: When enabled (`1`), keep multiple copies of the
-  same lightmap rotating, shifting to a different one when drawing a new
-  frame. Meant for mobile/embedded devices, where changing textures just
-  displayed (dynamic lighting) causes slowdown. By default in GL1 is
-  disabled, while in GLES1 is enabled. `vid_restart` needed.
+* **gl1_lightmapcopies**: When enabled (`1`), keep 3 copies of the same
+  lightmap rotating, shifting to another one when drawing a new frame.
+  Meant for mobile/embedded devices, where changing textures just shown
+  (dynamic lighting) causes slowdown. By default in GL1 is disabled,
+  while in GLES1 is enabled. Needs `gl1_multitexture 1` & `vid_restart`.
 
 * **gl1_discardfb**: Only available in ES1. If set to `1` (default),
   send a hint to discard framebuffers after finishing a frame. Useful

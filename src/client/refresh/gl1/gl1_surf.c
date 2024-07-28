@@ -585,10 +585,10 @@ R_JoinAreas(lmrect_t *adding, lmrect_t *obj)
 static void
 R_RegenAllLightmaps()
 {
-	static lmrect_t lmchange[MAX_LIGHTMAP_COPIES][MAX_LIGHTMAPS];
-	static qboolean altered[MAX_LIGHTMAP_COPIES][MAX_LIGHTMAPS];
+	static lmrect_t lmchange[MAX_LIGHTMAPS][MAX_LIGHTMAP_COPIES];
+	static qboolean altered[MAX_LIGHTMAPS][MAX_LIGHTMAP_COPIES];
 
-	int i, map, smax, tmax, cc, lmtex;
+	int i, map, smax, tmax, lmtex;
 	lmrect_t current, best;
 	msurface_t *surf;
 	byte *base;
@@ -602,12 +602,14 @@ R_RegenAllLightmaps()
 		return;
 	}
 
-	cc = lmtex = 0;
 	if (gl_config.lightmapcopies)
 	{
-		cur_lm_copy = (cur_lm_copy + 1) % MAX_LIGHTMAP_COPIES;	// alternate between calls
-		cc = cur_lm_copy;
-		lmtex = gl_state.max_lightmaps * cc;
+		cur_lm_copy = (cur_lm_copy + 1) % MAX_LIGHTMAP_COPIES;	// select the next lightmap copy
+		lmtex = gl_state.max_lightmaps * cur_lm_copy;	// ...and its corresponding texture
+	}
+	else
+	{
+		lmtex = 0;
 	}
 
 	for (i = 1; i < gl_state.max_lightmaps; i++)
@@ -680,24 +682,24 @@ dynamic_surf:
 
 		if (gl_config.lightmapcopies)
 		{
-			// add all the changes that have happened in the last few frames,
-			// at least just for consistency between them...
+			// Add all the changes that have happened in the last few frames,
+			// at least just for consistency between them.
 			qboolean apply_changes = affected_lightmap;
 			current = best;		// save state for next frames... +
 
 			for (int k = 0; k < MAX_LIGHTMAP_COPIES; k++)
 			{
-				if (altered[k][i])
+				if (altered[i][k])
 				{
 					apply_changes = true;
-					R_JoinAreas(&lmchange[k][i], &best);
+					R_JoinAreas(&lmchange[i][k], &best);
 				}
 			}
 
-			altered[cc][i] = affected_lightmap;
+			altered[i][cur_lm_copy] = affected_lightmap;
 			if (affected_lightmap)
 			{
-				lmchange[cc][i] = current;	// + ...here
+				lmchange[i][cur_lm_copy] = current;	// + ...here
 			}
 
 			if (!apply_changes)
