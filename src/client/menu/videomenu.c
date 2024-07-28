@@ -43,7 +43,6 @@ extern cvar_t *vid_renderer;
 static cvar_t *r_vsync;
 static cvar_t *gl_anisotropic;
 static cvar_t *gl_msaa_samples;
-static cvar_t *gl1_colorlight;
 static cvar_t *gl3_colorlight;
 static cvar_t *vk_dynamic;
 
@@ -61,7 +60,6 @@ static menuslider_s s_vk_intensity_slider;
 static menuslider_s s_gl1_overbrightbits_slider;
 static menuslider_s s_gl3_overbrightbits_slider;
 static menuslider_s s_vk_overbrightbits_slider;
-static menulist_s s_gl1_colorlight_list;
 static menulist_s s_gl3_colorlight_list;
 static menulist_s s_vk_dynamic_list;
 static menulist_s s_fs_box;
@@ -301,11 +299,6 @@ ApplyChanges(void *unused)
 	if (gl3_colorlight && gl3_colorlight->value != s_gl3_colorlight_list.curvalue)
 	{
 		Cvar_SetValue("gl3_colorlight", s_gl3_colorlight_list.curvalue);
-	}
-
-	if (gl1_colorlight && gl1_colorlight->value != s_gl1_colorlight_list.curvalue)
-	{
-		Cvar_SetValue("gl1_colorlight", s_gl1_colorlight_list.curvalue);
 	}
 
 	/* anisotropic filtering */
@@ -567,7 +560,6 @@ VID_MenuInit(void)
 
 	if (strcmp(vid_renderer->string, "gl3") == 0 || strcmp(vid_renderer->string, "gles3") == 0)
 	{
-		gl1_colorlight = NULL;
 		s_gl3_intensity_slider.generic.type = MTYPE_SLIDER;
 		s_gl3_intensity_slider.generic.name = "color intensity";
 		s_gl3_intensity_slider.generic.x = 0;
@@ -640,14 +632,6 @@ VID_MenuInit(void)
 		s_gl1_overbrightbits_slider.maxvalue = 2;
 		s_gl1_overbrightbits_slider.slidestep = 1;
 		s_gl1_overbrightbits_slider.printformat = "%.0f";
-
-		gl1_colorlight = Cvar_Get("gl1_colorlight", "1", CVAR_ARCHIVE);
-		s_gl1_colorlight_list.generic.type = MTYPE_SPINCONTROL;
-		s_gl1_colorlight_list.generic.name = "color light";
-		s_gl1_colorlight_list.generic.x = 0;
-		s_gl1_colorlight_list.generic.y = (y += 10);
-		s_gl1_colorlight_list.itemnames = yesno_names;
-		s_gl1_colorlight_list.curvalue = (gl1_colorlight->value != 0);
 	}
 
 	s_uiscale_list.generic.type = MTYPE_SPINCONTROL;
@@ -809,7 +793,6 @@ VID_MenuInit(void)
 	{
 		Menu_AddItem(&s_opengl_menu, (void *)&s_gl1_intensity_slider);
 		Menu_AddItem(&s_opengl_menu, (void *)&s_gl1_overbrightbits_slider);
-		Menu_AddItem(&s_opengl_menu, (void *)&s_gl1_colorlight_list);
 	}
 	Menu_AddItem(&s_opengl_menu, (void *)&s_uiscale_list);
 	Menu_AddItem(&s_opengl_menu, (void *)&s_fs_box);
