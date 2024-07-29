@@ -46,21 +46,21 @@ cvar_t *crosshair_3d_glow_b;
 
 cvar_t *cl_stats;
 
-int r_numdlights;
-dlight_t r_dlights[MAX_DLIGHTS];
+static int r_numdlights;
+static dlight_t r_dlights[MAX_DLIGHTS];
 
-int r_numentities;
-entity_t r_entities[MAX_ENTITIES];
+static int r_numentities;
+static entity_t r_entities[MAX_ENTITIES];
 
-int r_numparticles;
-particle_t r_particles[MAX_PARTICLES];
+static int r_numparticles;
+static particle_t r_particles[MAX_PARTICLES];
 
-lightstyle_t r_lightstyles[MAX_LIGHTSTYLES];
+static lightstyle_t r_lightstyles[MAX_LIGHTSTYLES];
 
 char cl_weaponmodels[MAX_CLIENTWEAPONMODELS][MAX_QPATH];
 int num_cl_weaponmodels;
 
-void V_Render3dCrosshair(void);
+static void V_Render3dCrosshair(void);
 
 /*
  * Specifies the model that will be used as the world
@@ -139,7 +139,7 @@ V_AddLightStyle(int style, float r, float g, float b)
 /*
  *If cl_testparticles is set, create 4096 particles in the view
  */
-void
+static void
 V_TestParticles(void)
 {
 	particle_t *p;
@@ -169,7 +169,7 @@ V_TestParticles(void)
 /*
  * If cl_testentities is set, create 32 player models
  */
-void
+static void
 V_TestEntities(void)
 {
 	int i, j;
@@ -200,18 +200,20 @@ V_TestEntities(void)
 /*
  * If cl_testlights is set, create 32 lights models
  */
-void
+static void
 V_TestLights(void)
 {
-	int i, j;
-	float f, r;
-	dlight_t *dl;
+	int i;
 
 	r_numdlights = 32;
 	memset(r_dlights, 0, sizeof(r_dlights));
 
 	for (i = 0; i < r_numdlights; i++)
 	{
+		dlight_t *dl;
+		float f, r;
+		int j;
+
 		dl = &r_dlights[i];
 
 		r = 64 * ((i % 4) - 1.5f);
@@ -362,9 +364,7 @@ CL_PrepRefresh(void)
 	cl.force_refdef = true; /* make sure we have a valid refdef */
 
 	/* start the cd track */
-	int track = (int)strtol(cl.configstrings[CS_CDTRACK], (char **)NULL, 10);
-
-	OGG_PlayTrack(track, true, true);
+	OGG_PlayTrack(cl.configstrings[CS_CDTRACK], true, true);
 }
 
 float
@@ -388,14 +388,14 @@ CalcFov(float fov_x, float width, float height)
 }
 
 /* gun frame debugging functions */
-void
+static void
 V_Gun_Next_f(void)
 {
 	gun_frame++;
 	Com_Printf("frame %i\n", gun_frame);
 }
 
-void
+static void
 V_Gun_Prev_f(void)
 {
 	gun_frame--;
@@ -408,7 +408,7 @@ V_Gun_Prev_f(void)
 	Com_Printf("frame %i\n", gun_frame);
 }
 
-void
+static void
 V_Gun_Model_f(void)
 {
 	char name[MAX_QPATH];
@@ -423,7 +423,7 @@ V_Gun_Model_f(void)
 	gun_model = R_RegisterModel(name);
 }
 
-int
+static int
 entitycmpfnc(const entity_t *a, const entity_t *b)
 {
 	/* all other models are sorted by model then skin */
@@ -600,7 +600,7 @@ V_RenderView(float stereo_separation)
 	SCR_DrawCrosshair();
 }
 
-void
+static void
 V_Render3dCrosshair(void)
 {
 	trace_t crosshair_trace;
@@ -646,7 +646,7 @@ V_Render3dCrosshair(void)
 	}
 }
 
-void
+static void
 V_Viewpos_f(void)
 {
 	Com_Printf("position: %i %i %i, angles: %i %i %i\n",
