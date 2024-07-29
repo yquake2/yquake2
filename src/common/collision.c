@@ -1649,7 +1649,14 @@ CMod_LoadEntityString(const lump_t *l, const char *name)
 			bufLen = FS_LoadFile(entname, (void **)&buffer);
 			if (buffer == NULL)
 			{
-				Com_Printf("No fixes found for '%s'\n", entname);
+				Com_Printf("No fixes found as '%s'\n", entname);
+
+				snprintf(entname, sizeof(entname) -1, "%s.ent", namewe);
+				bufLen = FS_LoadFile(entname, (void **)&buffer);
+				if (buffer != NULL && bufLen > 1)
+				{
+					Com_Printf("Have used '%s' file without content hash.\n", entname);
+				}
 			}
 		}
 
@@ -1667,7 +1674,7 @@ CMod_LoadEntityString(const lump_t *l, const char *name)
 		}
 		else if (bufLen != -1)
 		{
-			/* If the .ent file is too small, don't load. */
+			/* If the .ent file is too small or large, don't load. */
 			Com_Printf("%s: .ent file %s too small.\n", __func__, entname);
 			FS_FreeFile(buffer);
 		}
@@ -1677,12 +1684,12 @@ CMod_LoadEntityString(const lump_t *l, const char *name)
 
 	if (l->filelen < 0)
 	{
-		Com_Error(ERR_DROP, "%s: Map has too small entity lump", __func__);
+		Com_Error(ERR_DROP, "%s: Map %s has too small entity lump", __func__, name);
 	}
 
 	if (l->filelen >= sizeof(map_entitystring))
 	{
-		Com_Error(ERR_DROP, "%s: Map has too big entity lump", __func__);
+		Com_Error(ERR_DROP, "%s: Map %s has too large entity lump", __func__, name);
 	}
 
 	memcpy(map_entitystring, (const char *)cmod_base + l->fileofs, numentitychars);
