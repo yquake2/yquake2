@@ -469,8 +469,11 @@ FS_FOpenFile(const char *rawname, fileHandle_t *f, qboolean gamedir_only)
 		// Evil hack for maps.lst and players/
 		// TODO: A flag to ignore paks would be better
 		if ((strcmp(fs_gamedirvar->string, "") == 0) && search->pack) {
-			if ((strcmp(name, "maps.lst") == 0)|| (strncmp(name, "players/", 8) == 0)) {
-				continue;
+			if ((strcmp(name, "maps.lst") == 0) || (strncmp(name, "players/", 8) == 0)) {
+				if (FS_FileInGamedir(name))
+				{
+					continue;
+				}
 			}
 		}
 
@@ -1567,7 +1570,7 @@ FS_Dir_f(void)
 
 /*
  * This function returns true if a real file (e.g. not something
- * in a pak, somthing in the file system itself) exists in the
+ * in a pak, something in the file system itself) exists in the
  * current gamedir.
  */
 qboolean
