@@ -5561,7 +5561,7 @@ PlayerModelFree()
 static qboolean
 PlayerDirectoryList(void)
 {
-	char* findname = "players/*";
+	const char* findname = "players/*";
 	char** list = NULL;
 	int num = 0, dirnum = 0;
 	size_t listoff = strlen(findname);
@@ -6220,7 +6220,7 @@ PlayerConfig_MenuKey(int key)
 	key = Key_GetMenuKey(key);
 	if (key == K_ESCAPE)
 	{
-		char* name = NULL;
+		const char* name = NULL;
 		char skin[MAX_QPATH];
 		char* mdl = NULL;
 		char* img = NULL;
