@@ -98,9 +98,9 @@ typedef struct
 } fsPackTypes_t;
 
 fsHandle_t fs_handles[MAX_HANDLES];
-fsLink_t *fs_links;
-fsSearchPath_t *fs_searchPaths;
-fsSearchPath_t *fs_baseSearchPaths;
+fsLink_t *fs_links = NULL;
+fsSearchPath_t *fs_searchPaths = NULL;
+fsSearchPath_t *fs_baseSearchPaths = NULL;
 
 /* Pack formats / suffixes. */
 fsPackTypes_t fs_packtypes[] = {
@@ -197,36 +197,7 @@ static voidpf ZCALLBACK fopen_file_func_utf(voidpf opaque, const char *filename,
  *
  */
 
-/*
- * Returns the path up to, but not including the last '/'.
- */
-void
-Com_FilePath(const char *path, char *dst, int dstSize)
-{
-	char *pos; /* Position of the last '/'. */
-
-	if ((pos = strrchr(path, '/')) != NULL)
-	{
-		pos--;
-
-		if ((pos - path) < dstSize)
-		{
-			memcpy(dst, path, pos - path);
-			dst[pos - path] = '\0';
-		}
-		else
-		{
-			Com_Printf("Com_FilePath: not enough space.\n");
-			return;
-		}
-	}
-	else
-	{
-		Q_strlcpy(dst, path, dstSize);
-	}
-}
-
-int
+static int
 FS_FileLength(FILE *f)
 {
 	int pos; /* Current position. */
@@ -300,7 +271,7 @@ FS_Gamedir(void)
 /*
  * Finds a free fileHandle_t.
  */
-fsHandle_t *
+static fsHandle_t *
 FS_HandleForFile(const char *path, fileHandle_t *f)
 {
 	int i;
@@ -319,7 +290,7 @@ FS_HandleForFile(const char *path, fileHandle_t *f)
 	}
 
 	/* Failed. */
-	Com_Error(ERR_DROP, "FS_HandleForFile: none free");
+	Com_Error(ERR_DROP, "%s: none free", __func__);
 
 	return NULL;
 }
@@ -332,7 +303,7 @@ FS_GetFileByHandle(fileHandle_t f)
 {
 	if ((f < 0) || (f > MAX_HANDLES))
 	{
-		Com_Error(ERR_DROP, "FS_GetFileByHandle: out of range");
+		Com_Error(ERR_DROP, "%s: out of range", __func__);
 	}
 
 	if (f == 0)
@@ -377,14 +348,14 @@ FS_FOpenFile(const char *rawname, fileHandle_t *f, qboolean gamedir_only)
 	fsHandle_t *handle;
 	fsPack_t *pack;
 	fsSearchPath_t *search;
-	int i;
+	int input, output;
 
 	// Remove self references and empty dirs from the requested path.
 	// ZIPs and PAKs don't support them, but they may be hardcoded in
 	// some custom maps or models.
 	char name[MAX_QPATH] = {0};
 	size_t namelen = strlen(rawname);
-	for (int input = 0, output = 0; input < namelen; input++)
+	for (input = 0, output = 0; input < namelen; input++)
 	{
 		// Remove self reference.
 		if (rawname[input] == '.')
@@ -458,6 +429,8 @@ FS_FOpenFile(const char *rawname, fileHandle_t *f, qboolean gamedir_only)
 		/* Search inside a pack file. */
 		if (search->pack)
 		{
+			int i;
+
 			pack = search->pack;
 
 			for (i = 0; i < pack->numFiles; i++)
@@ -467,8 +440,8 @@ FS_FOpenFile(const char *rawname, fileHandle_t *f, qboolean gamedir_only)
 					/* Found it! */
 					if (fs_debug->value)
 					{
-						Com_Printf("FS_FOpenFile: '%s' (found in '%s').\n",
-						           handle->name, pack->name);
+						Com_Printf("%s: '%s' (found in '%s').\n",
+							__func__, handle->name, pack->name);
 					}
 
 					// save the name with *correct case* in the handle
@@ -543,8 +516,8 @@ FS_FOpenFile(const char *rawname, fileHandle_t *f, qboolean gamedir_only)
 			{
 				if (fs_debug->value)
 				{
-					Com_Printf("FS_FOpenFile: '%s' (found in '%s').\n",
-							   handle->name, search->path);
+					Com_Printf("%s: '%s' (found in '%s').\n",
+						__func__, handle->name, search->path);
 				}
 
 				return FS_FileLength(handle->file);
@@ -553,7 +526,7 @@ FS_FOpenFile(const char *rawname, fileHandle_t *f, qboolean gamedir_only)
 	}
 	if (fs_debug->value)
 	{
-		Com_Printf("FS_FOpenFile: couldn't find '%s'.\n", handle->name);
+		Com_Printf("%s: couldn't find '%s'.\n", __func__, handle->name);
 	}
 
 	/* Couldn't open, so free the handle. */
@@ -605,13 +578,15 @@ FS_Read(void *buffer, int size, fileHandle_t f)
 			else
 			{
 				/* Already tried once. */
-				Com_Error(ERR_FATAL, "FS_Read: 0 bytes read from '%s'", handle->name);
+				Com_Error(ERR_FATAL, "%s: 0 bytes read from '%s'",
+					__func__, handle->name);
 				return size - remaining;
 			}
 		}
 		else if (r == -1)
 		{
-			Com_Error(ERR_FATAL, "FS_Read: -1 bytes read from '%s'", handle->name);
+			Com_Error(ERR_FATAL, "%s: -1 bytes read from '%s'",
+				__func__, handle->name);
 		}
 
 		remaining -= r;
@@ -677,8 +652,8 @@ FS_FRead(void *buffer, int size, int count, fileHandle_t f)
 			else if (r == -1)
 			{
 				Com_Error(ERR_FATAL,
-						"FS_FRead: -1 bytes read from '%s'",
-						handle->name);
+						"%s: -1 bytes read from '%s'",
+						__func__, handle->name);
 			}
 
 			remaining -= r;
@@ -742,7 +717,8 @@ FS_FreeFile(void *buffer)
 	Z_Free(buffer);
 }
 
-fsRawPath_t *FS_FreeRawPaths(fsRawPath_t *start, fsRawPath_t *end)
+static fsRawPath_t *
+FS_FreeRawPaths(fsRawPath_t *start, fsRawPath_t *end)
 {
 	fsRawPath_t *cur = start;
 	fsRawPath_t *next;
@@ -757,7 +733,8 @@ fsRawPath_t *FS_FreeRawPaths(fsRawPath_t *start, fsRawPath_t *end)
 	return cur;
 }
 
-fsSearchPath_t *FS_FreeSearchPaths(fsSearchPath_t *start, fsSearchPath_t *end)
+static fsSearchPath_t *
+FS_FreeSearchPaths(fsSearchPath_t *start, fsSearchPath_t *end)
 {
 	fsSearchPath_t *cur = start;
 	fsSearchPath_t *next;
@@ -829,13 +806,13 @@ FS_LoadPAK(const char *packPath)
 	{
 		fclose(handle);
 		Com_Error(ERR_FATAL, "%s: '%s' is too short.",
-				__func__, packPath);
+			__func__, packPath);
 	}
 
 	if (numFiles > MAX_FILES_IN_PACK)
 	{
 		Com_Printf("%s: '%s' has %i > %i files\n",
-				__func__, packPath, numFiles, MAX_FILES_IN_PACK);
+			__func__, packPath, numFiles, MAX_FILES_IN_PACK);
 	}
 
 	info = malloc(header.dirlen);
@@ -853,7 +830,8 @@ FS_LoadPAK(const char *packPath)
 	/* Parse the directory. */
 	for (i = 0; i < numFiles; i++)
 	{
-		Q_strlcpy(files[i].name, info[i].name, sizeof(files[i].name));
+		Q_strlcpy(files[i].name, info[i].name,
+			Q_min(sizeof(files[i].name), sizeof(files[i].name)));
 		files[i].offset = LittleLong(info[i].filepos);
 		files[i].size = LittleLong(info[i].filelen);
 	}
@@ -877,7 +855,7 @@ FS_LoadPAK(const char *packPath)
  * Loads the header and directory, adding the files at the beginning of the list
  * so they override previous pack files.
  */
-fsPack_t *
+static fsPack_t *
 FS_LoadPK3(const char *packPath)
 {
 	char fileName[MAX_QPATH]; /* File name. */
@@ -904,7 +882,7 @@ FS_LoadPK3(const char *packPath)
 	if (unzGetGlobalInfo(handle, &global) != UNZ_OK)
 	{
 		unzClose(handle);
-		Com_Error(ERR_FATAL, "FS_LoadPK3: '%s' is not a pack file", packPath);
+		Com_Error(ERR_FATAL, "%s: '%s' is not a pack file", __func__, packPath);
 	}
 
 	numFiles = global.number_entry;
@@ -924,7 +902,7 @@ FS_LoadPK3(const char *packPath)
 	while (status == UNZ_OK)
 	{
 		fileName[0] = '\0';
-		unzGetCurrentFileInfo(handle, &info, fileName, MAX_QPATH,
+		unzGetCurrentFileInfo(handle, &info, fileName, sizeof(fileName),
 				NULL, 0, NULL, 0);
 		Q_strlcpy(files[i].name, fileName, sizeof(files[i].name));
 		files[i].offset = -1; /* Not used in ZIP files */
@@ -979,7 +957,7 @@ FS_NextPath(char *prevPath)
 	return NULL;
 }
 
-void
+static void
 FS_Path_f(void)
 {
 	int i;
@@ -1035,7 +1013,7 @@ FS_Path_f(void)
 /*
  * Creates a filelink_t.
  */
-void
+static void
 FS_Link_f(void)
 {
 	fsLink_t *l, **prev;
@@ -1149,7 +1127,7 @@ FS_ListFiles(char *findname, int *numfiles,
  * attributes then a copy of the matching string will be placed there (with
  * SFF_SUBDIR it changes).
  */
-qboolean
+static qboolean
 ComparePackFiles(const char *findname, const char *name, unsigned musthave,
 		unsigned canthave, char *output, int size)
 {
@@ -1495,7 +1473,7 @@ FS_ListMods(int *nummods)
 /*
  * Directory listing.
  */
-void
+static void
 FS_Dir_f(void)
 {
 	char **dirnames; /* File list. */
@@ -1617,8 +1595,10 @@ FS_AddPAKFromGamedir(const char *pak)
 		}
 		else
 		{
+			fsSearchPath_t *search;
+
 			// Add it.
-			fsSearchPath_t *search = Z_Malloc(sizeof(fsSearchPath_t));
+			search = Z_Malloc(sizeof(fsSearchPath_t));
 			search->pack = pakfile;
 			search->next = fs_searchPaths;
 			fs_searchPaths = search;
@@ -1671,7 +1651,7 @@ static char* basename( char* n )
 }
 #endif // _MSC_VER
 
-void
+static void
 FS_AddDirToSearchPath(char *dir, qboolean create) {
 	char *file;
 	char **list;
@@ -1825,7 +1805,8 @@ FS_AddDirToSearchPath(char *dir, qboolean create) {
 	}
 }
 
-void FS_BuildGenericSearchPath(void) {
+static void
+FS_BuildGenericSearchPath(void) {
 	// We may not use the va() function from shared.c
 	// since it's buffersize is 1024 while most OS have
 	// a maximum path size of 4096...
@@ -2056,7 +2037,9 @@ static void FS_AddDirToRawPath (const char *rawdir, qboolean create, qboolean re
 }
 
 
-void FS_BuildRawPath(void) {
+static void
+FS_BuildRawPath(void)
+{
 	// Add $HOME/.yq2, MUST be the last dir! Required,
 	// otherwise the config cannot be written.
 	if (!is_portable) {
