@@ -66,36 +66,6 @@ typedef struct
 
 cinematics_t cin;
 
-static void
-SCR_LoadPCX(char *filename, byte **pic, byte **palette, int *width, int *height,
-	int *bitsPerPixel)
-{
-	byte *data, *palette_in;
-
-	*pic = NULL;
-	*palette = NULL;
-
-	SCR_LoadImageWithPalette(filename, &data, &palette_in, width, height, bitsPerPixel);
-
-	if (data)
-	{
-		*pic = Z_Malloc((*width) * (*height) * (*bitsPerPixel) / 8);
-		memcpy(*pic, data, (*height) * (*width) * (*bitsPerPixel) / 8);
-		free(data);
-	}
-	else
-	{
-		Com_Printf("Bad pcx file %s\n", filename);
-	}
-
-	if (palette_in)
-	{
-		*palette = Z_Malloc(768);
-		memcpy(*palette, palette_in, 768);
-		free(palette_in);
-	}
-}
-
 void
 SCR_StopCinematic(void)
 {
@@ -567,26 +537,28 @@ SCR_DrawCinematic(void)
 
 static byte *
 SCR_LoadHiColor(const char* namewe, const char *ext, int *width, int *height,
-	int *bitsPerPixel)
+	byte **palette, int *bitsPerPixel)
 {
-	byte *pic, *data = NULL, *palette = NULL;
+	byte *pic, *data = NULL, *palette_in = NULL;
 	char filename[256];
 
 	Q_strlcpy(filename, namewe, sizeof(filename));
 	Q_strlcat(filename, ".", sizeof(filename));
 	Q_strlcat(filename, ext, sizeof(filename));
 
-	SCR_LoadImageWithPalette(filename, &data, &palette,
+	SCR_LoadImageWithPalette(filename, &data, &palette_in,
 		width, height, bitsPerPixel);
 	if (data == NULL)
 	{
 		return NULL;
 	}
 
-	if (palette)
+	if (palette_in)
 	{
-		/* strange, here should be no palleted image */
-		free(palette);
+		/* pcx file could have palette */
+		*palette = Z_Malloc(768);
+		memcpy(*palette, palette_in, 768);
+		free(palette_in);
 	}
 
 	pic = Z_Malloc(cin.height * cin.width * (*bitsPerPixel) / 8);
@@ -619,39 +591,39 @@ SCR_PlayCinematic(char *arg)
 				!strcmp(dot, ".png")))
 	{
 		cvar_t	*r_retexturing;
+		char namewe[256];
 
 		Com_sprintf(name, sizeof(name), "pics/%s", arg);
 		r_retexturing = Cvar_Get("r_retexturing", "1", CVAR_ARCHIVE);
 
+		/* Remove the extension */
+		memset(namewe, 0, 256);
+		memcpy(namewe, name, strlen(name) - strlen(dot));
+
 		if (r_retexturing->value)
 		{
-			char namewe[256];
-
 			cin.color_bits = 32;
 
-			/* Remove the extension */
-			memset(namewe, 0, 256);
-			memcpy(namewe, name, strlen(name) - strlen(dot));
 			cin.pic = SCR_LoadHiColor(namewe, "tga", &cin.width, &cin.height,
-				&cin.color_bits);
+				&palette, &cin.color_bits);
 
 			if (!cin.pic)
 			{
 				cin.pic = SCR_LoadHiColor(namewe, "png", &cin.width, &cin.height,
-					&cin.color_bits);
+					&palette, &cin.color_bits);
 			}
 
 			if (!cin.pic)
 			{
 				cin.pic = SCR_LoadHiColor(namewe, "jpg", &cin.width, &cin.height,
-					&cin.color_bits);
+					&palette, &cin.color_bits);
 			}
 		}
 
 		if (!cin.pic)
 		{
-			SCR_LoadPCX(name, &cin.pic, &palette, &cin.width, &cin.height,
-				&cin.color_bits);
+			cin.pic = SCR_LoadHiColor(namewe, dot + 1, &cin.width, &cin.height,
+				&palette, &cin.color_bits);
 		}
 
 		cl.cinematicframe = -1;
