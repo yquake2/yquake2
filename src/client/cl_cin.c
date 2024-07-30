@@ -68,19 +68,19 @@ cinematics_t cin;
 
 static void
 SCR_LoadPCX(char *filename, byte **pic, byte **palette, int *width, int *height,
-	int *bitesPerPixel)
+	int *bitsPerPixel)
 {
 	byte *data, *palette_in;
 
 	*pic = NULL;
 	*palette = NULL;
 
-	SCR_LoadImageWithPalette(filename, &data, &palette_in, width, height, bitesPerPixel);
+	SCR_LoadImageWithPalette(filename, &data, &palette_in, width, height, bitsPerPixel);
 
 	if (data)
 	{
-		*pic = Z_Malloc((*width) * (*height) * (*bitesPerPixel) / 8);
-		memcpy(*pic, data, (*height) * (*width) * (*bitesPerPixel) / 8);
+		*pic = Z_Malloc((*width) * (*height) * (*bitsPerPixel) / 8);
+		memcpy(*pic, data, (*height) * (*width) * (*bitsPerPixel) / 8);
 		free(data);
 	}
 	else
@@ -567,7 +567,7 @@ SCR_DrawCinematic(void)
 
 static byte *
 SCR_LoadHiColor(const char* namewe, const char *ext, int *width, int *height,
-	int *bitesPerPixel)
+	int *bitsPerPixel)
 {
 	byte *pic, *data = NULL, *palette = NULL;
 	char filename[256];
@@ -577,7 +577,7 @@ SCR_LoadHiColor(const char* namewe, const char *ext, int *width, int *height,
 	Q_strlcat(filename, ext, sizeof(filename));
 
 	SCR_LoadImageWithPalette(filename, &data, &palette,
-		width, height, bitesPerPixel);
+		width, height, bitsPerPixel);
 	if (data == NULL)
 	{
 		return NULL;
@@ -589,8 +589,8 @@ SCR_LoadHiColor(const char* namewe, const char *ext, int *width, int *height,
 		free(palette);
 	}
 
-	pic = Z_Malloc(cin.height * cin.width * (*bitesPerPixel) / 8);
-	memcpy(pic, data, cin.height * cin.width * (*bitesPerPixel) / 8);
+	pic = Z_Malloc(cin.height * cin.width * (*bitsPerPixel) / 8);
+	memcpy(pic, data, cin.height * cin.width * (*bitsPerPixel) / 8);
 	free(data);
 
 	return pic;

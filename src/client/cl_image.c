@@ -95,7 +95,7 @@ PCX_RLE_Decode(byte *pix, byte *pix_max, const byte *raw, const byte *raw_max,
 
 static void
 PCX_Decode(const char *name, const byte *raw, int len, byte **pic, byte **palette,
-	int *width, int *height, int *bitesPerPixel)
+	int *width, int *height, int *bitsPerPixel)
 {
 	const pcx_t *pcx;
 	int full_size;
@@ -105,7 +105,7 @@ PCX_Decode(const char *name, const byte *raw, int len, byte **pic, byte **palett
 	const byte *data;
 
 	*pic = NULL;
-	*bitesPerPixel = 8;
+	*bitsPerPixel = 8;
 
 	if (palette)
 	{
@@ -144,7 +144,7 @@ PCX_Decode(const char *name, const byte *raw, int len, byte **pic, byte **palett
 	if (pcx->color_planes == 3 && pcx->bits_per_pixel == 8)
 	{
 		full_size *= 4;
-		*bitesPerPixel = 32;
+		*bitsPerPixel = 32;
 	}
 
 	out = malloc(full_size);
@@ -366,7 +366,7 @@ PCX_Decode(const char *name, const byte *raw, int len, byte **pic, byte **palett
 
 void
 SCR_LoadImageWithPalette(char *filename, byte **pic, byte **palette,
-	int *width, int *height, int *bitesPerPixel)
+	int *width, int *height, int *bitsPerPixel)
 {
 	const char* ext;
 	int len, ident;
@@ -392,11 +392,11 @@ SCR_LoadImageWithPalette(char *filename, byte **pic, byte **palette,
 	ident = LittleShort(*((short*)raw));
 	if (!strcmp(ext, "pcx") && (ident == PCX_IDENT))
 	{
-		PCX_Decode(filename, raw, len, pic, palette, width, height, bitesPerPixel);
+		PCX_Decode(filename, raw, len, pic, palette, width, height, bitsPerPixel);
 	}
 	else
 	{
-		int sourcebitesPerPixel = 0;
+		int sourcebitsPerPixel = 0;
 
 		/* other formats does not have palette directly */
 		if (palette)
@@ -405,7 +405,7 @@ SCR_LoadImageWithPalette(char *filename, byte **pic, byte **palette,
 		}
 
 		*pic = stbi_load_from_memory(raw, len, width, height,
-			&sourcebitesPerPixel, STBI_rgb_alpha);
+			&sourcebitsPerPixel, STBI_rgb_alpha);
 
 		if (*pic == NULL)
 		{
@@ -413,7 +413,7 @@ SCR_LoadImageWithPalette(char *filename, byte **pic, byte **palette,
 				__func__, filename, stbi_failure_reason());
 		}
 
-		*bitesPerPixel = 32;
+		*bitsPerPixel = 32;
 	}
 
 	FS_FreeFile(raw);
