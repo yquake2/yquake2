@@ -423,6 +423,7 @@ set(Client-Source
 	${CLIENT_SRC_DIR}/cl_effects.c
 	${CLIENT_SRC_DIR}/cl_entities.c
 	${CLIENT_SRC_DIR}/cl_input.c
+	${CLIENT_SRC_DIR}/cl_image.c
 	${CLIENT_SRC_DIR}/cl_inventory.c
 	${CLIENT_SRC_DIR}/cl_keyboard.c
 	${CLIENT_SRC_DIR}/cl_lights.c
