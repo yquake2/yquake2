@@ -216,7 +216,8 @@ PCX_Decode(const char *name, const byte *raw, int len, byte **pic, byte **palett
 	}
 
 	full_size = (pcx_height + 1) * (pcx_width + 1);
-	if (pcx->color_planes == 3 && pcx->bits_per_pixel == 8)
+	if ((pcx->color_planes == 3 || pcx->color_planes == 4) &&
+		pcx->bits_per_pixel == 8)
 	{
 		full_size *= 4;
 		*bitsPerPixel = 32;
@@ -424,6 +425,13 @@ PCX_Decode(const char *name, const byte *raw, int len, byte **pic, byte **palett
 			__func__, name, pcx->color_planes, pcx->bits_per_pixel);
 		free(*pic);
 		*pic = NULL;
+	}
+
+	if (pcx->color_planes != 1 || pcx->bits_per_pixel != 8)
+	{
+		R_Printf(PRINT_DEVELOPER, "%s: %s has uncommon flags, "
+			"could be unsupported by other engines\n",
+			__func__, name);
 	}
 
 	if (data - (byte *)pcx > len)
