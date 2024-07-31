@@ -471,6 +471,8 @@ Con_DrawInput(void)
 	int i;
 	float scale;
 	char *text;
+	char ch;
+	int txtlen;
 
 	if (cls.key_dest == key_menu)
 	{
@@ -486,28 +488,38 @@ Con_DrawInput(void)
 	scale = SCR_GetConsoleScale();
 	text = key_lines[edit_line];
 
-	/* add the cursor frame */
-	text[key_linepos] = 10 + ((int)(cls.realtime >> 8) & 1);
-
-	/* fill out remainder with spaces */
-	for (i = key_linepos + 1; i < con.linewidth; i++)
-	{
-		text[i] = ' ';
-	}
-
 	/* prestep if horizontally scrolling */
 	if (key_linepos >= con.linewidth)
 	{
 		text += 1 + key_linepos - con.linewidth;
 	}
 
+	txtlen = strlen(text);
+
 	for (i = 0; i < con.linewidth; i++)
 	{
-		Draw_CharScaled(((i + 1) << 3) * scale, con.vislines - 22 * scale, text[i], scale);
-	}
+		if (i == key_linepos)
+		{
+			if (cls.realtime & 8)
+			{
+				ch = 11;
+			}
+			else
+			{
+				ch = (text[i] == '\0') ? 10 : text[i];
+			}
+		}
+		else if (i >= txtlen)
+		{
+			ch = ' ';
+		}
+		else
+		{
+			ch = text[i];
+		}
 
-	/* remove cursor */
-	key_lines[edit_line][key_linepos] = 0;
+		Draw_CharScaled(((i + 1) << 3) * scale, con.vislines - 22 * scale, ch, scale);
+	}
 }
 
 /*

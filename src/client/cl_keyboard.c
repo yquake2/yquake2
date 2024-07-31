@@ -29,6 +29,8 @@
 
 #include "header/client.h"
 
+void IN_GetClipboardText(char *out, size_t n);
+
 static cvar_t *cfg_unbindall;
 
 /*
@@ -346,6 +348,8 @@ CompleteMapNameCommand(void)
 void
 Key_Console(int key)
 {
+	char txt[2], cliptext[256];
+
 	/*
 	 * Ignore keypad in console to prevent duplicate
 	 * entries through key presses processed as a
@@ -375,11 +379,23 @@ Key_Console(int key)
 			break;
 	}
 
-	if (key == 'l')
+	if (keydown[K_CTRL])
 	{
-		if (keydown[K_CTRL])
+		if (key == 'l')
 		{
 			Cbuf_AddText("clear\n");
+			return;
+		}
+
+		if (key == 'v')
+		{
+			IN_GetClipboardText(cliptext, sizeof(cliptext));
+
+			if (*cliptext != '\0')
+			{
+				key_linepos += Q_strins(key_lines[edit_line], cliptext, key_linepos, MAXCMDLINE);
+			}
+
 			return;
 		}
 	}
@@ -423,9 +439,7 @@ Key_Console(int key)
 		return;
 	}
 
-	if ((key == K_BACKSPACE) || (key == K_LEFTARROW) ||
-		(key == K_KP_LEFTARROW) ||
-		((key == 'h') && (keydown[K_CTRL])))
+	if (key == K_LEFTARROW)
 	{
 		if (key_linepos > 1)
 		{
@@ -435,11 +449,35 @@ Key_Console(int key)
 		return;
 	}
 
+	if (key == K_RIGHTARROW)
+	{
+		if (key_lines[edit_line][key_linepos] != '\0')
+		{
+			key_linepos++;
+		}
+
+		return;
+	}
+
+	if ((key == K_BACKSPACE) ||
+		((key == 'h') && (keydown[K_CTRL])))
+	{
+		if (key_linepos > 1)
+		{
+			Q_strdel(key_lines[edit_line], key_linepos - 1, 1);
+			key_linepos--;
+		}
+
+		return;
+	}
+
 	if (key == K_DEL)
 	{
-		memmove(key_lines[edit_line] + key_linepos,
-				key_lines[edit_line] + key_linepos + 1,
-				sizeof(key_lines[edit_line]) - key_linepos - 1);
+		if (key_lines[edit_line][key_linepos] != '\0')
+		{
+			Q_strdel(key_lines[edit_line], key_linepos, 1);
+		}
+
 		return;
 	}
 
@@ -547,32 +585,10 @@ Key_Console(int key)
 		return; /* non printable character */
 	}
 
-	if (key_linepos < MAXCMDLINE - 1)
-	{
-		int last;
-		int length;
+	*txt = key;
+	*(txt + 1) = '\0';
 
-		length = strlen(key_lines[edit_line]);
-
-		if (length >= MAXCMDLINE - 1)
-		{
-			return;
-		}
-
-		last = key_lines[edit_line][key_linepos];
-
-		memmove(key_lines[edit_line] + key_linepos + 1,
-				key_lines[edit_line] + key_linepos,
-				length - key_linepos);
-
-		key_lines[edit_line][key_linepos] = key;
-		key_linepos++;
-
-		if (!last)
-		{
-			key_lines[edit_line][key_linepos] = 0;
-		}
-	}
+	key_linepos += Q_strins(key_lines[edit_line], txt, key_linepos, MAXCMDLINE);
 }
 
 qboolean chat_team;
@@ -1009,6 +1025,10 @@ Key_ReadConsoleHistory()
 		}
 	}
 
+	/* input line is always blank */
+	key_linepos = 1;
+	strcpy (key_lines[edit_line], "]");
+
 	fclose(f);
 }
 
@@ -1045,6 +1065,7 @@ Key_Init(void)
 		consolekeys[i] = true;
 	}
 
+	consolekeys[K_DEL] = true;
 	consolekeys[K_ENTER] = true;
 	consolekeys[K_KP_ENTER] = true;
 	consolekeys[K_TAB] = true;
@@ -1378,6 +1399,12 @@ Key_Event(int key, qboolean down, qboolean special)
 		}
 
 		return;
+	}
+
+	/* FIXME: Better way to do CTRL+letter actions in the console */
+	if (keydown[K_CTRL] && cls.key_dest == key_console && key >= 'a' && key <= 'z')
+	{
+		special = true;
 	}
 
 	/* All input subsystems handled after this point only
