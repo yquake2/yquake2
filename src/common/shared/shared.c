@@ -1144,6 +1144,52 @@ Q_strlcat(char *dst, const char *src, int size)
 	return (d - dst) + Q_strlcpy(d, src, size);
 }
 
+void
+Q_strdel(char *s, size_t i, size_t n)
+{
+	size_t len;
+
+	if (!n)
+	{
+		return;
+	}
+
+	len = strlen(s);
+
+	if (i >= len || n > (len - i))
+	{
+		return;
+	}
+
+	memmove(s + i, s + i + n, len - i);
+	s[len - n] = '\0';
+}
+
+size_t
+Q_strins(char *dest, const char *src, size_t i, size_t n)
+{
+	size_t dlen;
+	size_t slen;
+
+	if (!src || *src == '\0')
+	{
+		return 0;
+	}
+
+	slen = strlen(src);
+	dlen = strlen(dest);
+
+	if (i > dlen || (dlen + slen + 1) > n)
+	{
+		return 0;
+	}
+
+	memmove(dest + i + slen, dest + i, dlen - i + 1);
+	memcpy(dest + i, src, slen);
+
+	return slen;
+}
+
 /*
  * An unicode compatible fopen() Wrapper for Windows.
  */
