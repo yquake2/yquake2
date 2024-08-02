@@ -60,7 +60,9 @@ DrawAltStringScaled(int x, int y, char *s, float factor)
 void
 Key_ClearTyping(void)
 {
-	key_lines[edit_line][1] = 0; /* clear any typing */
+	key_lines[edit_line][0] = ']';
+	key_lines[edit_line][1] = '\0';
+
 	key_linepos = 1;
 }
 
@@ -473,6 +475,7 @@ Con_DrawInput(void)
 	char *text;
 	char ch;
 	int txtlen;
+	int linepos;
 
 	if (cls.key_dest == key_menu)
 	{
@@ -487,18 +490,22 @@ Con_DrawInput(void)
 
 	scale = SCR_GetConsoleScale();
 	text = key_lines[edit_line];
+	linepos = key_linepos;
 
 	/* prestep if horizontally scrolling */
-	if (key_linepos >= con.linewidth)
+	if (linepos >= con.linewidth)
 	{
-		text += 1 + key_linepos - con.linewidth;
+		int ofs = 1 + linepos - con.linewidth;
+
+		text += ofs;
+		linepos -= ofs;
 	}
 
 	txtlen = strlen(text);
 
 	for (i = 0; i < con.linewidth; i++)
 	{
-		if (i == key_linepos)
+		if (i == linepos)
 		{
 			if (cls.realtime & 8)
 			{

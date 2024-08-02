@@ -29,6 +29,7 @@
 
 #include "header/client.h"
 
+void Key_ClearTyping(void);
 void IN_GetClipboardText(char *out, size_t n);
 int IN_SetClipboardText(const char *s);
 
@@ -346,6 +347,14 @@ CompleteMapNameCommand(void)
 /*
  * Interactive line editing and console scrollback
  */
+static int
+IsInConsole(void)
+{
+	return cls.key_dest == key_console ||
+		(cls.key_dest == key_game &&
+		(cls.state == ca_disconnected || cls.state == ca_connecting));
+}
+
 void
 Key_Console(int key)
 {
@@ -391,14 +400,16 @@ Key_Console(int key)
 
 		if (key == 'c' || key == 'x')
 		{
-			if (IN_SetClipboardText(key_lines[edit_line] + 1))
+			if (key_lines[edit_line][1] != '\0')
 			{
-				Com_Printf("Copy to clipboard failed.\n");
-			}
-			else if (key == 'x')
-			{
-				key_lines[edit_line][1] = '\0';
-				key_linepos = 1;
+				if (IN_SetClipboardText(key_lines[edit_line] + 1))
+				{
+					Com_Printf("Copy to clipboard failed.\n");
+				}
+				else if (key == 'x')
+				{
+					Key_ClearTyping();
+				}
 			}
 
 			return;
@@ -434,9 +445,8 @@ Key_Console(int key)
 		Com_Printf("%s\n", key_lines[edit_line]);
 		edit_line = (edit_line + 1) & (NUM_KEY_LINES - 1);
 		history_line = edit_line;
-		key_lines[edit_line][0] = ']';
-		key_lines[edit_line][1] = '\0';
-		key_linepos = 1;
+
+		Key_ClearTyping();
 
 		if (cls.state == ca_disconnected)
 		{
@@ -535,8 +545,7 @@ Key_Console(int key)
 
 		if (history_line == edit_line)
 		{
-			key_lines[edit_line][0] = ']';
-			key_linepos = 1;
+			Key_ClearTyping();
 		}
 		else
 		{
@@ -1042,9 +1051,8 @@ Key_ReadConsoleHistory()
 		}
 	}
 
-	/* input line is always blank */
-	key_linepos = 1;
-	strcpy (key_lines[edit_line], "]");
+	/* don't remember the input line */
+	Key_ClearTyping();
 
 	fclose(f);
 }
@@ -1418,8 +1426,11 @@ Key_Event(int key, qboolean down, qboolean special)
 		return;
 	}
 
-	/* FIXME: Better way to do CTRL+letter actions in the console */
-	if (keydown[K_CTRL] && cls.key_dest == key_console && key >= 'a' && key <= 'z')
+	/* FIXME: Better way to do CTRL+<key> actions in the console?
+	   special should be set to true in this case.
+	*/
+	if (keydown[K_CTRL] && IsInConsole() &&
+		key >= 'a' && key <= 'z')
 	{
 		special = true;
 	}
