@@ -2426,3 +2426,9 @@ IN_GetClipboardText(char *out, size_t n)
 
 	SDL_free(s);
 }
+
+int
+IN_SetClipboardText(const char *s)
+{
+	return SDL_SetClipboardText(s);
+}

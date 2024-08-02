@@ -30,6 +30,7 @@
 #include "header/client.h"
 
 void IN_GetClipboardText(char *out, size_t n);
+int IN_SetClipboardText(const char *s);
 
 static cvar_t *cfg_unbindall;
 
@@ -348,7 +349,8 @@ CompleteMapNameCommand(void)
 void
 Key_Console(int key)
 {
-	char txt[2], cliptext[256];
+	char txt[2];
+	char cliptext[256];
 
 	/*
 	 * Ignore keypad in console to prevent duplicate
@@ -384,6 +386,21 @@ Key_Console(int key)
 		if (key == 'l')
 		{
 			Cbuf_AddText("clear\n");
+			return;
+		}
+
+		if (key == 'c' || key == 'x')
+		{
+			if (IN_SetClipboardText(key_lines[edit_line] + 1))
+			{
+				Com_Printf("Copy to clipboard failed.\n");
+			}
+			else if (key == 'x')
+			{
+				key_lines[edit_line][1] = '\0';
+				key_linepos = 1;
+			}
+
 			return;
 		}
 
