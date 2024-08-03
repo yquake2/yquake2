@@ -850,10 +850,10 @@ set_target_properties(ref_gles1 PROPERTIES
 		)
 target_include_directories(ref_gles1 PRIVATE ${CMAKE_SOURCE_DIR}/src/client/refresh/gl1/glad-gles1/include)
 target_compile_definitions(ref_gles1 PRIVATE YQ2_GL1_GLES=1)
-target_link_libraries(ref_gles1 ${yquake2LinkerFlags} ${yquake2OpenGLLinkerFlags}
-		${yquake2SDLLinkerFlags})
+target_link_libraries(ref_gles1 ${yquake2LinkerFlags} ${yquake2SDLLinkerFlags})
 if(SDL3_SUPPORT)
 	target_link_libraries(ref_gles1 SDL3::SDL3)
 endif()
 
 endif()
+

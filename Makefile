@@ -638,7 +638,6 @@ ref_gles1:
 release/ref_gles1.dll : GLAD_INCLUDE = -Isrc/client/refresh/gl1/glad-gles1/include
 release/ref_gles1.dll : CFLAGS += -DYQ2_GL1_GLES
 release/ref_gles1.dll : LDFLAGS += -shared
-release/ref_gles1.dll : LDLIBS += -lGLESv2
 
 else ifeq ($(YQ2_OSTYPE), Darwin)
 
@@ -648,7 +647,7 @@ ref_gles1:
 
 release/ref_gles1.dylib : GLAD_INCLUDE = -Isrc/client/refresh/gl1/glad-gles1/include
 release/ref_gles1.dylib : CFLAGS += -DYQ2_GL1_GLES
-release/ref_gles1.dylib : LDFLAGS += -shared -framework OpenGL
+release/ref_gles1.dylib : LDFLAGS += -shared
 
 else # not Windows or Darwin
 
@@ -659,7 +658,6 @@ ref_gles1:
 release/ref_gles1.so : GLAD_INCLUDE = -Isrc/client/refresh/gl1/glad-gles1/include
 release/ref_gles1.so : CFLAGS += -DYQ2_GL1_GLES -fPIC
 release/ref_gles1.so : LDFLAGS += -shared
-release/ref_gles1.so : LDLIBS += -lGL
 
 endif # OS specific ref_gles1 stuff
 
