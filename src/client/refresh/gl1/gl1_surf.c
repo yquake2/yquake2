@@ -1196,9 +1196,9 @@ R_GetBrushesLighting(void)
 		for (k = 0; k < currentmodel->nummodelsurfaces; k++, surf++)
 		{
 			if (surf->texinfo->flags & (SURF_TRANS33 | SURF_TRANS66 | SURF_WARP)
-				|| surf->flags & SURF_DRAWTURB)
+				|| surf->flags & SURF_DRAWTURB || surf->lmchain_frame == r_framecount)
 			{
-				continue;
+				continue;	// either not affected by light, or already in the chain
 			}
 
 			// find which side of the node we are on
@@ -1208,6 +1208,7 @@ R_GetBrushesLighting(void)
 			if (((surf->flags & SURF_PLANEBACK) && (dot < -BACKFACE_EPSILON)) ||
 				(!(surf->flags & SURF_PLANEBACK) && (dot > BACKFACE_EPSILON)))
 			{
+				surf->lmchain_frame = r_framecount;	// don't add this twice to the chain
 				surf->lightmapchain = gl_lms.lightmap_surfaces[surf->lightmaptexturenum];
 				gl_lms.lightmap_surfaces[surf->lightmaptexturenum] = surf;
 			}
