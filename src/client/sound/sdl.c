@@ -50,7 +50,6 @@
 #define SDL_LOOPATTENUATE 0.003
 
 /* Globals */
-static cvar_t *s_sdldriver;
 static int *snd_p;
 static sound_t *backend;
 static portable_samplepair_t paintbuffer[SDL_PAINTBUFFER_SIZE];
@@ -1352,18 +1351,13 @@ SDL_BackendInit(void)
 	int sndfreq = (Cvar_Get("s_khz", "44", CVAR_ARCHIVE))->value;
 	int sndchans = (Cvar_Get("sndchannels", "2", CVAR_ARCHIVE))->value;
 
-#ifdef _WIN32
-	s_sdldriver = (Cvar_Get("s_sdldriver", "directsound", CVAR_ARCHIVE));
-#elif __linux__
-	s_sdldriver = (Cvar_Get("s_sdldriver", "alsa", CVAR_ARCHIVE));
-#elif __APPLE__
-	s_sdldriver = (Cvar_Get("s_sdldriver", "CoreAudio", CVAR_ARCHIVE));
-#else
-	s_sdldriver = (Cvar_Get("s_sdldriver", "dsp", CVAR_ARCHIVE));
-#endif
+	cvar_t *s_sdldriver = (Cvar_Get("s_sdldriver", "auto", CVAR_ARCHIVE));
 
-	snprintf(reqdriver, sizeof(reqdriver), "%s=%s", "SDL_AUDIODRIVER", s_sdldriver->string);
-	putenv(reqdriver);
+	if (strcmp(s_sdldriver->string, "auto") != 0)
+	{
+		snprintf(reqdriver, sizeof(reqdriver), "%s=%s", "SDL_AUDIODRIVER", s_sdldriver->string);
+		putenv(reqdriver);
+	}
 
 	Com_Printf("Starting SDL audio callback.\n");
 
@@ -1518,19 +1512,13 @@ SDL_BackendInit(void)
 	int sndbits = (Cvar_Get("sndbits", "16", CVAR_ARCHIVE))->value;
 	int sndfreq = (Cvar_Get("s_khz", "44", CVAR_ARCHIVE))->value;
 	int sndchans = (Cvar_Get("sndchannels", "2", CVAR_ARCHIVE))->value;
+	cvar_t *s_sdldriver = (Cvar_Get("s_sdldriver", "auto", CVAR_ARCHIVE));
 
-#ifdef _WIN32
-	s_sdldriver = (Cvar_Get("s_sdldriver", "directsound", CVAR_ARCHIVE));
-#elif __linux__
-	s_sdldriver = (Cvar_Get("s_sdldriver", "alsa", CVAR_ARCHIVE));
-#elif __APPLE__
-	s_sdldriver = (Cvar_Get("s_sdldriver", "CoreAudio", CVAR_ARCHIVE));
-#else
-	s_sdldriver = (Cvar_Get("s_sdldriver", "dsp", CVAR_ARCHIVE));
-#endif
-
-	snprintf(reqdriver, sizeof(reqdriver), "%s=%s", "SDL_AUDIODRIVER", s_sdldriver->string);
-	putenv(reqdriver);
+	if (strcmp(s_sdldriver->string, "auto") != 0)
+	{
+		snprintf(reqdriver, sizeof(reqdriver), "%s=%s", "SDL_AUDIODRIVER", s_sdldriver->string);
+		putenv(reqdriver);
+	}
 
 	Com_Printf("Starting SDL audio callback.\n");
 
