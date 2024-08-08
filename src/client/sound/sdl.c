@@ -1351,7 +1351,11 @@ SDL_BackendInit(void)
 	int sndfreq = (Cvar_Get("s_khz", "44", CVAR_ARCHIVE))->value;
 	int sndchans = (Cvar_Get("sndchannels", "2", CVAR_ARCHIVE))->value;
 
+#if _WIN32
+	cvar_t *s_sdldriver = (Cvar_Get("s_sdldriver", "directsound", CVAR_ARCHIVE));
+#else
 	cvar_t *s_sdldriver = (Cvar_Get("s_sdldriver", "auto", CVAR_ARCHIVE));
+#endif
 
 	if (strcmp(s_sdldriver->string, "auto") != 0)
 	{
@@ -1512,7 +1516,12 @@ SDL_BackendInit(void)
 	int sndbits = (Cvar_Get("sndbits", "16", CVAR_ARCHIVE))->value;
 	int sndfreq = (Cvar_Get("s_khz", "44", CVAR_ARCHIVE))->value;
 	int sndchans = (Cvar_Get("sndchannels", "2", CVAR_ARCHIVE))->value;
+
+#if _WIN32
+	cvar_t *s_sdldriver = (Cvar_Get("s_sdldriver", "directsound", CVAR_ARCHIVE));
+#else
 	cvar_t *s_sdldriver = (Cvar_Get("s_sdldriver", "auto", CVAR_ARCHIVE));
+#endif
 
 	if (strcmp(s_sdldriver->string, "auto") != 0)
 	{

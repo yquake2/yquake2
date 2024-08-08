@@ -1,10 +1,11 @@
 Quake II 8.40 to 8.41:
 - Fix an endless loop in the OpenGL 1.4 renderer crashing the game and
   blocking further progress under some circumstances. (by protocultor)
-- Don't force a platform dependend ,hard coded SDL audio driver, let SDL
+- Don't force a platform dependend, hard coded SDL audio driver, let SDL
   choose the driver instead. This may fix the SDL audio backend on some
   platforms. The driver can still be overridden by setting `s_sdldriver`
-  to something else than `auto`.
+  to something else than `auto`. Under Windows `s_sdldriver` defaults
+  `directsound` because `auto` may choose an incompatible driver.
 
 Quake II 8.30 to 8.40:
 - Implement `g_quick_weap`. If set to 1, both weapprev and weapnext

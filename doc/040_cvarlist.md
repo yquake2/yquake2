@@ -303,7 +303,8 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
 * **s_sdldriver**: Can be set to the name of a SDL audio driver. If set
   to `auto`, SDL chooses the driver. If set to anything else the given
   driver is forced, regardless if supported by SDL or the platform or
-  not.
+  not. By default set to `directsound` under Windows and `auto` on all
+  other platforms.
 
 * **s_underwater**: Dampen sounds if submerged. Enabled by default.
 
