@@ -59,4 +59,12 @@ void IN_Update(void);
  */
 void In_FlushQueue(void);
 
+/* Clipboard get/set */
+
+/* Copy clipboard to buffer of size n */
+void IN_GetClipboardText(char *out, size_t n);
+
+/* Copy text to clipboard */
+int IN_SetClipboardText(const char *s);
+
 #endif
