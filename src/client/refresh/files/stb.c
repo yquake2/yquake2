@@ -509,16 +509,16 @@ R_LoadImage(const char *name, const char* namewe, const char *ext, imagetype_t t
 		{
 			byte *pic = NULL;
 			byte	*palette = NULL;
-			int width = 0, height = 0;
+			int width = 0, height = 0, bitsPerPixel = 8;
 
-			LoadPCX (namewe, &pic, &palette, &width, &height);
+			LoadPCX (namewe, &pic, &palette, &width, &height, &bitsPerPixel);
 			if (!pic)
 				return NULL;
 
 			image = load_image(name, pic,
 				width, width,
 				height, height,
-				width * height, type, 8);
+				width * height, type, bitsPerPixel);
 
 			if (palette)
 			{

@@ -236,15 +236,15 @@ typedef struct
 	// or a discrete file from anywhere in the quake search path
 	// a -1 return means the file does not exist
 	// NULL can be passed for buf to just determine existance
-	int		(IMPORT *FS_LoadFile) (char *name, void **buf);
+	int		(IMPORT *FS_LoadFile) (const char *name, void **buf);
 	void	(IMPORT *FS_FreeFile) (void *buf);
 
 	// gamedir will be the current directory that generated
 	// files should be stored to, ie: "f:\quake\id1"
 	char	*(IMPORT *FS_Gamedir) (void);
 
-	cvar_t	*(IMPORT *Cvar_Get) (const char *name, char *value, int flags);
-	cvar_t	*(IMPORT *Cvar_Set) (const char *name, char *value);
+	cvar_t	*(IMPORT *Cvar_Get) (const char *name, const char *value, int flags);
+	cvar_t	*(IMPORT *Cvar_Set) (const char *name, const char *value);
 	void	 (IMPORT *Cvar_SetValue) (const char *name, float value);
 
 	qboolean	(IMPORT *Vid_GetModeInfo)(int *width, int *height, int mode);

@@ -303,7 +303,7 @@ static char findpattern[MAX_OSPATH];
 static DIR *fdir;
 
 char *
-Sys_FindFirst(char *path, unsigned musthave, unsigned canhave)
+Sys_FindFirst(const char *path, unsigned musthave, unsigned canhave)
 {
 	struct dirent *d;
 	char *p;
@@ -403,7 +403,7 @@ void *
 Sys_GetGameAPI(void *parms)
 {
 	typedef void *(*fnAPI)(void *);
-	fnAPI GetGameAPI; 
+	fnAPI GetGameAPI;
 
 	char name[MAX_OSPATH];
 	char *path;

@@ -85,7 +85,8 @@ extern struct image_s* LoadM8(const char *origname, imagetype_t type, loadimage_
 extern struct image_s* LoadM32(const char *origname, imagetype_t type, loadimage_t load_image);
 extern void FixFileExt(const char *origname, const char *ext, char *filename, size_t size);
 extern void GetPCXPalette(byte **colormap, unsigned *d_8to24table);
-extern void LoadPCX(const char *origname, byte **pic, byte **palette, int *width, int *height);
+extern void LoadPCX(const char *origname, byte **pic, byte **palette, int *width, int *height,
+	int *bitsPerPixel);
 extern void GetPCXInfo(const char *origname, int *width, int *height);
 extern void GetWalInfo(const char *name, int *width, int *height);
 extern void GetM8Info(const char *name, int *width, int *height);
