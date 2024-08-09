@@ -385,7 +385,7 @@ S_GetStatistics(const byte *data, int sound_length, int width, int channels,
 		// calculate attack/fade length
 		byte *sound_data = (byte *)data;
 		byte *delay_data = sound_data;
-		byte *fade_data = sound_data;
+		byte *fade_data;
 		byte *sound_end = sound_data + sound_length;
 		short sound_sample = 0;
 		short sound_treshold = sound_max / 2;
@@ -401,7 +401,6 @@ S_GetStatistics(const byte *data, int sound_length, int width, int channels,
 		/* delay_data == (short *)(data + info.dataofs) */
 		*begin_length = (sound_data - delay_data) / channels;
 		delay_data = sound_data;
-		fade_data = sound_data;
 
 		/* attack calculate */
 		do
