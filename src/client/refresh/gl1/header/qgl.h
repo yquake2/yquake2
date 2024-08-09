@@ -35,9 +35,16 @@
 
 #if defined(__APPLE__)
 #define GL_SILENCE_DEPRECATION
+#endif
+
+#ifdef YQ2_GL1_GLES
+#include <GLES/gl.h>
+#else
+#if defined(__APPLE__)
 #include <OpenGL/gl.h>
 #else
 #include <GL/gl.h>
+#endif
 #endif
 
 #ifndef APIENTRY
@@ -93,5 +100,7 @@ extern void ( APIENTRY *qglColorTableEXT ) ( GLenum, GLenum, GLsizei, GLenum,
 		GLenum, const GLvoid * );
 extern void ( APIENTRY *qglActiveTexture ) ( GLenum texture );
 extern void ( APIENTRY *qglClientActiveTexture ) ( GLenum texture );
+extern void ( APIENTRY *qglDiscardFramebufferEXT ) ( GLenum target,
+		GLsizei numAttachments, const GLenum *attachments );
 
 #endif

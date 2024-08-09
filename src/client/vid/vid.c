@@ -532,10 +532,11 @@ VID_CheckChanges(void)
 		// Mkay, let's try our luck.
 		while (!VID_LoadRenderer())
 		{
-			// We try: custom -> gl3 -> gles3 -> gl1 -> soft.
+			// We try: custom -> gl3 -> gles3 -> gl1 -> gles1 -> soft.
 			if ((strcmp(vid_renderer->string, "gl3") != 0) &&
 				(strcmp(vid_renderer->string, "gles3") != 0) &&
 				(strcmp(vid_renderer->string, "gl1") != 0) &&
+				(strcmp(vid_renderer->string, "gles1") != 0) &&
 				(strcmp(vid_renderer->string, "soft") != 0))
 			{
 				Com_Printf("Retrying with gl3...\n");
@@ -552,6 +553,11 @@ VID_CheckChanges(void)
 				Cvar_Set("vid_renderer", "gl1");
 			}
 			else if (strcmp(vid_renderer->string, "gl1") == 0)
+			{
+				Com_Printf("Retrying with gles1...\n");
+				Cvar_Set("vid_renderer", "gles1");
+			}
+			else if (strcmp(vid_renderer->string, "gles1") == 0)
 			{
 				Com_Printf("Retrying with soft...\n");
 				Cvar_Set("vid_renderer", "soft");

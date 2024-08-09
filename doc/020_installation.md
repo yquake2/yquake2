@@ -322,6 +322,10 @@ or *gmake* (FreeBSD, NetBSD, OpenBSD). Note on Solaris systems, *make*
 After the build finished, copy everything from the *release/* directory
 to the Yamagi Quake II installation directory.
 
+If you want to generate the OpenGL ES 1.0 renderer, which may be the only
+graphics API available on some SoCs (like Raspberry Pi 3 or older), type
+*make with_gles1*.
+
 For the addons download or clone their source, change into the source
 directory and type *make* (Linux, MacOS and Windows) or *gmake*
 (FreeBSD, NetBSD, OpenBSD). After the compilation finishes the *release/game.so*

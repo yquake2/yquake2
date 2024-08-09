@@ -8,7 +8,7 @@ have been renamed. The prefixes are:
 * No prefix: General stuff.
 * `cl_`: Client.
 * `gl_`: Common to all OpenGL renderers.
-* `gl1_`: OpenGL 1.4 renderer.
+* `gl1_`: OpenGL 1.4 and OpenGL ES1 renderers.
 * `gl3_`: OpenGL 3.2 and OpenGL ES3 renderers.
 * `ogg_`: Ogg/Vorbis music playback.
 * `r_`: Common to all renderers.
@@ -464,6 +464,10 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
   the overlapping surfaces to mitigate the flickering. This may make
   things better or worse, depending on the map.
 
+* **gl_polyblend**: Toggles the palette blending effect, a.k.a. the
+  "flash" you see when getting injured or picking up an item. In GL1 is
+  also used for looking underwater. Default is `1` (enabled).
+
 * **gl_texturemode**: How textures are filtered.
   - `GL_NEAREST`: No filtering (using value of *nearest* source pixel),
     mipmaps not used
@@ -475,7 +479,7 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
   `GL_NEAREST_MIPMAP_LINEAR`, `GL_LINEAR_MIPMAP_LINEAR`
 
 
-## Graphics (OpenGL 1.4 only)
+## Graphics (OpenGL 1.4 and OpenGL ES1 only)
 
 * **gl1_intensity**: Sets the color intensity. Must be a floating point
   value, at least `1.0` - default is `2.0`. Applied when textures are
@@ -497,6 +501,16 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
 
 * **gl1_stencilshadow**: If `gl_shadows` is set to `1`, this makes them
   look a bit better (no flickering) by using the stencil buffer.
+
+* **gl1_lightmapcopies**: When enabled (`1`), keep 3 copies of the same
+  lightmap rotating, shifting to another one when drawing a new frame.
+  Meant for mobile/embedded devices, where changing textures just shown
+  (dynamic lighting) causes slowdown. By default in GL1 is disabled,
+  while in GLES1 is enabled. Needs `gl1_multitexture 1` & `vid_restart`.
+
+* **gl1_discardfb**: Only available in ES1. If set to `1` (default),
+  send a hint to discard framebuffers after finishing a frame. Useful
+  for GPUs that attempt to reuse them, something Quake 2 doesn't do.
 
 
 ## Graphics (OpenGL 3.2 and OpenGL ES3 only)
