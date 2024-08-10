@@ -153,19 +153,16 @@ CreateSDLWindow(int flags, int fullscreen, int w, int h)
 
 			/* Otherwise try to find a mode near the requested one and
 			   switch to it in exclusive fullscreen mode. */
-			/* TODO SDL3: Leak? */
-		    const SDL_DisplayMode *closestMode = SDL_GetClosestFullscreenDisplayMode(last_display, w, h, vid_rate->value, false);
-
-			if (closestMode == NULL)
+			SDL_DisplayMode closestMode;
+			if (SDL_GetClosestFullscreenDisplayMode(last_display, w, h, vid_rate->value, false, &closestMode))
 			{
 				Com_Printf("SDL was unable to find a mode close to %ix%i@%f\n", w, h, vid_rate->value);
 
 				if (vid_rate->value != 0)
 				{
 					Com_Printf("Retrying with desktop refresh rate\n");
-					closestMode = SDL_GetClosestFullscreenDisplayMode(last_display, w, h, 0, false);
 
-					if (closestMode != NULL)
+					if (!SDL_GetClosestFullscreenDisplayMode(last_display, w, h, 0, false, &closestMode))
 					{
 						Cvar_SetValue("vid_rate", 0);
 					}
@@ -178,12 +175,12 @@ CreateSDLWindow(int flags, int fullscreen, int w, int h)
 			}
 
 			Com_Printf("User requested %ix%i@%f, setting closest mode %ix%i@%f\n",
-					w, h, vid_rate->value, closestMode->w, closestMode->h , closestMode->refresh_rate);
+					w, h, vid_rate->value, closestMode.w, closestMode.h , closestMode.refresh_rate);
 
 
 			/* TODO SDL3: Same code is in InitGraphics(), refactor into
 			 * a function? */
-			if (SDL_SetWindowFullscreenMode(window, closestMode) < 0)
+			if (SDL_SetWindowFullscreenMode(window, &closestMode) < 0)
 			{
 				Com_Printf("Couldn't set closest mode: %s\n", SDL_GetError());
 				return false;
@@ -505,6 +502,7 @@ GLimp_InitGraphics(int fullscreen, int *pwidth, int *pheight)
 			&& (curWidth == width) && (curHeight == height))
 	{
 		/* TODO SDL3: Leak? */
+		SDL_DisplayMode modeStorage;
 		const SDL_DisplayMode *closestMode = NULL;
 
 		/* If we want fullscreen, but aren't */
@@ -512,19 +510,21 @@ GLimp_InitGraphics(int fullscreen, int *pwidth, int *pheight)
 		{
 			if (fullscreen == FULLSCREEN_EXCLUSIVE)
 			{
-				closestMode = SDL_GetClosestFullscreenDisplayMode(last_display, width, height, vid_rate->value, false);
-
-				if (closestMode == NULL)
+				if (!SDL_GetClosestFullscreenDisplayMode(last_display, width, height, vid_rate->value, false, &modeStorage))
+				{
+					closestMode = &modeStorage;
+				}
+				else
 				{
 					Com_Printf("SDL was unable to find a mode close to %ix%i@%f\n", width, height, vid_rate->value);
 
 					if (vid_rate->value != 0)
 					{
 						Com_Printf("Retrying with desktop refresh rate\n");
-						closestMode = SDL_GetClosestFullscreenDisplayMode(last_display, width, height, 0, false);
 
-						if (closestMode != NULL)
+						if (!SDL_GetClosestFullscreenDisplayMode(last_display, width, height, 0, false, &modeStorage))
 						{
+							closestMode = &modeStorage;
 							Cvar_SetValue("vid_rate", 0);
 						}
 						else
