@@ -414,11 +414,9 @@ GLimp_Init(void)
 			return false;
 		}
 
-		SDL_Version version;
-
-		SDL_GetVersion(&version);
+		int version = SDL_GetVersion();
 		Com_Printf("-------- vid initialization --------\n");
-		Com_Printf("SDL version is: %i.%i.%i\n", (int)version.major, (int)version.minor, (int)version.patch);
+		Com_Printf("SDL version is: %i.%i.%i\n", SDL_VERSIONNUM_MAJOR(version), SDL_VERSIONNUM_MINOR(version), SDL_VERSIONNUM_MICRO(version));
 		Com_Printf("SDL video driver is \"%s\".\n", SDL_GetCurrentVideoDriver());
 
 		SDL_DisplayID *displays;
@@ -906,8 +904,5 @@ GLimp_GetWindowDisplayIndex(void)
 int
 GLimp_GetFrameworkVersion(void)
 {
-	SDL_Version ver;
-	SDL_VERSION(&ver);
-
-	return ver.major;
+	return SDL_MAJOR_VERSION;
 }

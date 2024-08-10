@@ -1814,18 +1814,20 @@ GetRefAPI(refimport_t imp)
 	refexport_t	refexport;
 
 	// Need to communicate the SDL major version to the client.
+	int major_version;
 #ifdef USE_SDL3
-	SDL_Version ver;
+	major_version = SDL_MAJOR_VERSION;
 #else
 	SDL_version ver;
-#endif
 	SDL_VERSION(&ver);
+	major_version = ver.major;
+#endif
 
 	memset(&refexport, 0, sizeof(refexport_t));
 	ri = imp;
 
 	refexport.api_version = API_VERSION;
-	refexport.framework_version = ver.major;
+	refexport.framework_version = major_version;
 
 	refexport.BeginRegistration = RE_BeginRegistration;
 	refexport.RegisterModel = RE_RegisterModel;

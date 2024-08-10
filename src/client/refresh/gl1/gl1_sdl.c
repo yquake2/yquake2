@@ -314,12 +314,12 @@ RI_ShutdownContext(void)
 int RI_GetSDLVersion()
 {
 #ifdef USE_SDL3
-	SDL_Version ver;
+	return SDL_MAJOR_VERSION;
 #else
 	SDL_version ver;
-#endif
 
 	SDL_VERSION(&ver);
 
 	return ver.major;
+#endif
 }
