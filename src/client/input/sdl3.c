@@ -2333,8 +2333,6 @@ IN_Init(void)
 		}
 	}
 
-	SDL_StartTextInput();
-
 	IN_Controller_Init(false);
 
 	Com_Printf("------------------------------------\n\n");

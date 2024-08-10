@@ -205,6 +205,9 @@ CreateSDLWindow(int flags, int fullscreen, int w, int h)
 				return false;
 			}
 		}
+
+		// The input system used to do this in SDL2, but it doesn't have access to the window object.
+		SDL_StartTextInput(window);
 	}
 	else
 	{
