@@ -862,7 +862,7 @@ IN_Update(void)
 				{
 					break;
 				}
-				if (event.gdevice.which == SDL_GetJoystickInstanceID(SDL_GetGamepadJoystick(controller))) {
+				if (event.gdevice.which == SDL_GetJoystickID(SDL_GetGamepadJoystick(controller))) {
 					Cvar_SetValue("paused", 1);
 					IN_Controller_Shutdown(true);
 					IN_Controller_Init(false);
@@ -879,7 +879,7 @@ IN_Update(void)
 				break;
 
 			case SDL_EVENT_JOYSTICK_BATTERY_UPDATED :
-				if (!controller || event.jbattery.which != SDL_GetJoystickInstanceID(SDL_GetGamepadJoystick(controller)))
+				if (!controller || event.jbattery.which != SDL_GetJoystickID(SDL_GetGamepadJoystick(controller)))
 				{
 					break;
 				}
@@ -2172,9 +2172,9 @@ IN_Controller_Init(qboolean notify_user)
 		if (!is_controller)
 		{
 			char joystick_guid[65] = {0};
-			SDL_JoystickGUID guid = SDL_GetJoystickInstanceGUID(joysticks[i]);
+			SDL_GUID guid = SDL_GetJoystickGUID(joystick);
 
-			SDL_GetJoystickGUIDString(guid, joystick_guid, 64);
+			SDL_GUIDToString(guid, joystick_guid, 64);
 
 			Com_Printf ("To use joystick as game controller, provide its config by either:\n"
 				" * Putting 'gamecontrollerdb.txt' file in your game directory.\n"
