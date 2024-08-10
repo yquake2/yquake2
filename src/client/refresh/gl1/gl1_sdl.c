@@ -300,7 +300,7 @@ RI_ShutdownContext(void)
 	{
 		if(context)
 		{
-			SDL_GL_DeleteContext(context);
+			SDL_GL_DestroyContext(context);
 			context = NULL;
 		}
 	}

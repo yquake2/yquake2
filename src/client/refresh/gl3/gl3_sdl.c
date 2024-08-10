@@ -454,7 +454,7 @@ void GL3_ShutdownContext()
 	{
 		if(context)
 		{
-			SDL_GL_DeleteContext(context);
+			SDL_GL_DestroyContext(context);
 			context = NULL;
 		}
 	}
