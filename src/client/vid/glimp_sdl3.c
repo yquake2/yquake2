@@ -347,7 +347,7 @@ SetSDLIcon()
 	amask = (q2icon64.bytes_per_pixel == 3) ? 0 : 0xff000000;
 #endif
 
-	SDL_Surface* icon = SDL_CreateSurfaceFrom((void *)q2icon64.pixel_data, q2icon64.width, q2icon64.height, q2icon64.bytes_per_pixel * q2icon64.width, SDL_GetPixelFormatEnumForMasks(q2icon64.bytes_per_pixel * 8, rmask, gmask, bmask, amask));
+	SDL_Surface* icon = SDL_CreateSurfaceFrom((int)q2icon64.width, (int)q2icon64.height, SDL_GetPixelFormatForMasks(q2icon64.bytes_per_pixel * 8, rmask, gmask, bmask, amask), (void *)q2icon64.pixel_data, q2icon64.bytes_per_pixel * q2icon64.width);
 	SDL_SetWindowIcon(window, icon);
 	SDL_DestroySurface(icon);
 }
