@@ -1,0 +1,59 @@
+name: Testbuild for Linux
+run-name: testbuild_linux
+on:
+  push:
+    branches:
+      - 'master'
+  pull_request:
+    types:
+      - opened
+      - edited
+concurrency:
+  # Cancel concurrent workflows for the same PR or commit hash.
+  group: ${{github.workflow}}-${{github.event_name == 'pull_request' && github.head_ref || github.sha}}
+  cancel-in-progress: true
+jobs:
+  build_ubuntu_x64_64:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - env: ubuntu
+    steps:
+    - name: Install build dependencies
+      run: |
+        sudo apt update
+        sudo apt install libgl1-mesa-dev libsdl2-dev libopenal-dev libcurl4-openssl-dev
+    - name: Check out repository code
+      uses: actions/checkout@v4
+    - name: Build
+      run: |
+        # Public runners come with 2 CPUs.
+        make -j2
+    - name: Create testbuild package
+      run: |
+        # Create release directory tree
+        mkdir -p publish/quake2-linux-${{github.sha}}/misc/docs
+        # Copy release assets
+        cp -r release/* publish/quake2-linux-${{github.sha}}/
+        # Copy misc assets
+        cp -r stuff/yq2.cfg publish/quake2-linux-${{github.sha}}/misc/yq2.cfg
+        cp -r stuff/mapfixes publish/quake2-linux-${{github.sha}}/misc
+        cp LICENSE publish/quake2-linux-${{github.sha}}/misc/docs/LICENSE.txt
+        cp README.md publish/quake2-linux-${{github.sha}}/misc/docs/README.txt
+        cp doc/010_index.md publish/quake2-linux-${{github.sha}}/misc/docs/010_index.txt
+        cp doc/020_installation.md publish/quake2-linux-${{github.sha}}/misc/docs/020_installation.txt
+        cp doc/030_configuration.md publish/quake2-linux-${{github.sha}}/misc/docs/030_configuration.txt
+        cp doc/040_cvarlist.md publish/quake2-linux-${{github.sha}}/misc/docs/040_cvarlist.txt
+        cp doc/050_commands.md publish/quake2-linux-${{github.sha}}/misc/docs/050_commands.txt
+        cp doc/060_multiplayer.md publish/quake2-linux-${{github.sha}}/misc/docs/060_multiplayer.txt
+        cp doc/070_packaging.md publish/quake2-linux-${{github.sha}}/misc/docs/070_packaging.txt
+        cp doc/080_contributing.md publish/quake2-linux-${{github.sha}}/misc/docs/080_contributing.txt
+        cp doc/090_filelists.md publish/quake2-linux-${{github.sha}}/misc/docs/090_filelists.md
+    - name: Upload testbuild package
+      uses: actions/upload-artifact@v4
+      with:
+        name: quake2-linux-${{github.sha}}
+        path: publish/
+        if-no-files-found: error

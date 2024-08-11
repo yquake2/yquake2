@@ -1,0 +1,84 @@
+name: Testbuild for Win32
+run-name: testbuild_win32
+on:
+  push:
+    branches:
+      - 'master'
+  pull_request:
+    types:
+      - opened
+      - edited
+concurrency:
+  # Cancel concurrent workflows for the same PR or commit hash.
+  group: ${{github.workflow}}-${{github.event_name == 'pull_request' && github.head_ref || github.sha}}
+  cancel-in-progress: true
+jobs:
+  build_mingw_x86_32:
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { sys: mingw32, env: i686 }
+    steps:
+    - uses: msys2/setup-msys2@v2
+      with:
+        msystem: ${{matrix.sys}}
+        update: true
+        install: >-
+          git
+          make
+          zip
+          unzip
+          mingw-w64-${{matrix.env}}-curl
+          mingw-w64-${{matrix.env}}-gcc
+          mingw-w64-${{matrix.env}}-make
+          mingw-w64-${{matrix.env}}-openal
+          mingw-w64-${{matrix.env}}-SDL2
+          mingw-w64-${{matrix.env}}-wget
+    - name: Check out repository code
+      uses: actions/checkout@v4
+    - name: Build
+      shell: msys2 {0}
+      run: |
+        # Public runners come with 2 CPUs.
+        make -j2
+    - name: Create testbuild package
+      shell: msys2 {0}
+      run: |
+        # Create release directory tree
+        mkdir -p publish/quake2-win32-${{github.sha}}/misc/docs
+        # Copy release assets
+        cp -r release/* publish/quake2-win32-${{github.sha}}/
+        # Copy misc assets
+        cp -r stuff/yq2.cfg publish/quake2-win32-${{github.sha}}/misc/yq2.cfg
+        cp -r stuff/mapfixes publish/quake2-win32-${{github.sha}}/misc
+        cp LICENSE publish/quake2-win32-${{github.sha}}/misc/docs/LICENSE.txt
+        cp README.md publish/quake2-win32-${{github.sha}}/misc/docs/README.txt
+        cp doc/010_index.md publish/quake2-win32-${{github.sha}}/misc/docs/010_index.txt
+        cp doc/020_installation.md publish/quake2-win32-${{github.sha}}/misc/docs/020_installation.txt
+        cp doc/030_configuration.md publish/quake2-win32-${{github.sha}}/misc/docs/030_configuration.txt
+        cp doc/040_cvarlist.md publish/quake2-win32-${{github.sha}}/misc/docs/040_cvarlist.txt
+        cp doc/050_commands.md publish/quake2-win32-${{github.sha}}/misc/docs/050_commands.txt
+        cp doc/060_multiplayer.md publish/quake2-win32-${{github.sha}}/misc/docs/060_multiplayer.txt
+        cp doc/070_packaging.md publish/quake2-win32-${{github.sha}}/misc/docs/070_packaging.txt
+        cp doc/080_contributing.md publish/quake2-win32-${{github.sha}}/misc/docs/080_contributing.txt
+        cp doc/090_filelists.md publish/quake2-win32-${{github.sha}}/misc/docs/090_filelists.md
+        # SDL2 
+        wget -c https://github.com/libsdl-org/SDL/releases/download/release-2.30.6/SDL2-2.30.6-win32-x86.zip
+        unzip -o SDL2-2.30.6-win32-x86.zip
+        cp SDL2.dll publish/quake2-win32-${{github.sha}}/
+        # openal-soft
+        wget -c https://www.openal-soft.org/openal-binaries/openal-soft-1.23.1-bin.zip
+        unzip -o openal-soft-1.23.1-bin.zip
+        cp openal-soft-1.23.1-bin/bin/Win32/soft_oal.dll publish/quake2-win32-${{github.sha}}/openal32.dll
+        # curl (releases use a custom build curl.dll)
+        wget -c https://curl.se/windows/dl-8.9.1_1/curl-8.9.1_1-win32-mingw.zip
+        unzip -o curl-8.9.1_1-win32-mingw.zip
+        cp curl-8.9.1_1-win32-mingw/bin/libcurl.dll publish/quake2-win32-${{github.sha}}/curl.dll
+    - name: Upload testbuild package
+      uses: actions/upload-artifact@v4
+      with:
+        name: quake2-win32-${{github.sha}}
+        path: publish/
+        if-no-files-found: error
