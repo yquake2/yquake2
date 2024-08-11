@@ -31,10 +31,6 @@
 #include <ctype.h>
 #include <math.h>
 
-#ifdef YQ2_GL1_GLES
-#include "../glad-gles1/include/glad/glad.h"
-#endif
-
 #include "../../ref_shared.h"
 #include "qgl.h"
 
