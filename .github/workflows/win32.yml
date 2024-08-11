@@ -54,15 +54,15 @@ jobs:
         cp -r stuff/mapfixes quake2-win32-${{github.sha}}/misc
         cp LICENSE quake2-win32-${{github.sha}}/misc/docs/LICENSE.txt
         cp README.md quake2-win32-${{github.sha}}/misc/docs/README.txt
-        cp 010_index.md quake2-win32-${{github.sha}}/misc/docs/010_index.txt
-        cp 020_installation.md quake2-win32-${{github.sha}}/misc/docs/020_installation.txt
-        cp 030_configuration.md quake2-win32-${{github.sha}}/misc/docs/030_configuration.txt
-        cp 040_cvarlist.md quake2-win32-${{github.sha}}/misc/docs/040_cvarlist.txt
-        cp 050_commands.md quake2-win32-${{github.sha}}/misc/docs/050_commands.txt
-        cp 060_multiplayer.md quake2-win32-${{github.sha}}/misc/docs/060_multiplayer.txt
-        cp 070_packaging.md quake2-win32-${{github.sha}}/misc/docs/070_packaging.txt
-        cp 080_contributing.md quake2-win32-${{github.sha}}/misc/docs/080_contributing.txt
-        cp 090_filelists.md quake2-win32-${{github.sha}}/misc/docs/090_filelists.md
+        cp doc/010_index.md quake2-win32-${{github.sha}}/misc/docs/010_index.txt
+        cp doc/020_installation.md quake2-win32-${{github.sha}}/misc/docs/020_installation.txt
+        cp doc/030_configuration.md quake2-win32-${{github.sha}}/misc/docs/030_configuration.txt
+        cp doc/040_cvarlist.md quake2-win32-${{github.sha}}/misc/docs/040_cvarlist.txt
+        cp doc/050_commands.md quake2-win32-${{github.sha}}/misc/docs/050_commands.txt
+        cp doc/060_multiplayer.md quake2-win32-${{github.sha}}/misc/docs/060_multiplayer.txt
+        cp doc/070_packaging.md quake2-win32-${{github.sha}}/misc/docs/070_packaging.txt
+        cp doc/080_contributing.md quake2-win32-${{github.sha}}/misc/docs/080_contributing.txt
+        cp doc/090_filelists.md quake2-win32-${{github.sha}}/misc/docs/090_filelists.md
         # SDL2 
         wget -c https://github.com/libsdl-org/SDL/releases/download/release-2.30.6/SDL2-2.30.6-win32-x86.zip
         unzip -o SDL2-2.30.6-win32-x86.zip
