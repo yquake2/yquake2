@@ -212,7 +212,7 @@ Cvar_VariableString(const char *var_name)
  * The flags will be or'ed in if the variable exists.
  */
 cvar_t *
-Cvar_Get(const char *var_name, char *var_value, int flags)
+Cvar_Get(const char *var_name, const char *var_value, int flags)
 {
 	cvar_t *var;
 	cvar_t **pos;
@@ -290,7 +290,7 @@ Cvar_Get(const char *var_name, char *var_value, int flags)
 }
 
 cvar_t *
-Cvar_Set2(const char *var_name, char *value, qboolean force)
+Cvar_Set2(const char *var_name, const char *value, qboolean force)
 {
 	cvar_t *var;
 
@@ -400,13 +400,13 @@ Cvar_ForceSet(const char *var_name, char *value)
 }
 
 cvar_t *
-Cvar_Set(const char *var_name, char *value)
+Cvar_Set(const char *var_name, const char *value)
 {
 	return Cvar_Set2(var_name, value, false);
 }
 
 cvar_t *
-Cvar_FullSet(const char *var_name, char *value, int flags)
+Cvar_FullSet(const char *var_name, const char *value, int flags)
 {
 	cvar_t *var;
 

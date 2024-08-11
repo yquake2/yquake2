@@ -59,6 +59,8 @@ extern	int			crosshair_width, crosshair_height;
 void SCR_AddDirtyPoint(int x, int y);
 void SCR_DirtyScreen(void);
 
+void SCR_LoadImageWithPalette(char *filename, byte **pic, byte **palette,
+	int *width, int *height, int *bitsPerPixel);
 void SCR_PlayCinematic(char *name);
 qboolean SCR_DrawCinematic(void);
 void SCR_RunCinematic(void);

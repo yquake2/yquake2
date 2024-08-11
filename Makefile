@@ -856,6 +856,7 @@ GAME_OBJS_ = \
 CLIENT_OBJS_ := \
 	src/backends/generic/misc.o \
 	src/client/cl_cin.o \
+	src/client/cl_image.o \
 	src/client/cl_console.o \
 	src/client/cl_download.o \
 	src/client/cl_effects.o \

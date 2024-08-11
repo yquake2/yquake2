@@ -80,9 +80,9 @@ typedef struct
     const char *(*key)(int k);
 } menulayer_t;
 
-menulayer_t m_layers[MAX_MENU_DEPTH];
-menulayer_t m_active;		/* active menu layer */
-int m_menudepth;
+static menulayer_t m_layers[MAX_MENU_DEPTH];
+static menulayer_t m_active;		/* active menu layer */
+static int m_menudepth;
 
 static qboolean
 M_IsGame(const char *gamename)
@@ -126,7 +126,7 @@ M_PopMenu(void)
 
     if (m_menudepth < 1)
     {
-        Com_Error(ERR_FATAL, "M_PopMenu: depth < 1");
+        Com_Error(ERR_FATAL, "%s: depth < 1", __func__);
     }
 
     m_menudepth--;
@@ -730,7 +730,7 @@ InitMainMenu(void)
 static void
 M_Main_Draw(void)
 {
-    menucommon_s * item = NULL;
+    const menucommon_s * item = NULL;
     int x = 0;
     int y = 0;
 
@@ -756,13 +756,13 @@ M_Main_Key(int key)
 void
 M_Menu_Main_f(void)
 {
-    menucommon_s * item = NULL;
-
     InitMainMenu();
 
     // force first available item to have focus
     while (s_main.cursor >= 0 && s_main.cursor < s_main.nitems)
     {
+        const menucommon_s * item = NULL;
+
         item = ( menucommon_s * )s_main.items[s_main.cursor];
 
         if ((item->flags & (QMF_INACTIVE)))
@@ -777,7 +777,7 @@ M_Menu_Main_f(void)
 
     s_main.draw = M_Main_Draw;
     s_main.key  = M_Main_Key;
-    
+
     M_PushMenu(&s_main);
 }
 
@@ -946,7 +946,7 @@ M_UnbindCommand(char *command, int scope)
 
     for (j = begin; j < end; j++)
     {
-        char *b;
+        const char *b;
         b = keybindings[j];
 
         if (!b)
@@ -985,7 +985,7 @@ M_FindKeysForCommand(char *command, int *twokeys, int scope)
 
     for (j = begin; j < end; j++)
     {
-        char *b;
+        const char *b;
         b = keybindings[j];
 
         if (!b)
@@ -2299,8 +2299,7 @@ EnableOGGMusic(void *unused)
 
 		if (cls.state == ca_active)
 		{
-	        int track = (int)strtol(cl.configstrings[CS_CDTRACK], (char **)NULL, 10);
-	        OGG_PlayTrack(track, true, true);
+			OGG_PlayTrack(cl.configstrings[CS_CDTRACK], true, true);
 		}
     }
     else
@@ -3104,7 +3103,7 @@ M_Menu_Credits_f(void)
 
     s_credits.draw = M_Credits_Draw;
     s_credits.key  = M_Credits_Key;
-    
+
     M_PushMenu(&s_credits);
 }
 
@@ -3505,7 +3504,7 @@ static qboolean menukeyitem_delete = false;
 static void
 PromptDeleteSaveFunc(menuframework_s *m)
 {
-	menucommon_s *item = Menu_ItemAtCursor(m);
+	const menucommon_s *item = Menu_ItemAtCursor(m);
 	if (item == NULL || item->type != MTYPE_ACTION)
 	{
 		return;
@@ -3562,8 +3561,6 @@ Create_Savestrings(void)
 {
 	int i;
 	fileHandle_t f;
-	char name[MAX_OSPATH];
-	char tmp[32]; // Same length as m_quicksavestring-
 
 	// The quicksave slot...
 	FS_FOpenFile("save/quick/server.ssv", &f, true);
@@ -3575,6 +3572,8 @@ Create_Savestrings(void)
 	}
 	else
 	{
+		char tmp[32]; // Same length as m_quicksavestring-
+
 		FS_Read(tmp, sizeof(tmp), f);
 		FS_FCloseFile(f);
 
@@ -3597,6 +3596,8 @@ Create_Savestrings(void)
 	// ... and everything else.
 	for (i = 0; i < MAX_SAVESLOTS; i++)
 	{
+		char name[MAX_OSPATH];
+
 		Com_sprintf(name, sizeof(name), "save/save%i/server.ssv", m_loadsave_page * MAX_SAVESLOTS + i);
 		FS_FOpenFile(name, &f, true);
 
@@ -3980,7 +3981,7 @@ static char local_server_netadr_strings[MAX_LOCAL_SERVERS][80];
 void
 M_AddToServerList(netadr_t adr, char *info)
 {
-	char *s;
+	const char *s;
 	int i;
 
 	if (m_num_servers == MAX_LOCAL_SERVERS)
@@ -4210,7 +4211,6 @@ StartServerActionFunc(void *self)
     char startmap[1024];
     float timelimit;
     float fraglimit;
-    float capturelimit;
     float maxclients;
     char *spot;
 
@@ -4222,6 +4222,8 @@ StartServerActionFunc(void *self)
 
     if (M_IsGame("ctf"))
     {
+        float capturelimit;
+
         capturelimit = (float)strtod(s_capturelimit_field.buffer, (char **)NULL);
         Cvar_SetValue("capturelimit", ClampCvar(0, capturelimit, capturelimit));
     }
@@ -4592,7 +4594,7 @@ static menulist_s s_no_spheres_box;
 static void
 DMFlagCallback(void *self)
 {
-    menulist_s *f = (menulist_s *)self;
+    const menulist_s *f = (menulist_s *)self;
     int flags;
     int bit = 0;
 
@@ -5066,7 +5068,7 @@ static menulist_s s_allow_download_sounds_box;
 static void
 DownloadCallback(void *self)
 {
-    menulist_s *f = (menulist_s *)self;
+    const menulist_s *f = (menulist_s *)self;
 
     if (f == &s_allow_download_box)
     {
@@ -5234,7 +5236,7 @@ AddressBook_MenuInit(void)
 
     for (i = 0; i < NUM_ADDRESSBOOK_ENTRIES; i++)
     {
-        cvar_t *adr;
+        const cvar_t *adr;
         char buffer[20];
 
         Com_sprintf(buffer, sizeof(buffer), "adr%d", i);
@@ -5355,24 +5357,27 @@ ModelCallback(void *unused)
 }
 
 // returns true if icon .pcx exists for skin .pcx
-static qboolean IconOfSkinExists(char* skin, char** pcxfiles, int npcxfiles)
+static qboolean
+IconOfSkinExists(const char* skin, char** pcxfiles, int npcxfiles,
+	const char *ext)
 {
-    int i;
-    char scratch[1024];
+	int i;
+	char scratch[1024];
 
-    strcpy(scratch, skin);
-    *strrchr(scratch, '.') = 0;
-    strcat(scratch, "_i.pcx");
+	strcpy(scratch, skin);
+	*strrchr(scratch, '.') = 0;
+	strcat(scratch, "_i.");
+	strcat(scratch, ext);
 
-    for (i = 0; i < npcxfiles; i++)
-    {
-        if (strcmp(pcxfiles[i], scratch) == 0)
-        {
-            return true;
-        }
-    }
+	for (i = 0; i < npcxfiles; i++)
+	{
+		if (strcmp(pcxfiles[i], scratch) == 0)
+		{
+			return true;
+		}
+	}
 
-    return false;
+	return false;
 }
 
 // strip file extension
@@ -5403,13 +5408,14 @@ StripExtension(char* path)
 static qboolean
 ContainsFile(char* path, char* file)
 {
-    char pathname[MAX_QPATH];
     int handle = 0;
-    int length = 0;
     qboolean result = false;
 
     if (path != 0 && file != 0)
     {
+        char pathname[MAX_QPATH];
+        int length = 0;
+
         Com_sprintf(pathname, MAX_QPATH, "%s/%s", path, file);
 
         length = FS_FOpenFile(pathname, &handle, false);
@@ -5491,19 +5497,19 @@ PlayerModelFree()
             while (s_skinnames[s_modelname.num].num-- > 0)
             {
                 s = s_skinnames[s_modelname.num].data[s_skinnames[s_modelname.num].num];
-                if (s != 0)
+                if (s != NULL)
                 {
                     free(s);
-                    s = 0;
+                    s = NULL;
                 }
             }
 
             s = (char*)s_skinnames[s_modelname.num].data;
 
-            if (s != 0)
+            if (s != NULL)
             {
                 free(s);
-                s = 0;
+                s = NULL;
             }
 
             s_skinnames[s_modelname.num].data = 0;
@@ -5511,19 +5517,19 @@ PlayerModelFree()
 
             // models
             s = s_modelname.data[s_modelname.num];
-            if (s != 0)
+            if (s != NULL)
             {
                 free(s);
-                s = 0;
+                s = NULL;
             }
         }
     }
 
     s = (char*)s_modelname.data;
-    if (s != 0)
+    if (s != NULL)
     {
         free(s);
-        s = 0;
+        s = NULL;
     }
 
     s_modelname.data = 0;
@@ -5533,18 +5539,17 @@ PlayerModelFree()
     while (s_directory.num-- > 0)
     {
         s = s_directory.data[s_directory.num];
-        if (s != 0)
+        if (s != NULL)
         {
             free(s);
-            s = 0;
+            s = NULL;
         }
     }
 
     s = (char*)s_directory.data;
-    if (s != 0)
+    if (s != NULL)
     {
         free(s);
-        s = 0;
     }
 
     s_directory.data = 0;
@@ -5557,196 +5562,318 @@ PlayerModelFree()
 static qboolean
 PlayerDirectoryList(void)
 {
-    char* findname = "players/*";
-    char** list = NULL;
-    int num = 0;
+	const char* findname = "players/*";
+	char** list = NULL;
+	int num = 0, dirnum = 0;
+	size_t listoff = strlen(findname);
 
-    // get a list of "players" subdirectories
-    if ((list = FS_ListFiles2(findname, &num, 0, 0)) == NULL)
-    {
-        return false;
-    }
+	/* get a list of "players" subdirectories or files */
+	if ((list = FS_ListFiles2(findname, &num, 0, 0)) == NULL)
+	{
+		return false;
+	}
 
-    if (num > MAX_PLAYERMODELS)
-    {
-        Com_Printf("Too many player models (%d)!\n", num);
-        num = MAX_PLAYERMODELS - 1;
-    }
+	if (num > MAX_PLAYERMODELS)
+	{
+		Com_Printf("Too many player models (%d)!\n", num);
+		num = MAX_PLAYERMODELS - 1;
+	}
 
-    // malloc directories
-    char** data = (char**)calloc(num, sizeof(char*));
-    YQ2_COM_CHECK_OOM(data, "calloc()", num * sizeof(char*))
+	// malloc directories
+	char** data = (char**)calloc(num, sizeof(char*));
+	YQ2_COM_CHECK_OOM(data, "calloc()", num * sizeof(char*))
 
-    s_directory.data = data;
-    s_directory.num = num;
+	s_directory.data = data;
 
-    for (int i = 0; i < num; ++i)
-    {
-        // last element of FS_FileList maybe null
-        if (list[i] == 0)
-        {
-            break;
-        }
+	for (int i = 0; i < num; ++i)
+	{
+		char dirname[MAX_QPATH];
+		const char *dirsize;
+		int j;
 
-        ReplaceCharacters(list[i], '\\', '/');
+		// last element of FS_FileList maybe null
+		if (list[i] == 0)
+		{
+			break;
+		}
 
-        char* s = (char*)malloc(MAX_QPATH);
-        char* t = list[i];
+		ReplaceCharacters(list[i], '\\', '/');
 
-        YQ2_COM_CHECK_OOM(s, "malloc()", MAX_QPATH * sizeof(char))
+		/*
+		 * search slash after "players/" and use only directory name
+		 * pak search does not return directory names, only files in
+		 * directories
+		 */
+		dirsize = strchr(list[i] + listoff, '/');
+		if (dirsize)
+		{
+			int dirnamelen = 0;
 
-        Q_strlcpy(s, t, MAX_QPATH);
-        data[i] = s;
-    }
+			dirnamelen = dirsize - list[i];
+			memcpy(dirname, list[i], dirnamelen);
+			dirname[dirnamelen] = 0;
+		}
+		else
+		{
+			strcpy(dirname, list[i]);
+		}
 
-    // free file list
-    FS_FreeList(list, num);
+		for (j = 0; j < dirnum; j++)
+		{
+			if (!strcmp(dirname, data[j]))
+			{
+				break;
+			}
+		}
 
-    // sort them male, female, alphabetical
-    qsort(s_directory.data, s_directory.num - 1, sizeof(char**), dircmp_func);
+		if (j == dirnum)
+		{
+			char* s = (char*)malloc(MAX_QPATH);
 
-    return true;
+			YQ2_COM_CHECK_OOM(s, "malloc()", MAX_QPATH * sizeof(char))
+
+			Q_strlcpy(s, dirname, MAX_QPATH);
+			data[dirnum] = s;
+			dirnum ++;
+		}
+	}
+
+	s_directory.num = dirnum;
+
+	// free file list
+	FS_FreeList(list, num);
+
+	// sort them male, female, alphabetical
+	qsort(s_directory.data, s_directory.num - 1, sizeof(char**), dircmp_func);
+
+	return true;
 }
 
-// list all valid player models.
-// call PlayerDirectoryList first.
-// model names is always allocated MAX_PLAYERMODELS
+static char**
+HasSkinInDir(const char *dirname, const char *ext, int *num)
+{
+	char findname[MAX_QPATH];
+
+	strcpy(findname, dirname);
+	strcat(findname, "/*.");
+	strcat(findname, ext);
+
+	return FS_ListFiles2(findname, num, 0, 0);
+}
+
+static char**
+HasSkinsInDir(const char *dirname, int *num)
+{
+	char **list_png, **list_pcx;
+	char **curr = NULL, **list = NULL;
+	int num_png, num_pcx, dirname_size;
+
+	*num = 0;
+	/* dir name size plus one for skip slash */
+	dirname_size = strlen(dirname) + 1;
+
+	list_png = HasSkinInDir(dirname, "png", &num_png);
+	if (list_png)
+	{
+		*num += num_png - 1;
+	}
+
+	list_pcx = HasSkinInDir(dirname, "pcx", &num_pcx);
+	if (list_pcx)
+	{
+		*num += num_pcx - 1;
+	}
+
+	if (num)
+	{
+		curr = list = malloc(sizeof(char *) * (*num + 1));
+		YQ2_COM_CHECK_OOM(list, "realloc()", (size_t)sizeof(char *) * (*num + 1))
+
+		if (list_png)
+		{
+			int j;
+
+			for (j = 0; j < num_png; j ++)
+			{
+				if (list_png[j] && !strchr(list_png[j] + dirname_size, '/'))
+				{
+					*curr = list_png[j];
+					curr++;
+				}
+			}
+
+			free(list_png);
+		}
+
+		if (list_pcx)
+		{
+			int j;
+
+			for (j = 0; j < num_pcx; j ++)
+			{
+				if (list_pcx[j] && !strchr(list_pcx[j] + dirname_size, '/'))
+				{
+					*curr = list_pcx[j];
+					curr++;
+				}
+			}
+
+			free(list_pcx);
+		}
+
+		*curr = NULL;
+		curr++;
+		*num = curr - list;
+	}
+
+	return list;
+}
+
+/*
+ * list all valid player models.
+ * call PlayerDirectoryList first.
+ * model names is always allocated MAX_PLAYERMODELS
+ */
 static qboolean
 PlayerModelList(void)
 {
-    char findname[MAX_QPATH];
-    char** list = NULL;
-    char** data = NULL;
-    int num = 0;
-    int mdl = 0;
-    qboolean result = true;
+	char** list = NULL;
+	char** data = NULL;
+	int i;
+	int num = 0;
+	int mdl = 0;
+	qboolean result = true;
 
-    // malloc models
-    data = (char**)calloc(MAX_PLAYERMODELS, sizeof(char*));
-    YQ2_COM_CHECK_OOM(data, "calloc()", MAX_PLAYERMODELS * sizeof(char*))
+	// malloc models
+	data = (char**)calloc(MAX_PLAYERMODELS, sizeof(char*));
+	YQ2_COM_CHECK_OOM(data, "calloc()", MAX_PLAYERMODELS * sizeof(char*))
 
-    s_modelname.data = data;
-    s_modelname.num = 0;
+	s_modelname.data = data;
+	s_modelname.num = 0;
 
-    // verify the existence of at least one pcx skin
-    for (int i = 0; i < s_directory.num; ++i)
-    {
-        char* s = NULL;
-        char* t = NULL;
-        int l;
+	/* verify the existence of at least one pcx skin */
+	for (i = 0; i < s_directory.num; ++i)
+	{
+		char* s = NULL;
+		char* t = NULL;
+		int l;
 
-        if (s_directory.data[i] == 0)
-        {
-            continue;
-        }
+		if (s_directory.data[i] == 0)
+		{
+			continue;
+		}
 
-        strcpy(findname, s_directory.data[i]);
-        strcat(findname, "/*.pcx");
+		/* contains triangle .md2 model */
+		s = s_directory.data[i];
 
-        // get a list of pcx files
-        if ((list = FS_ListFiles2(findname, &num, 0, 0)) == NULL)
-        {
-            continue;
-        }
+		if (ContainsFile(s, "tris.md2") == false)
+		{
+			/* invalid player model */
+			continue;
+		}
 
-        // contains triangle .md2 model
-        s = s_directory.data[i];
+		list = HasSkinsInDir(s_directory.data[i], &num);
+		/* get a list of pcx files */
+		if (!num || !list)
+		{
+			continue;
+		}
 
-        if (ContainsFile(s, "tris.md2") == false)
-        {
-            continue;            // invalid player model
-        }
+		/* count valid skins, which consist of a skin with a matching "_i" icon */
+		s_skinnames[mdl].num = 0;
 
-        // count valid skins, which consist of a skin with a matching "_i" icon
-        s_skinnames[mdl].num = 0;
+		for (int j = 0; j < num; j++)
+		{
+			/* last element of FS_FileList maybe null */
+			if (list[j] == 0)
+			{
+				break;
+			}
 
-        for (int j = 0; j < num; j++)
-        {
-            // last element of FS_FileList maybe null
-            if (list[j] == 0)
-            {
-                break;
-            }
+			if (!strstr(list[j], "_i.png") ||
+				!strstr(list[j], "_i.pcx"))
+			{
+				if (IconOfSkinExists(list[j], list, num - 1, "png") ||
+					IconOfSkinExists(list[j], list, num - 1, "pcx"))
+				{
+					s_skinnames[mdl].num++;
+				}
+			}
+		}
 
-            if (!strstr(list[j], "_i.pcx"))
-            {
-                if (IconOfSkinExists(list[j], list, num - 1))
-                {
-                    s_skinnames[mdl].num++;
-                }
-            }
-        }
+		if (s_skinnames[mdl].num == 0)
+		{
+			FS_FreeList(list, num);
 
-        if (s_skinnames[mdl].num == 0)
-        {
-            FS_FreeList(list, num);
+			continue;
+		}
 
-            continue;
-        }
+		/* malloc skinnames */
+		data = (char**)malloc((s_skinnames[mdl].num + 1) * sizeof(char*));
+		YQ2_COM_CHECK_OOM(data, "malloc()", (s_skinnames[mdl].num + 1) * sizeof(char*))
+		memset(data, 0, (s_skinnames[mdl].num + 1) * sizeof(char*));
 
-        // malloc skinnames
-        data = (char**)malloc((s_skinnames[mdl].num + 1) * sizeof(char*));
-        YQ2_COM_CHECK_OOM(data, "malloc()", (s_skinnames[mdl].num + 1) * sizeof(char*))
-        memset(data, 0, (s_skinnames[mdl].num + 1) * sizeof(char*));
+		s_skinnames[mdl].data = data;
+		s_skinnames[mdl].num = 0;
 
-        s_skinnames[mdl].data = data;
-        s_skinnames[mdl].num = 0;
+		/* duplicate strings */
+		for (int k = 0; k < num; ++k)
+		{
+			/* last element of FS_FileList maybe null */
+			if (list[k] == 0)
+			{
+				break;
+			}
 
-        // duplicate strings
-        for (int k = 0; k < num; ++k)
-        {
-            // last element of FS_FileList maybe null
-            if (list[k] == 0)
-            {
-                break;
-            }
+			if (!strstr(list[k], "_i.png") ||
+				!strstr(list[k], "_i.pcx"))
+			{
+				if (IconOfSkinExists(list[k], list, num - 1, "png") ||
+					IconOfSkinExists(list[k], list, num - 1, "pcx"))
+				{
+					ReplaceCharacters(list[k], '\\', '/');
 
-            if (!strstr(list[k], "_i.pcx"))
-            {
-                if (IconOfSkinExists(list[k], list, num - 1))
-                {
-                    ReplaceCharacters(list[k], '\\', '/');
+					t = strrchr(list[k], '/');
 
-                    t = strrchr(list[k], '/');
+					l = strlen(t) + 1;
+					s = (char*)malloc(l);
 
-                    l = strlen(t) + 1;
-                    s = (char*)malloc(l);
-                    YQ2_COM_CHECK_OOM(s, "malloc()", l * sizeof(char))
+					YQ2_COM_CHECK_OOM(s, "malloc()", l * sizeof(char))
 
-                    StripExtension(t);
-                    Q_strlcpy(s, t + 1, l);
+					StripExtension(t);
+					Q_strlcpy(s, t + 1, l);
 
-                    data[s_skinnames[mdl].num++] = s;
-                }
-            }
-        }
+					data[s_skinnames[mdl].num++] = s;
+				}
+			}
+		}
 
-        // sort skin names alphabetically
-        qsort(s_skinnames[mdl].data, s_skinnames[mdl].num, sizeof(char**), Q_sort_stricmp);
+		/* sort skin names alphabetically */
+		qsort(s_skinnames[mdl].data, s_skinnames[mdl].num, sizeof(char**), Q_sort_stricmp);
 
-        // at this point we have a valid player model
-        t = strrchr(s_directory.data[i], '/');
-        l = strlen(t) + 1;
-        s = (char*)malloc(l);
+		/* at this point we have a valid player model */
+		t = strrchr(s_directory.data[i], '/');
+		l = strlen(t) + 1;
+		s = (char*)malloc(l);
 
-        YQ2_COM_CHECK_OOM(s, "malloc()", l * sizeof(char))
+		YQ2_COM_CHECK_OOM(s, "malloc()", l * sizeof(char))
 
-        Q_strlcpy(s, t + 1, l);
+		Q_strlcpy(s, t + 1, l);
 
-        s_modelname.data[s_modelname.num++] = s;
-        mdl = s_modelname.num;
+		s_modelname.data[s_modelname.num++] = s;
+		mdl = s_modelname.num;
 
-        // free file list
-        FS_FreeList(list, num);
-    }
+		/* free file list */
+		FS_FreeList(list, num);
+	}
 
-    if (s_modelname.num == 0)
-    {
-        PlayerModelFree();
-        result = false;
-    }
+	if (s_modelname.num == 0)
+	{
+		PlayerModelFree();
+		result = false;
+	}
 
-    return result;
+	return result;
 }
 
 static qboolean
@@ -5792,7 +5919,7 @@ static qboolean
 PlayerConfig_MenuInit(void)
 {
     extern cvar_t *name;
-    extern cvar_t *skin;
+    const extern cvar_t *skin;
     cvar_t *hand = Cvar_Get( "hand", "0", CVAR_USERINFO | CVAR_ARCHIVE );
     static const char *handedness[] = { "right", "left", "center", 0 };
     char mdlname[MAX_QPATH];
@@ -5832,7 +5959,7 @@ PlayerConfig_MenuInit(void)
 
     for (i = 0; i < s_skinnames[mdlindex].num; i++)
     {
-        char* names = s_skinnames[mdlindex].data[i];
+        const char* names = s_skinnames[mdlindex].data[i];
         if (Q_stricmp(names, imgname) == 0)
         {
             imgindex = i;
@@ -6094,8 +6221,8 @@ PlayerConfig_MenuKey(int key)
     key = Key_GetMenuKey(key);
     if (key == K_ESCAPE)
     {
+        const char* name = NULL;
         char skin[MAX_QPATH];
-        char* name = NULL;
         char* mdl = NULL;
         char* img = NULL;
 
@@ -6263,7 +6390,7 @@ M_Draw(void)
     {
 	m_active.draw();
     }
-    
+
     /* delay playing the enter sound until after the
        menu has been drawn, to avoid delay while
        caching images */
@@ -6286,4 +6413,3 @@ M_Keydown(int key)
         }
     }
 }
-
