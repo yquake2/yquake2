@@ -1,5 +1,7 @@
 # Yamagi Quake II
 
+Dummychange 1.
+
 Yamagi Quake II is an enhanced client for id Software's Quake
 II with focus on offline and coop gameplay. Both the gameplay and the graphics
 are unchanged, but many bugs in the last official release were fixed and some
