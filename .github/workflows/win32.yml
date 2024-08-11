@@ -71,7 +71,7 @@ jobs:
         # openal-soft
         wget -c https://www.openal-soft.org/openal-binaries/openal-soft-1.23.1-bin.zip
         unzip -o openal-soft-1.23.1-bin.zip
-        cp openal-soft-1.23.1-bin/bin/Win32/soft_oal.dll quake2-win32-${{github.sha}}/OpenAL32.dll
+        cp openal-soft-1.23.1-bin/bin/Win32/soft_oal.dll quake2-win32-${{github.sha}}/openal32.dll
         # curl (releases use a custom build curl.dll)
         wget -c https://curl.se/windows/dl-8.9.1_1/curl-8.9.1_1-win32-mingw.zip
         unzip -o curl-8.9.1_1-win32-mingw.zip
