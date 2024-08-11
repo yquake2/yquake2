@@ -8,6 +8,10 @@ on:
     types:
       - opened
       - edited
+concurrency:
+  # Cancel concurrent workflows for the same PR or commit hash.
+  group: ${{github.workflow}}-${{github.event_name == 'pull_request' && github.head_ref || github.sha}}
+  cancel-in-progress: true
 jobs:
   build_x86_32:
     runs-on: windows-latest
@@ -42,8 +46,7 @@ jobs:
       shell: msys2 {0}
       run: |
         # Create release directory tree
-        mkdir -p quake2-win32-${{github.sha}}/misc
-        mkdir -p quake2-win32-${{github.sha}}/docs
+        mkdir -p quake2-win32-${{github.sha}}/misc/docs
         # Copy release assets
         cp -r release/* quake2-win32-${{github.sha}}/
         # Copy misc assets
