@@ -23,8 +23,8 @@ jobs:
     steps:
     - name: Install build dependencies
       run: |
-        apt update
-        apt install libgl1-mesa-dev libsdl2-dev libopenal-dev libcurl4-openssl-dev
+        sudo apt update
+        sudo apt install libgl1-mesa-dev libsdl2-dev libopenal-dev libcurl4-openssl-dev
     - name: Check out repository code
       uses: actions/checkout@v4
     - name: Build
