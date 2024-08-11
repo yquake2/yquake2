@@ -1786,8 +1786,7 @@ RE_IsVsyncActive(void)
 
 static int RE_PrepareForWindow(void)
 {
-	int flags = SDL_SWSURFACE;
-	return flags;
+	return 0;
 }
 
 /*
