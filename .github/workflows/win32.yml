@@ -80,5 +80,5 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: quake2-win32-${{github.sha}}
-        path: quake2-win32-${{github.sha}}/
+        path: publish/quake2-win32-${{github.sha}}/
         if-no-files-found: error
