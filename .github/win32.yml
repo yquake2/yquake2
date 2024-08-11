@@ -1,0 +1,80 @@
+name: Build for Win32
+run-name: win32
+on:
+  push:
+    branches:
+      - 'master'
+  pull_request:
+    types:
+      - opened
+      - edited
+jobs:
+  build_x86_32:
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { sys: mingw32, env: i686 }
+    steps:
+    - uses: msys2/setup-msys2@v2
+      with:
+        msystem: ${{matrix.sys}}
+        update: true
+        install: >-
+          git
+          make
+          zip
+          unzip
+          mingw-w64-${{matrix.env}}-curl
+          mingw-w64-${{matrix.env}}-gcc
+          mingw-w64-${{matrix.env}}-make
+          mingw-w64-${{matrix.env}}-openal
+          mingw-w64-${{matrix.env}}-SDL2
+          mingw-w64-${{matrix.env}}-wget
+    - name: Check out repository code
+      uses: actions/checkout@v4
+    - name: Build
+      shell: msys2 {0}
+      run: |
+        make
+    - name: Create testbuild package
+      shell: msys2 {0}
+      run: |
+        # Create release directory tree
+        mkdir -p quake2-win32-${{github.sha}}/misc
+        mkdir -p quake2-win32-${{github.sha}}/docs
+        # Copy release assets
+        cp -r release/* quake2-win32-${{github.sha}}/
+        # Copy misc assets
+        cp -r stuff/yq2.cfg quake2-win32-${{github.sha}}/misc/yq2.cfg
+        cp -r stuff/mapfixes quake2-win32-${{github.sha}}/misc
+        cp LICENSE quake2-win32-${{github.sha}}/misc/docs/LICENSE.txt
+        cp README.md quake2-win32-${{github.sha}}/misc/docs/README.txt
+        cp 010_index.md quake2-win32-${{github.sha}}/misc/docs/010_index.txt
+        cp 020_installation.md quake2-win32-${{github.sha}}/misc/docs/020_installation.txt
+        cp 030_configuration.md quake2-win32-${{github.sha}}/misc/docs/030_configuration.txt
+        cp 040_cvarlist.md quake2-win32-${{github.sha}}/misc/docs/040_cvarlist.txt
+        cp 050_commands.md quake2-win32-${{github.sha}}/misc/docs/050_commands.txt
+        cp 060_multiplayer.md quake2-win32-${{github.sha}}/misc/docs/060_multiplayer.txt
+        cp 070_packaging.md quake2-win32-${{github.sha}}/misc/docs/070_packaging.txt
+        cp 080_contributing.md quake2-win32-${{github.sha}}/misc/docs/080_contributing.txt
+        cp 090_filelists.md quake2-win32-${{github.sha}}/misc/docs/090_filelists.md
+        # SDL2 
+        wget -c https://github.com/libsdl-org/SDL/releases/download/release-2.30.6/SDL2-2.30.6-win32-x86.zip
+        unzip -o SDL2-2.30.6-win32-x86.zip
+        cp SDL2.dll quake2-win32-${{github.sha}}/
+        # openal-soft
+        wget -c https://www.openal-soft.org/openal-binaries/openal-soft-1.23.1-bin.zip
+        unzip -o openal-soft-1.23.1-bin.zip
+        cp openal-soft-1.23.1-bin/bin/Win32/soft_oal.dll release/OpenAL32.dll
+        # curl (releases use a custom build curl.dll)
+        wget -c https://curl.se/windows/dl-8.9.1_1/curl-8.9.1_1-win32-mingw.zip
+        unzip -o curl-8.9.1_1-win32-mingw.zip
+        cp curl-8.9.1_1-win32-mingw/bin/libcurl.dll quake2-win32-${{github.sha}}/curl.dll
+    - name: Upload testbuild package
+      uses: actions/upload-artifact@v4
+      with:
+        name: quake2-win32-${{github.sha}}.zip
+        path: quake2-win32-${{github.sha}}/
+        if-no-files-found: error
