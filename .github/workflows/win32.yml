@@ -1,5 +1,5 @@
-name: Build for Win32
-run-name: win32
+name: Testbuild for Win32
+run-name: testbuild_win32
 on:
   push:
     branches:
@@ -41,7 +41,8 @@ jobs:
     - name: Build
       shell: msys2 {0}
       run: |
-        make
+        # Public runners come with 2 CPUs.
+        make -j2
     - name: Create testbuild package
       shell: msys2 {0}
       run: |
