@@ -33,7 +33,6 @@ jobs:
         # Public runners come with 3 CPUs.
         gmake -j3
     - name: Create testbuild package
-      shell: msys2 {0}
       run: |
         # Create release directory tree
         mkdir -p quake2-macos-${{github.sha}}/misc/docs
