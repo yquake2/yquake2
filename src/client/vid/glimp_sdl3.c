@@ -304,7 +304,7 @@ PrintDisplayModes(void)
 	}
 
 	int nummodes = 0;
-	const SDL_DisplayMode **modes = SDL_GetFullscreenDisplayModes(curdisplay, &nummodes);
+	SDL_DisplayMode **modes = SDL_GetFullscreenDisplayModes(curdisplay, &nummodes);
 
 	if (modes)
 	{
