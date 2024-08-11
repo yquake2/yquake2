@@ -2410,3 +2410,25 @@ IN_Shutdown(void)
 }
 
 /* ------------------------------------------------------------------ */
+
+void
+IN_GetClipboardText(char *out, size_t n)
+{
+	char *s = SDL_GetClipboardText();
+
+	if (!s || *s == '\0')
+	{
+		*out = '\0';
+		return;
+	}
+
+	Q_strlcpy(out, s, n - 1);
+
+	SDL_free(s);
+}
+
+int
+IN_SetClipboardText(const char *s)
+{
+	return SDL_SetClipboardText(s);
+}
