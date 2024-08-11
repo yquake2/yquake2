@@ -1,5 +1,5 @@
 name: Testbuild for Linux
-run-name: testbuild_Linux
+run-name: testbuild_linux
 on:
   push:
     branches:
