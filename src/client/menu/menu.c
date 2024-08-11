@@ -126,7 +126,7 @@ M_PopMenu(void)
 
     if (m_menudepth < 1)
     {
-        Com_Error(ERR_FATAL, "M_PopMenu: depth < 1");
+        Com_Error(ERR_FATAL, "%s: depth < 1", __func__);
     }
 
     m_menudepth--;
@@ -730,7 +730,7 @@ InitMainMenu(void)
 static void
 M_Main_Draw(void)
 {
-    menucommon_s * item = NULL;
+    const menucommon_s * item = NULL;
     int x = 0;
     int y = 0;
 
@@ -756,13 +756,13 @@ M_Main_Key(int key)
 void
 M_Menu_Main_f(void)
 {
-    menucommon_s * item = NULL;
-
     InitMainMenu();
 
     // force first available item to have focus
     while (s_main.cursor >= 0 && s_main.cursor < s_main.nitems)
     {
+        const menucommon_s * item = NULL;
+
         item = ( menucommon_s * )s_main.items[s_main.cursor];
 
         if ((item->flags & (QMF_INACTIVE)))
@@ -946,7 +946,7 @@ M_UnbindCommand(char *command, int scope)
 
     for (j = begin; j < end; j++)
     {
-        char *b;
+        const char *b;
         b = keybindings[j];
 
         if (!b)
@@ -985,7 +985,7 @@ M_FindKeysForCommand(char *command, int *twokeys, int scope)
 
     for (j = begin; j < end; j++)
     {
-        char *b;
+        const char *b;
         b = keybindings[j];
 
         if (!b)
@@ -3504,7 +3504,7 @@ static qboolean menukeyitem_delete = false;
 static void
 PromptDeleteSaveFunc(menuframework_s *m)
 {
-	menucommon_s *item = Menu_ItemAtCursor(m);
+	const menucommon_s *item = Menu_ItemAtCursor(m);
 	if (item == NULL || item->type != MTYPE_ACTION)
 	{
 		return;
@@ -3561,8 +3561,6 @@ Create_Savestrings(void)
 {
 	int i;
 	fileHandle_t f;
-	char name[MAX_OSPATH];
-	char tmp[32]; // Same length as m_quicksavestring-
 
 	// The quicksave slot...
 	FS_FOpenFile("save/quick/server.ssv", &f, true);
@@ -3574,6 +3572,8 @@ Create_Savestrings(void)
 	}
 	else
 	{
+		char tmp[32]; // Same length as m_quicksavestring-
+
 		FS_Read(tmp, sizeof(tmp), f);
 		FS_FCloseFile(f);
 
@@ -3596,6 +3596,8 @@ Create_Savestrings(void)
 	// ... and everything else.
 	for (i = 0; i < MAX_SAVESLOTS; i++)
 	{
+		char name[MAX_OSPATH];
+
 		Com_sprintf(name, sizeof(name), "save/save%i/server.ssv", m_loadsave_page * MAX_SAVESLOTS + i);
 		FS_FOpenFile(name, &f, true);
 
@@ -3979,7 +3981,7 @@ static char local_server_netadr_strings[MAX_LOCAL_SERVERS][80];
 void
 M_AddToServerList(netadr_t adr, char *info)
 {
-	char *s;
+	const char *s;
 	int i;
 
 	if (m_num_servers == MAX_LOCAL_SERVERS)
@@ -4209,7 +4211,6 @@ StartServerActionFunc(void *self)
     char startmap[1024];
     float timelimit;
     float fraglimit;
-    float capturelimit;
     float maxclients;
     char *spot;
 
@@ -4221,6 +4222,8 @@ StartServerActionFunc(void *self)
 
     if (M_IsGame("ctf"))
     {
+        float capturelimit;
+
         capturelimit = (float)strtod(s_capturelimit_field.buffer, (char **)NULL);
         Cvar_SetValue("capturelimit", ClampCvar(0, capturelimit, capturelimit));
     }
@@ -4591,7 +4594,7 @@ static menulist_s s_no_spheres_box;
 static void
 DMFlagCallback(void *self)
 {
-    menulist_s *f = (menulist_s *)self;
+    const menulist_s *f = (menulist_s *)self;
     int flags;
     int bit = 0;
 
@@ -5065,7 +5068,7 @@ static menulist_s s_allow_download_sounds_box;
 static void
 DownloadCallback(void *self)
 {
-    menulist_s *f = (menulist_s *)self;
+    const menulist_s *f = (menulist_s *)self;
 
     if (f == &s_allow_download_box)
     {
@@ -5233,7 +5236,7 @@ AddressBook_MenuInit(void)
 
     for (i = 0; i < NUM_ADDRESSBOOK_ENTRIES; i++)
     {
-        cvar_t *adr;
+        const cvar_t *adr;
         char buffer[20];
 
         Com_sprintf(buffer, sizeof(buffer), "adr%d", i);
@@ -5405,13 +5408,14 @@ StripExtension(char* path)
 static qboolean
 ContainsFile(char* path, char* file)
 {
-    char pathname[MAX_QPATH];
     int handle = 0;
-    int length = 0;
     qboolean result = false;
 
     if (path != 0 && file != 0)
     {
+        char pathname[MAX_QPATH];
+        int length = 0;
+
         Com_sprintf(pathname, MAX_QPATH, "%s/%s", path, file);
 
         length = FS_FOpenFile(pathname, &handle, false);
@@ -5493,19 +5497,19 @@ PlayerModelFree()
             while (s_skinnames[s_modelname.num].num-- > 0)
             {
                 s = s_skinnames[s_modelname.num].data[s_skinnames[s_modelname.num].num];
-                if (s != 0)
+                if (s != NULL)
                 {
                     free(s);
-                    s = 0;
+                    s = NULL;
                 }
             }
 
             s = (char*)s_skinnames[s_modelname.num].data;
 
-            if (s != 0)
+            if (s != NULL)
             {
                 free(s);
-                s = 0;
+                s = NULL;
             }
 
             s_skinnames[s_modelname.num].data = 0;
@@ -5513,19 +5517,19 @@ PlayerModelFree()
 
             // models
             s = s_modelname.data[s_modelname.num];
-            if (s != 0)
+            if (s != NULL)
             {
                 free(s);
-                s = 0;
+                s = NULL;
             }
         }
     }
 
     s = (char*)s_modelname.data;
-    if (s != 0)
+    if (s != NULL)
     {
         free(s);
-        s = 0;
+        s = NULL;
     }
 
     s_modelname.data = 0;
@@ -5535,18 +5539,17 @@ PlayerModelFree()
     while (s_directory.num-- > 0)
     {
         s = s_directory.data[s_directory.num];
-        if (s != 0)
+        if (s != NULL)
         {
             free(s);
-            s = 0;
+            s = NULL;
         }
     }
 
     s = (char*)s_directory.data;
-    if (s != 0)
+    if (s != NULL)
     {
         free(s);
-        s = 0;
     }
 
     s_directory.data = 0;
@@ -5916,7 +5919,7 @@ static qboolean
 PlayerConfig_MenuInit(void)
 {
     extern cvar_t *name;
-    extern cvar_t *skin;
+    const extern cvar_t *skin;
     cvar_t *hand = Cvar_Get( "hand", "0", CVAR_USERINFO | CVAR_ARCHIVE );
     static const char *handedness[] = { "right", "left", "center", 0 };
     char mdlname[MAX_QPATH];
@@ -5956,7 +5959,7 @@ PlayerConfig_MenuInit(void)
 
     for (i = 0; i < s_skinnames[mdlindex].num; i++)
     {
-        char* names = s_skinnames[mdlindex].data[i];
+        const char* names = s_skinnames[mdlindex].data[i];
         if (Q_stricmp(names, imgname) == 0)
         {
             imgindex = i;
@@ -6218,8 +6221,8 @@ PlayerConfig_MenuKey(int key)
     key = Key_GetMenuKey(key);
     if (key == K_ESCAPE)
     {
+        const char* name = NULL;
         char skin[MAX_QPATH];
-        char* name = NULL;
         char* mdl = NULL;
         char* img = NULL;
 
@@ -6410,4 +6413,3 @@ M_Keydown(int key)
         }
     }
 }
-
