@@ -1911,7 +1911,10 @@ RE_InitContext(void *win)
 	if (r_vsync->value)
 	{
 #ifdef USE_SDL3
-		renderer = SDL_CreateRenderer(window, NULL, SDL_RENDERER_PRESENTVSYNC);
+		SDL_PropertiesID props = SDL_CreateProperties();
+		SDL_SetPointerProperty(props, SDL_PROP_RENDERER_CREATE_WINDOW_POINTER, window);
+		SDL_SetNumberProperty(props, SDL_PROP_RENDERER_CREATE_PRESENT_VSYNC_NUMBER, 1);
+		renderer = SDL_CreateRendererWithProperties(props);
 #else
 		renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
 #endif
@@ -1919,7 +1922,7 @@ RE_InitContext(void *win)
 	else
 	{
 #ifdef USE_SDL3
-		renderer = SDL_CreateRenderer(window, NULL, 0);
+		renderer = SDL_CreateRenderer(window, NULL);
 #else
 		renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
 #endif
