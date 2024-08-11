@@ -272,9 +272,10 @@ keyname_t keynames[] = {
 void
 CompleteCommand(void)
 {
-	char *cmd, *s;
+	char *cmd;
+	char *s;
 
-	s = key_lines[edit_line] + 1;
+	s = key_lines[edit_line];
 
 	if ((*s == '\\') || (*s == '/'))
 	{
@@ -282,65 +283,48 @@ CompleteCommand(void)
 	}
 
 	cmd = Cmd_CompleteCommand(s);
-
-	if (cmd)
+	if (!cmd)
 	{
-		key_lines[edit_line][1] = '/';
-		strcpy(key_lines[edit_line] + 2, cmd);
-		key_linepos = strlen(cmd) + 2;
-
-		if (Cmd_IsComplete(cmd))
-		{
-			key_lines[edit_line][key_linepos] = ' ';
-			key_linepos++;
-			key_lines[edit_line][key_linepos] = 0;
-		}
-		else
-		{
-			key_lines[edit_line][key_linepos] = 0;
-		}
+		return;
 	}
 
-	return;
+	*key_lines[edit_line] = '/';
+	strcpy(key_lines[edit_line] + 1, cmd);
+	key_linepos = strlen(cmd) + 1;
+
+	if (Cmd_IsComplete(cmd))
+	{
+		key_lines[edit_line][key_linepos] = ' ';
+		key_linepos++;
+	}
+
+	key_lines[edit_line][key_linepos] = '\0';
 }
 
 void
 CompleteMapNameCommand(void)
 {
-	int i;
-	char *s, *t, *cmdArg;
+	char *s, *cmdArg;
 	const char *mapCmdString = "map ";
 
-	s = key_lines[edit_line] + 1;
+	s = key_lines[edit_line];
 
 	if ((*s == '\\') || (*s == '/'))
 	{
 		s++;
 	}
 
-	t = s;
-
-	for (i = 0; i < strlen(mapCmdString); i++)
+	if (strncmp(mapCmdString, s, strlen(mapCmdString)) != 0)
 	{
-		if (t[i] == mapCmdString[i])
-		{
-			s++;
-		}
-		else
-		{
-			return;
-		}
+		return;
 	}
 
-	cmdArg = Cmd_CompleteMapCommand(s);
+	cmdArg = Cmd_CompleteMapCommand(s + strlen(mapCmdString));
 
 	if (cmdArg)
 	{
-		key_lines[edit_line][1] = '/';
-		strcpy(key_lines[edit_line] + 2, mapCmdString);
+		snprintf(key_lines[edit_line], MAXCMDLINE, "/%s%s", mapCmdString, cmdArg);
 		key_linepos = strlen(key_lines[edit_line]);
-		strcpy(key_lines[edit_line] + key_linepos, cmdArg);
-		key_linepos = key_linepos + strlen(cmdArg);
 	}
 }
 
@@ -400,9 +384,9 @@ Key_Console(int key)
 
 		if (key == 'c' || key == 'x')
 		{
-			if (key_lines[edit_line][1] != '\0')
+			if (*key_lines[edit_line] != '\0')
 			{
-				if (IN_SetClipboardText(key_lines[edit_line] + 1))
+				if (IN_SetClipboardText(key_lines[edit_line]))
 				{
 					Com_Printf("Copy to clipboard failed.\n");
 				}
@@ -431,18 +415,18 @@ Key_Console(int key)
 	if ((key == K_ENTER) || (key == K_KP_ENTER))
 	{
 		/* slash text are commands, else chat */
-		if ((key_lines[edit_line][1] == '\\') ||
-			(key_lines[edit_line][1] == '/'))
+		if ((*key_lines[edit_line] == '\\') || (*key_lines[edit_line] == '/'))
 		{
-			Cbuf_AddText(key_lines[edit_line] + 2); /* skip the > */
+			Cbuf_AddText(key_lines[edit_line] + 1); /* skip the > */
 		}
 		else
 		{
-			Cbuf_AddText(key_lines[edit_line] + 1); /* valid command */
+			Cbuf_AddText(key_lines[edit_line]); /* valid command */
 		}
 
 		Cbuf_AddText("\n");
-		Com_Printf("%s\n", key_lines[edit_line]);
+		Com_Printf("%c%s\n", CON_INPUT_INDICATOR, key_lines[edit_line]);
+
 		edit_line = (edit_line + 1) & (NUM_KEY_LINES - 1);
 		history_line = edit_line;
 
@@ -468,7 +452,7 @@ Key_Console(int key)
 
 	if (key == K_LEFTARROW)
 	{
-		if (key_linepos > 1)
+		if (key_linepos > 0)
 		{
 			key_linepos--;
 		}
@@ -489,7 +473,7 @@ Key_Console(int key)
 	if ((key == K_BACKSPACE) ||
 		((key == 'h') && (keydown[K_CTRL])))
 	{
-		if (key_linepos > 1)
+		if (key_linepos > 0)
 		{
 			Q_strdel(key_lines[edit_line], key_linepos - 1, 1);
 			key_linepos--;
@@ -516,7 +500,7 @@ Key_Console(int key)
 			history_line = (history_line - 1) & (NUM_KEY_LINES-1);
 		}
 		while (history_line != edit_line &&
-			   !key_lines[history_line][1]);
+			   key_lines[history_line][0] == '\0');
 
 		if (history_line == edit_line)
 		{
@@ -524,7 +508,8 @@ Key_Console(int key)
 		}
 
 		memmove(key_lines[edit_line], key_lines[history_line], sizeof(key_lines[edit_line]));
-		key_linepos = (int)strlen(key_lines[edit_line]);
+		key_linepos = strlen(key_lines[edit_line]);
+
 		return;
 	}
 
@@ -541,7 +526,7 @@ Key_Console(int key)
 			history_line = (history_line + 1) & (NUM_KEY_LINES-1);
 		}
 		while (history_line != edit_line &&
-			   !key_lines[history_line][1]);
+			   key_lines[history_line][0] == '\0');
 
 		if (history_line == edit_line)
 		{
@@ -550,7 +535,7 @@ Key_Console(int key)
 		else
 		{
 			memmove(key_lines[edit_line], key_lines[history_line], sizeof(key_lines[edit_line]));
-			key_linepos = (int)strlen(key_lines[edit_line]);
+			key_linepos = strlen(key_lines[edit_line]);
 		}
 
 		return;
@@ -585,7 +570,7 @@ Key_Console(int key)
 
 		else
 		{
-			key_linepos = 1;
+			key_linepos = 0;
 		}
 
 		return;
@@ -600,7 +585,7 @@ Key_Console(int key)
 
 		else
 		{
-			key_linepos = (int)strlen(key_lines[edit_line]);
+			key_linepos = strlen(key_lines[edit_line]);
 		}
 
 		return;
@@ -995,7 +980,7 @@ Key_WriteConsoleHistory()
 		int lineIdx = (edit_line+i) & (NUM_KEY_LINES-1);
 		const char* line = key_lines[lineIdx];
 
-		if(line[1] != '\0' && strcmp(lastWrittenLine, line ) != 0)
+		if(*line != '\0' && strcmp(lastWrittenLine, line) != 0)
 		{
 			// if the line actually contains something besides the ] prompt,
 			// and is not identical to the last written line, write it to the file
@@ -1042,12 +1027,19 @@ Key_ReadConsoleHistory()
 			history_line = i;
 			break;
 		}
+
 		// remove trailing newlines
 		int lastCharIdx = strlen(key_lines[i])-1;
 		while((key_lines[i][lastCharIdx] == '\n' || key_lines[i][lastCharIdx] == '\r') && lastCharIdx >= 0)
 		{
 			key_lines[i][lastCharIdx] = '\0';
 			--lastCharIdx;
+		}
+
+		/* backwards compatibility with old history files */
+		if(key_lines[i][0] == ']')
+		{
+			memmove(key_lines[i], key_lines[i] + 1, MAXCMDLINE - 1);
 		}
 	}
 
@@ -1077,12 +1069,11 @@ Key_Init(void)
 	int i;
 	for (i = 0; i < NUM_KEY_LINES; i++)
 	{
-		key_lines[i][0] = ']';
-		key_lines[i][1] = 0;
+		key_lines[i][0] = '\0';
 	}
 	// can't call Key_ReadConsoleHistory() here because FS_Gamedir() isn't set yet
 
-	key_linepos = 1;
+	key_linepos = 0;
 
 	/* init 128 bit ascii characters in console mode */
 	for (i = 32; i < 128; i++)

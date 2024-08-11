@@ -60,10 +60,8 @@ DrawAltStringScaled(int x, int y, char *s, float factor)
 void
 Key_ClearTyping(void)
 {
-	key_lines[edit_line][0] = ']';
-	key_lines[edit_line][1] = '\0';
-
-	key_linepos = 1;
+	key_lines[edit_line][0] = '\0';
+	key_linepos = 0;
 }
 
 void
@@ -476,6 +474,7 @@ Con_DrawInput(void)
 	char ch;
 	int txtlen;
 	int linepos;
+	int draw_icon;
 
 	if (cls.key_dest == key_menu)
 	{
@@ -493,23 +492,30 @@ Con_DrawInput(void)
 	linepos = key_linepos;
 
 	/* prestep if horizontally scrolling */
-	if (linepos >= con.linewidth)
+	if (linepos >= (con.linewidth - 1))
 	{
 		int ofs = 1 + linepos - con.linewidth;
 
 		text += ofs;
 		linepos -= ofs;
+
+		draw_icon = 0;
+	}
+	else
+	{
+		Draw_CharScaled(8 * scale, con.vislines - 22 * scale, CON_INPUT_INDICATOR, scale);
+		draw_icon = 1;
 	}
 
 	txtlen = strlen(text);
 
-	for (i = 0; i < con.linewidth; i++)
+	for (i = 0; i < (con.linewidth - draw_icon); i++)
 	{
 		if (i == linepos)
 		{
 			if (cls.realtime & 8)
 			{
-				ch = 11;
+				ch = CON_INPUT_CURSOR;
 			}
 			else
 			{
@@ -525,7 +531,7 @@ Con_DrawInput(void)
 			ch = text[i];
 		}
 
-		Draw_CharScaled(((i + 1) << 3) * scale, con.vislines - 22 * scale, ch, scale);
+		Draw_CharScaled(((i + 1 + draw_icon) << 3) * scale, con.vislines - 22 * scale, ch, scale);
 	}
 }
 
