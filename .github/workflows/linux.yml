@@ -55,5 +55,5 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: quake2-linux-${{github.sha}}
-        path: publish
+        path: publish/
         if-no-files-found: error
