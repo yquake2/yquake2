@@ -60,7 +60,7 @@ pull request to submit code:
 
 Also have a look at our contributors guide:
 
-* [Contributors Guide](https://github.com/yquake2/yquake2/blob/master/doc/080_contributing.md).
+* [Contributors Guide](https://github.com/yquake2/yquake2/blob/master/doc/080_contributing.md)
 
 
 ## Documentation

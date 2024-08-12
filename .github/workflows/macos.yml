@@ -26,13 +26,13 @@ jobs:
       run: |
         brew update
         brew install sdl2 openal-soft make
-        brew upgrade
     - name: Check out repository code
       uses: actions/checkout@v4
     - name: Build
       run: |
         # Public runners come with 3 CPUs.
         gmake -j3
+        gmake -j3 ref_gles1
     - name: Create testbuild package
       run: |
         # Create release directory tree
