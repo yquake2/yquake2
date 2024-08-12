@@ -602,6 +602,8 @@ set(GL1-Source
 	${COMMON_SRC_DIR}/md4.c
 	)
 
+set(Glad-GLES1-Source ${REF_SRC_DIR}/gl1/glad-gles1/src/glad.c)
+
 set(GL1-Header
 	${REF_SRC_DIR}/ref_shared.h
 	${REF_SRC_DIR}/constants/anorms.h
@@ -613,6 +615,11 @@ set(GL1-Header
 	${REF_SRC_DIR}/gl1/header/model.h
 	${REF_SRC_DIR}/gl1/header/qgl.h
 	${COMMON_SRC_DIR}/header/shared.h
+	)
+
+set(Glad-GLES1-Header
+	${REF_SRC_DIR}/gl1/glad-gles1/include/glad/glad.h
+	${REF_SRC_DIR}/gl1/glad-gles1/include/KHR/khrplatform.h
 	)
 
 set(GL3-Source
@@ -830,3 +837,24 @@ target_link_libraries(ref_soft ${yquake2LinkerFlags} ${yquake2SDLLinkerFlags})
 if(SDL3_SUPPORT)
 	target_link_libraries(ref_soft SDL3::SDL3)
 endif()
+
+if(FALSE)
+
+# Build the GLES1 dynamic library
+add_library(ref_gles1 MODULE ${GL1-Source} ${Glad-GLES1-Source} ${GL1-Header} ${Glad-GLES1-Header} ${REF-Platform-Specific-Source})
+set_target_properties(ref_gles1 PROPERTIES
+		PREFIX ""
+		#COMPILE_DEFINITIONS "YQ2_GL1_GLES=1"
+		LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/release
+		RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/release
+		SUFFIX ${CMAKE_SHARED_LIBRARY_SUFFIX}
+		)
+target_include_directories(ref_gles1 PRIVATE ${CMAKE_SOURCE_DIR}/src/client/refresh/gl1/glad-gles1/include)
+target_compile_definitions(ref_gles1 PRIVATE YQ2_GL1_GLES=1)
+target_link_libraries(ref_gles1 ${yquake2LinkerFlags} ${yquake2SDLLinkerFlags})
+if(SDL3_SUPPORT)
+	target_link_libraries(ref_gles1 SDL3::SDL3)
+endif()
+
+endif()
+

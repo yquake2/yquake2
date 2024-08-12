@@ -29,32 +29,20 @@
 
 #include "header/local.h"
 
-#define MAX_VERTICES	16384
-#define MAX_INDICES 	(MAX_VERTICES * 4)
+#define GLBUFFER_RESET	vtx_ptr = idx_ptr = 0; gl_buf.vt = gl_buf.tx = gl_buf.cl = 0;
 
-typedef struct	//	832k aprox.
-{
-	buffered_draw_t	type;
+glbuffer_t gl_buf;	// our drawing buffer, used globally
+int cur_lm_copy;	// which lightmap copy to use (when lightmapcopies=on)
 
-	GLfloat
-		vtx[MAX_VERTICES * 3],	// vertexes
-		tex[MAX_TEXTURE_UNITS][MAX_VERTICES * 2],	// texture coords
-		clr[MAX_VERTICES * 4];	// color components
-
-	GLushort
-		idx[MAX_INDICES],	// indices
-		vtx_ptr, idx_ptr;	// pointers for array positions
-
-	int	texture[MAX_TEXTURE_UNITS];
-	int	flags;	// entity flags
-	float	alpha;
-} glbuffer_t;
-
-glbuffer_t gl_buf;
-
-GLuint vt, tx, cl;	// indices for arrays in gl_buf
+static GLushort vtx_ptr, idx_ptr;	// pointers for array positions in gl_buf
 
 extern void R_MYgluPerspective(GLdouble fovy, GLdouble aspect, GLdouble zNear, GLdouble zFar);
+
+void
+R_ResetGLBuffer(void)
+{
+	GLBUFFER_RESET
+}
 
 void
 R_ApplyGLBuffer(void)
@@ -64,7 +52,7 @@ R_ApplyGLBuffer(void)
 	qboolean texture, mtex, alpha, color, alias, texenv_set;
 	float fovy, dist;
 
-	if (gl_buf.vtx_ptr == 0 || gl_buf.idx_ptr == 0)
+	if (vtx_ptr == 0 || idx_ptr == 0)
 	{
 		return;
 	}
@@ -194,7 +182,13 @@ R_ApplyGLBuffer(void)
 		if (mtex)
 		{
 			// TMU 1: Lightmap texture
-			R_MBind(GL_TEXTURE1, gl_state.lightmap_textures + gl_buf.texture[1]);
+			int lmtexture = gl_state.lightmap_textures + gl_buf.texture[1];
+			if (gl_config.lightmapcopies)
+			{
+				// Bind appropiate lightmap copy for this frame
+				lmtexture += gl_state.max_lightmaps * cur_lm_copy;
+			}
+			R_MBind(GL_TEXTURE1, lmtexture);
 
 			if (gl1_overbrightbits->value)
 			{
@@ -224,7 +218,7 @@ R_ApplyGLBuffer(void)
 	}
 
 	// All set, we can finally draw
-	glDrawElements(GL_TRIANGLES, gl_buf.idx_ptr, GL_UNSIGNED_SHORT, gl_buf.idx);
+	glDrawElements(GL_TRIANGLES, idx_ptr, GL_UNSIGNED_SHORT, gl_buf.idx);
 	// ... and now, turn back everything as it was
 
 	if (color)
@@ -277,7 +271,7 @@ R_ApplyGLBuffer(void)
 		}
 	}
 
-	gl_buf.vtx_ptr = gl_buf.idx_ptr = 0;
+	GLBUFFER_RESET
 }
 
 void
@@ -304,46 +298,46 @@ R_Buffer2DQuad(GLfloat ul_vx, GLfloat ul_vy, GLfloat dr_vx, GLfloat dr_vy,
 {
 	static const GLushort idx_max = MAX_INDICES - 7;
 	static const GLushort vtx_max = MAX_VERTICES - 5;
-	unsigned int i;
 
-	if (gl_buf.idx_ptr > idx_max || gl_buf.vtx_ptr > vtx_max)
+	if (idx_ptr > idx_max || vtx_ptr > vtx_max)
 	{
 		R_ApplyGLBuffer();
 	}
 
-	i = gl_buf.vtx_ptr * 2;      // vertex index
-
 	// "Quad" = 2-triangle GL_TRIANGLE_FAN
-	gl_buf.idx[gl_buf.idx_ptr++] = gl_buf.vtx_ptr;
-	gl_buf.idx[gl_buf.idx_ptr++] = gl_buf.vtx_ptr+1;
-	gl_buf.idx[gl_buf.idx_ptr++] = gl_buf.vtx_ptr+2;
-	gl_buf.idx[gl_buf.idx_ptr++] = gl_buf.vtx_ptr;
-	gl_buf.idx[gl_buf.idx_ptr++] = gl_buf.vtx_ptr+2;
-	gl_buf.idx[gl_buf.idx_ptr++] = gl_buf.vtx_ptr+3;
+	gl_buf.idx[idx_ptr]   = vtx_ptr;
+	gl_buf.idx[idx_ptr+1] = vtx_ptr+1;
+	gl_buf.idx[idx_ptr+2] = vtx_ptr+2;
+	gl_buf.idx[idx_ptr+3] = vtx_ptr;
+	gl_buf.idx[idx_ptr+4] = vtx_ptr+2;
+	gl_buf.idx[idx_ptr+5] = vtx_ptr+3;
+	idx_ptr += 6;
 
 	// up left corner coords
-	gl_buf.vtx[i]   = ul_vx;
-	gl_buf.vtx[i+1] = ul_vy;
+	gl_buf.vtx[gl_buf.vt]   = ul_vx;
+	gl_buf.vtx[gl_buf.vt+1] = ul_vy;
 	// up right
-	gl_buf.vtx[i+2] = dr_vx;
-	gl_buf.vtx[i+3] = ul_vy;
+	gl_buf.vtx[gl_buf.vt+2] = dr_vx;
+	gl_buf.vtx[gl_buf.vt+3] = ul_vy;
 	// down right
-	gl_buf.vtx[i+4] = dr_vx;
-	gl_buf.vtx[i+5] = dr_vy;
+	gl_buf.vtx[gl_buf.vt+4] = dr_vx;
+	gl_buf.vtx[gl_buf.vt+5] = dr_vy;
 	// and finally, down left
-	gl_buf.vtx[i+6] = ul_vx;
-	gl_buf.vtx[i+7] = dr_vy;
+	gl_buf.vtx[gl_buf.vt+6] = ul_vx;
+	gl_buf.vtx[gl_buf.vt+7] = dr_vy;
 
-	gl_buf.tex[0][i]   = ul_tx;
-	gl_buf.tex[0][i+1] = ul_ty;
-	gl_buf.tex[0][i+2] = dr_tx;
-	gl_buf.tex[0][i+3] = ul_ty;
-	gl_buf.tex[0][i+4] = dr_tx;
-	gl_buf.tex[0][i+5] = dr_ty;
-	gl_buf.tex[0][i+6] = ul_tx;
-	gl_buf.tex[0][i+7] = dr_ty;
+	gl_buf.tex[0][gl_buf.tx]   = ul_tx;
+	gl_buf.tex[0][gl_buf.tx+1] = ul_ty;
+	gl_buf.tex[0][gl_buf.tx+2] = dr_tx;
+	gl_buf.tex[0][gl_buf.tx+3] = ul_ty;
+	gl_buf.tex[0][gl_buf.tx+4] = dr_tx;
+	gl_buf.tex[0][gl_buf.tx+5] = dr_ty;
+	gl_buf.tex[0][gl_buf.tx+6] = ul_tx;
+	gl_buf.tex[0][gl_buf.tx+7] = dr_ty;
 
-	gl_buf.vtx_ptr += 4;
+	vtx_ptr += 4;
+	gl_buf.vt += 8;
+	gl_buf.tx += 8;
 }
 
 /*
@@ -354,8 +348,8 @@ R_SetBufferIndices(GLenum type, GLuint vertices_num)
 {
 	int i;
 
-	if ( gl_buf.vtx_ptr + vertices_num >= MAX_VERTICES ||
-		gl_buf.idx_ptr + ( (vertices_num - 2) * 3 ) >= MAX_INDICES )
+	if ( vtx_ptr + vertices_num >= MAX_VERTICES ||
+		idx_ptr + ( (vertices_num - 2) * 3 ) >= MAX_INDICES )
 	{
 		R_ApplyGLBuffer();
 	}
@@ -365,9 +359,10 @@ R_SetBufferIndices(GLenum type, GLuint vertices_num)
 		case GL_TRIANGLE_FAN:
 			for (i = 0; i < vertices_num-2; i++)
 			{
-				gl_buf.idx[gl_buf.idx_ptr++] = gl_buf.vtx_ptr;
-				gl_buf.idx[gl_buf.idx_ptr++] = gl_buf.vtx_ptr+i+1;
-				gl_buf.idx[gl_buf.idx_ptr++] = gl_buf.vtx_ptr+i+2;
+				gl_buf.idx[idx_ptr]   = vtx_ptr;
+				gl_buf.idx[idx_ptr+1] = vtx_ptr+i+1;
+				gl_buf.idx[idx_ptr+2] = vtx_ptr+i+2;
+				idx_ptr += 3;
 			}
 			break;
 		case GL_TRIANGLE_STRIP:
@@ -375,16 +370,17 @@ R_SetBufferIndices(GLenum type, GLuint vertices_num)
 			{
 				if (i % 2 == 0)
 				{
-					gl_buf.idx[gl_buf.idx_ptr++] = gl_buf.vtx_ptr+i;
-					gl_buf.idx[gl_buf.idx_ptr++] = gl_buf.vtx_ptr+i+1;
-					gl_buf.idx[gl_buf.idx_ptr++] = gl_buf.vtx_ptr+i+2;
+					gl_buf.idx[idx_ptr]   = vtx_ptr+i;
+					gl_buf.idx[idx_ptr+1] = vtx_ptr+i+1;
+					gl_buf.idx[idx_ptr+2] = vtx_ptr+i+2;
 				}
 				else	// backwards order
 				{
-					gl_buf.idx[gl_buf.idx_ptr++] = gl_buf.vtx_ptr+i+2;
-					gl_buf.idx[gl_buf.idx_ptr++] = gl_buf.vtx_ptr+i+1;
-					gl_buf.idx[gl_buf.idx_ptr++] = gl_buf.vtx_ptr+i;
+					gl_buf.idx[idx_ptr]   = vtx_ptr+i+2;
+					gl_buf.idx[idx_ptr+1] = vtx_ptr+i+1;
+					gl_buf.idx[idx_ptr+2] = vtx_ptr+i;
 				}
+				idx_ptr += 3;
 			}
 			break;
 		default:
@@ -392,58 +388,6 @@ R_SetBufferIndices(GLenum type, GLuint vertices_num)
 			return;
 	}
 
-	// These affect the functions that follow in this file
-	vt = gl_buf.vtx_ptr * 3;	// vertex index
-	tx = gl_buf.vtx_ptr * 2;	// texcoord index
-	cl = gl_buf.vtx_ptr * 4;	// color index
-
-	// R_BufferVertex() must be called as many times as vertices_num
-	gl_buf.vtx_ptr += vertices_num;
-}
-
-/*
- * Adds a single vertex to buffer
- */
-void
-R_BufferVertex(GLfloat x, GLfloat y, GLfloat z)
-{
-	gl_buf.vtx[vt++] = x;
-	gl_buf.vtx[vt++] = y;
-	gl_buf.vtx[vt++] = z;
-}
-
-/*
- * Adds texture coordinates for color texture (no lightmap coords)
- */
-void
-R_BufferSingleTex(GLfloat s, GLfloat t)
-{
-	// tx should be set before this is called, by R_SetBufferIndices
-	gl_buf.tex[0][tx++] = s;
-	gl_buf.tex[0][tx++] = t;
-}
-
-/*
- * Adds texture coordinates for color and lightmap
- */
-void
-R_BufferMultiTex(GLfloat cs, GLfloat ct, GLfloat ls, GLfloat lt)
-{
-	gl_buf.tex[0][tx]   = cs;
-	gl_buf.tex[0][tx+1] = ct;
-	gl_buf.tex[1][tx]   = ls;
-	gl_buf.tex[1][tx+1] = lt;
-	tx += 2;
-}
-
-/*
- * Adds color components of vertex
- */
-void
-R_BufferColor(GLfloat r, GLfloat g, GLfloat b, GLfloat a)
-{
-	gl_buf.clr[cl++] = r;
-	gl_buf.clr[cl++] = g;
-	gl_buf.clr[cl++] = b;
-	gl_buf.clr[cl++] = a;
+	// GLBUFFER_VERTEX() must be called as many times as vertices_num
+	vtx_ptr += vertices_num;
 }
