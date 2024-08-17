@@ -419,6 +419,10 @@ HuntTarget(edict_t *self)
 	{
 		VectorSubtract(self->enemy->s.origin, self->s.origin, vec);
 	}
+	else
+	{
+		VectorClear(vec);
+	}
 
 	self->ideal_yaw = vectoyaw(vec);
 
