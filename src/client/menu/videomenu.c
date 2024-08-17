@@ -44,6 +44,7 @@ static cvar_t *r_vsync;
 static cvar_t *gl_anisotropic;
 static cvar_t *gl_msaa_samples;
 static cvar_t *gl3_colorlight;
+static cvar_t *gl4_colorlight;
 static cvar_t *vk_dynamic;
 
 static menuframework_s s_opengl_menu;
@@ -56,11 +57,14 @@ static menuslider_s s_brightness_slider;
 static menuslider_s s_fov_slider;
 static menuslider_s s_gl1_intensity_slider;
 static menuslider_s s_gl3_intensity_slider;
+static menuslider_s s_gl4_intensity_slider;
 static menuslider_s s_vk_intensity_slider;
 static menuslider_s s_gl1_overbrightbits_slider;
 static menuslider_s s_gl3_overbrightbits_slider;
+static menuslider_s s_gl4_overbrightbits_slider;
 static menuslider_s s_vk_overbrightbits_slider;
 static menulist_s s_gl3_colorlight_list;
+static menulist_s s_gl4_colorlight_list;
 static menulist_s s_vk_dynamic_list;
 static menulist_s s_fs_box;
 static menulist_s s_vsync_list;
@@ -591,6 +595,32 @@ VID_MenuInit(void)
 		s_gl3_colorlight_list.itemnames = yesno_names;
 		s_gl3_colorlight_list.curvalue = (gl3_colorlight->value != 0);
 	}
+	if (strcmp(vid_renderer->string, "gl4") == 0)
+	{
+		s_gl4_intensity_slider.generic.type = MTYPE_SLIDER;
+		s_gl4_intensity_slider.generic.name = "color intensity";
+		s_gl4_intensity_slider.generic.x = 0;
+		s_gl4_intensity_slider.generic.y = (y += 10);
+		s_gl4_intensity_slider.cvar = "gl4_intensity";
+		s_gl4_intensity_slider.minvalue = 0.1f;
+		s_gl4_intensity_slider.maxvalue = 5.0f;
+
+		s_gl4_overbrightbits_slider.generic.type = MTYPE_SLIDER;
+		s_gl4_overbrightbits_slider.generic.name = "overbrights";
+		s_gl4_overbrightbits_slider.generic.x = 0;
+		s_gl4_overbrightbits_slider.generic.y = (y += 10);
+		s_gl4_overbrightbits_slider.cvar = "gl4_overbrightbits";
+		s_gl4_overbrightbits_slider.minvalue = 0.1f;
+		s_gl4_overbrightbits_slider.maxvalue = 5.0f;
+
+		gl4_colorlight = Cvar_Get("gl4_colorlight", "1", CVAR_ARCHIVE);
+		s_gl4_colorlight_list.generic.type = MTYPE_SPINCONTROL;
+		s_gl4_colorlight_list.generic.name = "color light";
+		s_gl4_colorlight_list.generic.x = 0;
+		s_gl4_colorlight_list.generic.y = (y += 10);
+		s_gl4_colorlight_list.itemnames = yesno_names;
+		s_gl4_colorlight_list.curvalue = (gl4_colorlight->value != 0);
+	}
 	else if (strcmp(vid_renderer->string, "vk") == 0)
 	{
 		s_vk_intensity_slider.generic.type = MTYPE_SLIDER;
@@ -789,6 +819,12 @@ VID_MenuInit(void)
 		Menu_AddItem(&s_opengl_menu, (void *)&s_gl3_intensity_slider);
 		Menu_AddItem(&s_opengl_menu, (void *)&s_gl3_overbrightbits_slider);
 		Menu_AddItem(&s_opengl_menu, (void *)&s_gl3_colorlight_list);
+	}
+	else if (strcmp(vid_renderer->string, "gl4") == 0)
+	{
+		Menu_AddItem(&s_opengl_menu, (void *)&s_gl4_intensity_slider);
+		Menu_AddItem(&s_opengl_menu, (void *)&s_gl4_overbrightbits_slider);
+		Menu_AddItem(&s_opengl_menu, (void *)&s_gl4_colorlight_list);
 	}
 	else if (strcmp(vid_renderer->string, "vk") == 0)
 	{
