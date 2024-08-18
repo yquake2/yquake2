@@ -32,7 +32,6 @@ jobs:
       run: |
         # Public runners come with 3 CPUs.
         gmake -j3
-        gmake -j3 ref_gles1
     - name: Create testbuild package
       run: |
         # Create release directory tree
