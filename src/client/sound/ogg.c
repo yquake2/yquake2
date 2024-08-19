@@ -537,11 +537,6 @@ OGG_PlayTrack(const char *track, qboolean cdtrack, qboolean immediate)
 		while (retries-- > 0 && newtrack < 2)
 		{
 			newtrack = randk() % (ogg_maxfileindex + 1);
-
-			if (newtrack == curtrack)
-			{
-				newtrack = 0;
-			}
 		}
 	} break;
 	}
