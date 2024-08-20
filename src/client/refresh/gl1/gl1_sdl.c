@@ -350,7 +350,7 @@ RI_ShutdownContext(void)
 	{
 		if(context)
 		{
-			SDL_GL_DeleteContext(context);
+			SDL_GL_DestroyContext(context);
 			context = NULL;
 		}
 	}
@@ -364,12 +364,11 @@ RI_ShutdownContext(void)
 int RI_GetSDLVersion()
 {
 #ifdef USE_SDL3
-	SDL_Version ver;
+	int version = SDL_GetVersion();
+	return SDL_VERSIONNUM_MAJOR(version);
 #else
 	SDL_version ver;
-#endif
-
 	SDL_VERSION(&ver);
-
 	return ver.major;
+#endif
 }

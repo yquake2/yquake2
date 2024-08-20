@@ -454,7 +454,7 @@ void GL3_ShutdownContext()
 	{
 		if(context)
 		{
-			SDL_GL_DeleteContext(context);
+			SDL_GL_DestroyContext(context);
 			context = NULL;
 		}
 	}
@@ -468,12 +468,11 @@ void GL3_ShutdownContext()
 int GL3_GetSDLVersion()
 {
 #ifdef USE_SDL3
-	SDL_Version ver;
+	int version = SDL_GetVersion();
+	return SDL_VERSIONNUM_MAJOR(version);
 #else
 	SDL_version ver;
-#endif
-
 	SDL_VERSION(&ver);
-
 	return ver.major;
+#endif
 }

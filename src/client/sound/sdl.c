@@ -1423,7 +1423,7 @@ SDL_BackendInit(void)
 	spec.channels = sndchans;
 
 	/* Okay, let's try our luck */
-	stream = SDL_OpenAudioDeviceStream(SDL_AUDIO_DEVICE_DEFAULT_OUTPUT, &spec, SDL_SDL3Callback, NULL);
+	stream = SDL_OpenAudioDeviceStream(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK, &spec, SDL_SDL3Callback, NULL);
 	if (stream == NULL)
 	{
 		Com_Printf("SDL_OpenAudio() failed: %s\n", SDL_GetError());
