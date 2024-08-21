@@ -513,7 +513,7 @@ Con_DrawInput(void)
 	{
 		if (i == linepos)
 		{
-			if (cls.realtime & 8)
+			if ((cls.realtime >> 8) & 1)
 			{
 				ch = CON_INPUT_CURSOR;
 			}
