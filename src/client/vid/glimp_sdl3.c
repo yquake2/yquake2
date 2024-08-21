@@ -131,6 +131,9 @@ CreateSDLWindow(int flags, int fullscreen, int w, int h)
 
 	if (window)
 	{
+		/* enable text input */
+		SDL_StartTextInput(window);
+
 		/* save current display as default */
 		if ((last_display = SDL_GetDisplayForWindow(window)) == 0)
 		{
