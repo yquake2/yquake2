@@ -2345,11 +2345,6 @@ IN_Init(void)
 		}
 	}
 
-#if 0
-	// needs an SDL_Window pointer now??
-	SDL_StartTextInput();
-#endif
-
 	IN_Controller_Init(false);
 
 	Com_Printf("------------------------------------\n\n");
