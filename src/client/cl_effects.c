@@ -54,7 +54,8 @@ CL_AddMuzzleFlash(void)
 
 	if ((i < 1) || (i >= MAX_EDICTS))
 	{
-		Com_Error(ERR_DROP, "CL_AddMuzzleFlash: bad entity");
+		Com_Error(ERR_DROP, "%s: bad entity %d >= %d\n",
+			__func__, i, MAX_EDICTS);
 	}
 
 	weapon = MSG_ReadByte(&net_message);
@@ -334,14 +335,15 @@ CL_AddMuzzleFlash2(void)
 
 	if ((ent < 1) || (ent >= MAX_EDICTS))
 	{
-		Com_Error(ERR_DROP, "CL_AddMuzzleFlash2: bad entity");
+		Com_Error(ERR_DROP, "%s: bad entity %d >= %d\n",
+			__func__, ent, MAX_EDICTS);
 	}
 
 	flash_number = MSG_ReadByte(&net_message);
 
 	if (flash_number > 210)
 	{
-		Com_DPrintf("CL_AddMuzzleFlash2: bad offset");
+		Com_DPrintf("%s: bad offset\n", __func__);
 		return;
 	}
 

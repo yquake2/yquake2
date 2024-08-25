@@ -864,7 +864,8 @@ CL_GetEntitySoundOrigin(int ent, vec3_t org)
 
 	if ((ent < 0) || (ent >= MAX_EDICTS))
 	{
-		Com_Error(ERR_DROP, "CL_GetEntitySoundOrigin: bad ent");
+		Com_Error(ERR_DROP, "%s: bad entity %d >= %d\n",
+			__func__, ent, MAX_EDICTS);
 	}
 
 	old = &cl_entities[ent];
@@ -881,7 +882,8 @@ CL_GetEntitySoundVelocity(int ent, vec3_t vel)
 
 	if ((ent < 0) || (ent >= MAX_EDICTS))
 	{
-		Com_Error(ERR_DROP, "CL_GetEntitySoundVelocity: bad ent");
+		Com_Error(ERR_DROP, "%s: bad entity %d >= %d\n",
+			__func__, ent, MAX_EDICTS);
 	}
 
 	old = &cl_entities[ent];

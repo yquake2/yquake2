@@ -122,6 +122,11 @@ SV_CreateBaseline(void)
 
 		/* take current state as baseline */
 		VectorCopy(svent->s.origin, svent->s.old_origin);
+		if (entnum >= MAX_EDICTS)
+		{
+			Com_Error(ERR_DROP, "%s: bad entity %d >= %d\n",
+				__func__, entnum, MAX_EDICTS);
+		}
 		sv.baselines[entnum] = svent->s;
 	}
 }

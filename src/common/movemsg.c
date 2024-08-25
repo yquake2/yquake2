@@ -444,7 +444,8 @@ MSG_WriteDeltaEntity(entity_state_t *from,
 
 	if (to->number >= MAX_EDICTS)
 	{
-		Com_Error(ERR_FATAL, "Entity number >= MAX_EDICTS");
+		Com_Error(ERR_DROP, "%s: bad entity %d >= %d\n",
+			__func__, to->number, MAX_EDICTS);
 	}
 
 	/* send an update */
