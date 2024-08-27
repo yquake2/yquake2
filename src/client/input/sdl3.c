@@ -81,7 +81,7 @@ typedef enum
 // IN_Update() called at the beginning of a frame to the
 // actual movement functions called at a later time.
 static float mouse_x, mouse_y;
-static unsigned char sdl_back_button = SDL_GAMEPAD_BUTTON_BACK;
+static unsigned char sdl_back_button = SDL_GAMEPAD_BUTTON_START;
 static int joystick_left_x, joystick_left_y, joystick_right_x, joystick_right_y;
 static float gyro_yaw, gyro_pitch;
 static qboolean mlooking;
@@ -2053,19 +2053,19 @@ IN_Controller_Init(qboolean notify_user)
 	SDL_Joystick *joystick = NULL;
 	SDL_bool is_controller = SDL_FALSE;
 
-	cvar = Cvar_Get("in_sdlbackbutton", "0", CVAR_ARCHIVE);
+	cvar = Cvar_Get("in_sdlbackbutton", "1", CVAR_ARCHIVE);
 	if (cvar)
 	{
 		switch ((int)cvar->value)
 		{
-			case 1:
-				sdl_back_button = SDL_GAMEPAD_BUTTON_START;
+			case 0:
+				sdl_back_button = SDL_GAMEPAD_BUTTON_BACK;
 				break;
 			case 2:
 				sdl_back_button = SDL_GAMEPAD_BUTTON_GUIDE;
 				break;
 			default:
-				sdl_back_button = SDL_GAMEPAD_BUTTON_BACK;
+				sdl_back_button = SDL_GAMEPAD_BUTTON_START;
 		}
 	}
 

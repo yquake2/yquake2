@@ -570,12 +570,11 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
   `1`, which enables gamepad usage; `0` disables its detection at
   startup. Can only be set from command line.
 
-* **in_sdlbackbutton**: Defines which button is used in the gamepad or
-  joystick as the `Esc` key, to access the main menu and 'cancel' /
-  'go back' on its options. Default is `0`, which corresponds to the
-  Back/Select/Minus button. Set to `1` to use Start/Menu/Plus, and to
-  `2` to use the Guide/Home/PS button. Requires a game restart
-  (or controller replug) when changed.
+* **in_sdlbackbutton**: Defines which button is used in the gamepad as
+  the `Esc` key, to pull the main menu and 'cancel' / 'go back' on its
+  options. Valid values are `0` = Back / Select / Minus, `1` = Start /
+  Menu / Plus (default), or `2` = Guide / Home / PS. Requires a game
+  restart, or gamepad replug, when changed.
 
 * **joy_layout**: Allows to select the stick layout of the gamepad.
   - `0`: *Default*, left stick moves, right aims
