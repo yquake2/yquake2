@@ -176,9 +176,9 @@ static cvar_t *gyro_calibration_x;
 static cvar_t *gyro_calibration_y;
 static cvar_t *gyro_calibration_z;
 static unsigned int num_samples;
-#define NATIVE_SDL_GYRO	// uses SDL_CONTROLLERSENSORUPDATE to read gyro
+#define NATIVE_SDL_GYRO	// uses SDL_EVENT_GAMEPAD_SENSOR_UPDATE to read gyro
 
-// To ignore SDL_JOYDEVICEADDED at game init. Allows for hot plugging of game controller afterwards.
+// To ignore SDL_EVENT_JOYSTICK_ADDED at game init. Allows for hot plugging of gamepad afterwards.
 static qboolean first_init = true;
 
 // Countdown of calls to IN_Update(), needed for controller init and gyro calibration
@@ -859,11 +859,7 @@ IN_Update(void)
 				break;
 
 			case SDL_EVENT_GAMEPAD_REMOVED :
-				if (!controller)
-				{
-					break;
-				}
-				if (event.gdevice.which == SDL_GetJoystickInstanceID(SDL_GetGamepadJoystick(controller))) {
+				if (controller && event.gdevice.which == SDL_GetJoystickInstanceID(SDL_GetGamepadJoystick(controller))) {
 					Cvar_SetValue("paused", 1);
 					IN_Controller_Shutdown(true);
 					IN_Controller_Init(false);
@@ -920,7 +916,7 @@ IN_Update(void)
 	sys_frame_time = Sys_Milliseconds();
 
 	// Hot plugging delay handling, to not be "overwhelmed" because some controllers
-	// present themselves as two different devices, triggering SDL_JOYDEVICEADDED
+	// present themselves as two different devices, triggering SDL_EVENT_JOYSTICK_ADDED
 	// too many times. They could trigger it even at game initialization.
 	// Also used to keep time of the 'controller gyro calibration' pause.
 	if (updates_countdown)
@@ -952,7 +948,7 @@ IN_Update(void)
 #else
 						if (!num_samples[0] || !num_samples[1] || !num_samples[2])
 						{
-							Com_Printf("Calibration failed, please retry inside a level after having moved your controller a little.\n");
+							Com_Printf("Calibration failed, please retry inside a level after having moved your gamepad a little.\n");
 						}
 						else
 						{
@@ -2077,7 +2073,7 @@ IN_Controller_Init(qboolean notify_user)
 
 	if (notify_user)
 	{
-		Com_Printf("- Game Controller init attempt -\n");
+		Com_Printf("- Gamepad init attempt -\n");
 	}
 
 	if (!SDL_WasInit(SDL_INIT_GAMEPAD | SDL_INIT_HAPTIC))
@@ -2092,7 +2088,7 @@ IN_Controller_Init(qboolean notify_user)
 
 		if (SDL_Init(SDL_INIT_GAMEPAD | SDL_INIT_HAPTIC) == -1)
 		{
-			Com_Printf ("Couldn't init SDL Game Controller: %s.\n", SDL_GetError());
+			Com_Printf ("Couldn't init SDL Gamepad: %s.\n", SDL_GetError());
 			return;
 		}
 	}
@@ -2186,7 +2182,7 @@ IN_Controller_Init(qboolean notify_user)
 
 			SDL_GetJoystickGUIDString(guid, joystick_guid, 64);
 
-			Com_Printf ("To use joystick as game controller, provide its config by either:\n"
+			Com_Printf ("To identify joystick as Gamepad, provide its config by either:\n"
 				" * Putting 'gamecontrollerdb.txt' file in your game directory.\n"
 				" * Or setting SDL_GAMECONTROLLERCONFIG environment variable. E.g.:\n");
 			Com_Printf ("SDL_GAMECONTROLLERCONFIG='%s,%s,leftx:a0,lefty:a1,rightx:a2,righty:a3,back:b1,...'\n", joystick_guid, joystick_name);
@@ -2200,12 +2196,12 @@ IN_Controller_Init(qboolean notify_user)
 			controller = SDL_OpenGamepad(joysticks[i]);
 			if (!controller)
 			{
-				Com_Printf("SDL Controller error: %s.\n", SDL_GetError());
+				Com_Printf("SDL Gamepad error: %s.\n", SDL_GetError());
 				continue;	// try next joystick
 			}
 
 			show_gamepad = true;
-			Com_Printf("Enabled as Game Controller, settings:\n%s\n",
+			Com_Printf("Enabled as Gamepad, settings:\n%s\n",
 				   SDL_GetGamepadMapping(controller));
 
 #ifdef NATIVE_SDL_GYRO
@@ -2254,7 +2250,7 @@ IN_Controller_Init(qboolean notify_user)
 			}
 			else
 			{
-				Com_Printf("Controller doesn't support rumble.\n");
+				Com_Printf("Gamepad doesn't support rumble.\n");
 			}
 
 #ifdef NATIVE_SDL_GYRO	// "native" exits when finding a single working controller
@@ -2370,7 +2366,7 @@ IN_Controller_Shutdown(qboolean notify_user)
 {
 	if (notify_user)
 	{
-		Com_Printf("- Game Controller disconnected -\n");
+		Com_Printf("- Gamepad disconnected -\n");
 	}
 
 	IN_Haptic_Shutdown();

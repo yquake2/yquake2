@@ -868,11 +868,7 @@ IN_Update(void)
 				break;
 
 			case SDL_CONTROLLERDEVICEREMOVED:
-				if (!controller)
-				{
-					break;
-				}
-				if (event.cdevice.which == SDL_JoystickInstanceID(SDL_GameControllerGetJoystick(controller))) {
+				if (controller && event.cdevice.which == SDL_JoystickInstanceID(SDL_GameControllerGetJoystick(controller))) {
 					Cvar_SetValue("paused", 1);
 					IN_Controller_Shutdown(true);
 					IN_Controller_Init(false);
