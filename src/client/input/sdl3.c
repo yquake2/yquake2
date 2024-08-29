@@ -1401,22 +1401,23 @@ IN_Move(usercmd_t *cmd)
 	// Flick Stick: flick in progress, changing the yaw angle to the target progressively
 	if (flick_progress < 1.0f)
 	{
-		float old = flick_progress;
-		float new = (float)(cls.realtime - started_flick) / FLICK_TIME;
+		float cur_progress = (float)(cls.realtime - started_flick) / FLICK_TIME;
 
-		if (new > 1.0f) new = 1.0f;
-		flick_progress = new;
+		if (cur_progress > 1.0f)
+		{
+			cur_progress = 1.0f;
+		}
+		else
+		{
+			// "Ease out" warp processing: f(x)=1-(1-x)^2 , 0 <= x <= 1
+			// http://gyrowiki.jibbsmart.com/blog:good-gyro-controls-part-2:the-flick-stick#toc0
+			cur_progress = 1.0f - cur_progress;
+			cur_progress *= cur_progress;
+			cur_progress = 1.0f - cur_progress;
+		}
 
-		// "Ease out" warp processing for both old and new progress
-		// http://gyrowiki.jibbsmart.com/blog:good-gyro-controls-part-2:the-flick-stick#toc0
-		old = 1.0f - old;
-		old *= old;
-		old = 1.0f - old;
-		new = 1.0f - new;
-		new *= new;
-		new = 1.0f - new;
-
-		cl.viewangles[YAW] += (new - old) * target_angle;
+		cl.viewangles[YAW] += (cur_progress - flick_progress) * target_angle;
+		flick_progress = cur_progress;
 	}
 }
 
