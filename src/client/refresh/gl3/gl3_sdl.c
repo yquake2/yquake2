@@ -155,7 +155,11 @@ void GL3_SetVsync(void)
 		vsync = -1;
 	}
 
+#ifdef USE_SDL3
+	if (!SDL_GL_SetSwapInterval(vsync))
+#else
 	if (SDL_GL_SetSwapInterval(vsync) == -1)
+#endif
 	{
 		if (vsync == -1)
 		{
@@ -168,7 +172,7 @@ void GL3_SetVsync(void)
 
 #ifdef USE_SDL3
 	int vsyncState;
-       if (SDL_GL_GetSwapInterval(&vsyncState) != 0)
+       if (!SDL_GL_GetSwapInterval(&vsyncState))
        {
                R_Printf(PRINT_ALL, "Failed to get vsync state, assuming vsync inactive.\n");
                vsyncActive = false;
@@ -204,7 +208,11 @@ int GL3_PrepareForWindow(void)
 
 	while (1)
 	{
+#ifdef USE_SDL3
+		if (!SDL_GL_LoadLibrary(libgl))
+#else
 		if (SDL_GL_LoadLibrary(libgl) < 0)
+#endif
 		{
 			if (libgl == NULL)
 			{
@@ -236,7 +244,11 @@ int GL3_PrepareForWindow(void)
 	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 
+#ifdef USE_SDL3
+	if (SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8))
+#else
 	if (SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8) == 0)
+#endif
 	{
 		gl3config.stencil = true;
 	}
@@ -279,7 +291,11 @@ int GL3_PrepareForWindow(void)
 	{
 		msaa_samples = gl_msaa_samples->value;
 
+#ifdef USE_SDL3
+		if (!SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1))
+#else
 		if (SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1) < 0)
+#endif
 		{
 			R_Printf(PRINT_ALL, "MSAA is unsupported: %s\n", SDL_GetError());
 
@@ -288,7 +304,11 @@ int GL3_PrepareForWindow(void)
 			SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 0);
 			SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 0);
 		}
+#ifdef USE_SDL3
+		else if (!SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, msaa_samples))
+#else
 		else if (SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, msaa_samples) < 0)
+#endif
 		{
 			R_Printf(PRINT_ALL, "MSAA %ix is unsupported: %s\n", msaa_samples, SDL_GetError());
 
@@ -351,7 +371,11 @@ int GL3_InitContext(void* win)
 
 	if (gl3config.stencil)
 	{
+#ifdef USE_SDL3
+		if (!SDL_GL_GetAttribute(SDL_GL_STENCIL_SIZE, &stencil_bits) || stencil_bits < 8)
+#else
 		if (SDL_GL_GetAttribute(SDL_GL_STENCIL_SIZE, &stencil_bits) < 0 || stencil_bits < 8)
+#endif
 		{
 			gl3config.stencil = false;
 		}
