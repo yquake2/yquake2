@@ -235,10 +235,17 @@ IN_TranslateSDLtoQ2Key(unsigned int keysym)
 		case SDLK_BACKSPACE:
 			key = K_BACKSPACE;
 			break;
-		case SDLK_LGUI:
+#ifdef __APPLE__
 		case SDLK_RGUI:
-			key = K_COMMAND; // Win key
+		case SDLK_LGUI:
+			key = K_COMMAND;
 			break;
+#else
+		case SDLK_RGUI:
+		case SDLK_LGUI:
+			key = K_SUPER;
+			break;
+#endif
 		case SDLK_CAPSLOCK:
 			key = K_CAPSLOCK;
 			break;
@@ -393,8 +400,6 @@ IN_TranslateSDLtoQ2Key(unsigned int keysym)
 		case SDLK_KP_EQUALS:
 			key = K_KP_EQUALS;
 			break;
-
-		// TODO: K_SUPER ? Win Key is already K_COMMAND
 
 		case SDLK_APPLICATION:
 			key = K_COMPOSE;
@@ -662,7 +667,7 @@ IN_Update(void)
 					event.window.event == SDL_WINDOWEVENT_FOCUS_GAINED)
 				{
 					Key_MarkAllUp();
-					
+
 					if (event.window.event == SDL_WINDOWEVENT_FOCUS_LOST)
 					{
 						S_Activate(false);
