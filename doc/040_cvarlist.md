@@ -291,6 +291,15 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
   0.  Setting this cvar to `1` disables this behavior, the music keeps
   playing.
 
+* **ogg_shuffle**: Ogg/Vorbis playback mode. Supported modes are:
+  `0`: Loop the current track (the default).
+  `1`: Play the current track once, then stop.
+  `2`: Play all available tracks in a linear sequence.
+  `3`: Shuffle through the available tracks, never play the same track
+       twice in a row.
+  `4`: Shuffle through the available tracks, may play the same track
+       multiple times in a row.
+
 * **s_doppler**: If set to `1` doppler effects are enabled. This is only
   supported by the OpenAL sound backend.
 

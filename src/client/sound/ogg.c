@@ -530,6 +530,7 @@ OGG_PlayTrack(const char *track, qboolean cdtrack, qboolean immediate)
 		newtrack = (curtrack + 1) % (ogg_maxfileindex + 1) != 0 ? (curtrack + 1) : 2;
 	} break;
 	case 3:			// random
+	case 4:			// random with true randomness
 	{
 		int retries = 100;
 		newtrack = 0;
@@ -537,6 +538,14 @@ OGG_PlayTrack(const char *track, qboolean cdtrack, qboolean immediate)
 		while (retries-- > 0 && newtrack < 2)
 		{
 			newtrack = randk() % (ogg_maxfileindex + 1);
+
+			if (playback == 3)
+			{
+				if (newtrack == curtrack)
+				{
+					newtrack = 0;
+				}
+			}
 		}
 	} break;
 	}
