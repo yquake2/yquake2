@@ -1350,12 +1350,7 @@ SDL_BackendInit(void)
 	int sndbits = (Cvar_Get("sndbits", "16", CVAR_ARCHIVE))->value;
 	int sndfreq = (Cvar_Get("s_khz", "44", CVAR_ARCHIVE))->value;
 	int sndchans = (Cvar_Get("sndchannels", "2", CVAR_ARCHIVE))->value;
-
-#if _WIN32
-	cvar_t *s_sdldriver = (Cvar_Get("s_sdldriver", "directsound", CVAR_ARCHIVE));
-#else
 	cvar_t *s_sdldriver = (Cvar_Get("s_sdldriver", "auto", CVAR_ARCHIVE));
-#endif
 
 	if (strcmp(s_sdldriver->string, "auto") != 0)
 	{
@@ -1502,8 +1497,7 @@ qboolean
 SDL_BackendInit(void)
 {
 	char reqdriver[128];
-	SDL_AudioSpec desired;
-	SDL_AudioSpec obtained;
+	SDL_AudioSpec spec;
 	int tmp, val;
 
 	/* This should never happen,
@@ -1516,12 +1510,7 @@ SDL_BackendInit(void)
 	int sndbits = (Cvar_Get("sndbits", "16", CVAR_ARCHIVE))->value;
 	int sndfreq = (Cvar_Get("s_khz", "44", CVAR_ARCHIVE))->value;
 	int sndchans = (Cvar_Get("sndchannels", "2", CVAR_ARCHIVE))->value;
-
-#if _WIN32
-	cvar_t *s_sdldriver = (Cvar_Get("s_sdldriver", "directsound", CVAR_ARCHIVE));
-#else
 	cvar_t *s_sdldriver = (Cvar_Get("s_sdldriver", "auto", CVAR_ARCHIVE));
-#endif
 
 	if (strcmp(s_sdldriver->string, "auto") != 0)
 	{
@@ -1547,8 +1536,7 @@ SDL_BackendInit(void)
 
 	Com_Printf("SDL audio driver is \"%s\".\n", drivername);
 
-	memset(&desired, '\0', sizeof(desired));
-	memset(&obtained, '\0', sizeof(obtained));
+	memset(&spec, '\0', sizeof(spec));
 
 	/* Users are stupid */
 	if ((sndbits != 16) && (sndbits != 8))
@@ -1558,45 +1546,45 @@ SDL_BackendInit(void)
 
 	if (sndfreq == 48)
 	{
-		desired.freq = 48000;
+		spec.freq = 48000;
 	}
 	else if (sndfreq == 44)
 	{
-		desired.freq = 44100;
+		spec.freq = 44100;
 	}
 	else if (sndfreq == 22)
 	{
-		desired.freq = 22050;
+		spec.freq = 22050;
 	}
 	else if (sndfreq == 11)
 	{
-		desired.freq = 11025;
+		spec.freq = 11025;
 	}
 
-	desired.format = ((sndbits == 16) ? AUDIO_S16SYS : AUDIO_U8);
+	spec.format = ((sndbits == 16) ? AUDIO_S16SYS : AUDIO_U8);
 
-	if (desired.freq <= 11025)
+	if (spec.freq <= 11025)
 	{
-		desired.samples = 256;
+		spec.samples = 256;
 	}
-	else if (desired.freq <= 22050)
+	else if (spec.freq <= 22050)
 	{
-		desired.samples = 512;
+		spec.samples = 512;
 	}
-	else if (desired.freq <= 44100)
+	else if (spec.freq <= 44100)
 	{
-		desired.samples = 1024;
+		spec.samples = 1024;
 	}
 	else
 	{
-		desired.samples = 2048;
+		spec.samples = 2048;
 	}
 
-	desired.channels = sndchans;
-	desired.callback = SDL_Callback;
+	spec.channels = sndchans;
+	spec.callback = SDL_Callback;
 
 	/* Okay, let's try our luck */
-	if (SDL_OpenAudio(&desired, &obtained) == -1)
+	if (SDL_OpenAudio(&spec, NULL) == -1)
 	{
 		Com_Printf("SDL_OpenAudio() failed: %s\n", SDL_GetError());
 		SDL_QuitSubSystem(SDL_INIT_AUDIO);
@@ -1607,10 +1595,10 @@ SDL_BackendInit(void)
 	backend = &sound;
 
 	playpos = 0;
-	backend->samplebits = obtained.format & 0xFF;
-	backend->channels = obtained.channels;
+	backend->samplebits = spec.format & 0xFF;
+	backend->channels = spec.channels;
 
-	tmp = (obtained.samples * obtained.channels) * 10;
+	tmp = (spec.samples * spec.channels) * 10;
 
 	if (tmp & (tmp - 1))
 	{	/* make it a power of two */
@@ -1624,7 +1612,7 @@ SDL_BackendInit(void)
 	backend->samples = tmp;
 
 	backend->submission_chunk = 1;
-	backend->speed = obtained.freq;
+	backend->speed = spec.freq;
 	samplesize = (backend->samples * (backend->samplebits / 8));
 	backend->buffer = calloc(1, samplesize);
 	s_numchannels = MAX_CHANNELS;
