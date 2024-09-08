@@ -1367,7 +1367,11 @@ SDL_BackendInit(void)
 
 	if (!SDL_WasInit(SDL_INIT_AUDIO))
 	{
+#ifdef USE_SDL3
+		if (!SDL_Init(SDL_INIT_AUDIO))
+#else
 		if (SDL_Init(SDL_INIT_AUDIO) == -1)
+#endif
 		{
 			Com_Printf ("Couldn't init SDL audio: %s.\n", SDL_GetError ());
 			return 0;

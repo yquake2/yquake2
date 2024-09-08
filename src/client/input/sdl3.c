@@ -1994,7 +1994,7 @@ Controller_Rumble(const char *name, vec3_t source, qboolean from_player,
 	// Com_Printf("%-29s: vol %5u - %4u ms - dp %.3f l %5.0f h %5.0f\n",
 	//	name, effect_volume, duration, dist_prop, low_freq, hi_freq);
 
-	if (SDL_RumbleGamepad(controller, low_freq, hi_freq, duration) == -1)
+	if (!SDL_RumbleGamepad(controller, low_freq, hi_freq, duration))
 	{
 		if (!joystick_haptic)
 		{
@@ -2080,7 +2080,7 @@ IN_Controller_Init(qboolean notify_user)
 		SDL_SetHint( SDL_HINT_JOYSTICK_HIDAPI_PS5_RUMBLE, "1" );
 #endif
 
-		if (SDL_Init(SDL_INIT_GAMEPAD | SDL_INIT_HAPTIC) == -1)
+		if (!SDL_Init(SDL_INIT_GAMEPAD | SDL_INIT_HAPTIC))
 		{
 			Com_Printf ("Couldn't init SDL Game Controller: %s.\n", SDL_GetError());
 			return;
