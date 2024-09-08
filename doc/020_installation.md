@@ -264,7 +264,7 @@ system. The gamedata is searched at:
 - In *$HOME/.yq2*
 
 If you're a package maintainer, please look at our packaging guide at
-the [Packaging Guide](05_packaging.md).
+the [Packaging Guide](070_packaging.md).
 
 
 ## Compiling from source
