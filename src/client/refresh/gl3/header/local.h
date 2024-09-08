@@ -317,7 +317,6 @@ enum {MAX_GL3TEXTURES = 1024};
 
 typedef struct
 {
-	int internal_format;
 	int current_lightmap_texture; // index into gl3state.lightmap_textureIDs[]
 
 	//msurface_t *lightmap_surfaces[MAX_LIGHTMAPS]; - no more lightmap chains, lightmaps are rendered multitextured

@@ -463,7 +463,6 @@ typedef struct
 
 typedef struct
 {
-	int internal_format;
 	int current_lightmap_texture;
 
 	msurface_t *lightmap_surfaces[MAX_LIGHTMAPS];

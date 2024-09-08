@@ -340,9 +340,15 @@ PCX_Decode(const char *name, const byte *raw, int len, byte **pic, byte **palett
 				return;
 			}
 
-			if ((len > 768) && (((byte *)pcx)[len - 769] == 0x0C))
+			if (len > 768)
 			{
 				memcpy(*palette, (byte *)pcx + len - 768, 768);
+
+				if ((((byte *)pcx)[len - 769] != 0x0C))
+				{
+					R_Printf(PRINT_DEVELOPER, "%s: %s has no palette marker\n",
+						__func__, name);
+				}
 			}
 			else
 			{

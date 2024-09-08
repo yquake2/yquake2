@@ -731,6 +731,12 @@ FS_LoadFile(const char *path, void **buffer)
 
 	if (size <= 0)
 	{
+		if (size == 0)
+		{
+			/* empty file, close before exit*/
+			FS_FCloseFile(f);
+		}
+
 		if (buffer)
 		{
 			*buffer = NULL;

@@ -380,12 +380,13 @@ CL_ParsePacketEntities(frame_t *oldframe, frame_t *newframe)
 
 		if (newnum >= MAX_EDICTS)
 		{
-			Com_Error(ERR_DROP, "CL_ParsePacketEntities: bad number:%i", newnum);
+			Com_Error(ERR_DROP, "%s: bad entity %d >= %d\n",
+				__func__, newnum, MAX_EDICTS);
 		}
 
 		if (net_message.readcount > net_message.cursize)
 		{
-			Com_Error(ERR_DROP, "CL_ParsePacketEntities: end of message");
+			Com_Error(ERR_DROP, "%s: end of message", __func__);
 		}
 
 		if (!newnum)
@@ -1192,7 +1193,8 @@ CL_ParseStartSoundPacket(void)
 
 		if (ent > MAX_EDICTS)
 		{
-			Com_Error(ERR_DROP, "CL_ParseStartSoundPacket: ent = %i", ent);
+			Com_Error(ERR_DROP, "%s: bad entity %d >= %d\n",
+				__func__, ent, MAX_EDICTS);
 		}
 
 		channel &= 7;
