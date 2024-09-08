@@ -78,7 +78,7 @@ typedef enum
 // IN_Update() called at the beginning of a frame to the
 // actual movement functions called at a later time.
 static float mouse_x, mouse_y;
-static unsigned char sdl_back_button = SDL_CONTROLLER_BUTTON_BACK;
+static unsigned char sdl_back_button = SDL_CONTROLLER_BUTTON_START;
 static int joystick_left_x, joystick_left_y, joystick_right_x, joystick_right_y;
 static float gyro_yaw, gyro_pitch;
 static qboolean mlooking;
@@ -198,9 +198,10 @@ static unsigned short int updates_countdown = 30;
 static updates_countdown_reasons countdown_reason = REASON_CONTROLLERINIT;
 
 // Flick Stick
-#define FLICK_TIME 6		// number of frames it takes for a flick to execute
+#define FLICK_TIME 100		// time it takes for a flick to execute, in ms
 static float target_angle;	// angle to end up facing at the end of a flick
-static unsigned short int flick_progress = FLICK_TIME;
+static float flick_progress = 1.0f;	// from 0.0 to 1.0
+static int started_flick;	// time of flick start
 
 // Flick Stick's rotation input samples to smooth out
 #define MAX_SMOOTH_SAMPLES 8
@@ -867,11 +868,7 @@ IN_Update(void)
 				break;
 
 			case SDL_CONTROLLERDEVICEREMOVED:
-				if (!controller)
-				{
-					break;
-				}
-				if (event.cdevice.which == SDL_JoystickInstanceID(SDL_GameControllerGetJoystick(controller))) {
+				if (controller && event.cdevice.which == SDL_JoystickInstanceID(SDL_GameControllerGetJoystick(controller))) {
 					Cvar_SetValue("paused", 1);
 					IN_Controller_Shutdown(true);
 					IN_Controller_Init(false);
@@ -1163,7 +1160,7 @@ IN_FlickStick(thumbstick_t stick, float axial_deadzone)
 	if (IN_StickMagnitude(stick) > Q_min(joy_flick_threshold->value, 1.0f))	// flick!
 	{
 		// Make snap-to-axis only if player wasn't already flicking
-		if (!is_flicking || flick_progress < FLICK_TIME)
+		if (!is_flicking || flick_progress < 1.0f)
 		{
 			processed = IN_SlopedAxialDeadzone(stick, axial_deadzone);
 		}
@@ -1174,7 +1171,8 @@ IN_FlickStick(thumbstick_t stick, float axial_deadzone)
 		{
 			// Flicking begins now, with a new target
 			is_flicking = true;
-			flick_progress = 0;
+			flick_progress = 0.0f;
+			started_flick = cls.realtime;
 			target_angle = stick_angle;
 			IN_ResetSmoothSamples();
 		}
@@ -1211,12 +1209,6 @@ IN_Move(usercmd_t *cmd)
 {
 	// Factor used to transform from SDL joystick input ([-32768, 32767])  to [-1, 1] range
 	static const float normalize_sdl_axis = 1.0f / 32768.0f;
-
-	// Flick Stick's factors to change to the target angle with a feeling of "ease out"
-	static const float rotation_factor[FLICK_TIME] =
-	{
-		0.305555556f, 0.249999999f, 0.194444445f, 0.138888889f, 0.083333333f, 0.027777778f
-	};
 
 	static float old_mouse_x;
 	static float old_mouse_y;
@@ -1422,10 +1414,25 @@ IN_Move(usercmd_t *cmd)
 	}
 
 	// Flick Stick: flick in progress, changing the yaw angle to the target progressively
-	if (flick_progress < FLICK_TIME)
+	if (flick_progress < 1.0f)
 	{
-		cl.viewangles[YAW] += target_angle * rotation_factor[flick_progress];
-		flick_progress++;
+		float cur_progress = (float)(cls.realtime - started_flick) / FLICK_TIME;
+
+		if (cur_progress > 1.0f)
+		{
+			cur_progress = 1.0f;
+		}
+		else
+		{
+			// "Ease out" warp processing: f(x)=1-(1-x)^2 , 0 <= x <= 1
+			// http://gyrowiki.jibbsmart.com/blog:good-gyro-controls-part-2:the-flick-stick#toc0
+			cur_progress = 1.0f - cur_progress;
+			cur_progress *= cur_progress;
+			cur_progress = 1.0f - cur_progress;
+		}
+
+		cl.viewangles[YAW] += (cur_progress - flick_progress) * target_angle;
+		flick_progress = cur_progress;
 	}
 }
 
@@ -2057,19 +2064,19 @@ IN_Controller_Init(qboolean notify_user)
 	SDL_Joystick *joystick = NULL;
 	SDL_bool is_controller = SDL_FALSE;
 
-	cvar = Cvar_Get("in_sdlbackbutton", "0", CVAR_ARCHIVE);
+	cvar = Cvar_Get("in_sdlbackbutton", "1", CVAR_ARCHIVE);
 	if (cvar)
 	{
 		switch ((int)cvar->value)
 		{
-			case 1:
-				sdl_back_button = SDL_CONTROLLER_BUTTON_START;
+			case 0:
+				sdl_back_button = SDL_CONTROLLER_BUTTON_BACK;
 				break;
 			case 2:
 				sdl_back_button = SDL_CONTROLLER_BUTTON_GUIDE;
 				break;
 			default:
-				sdl_back_button = SDL_CONTROLLER_BUTTON_BACK;
+				sdl_back_button = SDL_CONTROLLER_BUTTON_START;
 		}
 	}
 

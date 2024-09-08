@@ -1955,7 +1955,7 @@ Gyro_MenuInit(void)
 	s_calibrating_text[0].generic.type = MTYPE_SEPARATOR;
 	s_calibrating_text[0].generic.x = 48 * scale + 32;
 	s_calibrating_text[0].generic.y = (y += 20);
-	s_calibrating_text[0].generic.name = "place the controller on a flat,";
+	s_calibrating_text[0].generic.name = "place the gamepad on a flat,";
 
 	s_calibrating_text[1].generic.type = MTYPE_SEPARATOR;
 	s_calibrating_text[1].generic.x = 48 * scale + 32;
