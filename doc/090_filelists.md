@@ -10,7 +10,7 @@ is complete.
 The game data. See inline comments (lines starting with #) for
 details. The gama data tree is the same on all platform. The
 executable may be placed in the tree or in an own directory.
-See the [02_installation.md](Installation Guide) for details.
+See the [Installation Guide](020_installation.md) for details.
 
 We're using the Windows notation in this list. It's the same
 for other platforms, but executables and libraries may have
