@@ -508,7 +508,8 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
   squares.
 
 * **gl1_stencilshadow**: If `gl_shadows` is set to `1`, this makes them
-  look a bit better (no flickering) by using the stencil buffer.
+  look a bit better (no flickering) by using the stencil buffer. Does
+  not work when `gl1_stereo` is `3`, `4` or `5`.
 
 * **gl1_lightmapcopies**: When enabled (`1`), keep 3 copies of the same
   lightmap rotating, shifting to another one when drawing a new frame.

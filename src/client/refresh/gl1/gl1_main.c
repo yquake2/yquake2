@@ -809,21 +809,31 @@ R_SetupGL(void)
 void
 R_Clear(void)
 {
-	// Check whether the stencil buffer needs clearing, and do so if need be.
-	GLbitfield stencilFlags = 0;
-	if (gl_state.stereo_mode >= STEREO_MODE_ROW_INTERLEAVED && gl_state.stereo_mode <= STEREO_MODE_PIXEL_INTERLEAVED) {
-		glClearStencil(GL_FALSE);
-		stencilFlags |= GL_STENCIL_BUFFER_BIT;
+	// Define which buffers need clearing
+	GLbitfield clearFlags = 0;
+	GLenum depthFunc = GL_LEQUAL;
+
+	// This breaks stereo modes, but we'll leave that responsibility to the user
+	if (r_clear->value)
+	{
+		clearFlags |= GL_COLOR_BUFFER_BIT;
+	}
+
+	// No stencil shadows allowed when using certain stereo modes, otherwise "wallhack" happens
+	if (gl_state.stereo_mode >= STEREO_MODE_ROW_INTERLEAVED && gl_state.stereo_mode <= STEREO_MODE_PIXEL_INTERLEAVED)
+	{
+		glClearStencil(0);
+		clearFlags |= GL_STENCIL_BUFFER_BIT;
+	}
+	else if (gl_shadows->value && gl_state.stencil && gl1_stencilshadow->value)
+	{
+		glClearStencil(1);
+		clearFlags |= GL_STENCIL_BUFFER_BIT;
 	}
 
 	if (gl1_ztrick->value)
 	{
 		static int trickframe;
-
-		if (r_clear->value)
-		{
-			glClear(GL_COLOR_BUFFER_BIT | stencilFlags);
-		}
 
 		trickframe++;
 
@@ -831,31 +841,27 @@ R_Clear(void)
 		{
 			gldepthmin = 0;
 			gldepthmax = 0.49999;
-			glDepthFunc(GL_LEQUAL);
 		}
 		else
 		{
 			gldepthmin = 1;
 			gldepthmax = 0.5;
-			glDepthFunc(GL_GEQUAL);
+			depthFunc = GL_GEQUAL;
 		}
 	}
 	else
 	{
-		if (r_clear->value)
-		{
-			glClear(GL_COLOR_BUFFER_BIT | stencilFlags | GL_DEPTH_BUFFER_BIT);
-		}
-		else
-		{
-			glClear(GL_DEPTH_BUFFER_BIT | stencilFlags);
-		}
+		clearFlags |= GL_DEPTH_BUFFER_BIT;
 
 		gldepthmin = 0;
 		gldepthmax = 1;
-		glDepthFunc(GL_LEQUAL);
 	}
 
+	if (clearFlags)
+	{
+		glClear(clearFlags);
+	}
+	glDepthFunc(depthFunc);
 	glDepthRange(gldepthmin, gldepthmax);
 
 	if (gl_zfix->value)
@@ -868,13 +874,6 @@ R_Clear(void)
 		{
 			glPolygonOffset(-0.05, -1);
 		}
-	}
-
-	/* stencilbuffer shadows */
-	if (gl_shadows->value && gl_state.stencil && gl1_stencilshadow->value)
-	{
-		glClearStencil(GL_TRUE);
-		glClear(GL_STENCIL_BUFFER_BIT);
 	}
 }
 
@@ -1872,12 +1871,12 @@ RI_BeginFrame(float camera_separation)
 		gl1_particle_square->modified = false;
 	}
 
-#ifndef YQ2_GL1_GLES
 	/* draw buffer stuff */
 	if (gl_drawbuffer->modified)
 	{
 		gl_drawbuffer->modified = false;
 
+#ifndef YQ2_GL1_GLES
 		if ((gl_state.camera_separation == 0) || gl_state.stereo_mode != STEREO_MODE_OPENGL)
 		{
 			if (Q_stricmp(gl_drawbuffer->string, "GL_FRONT") == 0)
@@ -1889,8 +1888,8 @@ RI_BeginFrame(float camera_separation)
 				glDrawBuffer(GL_BACK);
 			}
 		}
-	}
 #endif
+	}
 
 	/* texturemode stuff */
 	if (gl_texturemode->modified || (gl_config.anisotropic && gl_anisotropic->modified)
