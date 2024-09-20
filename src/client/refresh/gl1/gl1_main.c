@@ -926,7 +926,6 @@ R_SetGL2D(void)
 static void
 R_RenderView(refdef_t *fd)
 {
-#ifndef YQ2_GL1_GLES
 	if ((gl_state.stereo_mode != STEREO_MODE_NONE) && gl_state.camera_separation) {
 
 		qboolean drawing_left_eye = gl_state.camera_separation < 0;
@@ -976,6 +975,13 @@ R_RenderView(refdef_t *fd)
 					qboolean flip_eyes = true;
 					int client_x, client_y;
 
+					GLshort screen[] = {
+						0, 0,
+						(GLshort)vid.width, 0,
+						(GLshort)vid.width, (GLshort)vid.height,
+						0, (GLshort)vid.height
+					};
+
 					//GLimp_GetClientAreaOffset(&client_x, &client_y);
 					client_x = 0;
 					client_y = 0;
@@ -983,47 +989,53 @@ R_RenderView(refdef_t *fd)
 					R_SetGL2D();
 
 					glEnable(GL_STENCIL_TEST);
-					glStencilMask(GL_TRUE);
+					glStencilMask(1);
 					glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
 
 					glStencilOp(GL_REPLACE, GL_KEEP, GL_KEEP);
 					glStencilFunc(GL_NEVER, 0, 1);
 
-					glBegin(GL_QUADS);
-					{
-						glVertex2i(0, 0);
-						glVertex2i(vid.width, 0);
-						glVertex2i(vid.width, vid.height);
-						glVertex2i(0, vid.height);
-					}
-					glEnd();
+					glEnableClientState(GL_VERTEX_ARRAY);
+					glVertexPointer(2, GL_SHORT, 0, screen);
+					glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+					glDisableClientState(GL_VERTEX_ARRAY);
 
 					glStencilOp(GL_INVERT, GL_KEEP, GL_KEEP);
 					glStencilFunc(GL_NEVER, 1, 1);
 
-					glBegin(GL_LINES);
+					if (gl_state.stereo_mode == STEREO_MODE_ROW_INTERLEAVED || gl_state.stereo_mode == STEREO_MODE_PIXEL_INTERLEAVED)
 					{
-						if (gl_state.stereo_mode == STEREO_MODE_ROW_INTERLEAVED || gl_state.stereo_mode == STEREO_MODE_PIXEL_INTERLEAVED) {
-							int y;
-							for (y = 0; y <= vid.height; y += 2) {
-								glVertex2f(0, y - 0.5f);
-								glVertex2f(vid.width, y - 0.5f);
-							}
-							flip_eyes ^= (client_y & 1);
+						for (int y = 0; y <= vid.height; y += 2)
+						{
+							gl_buf.vtx[gl_buf.vt    ] = 0;
+							gl_buf.vtx[gl_buf.vt + 1] = y - 0.5f;
+							gl_buf.vtx[gl_buf.vt + 2] = vid.width;
+							gl_buf.vtx[gl_buf.vt + 3] = y - 0.5f;
+							gl_buf.vt += 4;
 						}
-
-						if (gl_state.stereo_mode == STEREO_MODE_COLUMN_INTERLEAVED || gl_state.stereo_mode == STEREO_MODE_PIXEL_INTERLEAVED) {
-							int x;
-							for (x = 0; x <= vid.width; x += 2) {
-								glVertex2f(x - 0.5f, 0);
-								glVertex2f(x - 0.5f, vid.height);
-							}
-							flip_eyes ^= (client_x & 1);
-						}
+						flip_eyes ^= (client_y & 1);
 					}
-					glEnd();
 
-					glStencilMask(GL_FALSE);
+					if (gl_state.stereo_mode == STEREO_MODE_COLUMN_INTERLEAVED || gl_state.stereo_mode == STEREO_MODE_PIXEL_INTERLEAVED)
+					{
+						for (int x = 0; x <= vid.width; x += 2)
+						{
+							gl_buf.vtx[gl_buf.vt    ] = x - 0.5f;
+							gl_buf.vtx[gl_buf.vt + 1] = 0;
+							gl_buf.vtx[gl_buf.vt + 2] = x - 0.5f;
+							gl_buf.vtx[gl_buf.vt + 3] = vid.height;
+							gl_buf.vt += 4;
+						}
+						flip_eyes ^= (client_x & 1);
+					}
+
+					glEnableClientState(GL_VERTEX_ARRAY);
+					glVertexPointer(2, GL_FLOAT, 0, gl_buf.vtx);
+					glDrawArrays(GL_LINES, 0, gl_buf.vt / 2);
+					glDisableClientState(GL_VERTEX_ARRAY);
+					gl_buf.vt = 0;
+
+					glStencilMask(0);
 					glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 
 					glStencilFunc(GL_EQUAL, drawing_left_eye ^ flip_eyes, 1);
@@ -1034,7 +1046,6 @@ R_RenderView(refdef_t *fd)
 				break;
 		}
 	}
-#endif
 
 	if (r_norefresh->value)
 	{
