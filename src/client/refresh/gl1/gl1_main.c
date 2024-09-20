@@ -150,6 +150,7 @@ void LM_FreeLightmapBuffers(void);
 void Scrap_Free(void);
 void Scrap_Init(void);
 
+extern void R_SetDefaultState(void);
 extern void R_ResetGLBuffer(void);
 
 void
@@ -630,6 +631,19 @@ R_PolyBlend(void)
 	glColor4f(1, 1, 1, 1);
 }
 
+static void
+R_ResetClearColor(void)
+{
+	if (gl1_discardfb->value == 1 && !r_clear->value)
+	{
+		glClearColor(0, 0, 0, 0.5);
+	}
+	else
+	{
+		glClearColor(1, 0, 0.5, 0.5);
+	}
+}
+
 void
 R_SetupFrame(void)
 {
@@ -707,7 +721,7 @@ R_SetupFrame(void)
 				vid.height - r_newrefdef.height - r_newrefdef.y,
 				r_newrefdef.width, r_newrefdef.height);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		glClearColor(1, 0, 0.5, 0.5);
+		R_ResetClearColor();
 		glDisable(GL_SCISSOR_TEST);
 	}
 }
@@ -855,6 +869,19 @@ R_Clear(void)
 
 		gldepthmin = 0;
 		gldepthmax = 1;
+	}
+
+	switch ((int)gl1_discardfb->value)
+	{
+		case 1:
+			if (gl_state.stereo_mode == STEREO_MODE_NONE)
+			{
+				clearFlags |= GL_COLOR_BUFFER_BIT;
+			}
+		case 2:
+			clearFlags |= GL_STENCIL_BUFFER_BIT;
+		default:
+			break;
 	}
 
 	if (clearFlags)
@@ -1183,9 +1210,9 @@ RI_RenderFrame(refdef_t *fd)
 }
 
 #ifdef YQ2_GL1_GLES
-#define DEFAULT_LMCOPIES	"1"
+#define GLES1_ENABLED_ONLY	"1"
 #else
-#define DEFAULT_LMCOPIES	"0"
+#define GLES1_ENABLED_ONLY	"0"
 #endif
 
 void
@@ -1242,10 +1269,8 @@ R_Register(void)
 	gl1_palettedtexture = ri.Cvar_Get("r_palettedtextures", "0", CVAR_ARCHIVE);
 	gl1_pointparameters = ri.Cvar_Get("gl1_pointparameters", "1", CVAR_ARCHIVE);
 	gl1_multitexture = ri.Cvar_Get("gl1_multitexture", "1", CVAR_ARCHIVE);
-	gl1_lightmapcopies = ri.Cvar_Get("gl1_lightmapcopies", DEFAULT_LMCOPIES, CVAR_ARCHIVE);
-#ifdef YQ2_GL1_GLES
-	gl1_discardfb = ri.Cvar_Get("gl1_discardfb", "1", CVAR_ARCHIVE);
-#endif
+	gl1_lightmapcopies = ri.Cvar_Get("gl1_lightmapcopies", GLES1_ENABLED_ONLY, CVAR_ARCHIVE);
+	gl1_discardfb = ri.Cvar_Get("gl1_discardfb", GLES1_ENABLED_ONLY, CVAR_ARCHIVE);
 
 	gl_drawbuffer = ri.Cvar_Get("gl_drawbuffer", "GL_BACK", 0);
 	r_vsync = ri.Cvar_Get("r_vsync", "1", CVAR_ARCHIVE);
@@ -1283,7 +1308,7 @@ R_Register(void)
 	ri.Cmd_AddCommand("gl_strings", R_Strings);
 }
 
-#undef DEFAULT_LMCOPIES
+#undef GLES1_ENABLED_ONLY
 
 /*
  * Changes the video mode
@@ -1687,28 +1712,28 @@ RI_Init(void)
 
 	// ----
 
-	/* Discard framebuffer: Available only on GLES1, enables the use of a "performance hint"
-	 * to the graphic driver, to get rid of the contents of the depth and stencil buffers.
+	/* Discard framebuffer: Enables the use of a "performance hint" to the graphic
+	 * driver in GLES1, to get rid of the contents of the different framebuffers.
 	 * Useful for some GPUs that may attempt to keep them and/or write them back to
 	 * external/uniform memory, actions that are useless for Quake 2 rendering path.
 	 * https://registry.khronos.org/OpenGL/extensions/EXT/EXT_discard_framebuffer.txt
+	 * This extension is used by 'gl1_discardfb', and regardless of its existence,
+	 * that cvar will enable glClear at the start of each frame, helping mobile GPUs.
 	 */
-	gl_config.discardfb = false;
 
 #ifdef YQ2_GL1_GLES
 	R_Printf(PRINT_ALL, " - Discard framebuffer: ");
 
 	if (strstr(gl_config.extensions_string, "GL_EXT_discard_framebuffer"))
 	{
-			qglDiscardFramebufferEXT = (void (APIENTRY *)(GLenum, GLsizei, const GLenum *))
-					RI_GetProcAddress ("glDiscardFramebufferEXT");
+		qglDiscardFramebufferEXT = (void (APIENTRY *)(GLenum, GLsizei, const GLenum *))
+				RI_GetProcAddress ("glDiscardFramebufferEXT");
 	}
 
 	if (gl1_discardfb->value)
 	{
-		if (qglDiscardFramebufferEXT)
+		if (qglDiscardFramebufferEXT)	// enough to verify availability
 		{
-			gl_config.discardfb = true;
 			R_Printf(PRINT_ALL, "Okay\n");
 		}
 		else
@@ -1738,6 +1763,7 @@ RI_Init(void)
 
 	// ----
 
+	R_ResetClearColor();
 	R_SetDefaultState();
 
 	Scrap_Init();
@@ -1970,7 +1996,7 @@ RI_SetPalette(const unsigned char *palette)
 
 	glClearColor(0, 0, 0, 0);
 	glClear(GL_COLOR_BUFFER_BIT);
-	glClearColor(1, 0, 0.5, 0.5);
+	R_ResetClearColor();
 }
 
 /* R_DrawBeam */

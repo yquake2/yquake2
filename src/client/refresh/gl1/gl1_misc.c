@@ -169,7 +169,6 @@ R_Strings(void)
 void
 R_SetDefaultState(void)
 {
-	glClearColor(1, 0, 0.5, 0.5);
 	glDisable(GL_MULTISAMPLE);
 	glCullFace(GL_FRONT);
 	glEnable(GL_TEXTURE_2D);
