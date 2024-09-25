@@ -114,7 +114,7 @@ R_DrawTriangleOutlines(void)
 
                     for (k=0; k<3; k++)
                     {
-                       vtx[0+k] = p->verts [ 0 ][ k ];
+                        vtx[0+k] = p->verts [ 0 ][ k ];
                         vtx[3+k] = p->verts [ j - 1 ][ k ];
                         vtx[6+k] = p->verts [ j ][ k ];
                         vtx[9+k] = p->verts [ 0 ][ k ];
@@ -388,7 +388,7 @@ R_BlendLightmaps(const model_t *currentmodel)
 }
 
 static void
-R_RenderBrushPoly(entity_t *currententity, msurface_t *fa)
+R_RenderBrushPoly(msurface_t *fa)
 {
 	int maps;
 	qboolean is_dynamic = false;
@@ -526,10 +526,10 @@ R_DrawAlphaSurfaces(void)
 }
 
 static void
-R_RenderLightmappedPoly(entity_t *currententity, msurface_t *surf)
+R_RenderLightmappedPoly(msurface_t *surf)
 {
+	const int nv = surf->polys->numverts;
 	int i;
-	int nv = surf->polys->numverts;
 	float scroll;
 	float *v;
 
@@ -747,7 +747,7 @@ dynamic_surf:
 }
 
 static void
-R_DrawTextureChains(entity_t *currententity)
+R_DrawTextureChains(void)
 {
 	int i;
 	msurface_t *s;
@@ -776,7 +776,7 @@ R_DrawTextureChains(entity_t *currententity)
 			for ( ; s; s = s->texturechain)
 			{
 				R_UpdateGLBuffer(buf_singletex, image->texnum, 0, s->flags, 1);
-				R_RenderBrushPoly(currententity, s);
+				R_RenderBrushPoly(s);
 			}
 
 			image->texturechain = NULL;
@@ -799,7 +799,7 @@ R_DrawTextureChains(entity_t *currententity)
 				if (!(s->flags & SURF_DRAWTURB))
 				{
 					R_UpdateGLBuffer(buf_mtex, image->texnum, s->lightmaptexturenum, 0, 1);
-					R_RenderLightmappedPoly(currententity, s);
+					R_RenderLightmappedPoly(s);
 				}
 			}
 		}
@@ -819,7 +819,7 @@ R_DrawTextureChains(entity_t *currententity)
 				if (s->flags & SURF_DRAWTURB)
 				{
 					R_UpdateGLBuffer(buf_singletex, image->texnum, 0, s->flags, 1);
-					R_RenderBrushPoly(currententity, s);
+					R_RenderBrushPoly(s);
 				}
 			}
 
@@ -887,12 +887,12 @@ R_DrawInlineBModel(entity_t *currententity, const model_t *currentmodel)
 				{
 					// Dynamic lighting already generated in R_GetBrushesLighting()
 					R_UpdateGLBuffer(buf_mtex, image->texnum, psurf->lightmaptexturenum, 0, 1);
-					R_RenderLightmappedPoly(currententity, psurf);
+					R_RenderLightmappedPoly(psurf);
 				}
 				else
 				{
 					R_UpdateGLBuffer(buf_singletex, image->texnum, 0, psurf->flags, 1);
-					R_RenderBrushPoly(currententity, psurf);
+					R_RenderBrushPoly(psurf);
 				}
 			}
 		}
@@ -1246,7 +1246,7 @@ R_DrawWorld(void)
 	R_RecursiveWorldNode(&ent, r_worldmodel->nodes);
 	R_GetBrushesLighting();
 	R_RegenAllLightmaps();
-	R_DrawTextureChains(&ent);
+	R_DrawTextureChains();
 	R_BlendLightmaps(r_worldmodel);
 	R_DrawSkyBox();
 	R_DrawTriangleOutlines();
