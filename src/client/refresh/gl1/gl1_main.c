@@ -1803,17 +1803,17 @@ RI_BeginFrame(float camera_separation)
 	gl_state.camera_separation = camera_separation;
 
 	// force a vid_restart if gl1_stereo has been modified.
-	if ( gl_state.stereo_mode != gl1_stereo->value ) {
+	if ( gl_state.stereo_mode != gl1_stereo->value )
+	{
 		// If we've gone from one mode to another with the same special buffer requirements there's no need to restart.
-		if ( GL_GetSpecialBufferModeForStereoMode( gl_state.stereo_mode ) == GL_GetSpecialBufferModeForStereoMode( gl1_stereo->value )  ) {
+		if ( GL_GetSpecialBufferModeForStereoMode( gl_state.stereo_mode ) == GL_GetSpecialBufferModeForStereoMode( gl1_stereo->value ) )
+		{
 			gl_state.stereo_mode = gl1_stereo->value;
 		}
 		else
 		{
 			R_Printf(PRINT_ALL, "stereo supermode changed, restarting video!\n");
-			cvar_t	*ref;
-			ref = ri.Cvar_Get("vid_fullscreen", "0", CVAR_ARCHIVE);
-			ref->modified = true;
+			ri.Cmd_ExecuteText(EXEC_APPEND, "vid_restart\n");
 		}
 	}
 
