@@ -2041,7 +2041,7 @@ IN_Controller_Init(qboolean notify_user)
 	int nummappings;
 	char controllerdb[MAX_OSPATH] = {0};
 	SDL_Joystick *joystick = NULL;
-	SDL_bool is_controller = SDL_FALSE;
+	bool is_controller = false;
 
 	cvar = Cvar_Get("in_sdlbackbutton", "0", CVAR_ARCHIVE);
 	if (cvar)
@@ -2201,7 +2201,7 @@ IN_Controller_Init(qboolean notify_user)
 #ifdef NATIVE_SDL_GYRO
 
 			if (SDL_GamepadHasSensor(controller, SDL_SENSOR_GYRO)
-				&& !SDL_SetGamepadSensorEnabled(controller, SDL_SENSOR_GYRO, SDL_TRUE) )
+				&& !SDL_SetGamepadSensorEnabled(controller, SDL_SENSOR_GYRO, true) )
 			{
 				show_gyro = true;
 				Com_Printf( "Gyro sensor enabled at %.2f Hz\n",
@@ -2212,7 +2212,7 @@ IN_Controller_Init(qboolean notify_user)
 				Com_Printf("Gyro sensor not found.\n");
 			}
 
-			SDL_bool hasLED = SDL_GetBooleanProperty(SDL_GetGamepadProperties(controller), SDL_PROP_JOYSTICK_CAP_RGB_LED_BOOLEAN, SDL_FALSE);
+			bool hasLED = SDL_GetBooleanProperty(SDL_GetGamepadProperties(controller), SDL_PROP_JOYSTICK_CAP_RGB_LED_BOOLEAN, false);
 			if (hasLED)
 			{
 				SDL_SetGamepadLED(controller, 0, 80, 0);	// green light
@@ -2236,7 +2236,7 @@ IN_Controller_Init(qboolean notify_user)
 				show_haptic = true;
 			}
 
-			SDL_bool hasRumble = SDL_GetBooleanProperty(SDL_GetGamepadProperties(controller), SDL_PROP_GAMEPAD_CAP_RUMBLE_BOOLEAN, SDL_FALSE);
+			bool hasRumble = SDL_GetBooleanProperty(SDL_GetGamepadProperties(controller), SDL_PROP_GAMEPAD_CAP_RUMBLE_BOOLEAN, false);
 			if (hasRumble)
 			{
 				show_haptic = true;

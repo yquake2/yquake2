@@ -124,7 +124,7 @@ CreateSDLWindow(int flags, int fullscreen, int w, int h)
 	SDL_SetNumberProperty(props, "flags", flags);
 
 	if (flags & SDL_WINDOW_OPENGL)
-		SDL_SetBooleanProperty(props, SDL_PROP_WINDOW_CREATE_OPENGL_BOOLEAN, SDL_TRUE);
+		SDL_SetBooleanProperty(props, SDL_PROP_WINDOW_CREATE_OPENGL_BOOLEAN, true);
 
 	window = SDL_CreateWindowWithProperties(props);
 	SDL_DestroyProperties(props);
@@ -161,7 +161,7 @@ CreateSDLWindow(int flags, int fullscreen, int w, int h)
 			   switch to it in exclusive fullscreen mode. */
 			SDL_DisplayMode closestMode;
 
-			if (SDL_GetClosestFullscreenDisplayMode(last_display, w, h, vid_rate->value, false, &closestMode) != SDL_TRUE)
+			if (SDL_GetClosestFullscreenDisplayMode(last_display, w, h, vid_rate->value, false, &closestMode) != true)
 			{
 				Com_Printf("SDL was unable to find a mode close to %ix%i@%f\n", w, h, vid_rate->value);
 
@@ -169,7 +169,7 @@ CreateSDLWindow(int flags, int fullscreen, int w, int h)
 				{
 					Com_Printf("Retrying with desktop refresh rate\n");
 
-					if (SDL_GetClosestFullscreenDisplayMode(last_display, w, h, vid_rate->value, false, &closestMode) == SDL_TRUE)
+					if (SDL_GetClosestFullscreenDisplayMode(last_display, w, h, vid_rate->value, false, &closestMode) == true)
 					{
 						Cvar_SetValue("vid_rate", 0);
 					}
@@ -509,7 +509,7 @@ GLimp_InitGraphics(int fullscreen, int *pwidth, int *pheight)
 		{
 			if (fullscreen == FULLSCREEN_EXCLUSIVE)
 			{
-				if (SDL_GetClosestFullscreenDisplayMode(last_display, width, height, vid_rate->value, false, &closestMode) != SDL_TRUE)
+				if (SDL_GetClosestFullscreenDisplayMode(last_display, width, height, vid_rate->value, false, &closestMode) != true)
 				{
 					Com_Printf("SDL was unable to find a mode close to %ix%i@%f\n", width, height, vid_rate->value);
 
@@ -517,7 +517,7 @@ GLimp_InitGraphics(int fullscreen, int *pwidth, int *pheight)
 					{
 						Com_Printf("Retrying with desktop refresh rate\n");
 
-						if (SDL_GetClosestFullscreenDisplayMode(last_display, width, height, 0, false, &closestMode) == SDL_TRUE)
+						if (SDL_GetClosestFullscreenDisplayMode(last_display, width, height, 0, false, &closestMode) == true)
 						{
 							Cvar_SetValue("vid_rate", 0);
 						}
@@ -764,16 +764,16 @@ GLimp_GrabInput(qboolean grab)
 {
 	if(window != NULL)
 	{
-		SDL_SetWindowMouseGrab(window, grab ? SDL_TRUE : SDL_FALSE);
+		SDL_SetWindowMouseGrab(window, grab ? true : false);
 	}
 
 #ifdef USE_SDL3
-	if(!SDL_SetWindowRelativeMouseMode(window, grab ? SDL_TRUE : SDL_FALSE))
+	if(!SDL_SetWindowRelativeMouseMode(window, grab ? true : false))
 	{
 		Com_Printf("WARNING: Setting Relative Mousemode failed, reason: %s\n", SDL_GetError());
 	}
 #else
-	if(SDL_SetWindowRelativeMouseMode(window, grab ? SDL_TRUE : SDL_FALSE) < 0)
+	if(SDL_SetWindowRelativeMouseMode(window, grab ? true : false) < 0)
 	{
 		Com_Printf("WARNING: Setting Relative Mousemode failed, reason: %s\n", SDL_GetError());
 		Com_Printf("         You should probably update to SDL 2.0.3 or newer!\n");
