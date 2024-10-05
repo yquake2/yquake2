@@ -351,7 +351,11 @@ RI_ShutdownContext(void)
 	{
 		if(context)
 		{
+#ifdef USE_SDL3
 			SDL_GL_DestroyContext(context);
+#else
+			SDL_GL_DeleteContext(context);
+#endif
 			context = NULL;
 		}
 	}
