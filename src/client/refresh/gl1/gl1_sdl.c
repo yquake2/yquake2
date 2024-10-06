@@ -38,6 +38,8 @@ static SDL_GLContext context = NULL;
 qboolean IsHighDPIaware = false;
 static qboolean vsyncActive = false;
 
+extern cvar_t *gl1_discardfb;
+
 // ----
 
 /*
@@ -47,13 +49,26 @@ void
 RI_EndFrame(void)
 {
 	R_ApplyGLBuffer();	// to draw buffered 2D text
+
 #ifdef YQ2_GL1_GLES
-	if (gl_config.discardfb)
+	static const GLenum attachments[3] = {GL_COLOR_EXT, GL_DEPTH_EXT, GL_STENCIL_EXT};
+
+	if (qglDiscardFramebufferEXT)
 	{
-		static const GLenum attachments[] = { GL_DEPTH_EXT, GL_STENCIL_EXT };
-		qglDiscardFramebufferEXT(GL_FRAMEBUFFER_OES, 2, attachments);
+		switch ((int)gl1_discardfb->value)
+		{
+			case 1:
+				qglDiscardFramebufferEXT(GL_FRAMEBUFFER_OES, 3, &attachments[0]);
+				break;
+			case 2:
+				qglDiscardFramebufferEXT(GL_FRAMEBUFFER_OES, 2, &attachments[1]);
+				break;
+			default:
+				break;
+		}
 	}
 #endif
+
 	SDL_GL_SwapWindow(window);
 }
 

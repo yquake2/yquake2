@@ -508,7 +508,8 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
   squares.
 
 * **gl1_stencilshadow**: If `gl_shadows` is set to `1`, this makes them
-  look a bit better (no flickering) by using the stencil buffer.
+  look a bit better (no flickering) by using the stencil buffer. Does
+  not work when `gl1_stereo` is `3`, `4` or `5`.
 
 * **gl1_lightmapcopies**: When enabled (`1`), keep 3 copies of the same
   lightmap rotating, shifting to another one when drawing a new frame.
@@ -516,9 +517,10 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
   (dynamic lighting) causes slowdown. By default in GL1 is disabled,
   while in GLES1 is enabled. Needs `gl1_multitexture 1` & `vid_restart`.
 
-* **gl1_discardfb**: Only available in ES1. If set to `1` (default),
-  send a hint to discard framebuffers after finishing a frame. Useful
-  for GPUs that attempt to reuse them, something Quake 2 doesn't do.
+* **gl1_discardfb**: If `1`, clear color, depth and stencil buffers at
+  the start of a frame, and discard them at the end if possible. If
+  `2`, do only depth and stencil, no color. Increases performance in
+  mobile / embedded. Default in GL1 is `0`, while in GLES1 is `1`.
 
 
 ## Graphics (OpenGL 3.2 and OpenGL ES3 only)

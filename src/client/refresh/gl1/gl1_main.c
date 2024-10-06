@@ -150,6 +150,7 @@ void LM_FreeLightmapBuffers(void);
 void Scrap_Free(void);
 void Scrap_Init(void);
 
+extern void R_SetDefaultState(void);
 extern void R_ResetGLBuffer(void);
 
 void
@@ -630,6 +631,19 @@ R_PolyBlend(void)
 	glColor4f(1, 1, 1, 1);
 }
 
+static void
+R_ResetClearColor(void)
+{
+	if (gl1_discardfb->value == 1 && !r_clear->value)
+	{
+		glClearColor(0, 0, 0, 0.5);
+	}
+	else
+	{
+		glClearColor(1, 0, 0.5, 0.5);
+	}
+}
+
 void
 R_SetupFrame(void)
 {
@@ -707,7 +721,7 @@ R_SetupFrame(void)
 				vid.height - r_newrefdef.height - r_newrefdef.y,
 				r_newrefdef.width, r_newrefdef.height);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		glClearColor(1, 0, 0.5, 0.5);
+		R_ResetClearColor();
 		glDisable(GL_SCISSOR_TEST);
 	}
 }
@@ -809,21 +823,31 @@ R_SetupGL(void)
 void
 R_Clear(void)
 {
-	// Check whether the stencil buffer needs clearing, and do so if need be.
-	GLbitfield stencilFlags = 0;
-	if (gl_state.stereo_mode >= STEREO_MODE_ROW_INTERLEAVED && gl_state.stereo_mode <= STEREO_MODE_PIXEL_INTERLEAVED) {
-		glClearStencil(GL_FALSE);
-		stencilFlags |= GL_STENCIL_BUFFER_BIT;
+	// Define which buffers need clearing
+	GLbitfield clearFlags = 0;
+	GLenum depthFunc = GL_LEQUAL;
+
+	// This breaks stereo modes, but we'll leave that responsibility to the user
+	if (r_clear->value)
+	{
+		clearFlags |= GL_COLOR_BUFFER_BIT;
+	}
+
+	// No stencil shadows allowed when using certain stereo modes, otherwise "wallhack" happens
+	if (gl_state.stereo_mode >= STEREO_MODE_ROW_INTERLEAVED && gl_state.stereo_mode <= STEREO_MODE_PIXEL_INTERLEAVED)
+	{
+		glClearStencil(0);
+		clearFlags |= GL_STENCIL_BUFFER_BIT;
+	}
+	else if (gl_shadows->value && gl_state.stencil && gl1_stencilshadow->value)
+	{
+		glClearStencil(1);
+		clearFlags |= GL_STENCIL_BUFFER_BIT;
 	}
 
 	if (gl1_ztrick->value)
 	{
 		static int trickframe;
-
-		if (r_clear->value)
-		{
-			glClear(GL_COLOR_BUFFER_BIT | stencilFlags);
-		}
 
 		trickframe++;
 
@@ -831,31 +855,40 @@ R_Clear(void)
 		{
 			gldepthmin = 0;
 			gldepthmax = 0.49999;
-			glDepthFunc(GL_LEQUAL);
 		}
 		else
 		{
 			gldepthmin = 1;
 			gldepthmax = 0.5;
-			glDepthFunc(GL_GEQUAL);
+			depthFunc = GL_GEQUAL;
 		}
 	}
 	else
 	{
-		if (r_clear->value)
-		{
-			glClear(GL_COLOR_BUFFER_BIT | stencilFlags | GL_DEPTH_BUFFER_BIT);
-		}
-		else
-		{
-			glClear(GL_DEPTH_BUFFER_BIT | stencilFlags);
-		}
+		clearFlags |= GL_DEPTH_BUFFER_BIT;
 
 		gldepthmin = 0;
 		gldepthmax = 1;
-		glDepthFunc(GL_LEQUAL);
 	}
 
+	switch ((int)gl1_discardfb->value)
+	{
+		case 1:
+			if (gl_state.stereo_mode == STEREO_MODE_NONE)
+			{
+				clearFlags |= GL_COLOR_BUFFER_BIT;
+			}
+		case 2:
+			clearFlags |= GL_STENCIL_BUFFER_BIT;
+		default:
+			break;
+	}
+
+	if (clearFlags)
+	{
+		glClear(clearFlags);
+	}
+	glDepthFunc(depthFunc);
 	glDepthRange(gldepthmin, gldepthmax);
 
 	if (gl_zfix->value)
@@ -868,13 +901,6 @@ R_Clear(void)
 		{
 			glPolygonOffset(-0.05, -1);
 		}
-	}
-
-	/* stencilbuffer shadows */
-	if (gl_shadows->value && gl_state.stencil && gl1_stencilshadow->value)
-	{
-		glClearStencil(GL_TRUE);
-		glClear(GL_STENCIL_BUFFER_BIT);
 	}
 }
 
@@ -927,7 +953,6 @@ R_SetGL2D(void)
 static void
 R_RenderView(refdef_t *fd)
 {
-#ifndef YQ2_GL1_GLES
 	if ((gl_state.stereo_mode != STEREO_MODE_NONE) && gl_state.camera_separation) {
 
 		qboolean drawing_left_eye = gl_state.camera_separation < 0;
@@ -977,6 +1002,13 @@ R_RenderView(refdef_t *fd)
 					qboolean flip_eyes = true;
 					int client_x, client_y;
 
+					GLshort screen[] = {
+						0, 0,
+						(GLshort)vid.width, 0,
+						(GLshort)vid.width, (GLshort)vid.height,
+						0, (GLshort)vid.height
+					};
+
 					//GLimp_GetClientAreaOffset(&client_x, &client_y);
 					client_x = 0;
 					client_y = 0;
@@ -984,47 +1016,53 @@ R_RenderView(refdef_t *fd)
 					R_SetGL2D();
 
 					glEnable(GL_STENCIL_TEST);
-					glStencilMask(GL_TRUE);
+					glStencilMask(1);
 					glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
 
 					glStencilOp(GL_REPLACE, GL_KEEP, GL_KEEP);
 					glStencilFunc(GL_NEVER, 0, 1);
 
-					glBegin(GL_QUADS);
-					{
-						glVertex2i(0, 0);
-						glVertex2i(vid.width, 0);
-						glVertex2i(vid.width, vid.height);
-						glVertex2i(0, vid.height);
-					}
-					glEnd();
+					glEnableClientState(GL_VERTEX_ARRAY);
+					glVertexPointer(2, GL_SHORT, 0, screen);
+					glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+					glDisableClientState(GL_VERTEX_ARRAY);
 
 					glStencilOp(GL_INVERT, GL_KEEP, GL_KEEP);
 					glStencilFunc(GL_NEVER, 1, 1);
 
-					glBegin(GL_LINES);
+					if (gl_state.stereo_mode == STEREO_MODE_ROW_INTERLEAVED || gl_state.stereo_mode == STEREO_MODE_PIXEL_INTERLEAVED)
 					{
-						if (gl_state.stereo_mode == STEREO_MODE_ROW_INTERLEAVED || gl_state.stereo_mode == STEREO_MODE_PIXEL_INTERLEAVED) {
-							int y;
-							for (y = 0; y <= vid.height; y += 2) {
-								glVertex2f(0, y - 0.5f);
-								glVertex2f(vid.width, y - 0.5f);
-							}
-							flip_eyes ^= (client_y & 1);
+						for (int y = 0; y <= vid.height; y += 2)
+						{
+							gl_buf.vtx[gl_buf.vt    ] = 0;
+							gl_buf.vtx[gl_buf.vt + 1] = y - 0.5f;
+							gl_buf.vtx[gl_buf.vt + 2] = vid.width;
+							gl_buf.vtx[gl_buf.vt + 3] = y - 0.5f;
+							gl_buf.vt += 4;
 						}
-
-						if (gl_state.stereo_mode == STEREO_MODE_COLUMN_INTERLEAVED || gl_state.stereo_mode == STEREO_MODE_PIXEL_INTERLEAVED) {
-							int x;
-							for (x = 0; x <= vid.width; x += 2) {
-								glVertex2f(x - 0.5f, 0);
-								glVertex2f(x - 0.5f, vid.height);
-							}
-							flip_eyes ^= (client_x & 1);
-						}
+						flip_eyes ^= (client_y & 1);
 					}
-					glEnd();
 
-					glStencilMask(GL_FALSE);
+					if (gl_state.stereo_mode == STEREO_MODE_COLUMN_INTERLEAVED || gl_state.stereo_mode == STEREO_MODE_PIXEL_INTERLEAVED)
+					{
+						for (int x = 0; x <= vid.width; x += 2)
+						{
+							gl_buf.vtx[gl_buf.vt    ] = x - 0.5f;
+							gl_buf.vtx[gl_buf.vt + 1] = 0;
+							gl_buf.vtx[gl_buf.vt + 2] = x - 0.5f;
+							gl_buf.vtx[gl_buf.vt + 3] = vid.height;
+							gl_buf.vt += 4;
+						}
+						flip_eyes ^= (client_x & 1);
+					}
+
+					glEnableClientState(GL_VERTEX_ARRAY);
+					glVertexPointer(2, GL_FLOAT, 0, gl_buf.vtx);
+					glDrawArrays(GL_LINES, 0, gl_buf.vt / 2);
+					glDisableClientState(GL_VERTEX_ARRAY);
+					gl_buf.vt = 0;
+
+					glStencilMask(0);
 					glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 
 					glStencilFunc(GL_EQUAL, drawing_left_eye ^ flip_eyes, 1);
@@ -1035,7 +1073,6 @@ R_RenderView(refdef_t *fd)
 				break;
 		}
 	}
-#endif
 
 	if (r_norefresh->value)
 	{
@@ -1173,9 +1210,9 @@ RI_RenderFrame(refdef_t *fd)
 }
 
 #ifdef YQ2_GL1_GLES
-#define DEFAULT_LMCOPIES	"1"
+#define GLES1_ENABLED_ONLY	"1"
 #else
-#define DEFAULT_LMCOPIES	"0"
+#define GLES1_ENABLED_ONLY	"0"
 #endif
 
 void
@@ -1232,10 +1269,8 @@ R_Register(void)
 	gl1_palettedtexture = ri.Cvar_Get("r_palettedtextures", "0", CVAR_ARCHIVE);
 	gl1_pointparameters = ri.Cvar_Get("gl1_pointparameters", "1", CVAR_ARCHIVE);
 	gl1_multitexture = ri.Cvar_Get("gl1_multitexture", "1", CVAR_ARCHIVE);
-	gl1_lightmapcopies = ri.Cvar_Get("gl1_lightmapcopies", DEFAULT_LMCOPIES, CVAR_ARCHIVE);
-#ifdef YQ2_GL1_GLES
-	gl1_discardfb = ri.Cvar_Get("gl1_discardfb", "1", CVAR_ARCHIVE);
-#endif
+	gl1_lightmapcopies = ri.Cvar_Get("gl1_lightmapcopies", GLES1_ENABLED_ONLY, CVAR_ARCHIVE);
+	gl1_discardfb = ri.Cvar_Get("gl1_discardfb", GLES1_ENABLED_ONLY, CVAR_ARCHIVE);
 
 	gl_drawbuffer = ri.Cvar_Get("gl_drawbuffer", "GL_BACK", 0);
 	r_vsync = ri.Cvar_Get("r_vsync", "1", CVAR_ARCHIVE);
@@ -1273,7 +1308,7 @@ R_Register(void)
 	ri.Cmd_AddCommand("gl_strings", R_Strings);
 }
 
-#undef DEFAULT_LMCOPIES
+#undef GLES1_ENABLED_ONLY
 
 /*
  * Changes the video mode
@@ -1677,28 +1712,28 @@ RI_Init(void)
 
 	// ----
 
-	/* Discard framebuffer: Available only on GLES1, enables the use of a "performance hint"
-	 * to the graphic driver, to get rid of the contents of the depth and stencil buffers.
+	/* Discard framebuffer: Enables the use of a "performance hint" to the graphic
+	 * driver in GLES1, to get rid of the contents of the different framebuffers.
 	 * Useful for some GPUs that may attempt to keep them and/or write them back to
 	 * external/uniform memory, actions that are useless for Quake 2 rendering path.
 	 * https://registry.khronos.org/OpenGL/extensions/EXT/EXT_discard_framebuffer.txt
+	 * This extension is used by 'gl1_discardfb', and regardless of its existence,
+	 * that cvar will enable glClear at the start of each frame, helping mobile GPUs.
 	 */
-	gl_config.discardfb = false;
 
 #ifdef YQ2_GL1_GLES
 	R_Printf(PRINT_ALL, " - Discard framebuffer: ");
 
 	if (strstr(gl_config.extensions_string, "GL_EXT_discard_framebuffer"))
 	{
-			qglDiscardFramebufferEXT = (void (APIENTRY *)(GLenum, GLsizei, const GLenum *))
-					RI_GetProcAddress ("glDiscardFramebufferEXT");
+		qglDiscardFramebufferEXT = (void (APIENTRY *)(GLenum, GLsizei, const GLenum *))
+				RI_GetProcAddress ("glDiscardFramebufferEXT");
 	}
 
 	if (gl1_discardfb->value)
 	{
-		if (qglDiscardFramebufferEXT)
+		if (qglDiscardFramebufferEXT)	// enough to verify availability
 		{
-			gl_config.discardfb = true;
 			R_Printf(PRINT_ALL, "Okay\n");
 		}
 		else
@@ -1728,6 +1763,7 @@ RI_Init(void)
 
 	// ----
 
+	R_ResetClearColor();
 	R_SetDefaultState();
 
 	Scrap_Init();
@@ -1767,17 +1803,17 @@ RI_BeginFrame(float camera_separation)
 	gl_state.camera_separation = camera_separation;
 
 	// force a vid_restart if gl1_stereo has been modified.
-	if ( gl_state.stereo_mode != gl1_stereo->value ) {
+	if ( gl_state.stereo_mode != gl1_stereo->value )
+	{
 		// If we've gone from one mode to another with the same special buffer requirements there's no need to restart.
-		if ( GL_GetSpecialBufferModeForStereoMode( gl_state.stereo_mode ) == GL_GetSpecialBufferModeForStereoMode( gl1_stereo->value )  ) {
+		if ( GL_GetSpecialBufferModeForStereoMode( gl_state.stereo_mode ) == GL_GetSpecialBufferModeForStereoMode( gl1_stereo->value ) )
+		{
 			gl_state.stereo_mode = gl1_stereo->value;
 		}
 		else
 		{
 			R_Printf(PRINT_ALL, "stereo supermode changed, restarting video!\n");
-			cvar_t	*ref;
-			ref = ri.Cvar_Get("vid_fullscreen", "0", CVAR_ARCHIVE);
-			ref->modified = true;
+			ri.Cmd_ExecuteText(EXEC_APPEND, "vid_restart\n");
 		}
 	}
 
@@ -1872,12 +1908,12 @@ RI_BeginFrame(float camera_separation)
 		gl1_particle_square->modified = false;
 	}
 
-#ifndef YQ2_GL1_GLES
 	/* draw buffer stuff */
 	if (gl_drawbuffer->modified)
 	{
 		gl_drawbuffer->modified = false;
 
+#ifndef YQ2_GL1_GLES
 		if ((gl_state.camera_separation == 0) || gl_state.stereo_mode != STEREO_MODE_OPENGL)
 		{
 			if (Q_stricmp(gl_drawbuffer->string, "GL_FRONT") == 0)
@@ -1889,8 +1925,8 @@ RI_BeginFrame(float camera_separation)
 				glDrawBuffer(GL_BACK);
 			}
 		}
-	}
 #endif
+	}
 
 	/* texturemode stuff */
 	if (gl_texturemode->modified || (gl_config.anisotropic && gl_anisotropic->modified)
@@ -1960,7 +1996,7 @@ RI_SetPalette(const unsigned char *palette)
 
 	glClearColor(0, 0, 0, 0);
 	glClear(GL_COLOR_BUFFER_BIT);
-	glClearColor(1, 0, 0.5, 0.5);
+	R_ResetClearColor();
 }
 
 /* R_DrawBeam */
