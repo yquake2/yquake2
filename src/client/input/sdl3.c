@@ -864,7 +864,7 @@ IN_Update(void)
 				break;
 
 			case SDL_EVENT_GAMEPAD_REMOVED :
-				if (controller && event.gdevice.which == SDL_GetJoystickInstanceID(SDL_GetGamepadJoystick(controller))) {
+				if (controller && event.gdevice.which == SDL_GetJoystickID(SDL_GetGamepadJoystick(controller))) {
 					Cvar_SetValue("paused", 1);
 					IN_Controller_Shutdown(true);
 					IN_Controller_Init(false);
