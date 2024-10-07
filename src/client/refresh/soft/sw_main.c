@@ -2194,7 +2194,11 @@ RE_CleanFrame(void)
 	memset(swap_buffers, 0,
 		vid_buffer_height * vid_buffer_width * sizeof(pixel_t) * 2);
 
+#ifdef USE_SDL3
 	if (!SDL_LockTexture(texture, NULL, (void**)&pixels, &pitch))
+#else
+	if (SDL_LockTexture(texture, NULL, (void**)&pixels, &pitch))
+#endif
 	{
 		Com_Printf("Can't lock texture: %s\n", SDL_GetError());
 		return;
@@ -2214,7 +2218,11 @@ RE_FlushFrame(int vmin, int vmax)
 	int pitch;
 	Uint32 *pixels;
 
+#ifdef USE_SDL3
 	if (!SDL_LockTexture(texture, NULL, (void**)&pixels, &pitch))
+#else
+	if (SDL_LockTexture(texture, NULL, (void**)&pixels, &pitch))
+#endif
 	{
 		Com_Printf("Can't lock texture: %s\n", SDL_GetError());
 		return;
