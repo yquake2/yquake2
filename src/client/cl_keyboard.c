@@ -1420,7 +1420,8 @@ Key_Event(int key, qboolean down, qboolean special)
 	/* FIXME: Better way to do CTRL+<key> actions in the console?
 	   special should be set to true in this case.
 	*/
-	if (keydown[K_CTRL] && IsInConsole() &&
+	if (keydown[K_CTRL] &&
+		(IsInConsole() || cls.key_dest == key_menu) &&
 		key >= 'a' && key <= 'z')
 	{
 		special = true;

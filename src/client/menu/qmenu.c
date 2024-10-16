@@ -29,6 +29,9 @@
 #include "../header/client.h"
 #include "header/qmenu.h"
 
+void IN_GetClipboardText(char *out, size_t n);
+int IN_SetClipboardText(const char *s);
+
 static void Action_Draw(menuaction_s *a);
 static void Menu_DrawStatusBar(const char *string);
 static void MenuList_Draw(menulist_s *l);
@@ -217,7 +220,53 @@ extern int keydown[];
 qboolean
 Field_Key(menufield_s *f, int key)
 {
-	char txt[2];
+	char txt[256];
+
+	if (keydown[K_CTRL])
+	{
+		if (key == 'l')
+		{
+			*f->buffer = '\0';
+			f->cursor = 0;
+
+			return true;
+		}
+
+		if (key == 'c' || key == 'x')
+		{
+			if (*f->buffer != '\0')
+			{
+				if (IN_SetClipboardText(f->buffer))
+				{
+					Com_Printf("Copying menu field to clipboard failed.\n");
+				}
+				else if (key == 'x')
+				{
+					*f->buffer = '\0';
+					f->cursor = 0;
+				}
+			}
+
+			return true;
+		}
+
+		if (key == 'v')
+		{
+			IN_GetClipboardText(txt, sizeof(txt));
+
+			if (*txt != '\0')
+			{
+				if ((f->generic.flags & QMF_NUMBERSONLY) && !Q_strisnum(txt))
+				{
+					return false;
+				}
+
+				f->cursor += Q_strins(f->buffer, txt, f->cursor, f->length);
+			}
+		}
+
+		return true;
+	}
 
 	switch (key)
 	{
