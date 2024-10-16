@@ -166,7 +166,8 @@ Field_Draw(menufield_s *f)
 		n = sizeof(tempbuffer);
 	}
 
-	Q_strlcpy(tempbuffer, f->buffer + f->visible_offset, n);
+	i = (f->cursor > f->visible_length) ? (f->cursor - f->visible_length) : 0;
+	Q_strlcpy(tempbuffer, f->buffer + i, n);
 
 	Draw_CharScaled(x + (16 * scale),
 			(y - 4) * scale, 18, scale);
@@ -191,29 +192,22 @@ Field_Draw(menufield_s *f)
 
 	if (Menu_ItemAtCursor(f->generic.parent) == f)
 	{
-		int offset;
-
-		if (f->visible_offset)
-		{
-			offset = f->visible_length;
-		}
-
-		else
-		{
-			offset = f->cursor;
-		}
-
 		if (((int)(Sys_Milliseconds() / 250)) & 1)
 		{
+			int offset;
+
+			if (f->cursor > f->visible_length)
+			{
+				offset = f->visible_length;
+			}
+			else
+			{
+				offset = f->cursor;
+			}
+
 			Draw_CharScaled(
 				x + (24 * scale) + (offset * (8 * scale)),
 				y * scale, 11, scale);
-		}
-		else
-		{
-			Draw_CharScaled(
-				x + (24 * scale) + (offset * (8 * scale)),
-				y * scale, ' ', scale);
 		}
 	}
 }
@@ -223,36 +217,39 @@ extern int keydown[];
 qboolean
 Field_Key(menufield_s *f, int key)
 {
-	if (key > 127)
-	{
-		return false;
-	}
+	char txt[2];
 
 	switch (key)
 	{
 		case K_KP_LEFTARROW:
 		case K_LEFTARROW:
-		case K_BACKSPACE:
-
 			if (f->cursor > 0)
 			{
-				memmove(&f->buffer[f->cursor - 1],
-						&f->buffer[f->cursor],
-						strlen(&f->buffer[f->cursor]) + 1);
 				f->cursor--;
-
-				if (f->visible_offset)
-				{
-					f->visible_offset--;
-				}
 			}
+			break;
 
+		case K_RIGHTARROW:
+			if (f->buffer[f->cursor] != '\0')
+			{
+				f->cursor++;
+			}
+			break;
+
+		case K_BACKSPACE:
+			if (f->cursor > 0)
+			{
+				Q_strdel(f->buffer, f->cursor - 1, 1);
+				f->cursor--;
+			}
 			break;
 
 		case K_KP_DEL:
 		case K_DEL:
-			memmove(&f->buffer[f->cursor], &f->buffer[f->cursor + 1],
-				strlen(&f->buffer[f->cursor + 1]) + 1);
+			if (f->buffer[f->cursor] != '\0')
+			{
+				Q_strdel(f->buffer, f->cursor, 1);
+			}
 			break;
 
 		case K_KP_ENTER:
@@ -261,24 +258,21 @@ Field_Key(menufield_s *f, int key)
 		case K_TAB:
 			return false;
 
-		case K_SPACE:
 		default:
+			if (key > 127)
+			{
+				return false;
+			}
 
 			if (!isdigit(key) && (f->generic.flags & QMF_NUMBERSONLY))
 			{
 				return false;
 			}
 
-			if (f->cursor < f->length)
-			{
-				f->buffer[f->cursor++] = key;
-				f->buffer[f->cursor] = 0;
+			*txt = key;
+			*(txt + 1) = '\0';
 
-				if (f->cursor > f->visible_length)
-				{
-					f->visible_offset++;
-				}
-			}
+			f->cursor += Q_strins(f->buffer, txt, f->cursor, f->length);
 	}
 
 	return true;

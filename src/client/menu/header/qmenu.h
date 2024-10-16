@@ -103,7 +103,6 @@ typedef struct
 	int cursor;
 	int length;
 	int visible_length;
-	int visible_offset;
 } menufield_s;
 
 typedef struct
