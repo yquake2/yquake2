@@ -1190,6 +1190,20 @@ Q_strins(char *dest, const char *src, size_t i, size_t n)
 	return slen;
 }
 
+qboolean
+Q_strisnum(const char *s)
+{
+	for (; *s != '\0'; s++)
+	{
+		if (!isdigit(*s))
+		{
+			return false;
+		}
+	}
+
+	return true;
+}
+
 /*
  * An unicode compatible fopen() Wrapper for Windows.
  */

@@ -335,6 +335,7 @@ void Q_strdel(char *s, size_t i, size_t n);
 /* Insert src into dest starting at index i, total, n is the total size of the buffer */
 /* Returns length of src on success, 0 if there is not enough space in dest for src */
 size_t Q_strins(char *dest, const char *src, size_t i, size_t n);
+qboolean Q_strisnum(const char *s);
 
 /* ============================================= */
 
