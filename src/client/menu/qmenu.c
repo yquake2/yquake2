@@ -291,6 +291,7 @@ Field_Key(menufield_s *f, int key)
 			}
 			break;
 
+		case K_KP_RIGHTARROW:
 		case K_RIGHTARROW:
 			if (f->buffer[f->cursor] != '\0')
 			{
@@ -303,6 +304,17 @@ Field_Key(menufield_s *f, int key)
 			{
 				Q_strdel(f->buffer, f->cursor - 1, 1);
 				f->cursor--;
+			}
+			break;
+
+		case K_END:
+			if (f->buffer[f->cursor] == '\0')
+			{
+				f->cursor = 0;
+			}
+			else
+			{
+				f->cursor = strlen(f->buffer);
 			}
 			break;
 
