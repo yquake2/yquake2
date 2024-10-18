@@ -215,6 +215,19 @@ Field_Draw(menufield_s *f)
 	}
 }
 
+void
+Field_ResetCursor(menuframework_s *m)
+{
+	menucommon_s *item = Menu_ItemAtCursor(m);
+
+	if (item && item->type == MTYPE_FIELD)
+	{
+		menufield_s *f = (menufield_s *)item;
+
+		f->cursor = strlen(f->buffer);
+	}
+}
+
 extern int keydown[];
 
 qboolean

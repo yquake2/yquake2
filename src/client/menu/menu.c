@@ -325,12 +325,19 @@ Default_MenuKey(menuframework_s *m, int key)
     switch (menu_key)
     {
     case K_ESCAPE:
+        if (m)
+        {
+            Field_ResetCursor(m);
+        }
+
         M_PopMenu();
         return menu_out_sound;
 
     case K_UPARROW:
         if (m)
         {
+            Field_ResetCursor(m);
+
             m->cursor--;
             Menu_AdjustCursor(m, -1);
             sound = menu_move_sound;
@@ -340,6 +347,8 @@ Default_MenuKey(menuframework_s *m, int key)
     case K_DOWNARROW:
         if (m)
         {
+            Field_ResetCursor(m);
+
             m->cursor++;
             Menu_AdjustCursor(m, 1);
             sound = menu_move_sound;
