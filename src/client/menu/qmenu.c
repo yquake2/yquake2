@@ -29,6 +29,9 @@
 #include "../header/client.h"
 #include "header/qmenu.h"
 
+void IN_GetClipboardText(char *out, size_t n);
+int IN_SetClipboardText(const char *s);
+
 static void Action_Draw(menuaction_s *a);
 static void Menu_DrawStatusBar(const char *string);
 static void MenuList_Draw(menulist_s *l);
@@ -166,7 +169,8 @@ Field_Draw(menufield_s *f)
 		n = sizeof(tempbuffer);
 	}
 
-	Q_strlcpy(tempbuffer, f->buffer + f->visible_offset, n);
+	i = (f->cursor > f->visible_length) ? (f->cursor - f->visible_length) : 0;
+	Q_strlcpy(tempbuffer, f->buffer + i, n);
 
 	Draw_CharScaled(x + (16 * scale),
 			(y - 4) * scale, 18, scale);
@@ -191,30 +195,36 @@ Field_Draw(menufield_s *f)
 
 	if (Menu_ItemAtCursor(f->generic.parent) == f)
 	{
-		int offset;
-
-		if (f->visible_offset)
-		{
-			offset = f->visible_length;
-		}
-
-		else
-		{
-			offset = f->cursor;
-		}
-
 		if (((int)(Sys_Milliseconds() / 250)) & 1)
 		{
+			int offset;
+
+			if (f->cursor > f->visible_length)
+			{
+				offset = f->visible_length;
+			}
+			else
+			{
+				offset = f->cursor;
+			}
+
 			Draw_CharScaled(
 				x + (24 * scale) + (offset * (8 * scale)),
 				y * scale, 11, scale);
 		}
-		else
-		{
-			Draw_CharScaled(
-				x + (24 * scale) + (offset * (8 * scale)),
-				y * scale, ' ', scale);
-		}
+	}
+}
+
+void
+Field_ResetCursor(menuframework_s *m)
+{
+	menucommon_s *item = Menu_ItemAtCursor(m);
+
+	if (item && item->type == MTYPE_FIELD)
+	{
+		menufield_s *f = (menufield_s *)item;
+
+		f->cursor = strlen(f->buffer);
 	}
 }
 
@@ -223,36 +233,97 @@ extern int keydown[];
 qboolean
 Field_Key(menufield_s *f, int key)
 {
-	if (key > 127)
+	char txt[256];
+
+	if (keydown[K_CTRL])
 	{
-		return false;
+		if (key == 'l')
+		{
+			*f->buffer = '\0';
+			f->cursor = 0;
+
+			return true;
+		}
+
+		if (key == 'c' || key == 'x')
+		{
+			if (*f->buffer != '\0')
+			{
+				if (IN_SetClipboardText(f->buffer))
+				{
+					Com_Printf("Copying menu field to clipboard failed.\n");
+				}
+				else if (key == 'x')
+				{
+					*f->buffer = '\0';
+					f->cursor = 0;
+				}
+			}
+
+			return true;
+		}
+
+		if (key == 'v')
+		{
+			IN_GetClipboardText(txt, sizeof(txt));
+
+			if (*txt != '\0')
+			{
+				if ((f->generic.flags & QMF_NUMBERSONLY) && !Q_strisnum(txt))
+				{
+					return false;
+				}
+
+				f->cursor += Q_strins(f->buffer, txt, f->cursor, f->length);
+			}
+		}
+
+		return true;
 	}
 
 	switch (key)
 	{
 		case K_KP_LEFTARROW:
 		case K_LEFTARROW:
-		case K_BACKSPACE:
-
 			if (f->cursor > 0)
 			{
-				memmove(&f->buffer[f->cursor - 1],
-						&f->buffer[f->cursor],
-						strlen(&f->buffer[f->cursor]) + 1);
 				f->cursor--;
-
-				if (f->visible_offset)
-				{
-					f->visible_offset--;
-				}
 			}
+			break;
 
+		case K_KP_RIGHTARROW:
+		case K_RIGHTARROW:
+			if (f->buffer[f->cursor] != '\0')
+			{
+				f->cursor++;
+			}
+			break;
+
+		case K_BACKSPACE:
+			if (f->cursor > 0)
+			{
+				Q_strdel(f->buffer, f->cursor - 1, 1);
+				f->cursor--;
+			}
+			break;
+
+		case K_END:
+			if (f->buffer[f->cursor] == '\0')
+			{
+				f->cursor = 0;
+			}
+			else
+			{
+				f->cursor = strlen(f->buffer);
+			}
 			break;
 
 		case K_KP_DEL:
 		case K_DEL:
-			memmove(&f->buffer[f->cursor], &f->buffer[f->cursor + 1],
-				strlen(&f->buffer[f->cursor + 1]) + 1);
+			if (f->buffer[f->cursor] != '\0')
+			{
+				Q_strdel(f->buffer, f->cursor, 1);
+			}
 			break;
 
 		case K_KP_ENTER:
@@ -261,24 +332,21 @@ Field_Key(menufield_s *f, int key)
 		case K_TAB:
 			return false;
 
-		case K_SPACE:
 		default:
+			if (key > 127)
+			{
+				return false;
+			}
 
 			if (!isdigit(key) && (f->generic.flags & QMF_NUMBERSONLY))
 			{
 				return false;
 			}
 
-			if (f->cursor < f->length)
-			{
-				f->buffer[f->cursor++] = key;
-				f->buffer[f->cursor] = 0;
+			*txt = key;
+			*(txt + 1) = '\0';
 
-				if (f->cursor > f->visible_length)
-				{
-					f->visible_offset++;
-				}
-			}
+			f->cursor += Q_strins(f->buffer, txt, f->cursor, f->length);
 	}
 
 	return true;

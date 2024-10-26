@@ -311,29 +311,33 @@ Default_MenuKey(menuframework_s *m, int key)
 
     if (m)
     {
-        menucommon_s *item;
+        menucommon_s *item = Menu_ItemAtCursor(m);
 
-        if ((item = Menu_ItemAtCursor(m)) != 0)
+        if (item && item->type == MTYPE_FIELD)
         {
-            if (item->type == MTYPE_FIELD)
-            {
-                if (Field_Key((menufield_s *)item, key))
-                {
-                    return NULL;
-                }
-            }
+               if (Field_Key((menufield_s *)item, key))
+               {
+                   return NULL;
+               }
         }
     }
 
     switch (menu_key)
     {
     case K_ESCAPE:
+        if (m)
+        {
+            Field_ResetCursor(m);
+        }
+
         M_PopMenu();
         return menu_out_sound;
 
     case K_UPARROW:
         if (m)
         {
+            Field_ResetCursor(m);
+
             m->cursor--;
             Menu_AdjustCursor(m, -1);
             sound = menu_move_sound;
@@ -343,6 +347,8 @@ Default_MenuKey(menuframework_s *m, int key)
     case K_DOWNARROW:
         if (m)
         {
+            Field_ResetCursor(m);
+
             m->cursor++;
             Menu_AdjustCursor(m, 1);
             sound = menu_move_sound;
@@ -5237,6 +5243,7 @@ AddressBook_MenuInit(void)
 
     for (i = 0; i < NUM_ADDRESSBOOK_ENTRIES; i++)
     {
+		menufield_s *f;
         const cvar_t *adr;
         char buffer[20];
 
@@ -5244,19 +5251,22 @@ AddressBook_MenuInit(void)
 
         adr = Cvar_Get(buffer, "", CVAR_ARCHIVE);
 
-        s_addressbook_fields[i].generic.type = MTYPE_FIELD;
-        s_addressbook_fields[i].generic.name = 0;
-        s_addressbook_fields[i].generic.callback = 0;
-        s_addressbook_fields[i].generic.x = 0;
-        s_addressbook_fields[i].generic.y = i * 18 + 0;
-        s_addressbook_fields[i].generic.localdata[0] = i;
-        s_addressbook_fields[i].cursor = 0;
-        s_addressbook_fields[i].length = 60;
-        s_addressbook_fields[i].visible_length = 30;
+		f = &s_addressbook_fields[i];
 
-        strcpy(s_addressbook_fields[i].buffer, adr->string);
+        f->generic.type = MTYPE_FIELD;
+        f->generic.name = 0;
+        f->generic.callback = 0;
+        f->generic.x = 0;
+        f->generic.y = i * 18 + 0;
+        f->generic.localdata[0] = i;
 
-        Menu_AddItem(&s_addressbook_menu, &s_addressbook_fields[i]);
+        f->length = 60;
+        f->visible_length = 30;
+
+        Q_strlcpy(f->buffer, adr->string, f->length);
+        f->cursor = strlen(f->buffer);
+
+        Menu_AddItem(&s_addressbook_menu, f);
     }
 }
 
