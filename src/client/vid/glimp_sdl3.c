@@ -99,7 +99,7 @@ ClearDisplayIndices(void)
 }
 
 static qboolean
-CreateSDLWindow(int flags, int fullscreen, int w, int h)
+CreateSDLWindow(SDL_WindowFlags flags, int fullscreen, int w, int h)
 {
 	if (SDL_WINDOWPOS_ISUNDEFINED(last_position_x) || SDL_WINDOWPOS_ISUNDEFINED(last_position_y) || last_position_x < 0 ||last_position_y < 24)
 	{
@@ -121,10 +121,7 @@ CreateSDLWindow(int flags, int fullscreen, int w, int h)
 	SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_Y_NUMBER, last_position_y);
 	SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_WIDTH_NUMBER, w);
 	SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_HEIGHT_NUMBER, h);
-	SDL_SetNumberProperty(props, "flags", flags);
-
-	if (flags & SDL_WINDOW_OPENGL)
-		SDL_SetBooleanProperty(props, SDL_PROP_WINDOW_CREATE_OPENGL_BOOLEAN, true);
+	SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_FLAGS_NUMBER, flags);
 
 	window = SDL_CreateWindowWithProperties(props);
 	SDL_DestroyProperties(props);
@@ -457,7 +454,7 @@ GLimp_Shutdown(void)
  * compositor might scale us.
  */
 static int
-Glimp_DetermineHighDPISupport(int flags)
+Glimp_DetermineHighDPISupport(SDL_WindowFlags flags)
 {
 	/* Make sure that high dpi is never set when we don't want it. */
 	flags &= ~SDL_WINDOW_HIGH_PIXEL_DENSITY;
@@ -484,11 +481,11 @@ Glimp_DetermineHighDPISupport(int flags)
 qboolean
 GLimp_InitGraphics(int fullscreen, int *pwidth, int *pheight)
 {
-	int flags;
+	SDL_WindowFlags flags;
+	SDL_WindowFlags fs_flag = 0;
 	int curWidth, curHeight;
 	int width = *pwidth;
 	int height = *pheight;
-	unsigned int fs_flag = 0;
 
 	if (fullscreen == FULLSCREEN_EXCLUSIVE || fullscreen == FULLSCREEN_DESKTOP)
 	{
