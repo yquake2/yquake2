@@ -104,7 +104,11 @@ int RI_PrepareForWindow(void)
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 	SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
 
+#ifdef USE_SDL3
 	if (SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8) == 0)
+#else
+	if (SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8))
+#endif
 	{
 		gl_state.stencil = true;
 	}
@@ -294,7 +298,11 @@ int RI_InitContext(void* win)
 
 	if (gl_msaa_samples->value)
 	{
+#ifdef USE_SDL3
+		if (SDL_GL_GetAttribute(SDL_GL_MULTISAMPLESAMPLES, &msaa_samples))
+#else
 		if (SDL_GL_GetAttribute(SDL_GL_MULTISAMPLESAMPLES, &msaa_samples) == 0)
+#endif
 		{
 			ri.Cvar_SetValue("r_msaa_samples", msaa_samples);
 		}

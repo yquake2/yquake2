@@ -360,7 +360,11 @@ int GL3_InitContext(void* win)
 
 	if (gl_msaa_samples->value)
 	{
+#ifdef USE_SDL3
+		if (SDL_GL_GetAttribute(SDL_GL_MULTISAMPLESAMPLES, &msaa_samples))
+#else
 		if (SDL_GL_GetAttribute(SDL_GL_MULTISAMPLESAMPLES, &msaa_samples) == 0)
+#endif
 		{
 			ri.Cvar_SetValue("r_msaa_samples", msaa_samples);
 		}

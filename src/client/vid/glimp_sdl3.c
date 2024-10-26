@@ -764,18 +764,10 @@ GLimp_GrabInput(qboolean grab)
 		SDL_SetWindowMouseGrab(window, grab ? true : false);
 	}
 
-#ifdef USE_SDL3
 	if(!SDL_SetWindowRelativeMouseMode(window, grab ? true : false))
 	{
 		Com_Printf("WARNING: Setting Relative Mousemode failed, reason: %s\n", SDL_GetError());
 	}
-#else
-	if(SDL_SetWindowRelativeMouseMode(window, grab ? true : false) < 0)
-	{
-		Com_Printf("WARNING: Setting Relative Mousemode failed, reason: %s\n", SDL_GetError());
-		Com_Printf("         You should probably update to SDL 2.0.3 or newer!\n");
-	}
-#endif
 }
 
 /*
