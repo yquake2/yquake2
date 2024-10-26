@@ -2437,8 +2437,13 @@ IN_GetClipboardText(char *out, size_t n)
 	SDL_free(s);
 }
 
+/* Copy string s to the clipboard.
+   Returns 0 on success, 1 otherwise.
+*/
 int
 IN_SetClipboardText(const char *s)
 {
-	return SDL_SetClipboardText(s);
+	bool res = SDL_SetClipboardText(s);
+
+	return !res;
 }
