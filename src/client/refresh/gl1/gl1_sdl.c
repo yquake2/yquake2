@@ -105,9 +105,9 @@ int RI_PrepareForWindow(void)
 	SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
 
 #ifdef USE_SDL3
-	if (SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8) == 0)
-#else
 	if (SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8))
+#else
+	if (SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8) == 0)
 #endif
 	{
 		gl_state.stencil = true;
