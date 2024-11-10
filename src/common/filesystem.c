@@ -1534,6 +1534,7 @@ FS_Dir_f(void)
 	char **dirnames; /* File list. */
 	char findname[1024]; /* File search path and pattern. */
 	char *path = NULL; /* Search path. */
+	char *lastsep;
 	char wildcard[1024] = "*.*"; /* File pattern. */
 	int i; /* Loop counter. */
 	int ndirs; /* Number of files in list. */
@@ -1555,9 +1556,10 @@ FS_Dir_f(void)
 		{
 			for (i = 0; i < ndirs - 1; i++)
 			{
-				if (strrchr(dirnames[i], '/'))
+				lastsep = strrchr(dirnames[i], '/');
+				if (lastsep)
 				{
-					Com_Printf("%s\n", strrchr(dirnames[i], '/') + 1);
+					Com_Printf("%s\n", lastsep + 1);
 				}
 				else
 				{
