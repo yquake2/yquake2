@@ -1914,6 +1914,10 @@ RE_InitContext(void *win)
 		SDL_SetRenderVSync(renderer, 1);
 #else
 		renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+                if(!renderer)
+                {
+                	renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_SOFTWARE | SDL_RENDERER_PRESENTVSYNC);
+                }
 #endif
 	}
 	else
@@ -1922,6 +1926,10 @@ RE_InitContext(void *win)
 		renderer = SDL_CreateRenderer(window, NULL);
 #else
 		renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+                if(!renderer)
+                {
+                	renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_SOFTWARE);
+                }
 #endif
 	}
 
