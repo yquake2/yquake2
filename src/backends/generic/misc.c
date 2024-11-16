@@ -156,8 +156,9 @@ const char *Sys_GetBinaryDir(void)
 	SetExecutablePath(exeDir);
 
 	if (exeDir[0] == '\0') {
-		Com_Printf("Couldn't determine executable path. Using ./ instead.\n");
-		Q_strlcpy(exeDir, "./", sizeof(exeDir));
+		getcwd(exeDir, sizeof(exeDir));
+		strcat(exeDir, "/");
+		Com_Printf("Couldn't determine executable path. Using %s instead.\n", exeDir);
 	} else {
 		// cut off executable name
 		char *lastSlash = strrchr(exeDir, '/');
