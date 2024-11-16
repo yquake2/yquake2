@@ -1932,6 +1932,10 @@ RE_InitContext(void *win)
                 }
 #endif
 	}
+	if(!renderer) {
+		Com_Printf("Can't create renderer: %s\n", SDL_GetError());
+		return false;
+	}
 
 	/* Select the color for drawing. It is set to black here. */
 	SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
@@ -1974,7 +1978,10 @@ RE_InitContext(void *win)
 #endif
 				    SDL_TEXTUREACCESS_STREAMING,
 				    vid_buffer_width, vid_buffer_height);
-
+	if(!texture) {
+		Com_Printf("Can't create texture: %s\n", SDL_GetError());
+		return false;
+	}
 	R_InitGraphics(vid_buffer_width, vid_buffer_height);
 	SWimp_CreateRender(vid_buffer_width, vid_buffer_height);
 
