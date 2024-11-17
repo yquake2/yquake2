@@ -194,7 +194,7 @@ else()
 	list(APPEND yquake2SDLLinkerFlags ${SDL2_LIBRARY})
 endif()
 
-if(GL1_RENDERER OR GL3_RENDERER OR GLES1_RENDERER OR GLES2_RENDERER)
+if(GL1_RENDERER)
      # We need an OpenGL implementation.
      set(OpenGL_GL_PREFERENCE GLVND)
      find_package(OpenGL REQUIRED)
