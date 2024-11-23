@@ -1914,6 +1914,10 @@ RE_InitContext(void *win)
 		SDL_SetRenderVSync(renderer, 1);
 #else
 		renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+                if(!renderer)
+                {
+                	renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_SOFTWARE | SDL_RENDERER_PRESENTVSYNC);
+                }
 #endif
 	}
 	else
@@ -1922,7 +1926,15 @@ RE_InitContext(void *win)
 		renderer = SDL_CreateRenderer(window, NULL);
 #else
 		renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+                if(!renderer)
+                {
+                	renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_SOFTWARE);
+                }
 #endif
+	}
+	if(!renderer) {
+		Com_Printf("Can't create renderer: %s\n", SDL_GetError());
+		return false;
 	}
 
 	/* Select the color for drawing. It is set to black here. */
@@ -1966,7 +1978,10 @@ RE_InitContext(void *win)
 #endif
 				    SDL_TEXTUREACCESS_STREAMING,
 				    vid_buffer_width, vid_buffer_height);
-
+	if(!texture) {
+		Com_Printf("Can't create texture: %s\n", SDL_GetError());
+		return false;
+	}
 	R_InitGraphics(vid_buffer_width, vid_buffer_height);
 	SWimp_CreateRender(vid_buffer_width, vid_buffer_height);
 

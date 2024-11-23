@@ -65,6 +65,11 @@ option(CURL_SUPPORT "cURL support" ON)
 option(OPENAL_SUPPORT "OpenAL support" ON)
 option(SYSTEMWIDE_SUPPORT "Enable systemwide installation of game assets" OFF)
 option(SDL3_SUPPORT "Build against SDL 3 instead of SDL2" OFF)
+option(GL1_RENDERER "Build the GL3 renderer" ON)
+option(GL3_RENDERER "Build the GL3 renderer" ON)
+option(GLES1_RENDERER "Build the GLES1 renderer" OFF)
+option(GLES3_RENDERER "Build the GLES3 renderer" ON)
+option(SOFT_RENDERER "Build the software renderer" ON)
 
 set(SYSTEMDIR "" CACHE STRING "Override the system default directory")
 
@@ -189,11 +194,13 @@ else()
 	list(APPEND yquake2SDLLinkerFlags ${SDL2_LIBRARY})
 endif()
 
-# We need an OpenGL implementation.
-set(OpenGL_GL_PREFERENCE GLVND)
-find_package(OpenGL REQUIRED)
-list(APPEND yquake2IncludeDirectories ${OPENGL_INCLUDE_DIR})
-list(APPEND yquake2OpenGLLinkerFlags ${OPENGL_LIBRARIES})
+if(GL1_RENDERER)
+     # We need an OpenGL implementation.
+     set(OpenGL_GL_PREFERENCE GLVND)
+     find_package(OpenGL REQUIRED)
+     list(APPEND yquake2IncludeDirectories ${OPENGL_INCLUDE_DIR})
+     list(APPEND yquake2OpenGLLinkerFlags ${OPENGL_LIBRARIES})
+endif()
 
 # backtrace lookup
 # Some systems like Linux has it within the libc some like the BSD, Haiku ...
@@ -781,6 +788,8 @@ else() # single-config, like normal Makefiles
 endif()
 target_link_libraries(game ${yquake2LinkerFlags})
 
+if(${GL1_RENDERER})
+
 # Build the GL1 dynamic library
 add_library(ref_gl1 MODULE ${GL1-Source} ${GL1-Header} ${REF-Platform-Specific-Source})
 set_target_properties(ref_gl1 PROPERTIES
@@ -795,6 +804,10 @@ if(SDL3_SUPPORT)
 	target_link_libraries(ref_gl1 SDL3::SDL3)
 endif()
 
+endif()
+
+if(${GL3_RENDERER})
+
 # Build the GL3 dynamic library
 add_library(ref_gl3 MODULE ${GL3-Source} ${Glad-GL3-Source} ${GL3-Header} ${Glad-GL3-Header} ${REF-Platform-Specific-Source})
 set_target_properties(ref_gl3 PROPERTIES
@@ -808,6 +821,10 @@ target_link_libraries(ref_gl3 ${yquake2LinkerFlags} ${yquake2SDLLinkerFlags})
 if(SDL3_SUPPORT)
 	target_link_libraries(ref_gl3 SDL3::SDL3)
 endif()
+
+endif()
+
+if(${GLES3_RENDERER})
 
 # Build the GLES3 dynamic library
 add_library(ref_gles3 MODULE ${GL3-Source} ${Glad-GLES3-Source} ${GL3-Header} ${Glad-GLES3-Header} ${REF-Platform-Specific-Source})
@@ -825,6 +842,10 @@ if(SDL3_SUPPORT)
 	target_link_libraries(ref_gles3 SDL3::SDL3)
 endif()
 
+endif()
+
+if(${SOFT_RENDERER})
+
 # Build the soft renderer dynamic library
 add_library(ref_soft MODULE ${SOFT-Source} ${SOFT-Header} ${REF-Platform-Specific-Source})
 set_target_properties(ref_soft PROPERTIES
@@ -838,7 +859,9 @@ if(SDL3_SUPPORT)
 	target_link_libraries(ref_soft SDL3::SDL3)
 endif()
 
-if(FALSE)
+endif()
+
+if(${GLES1_RENDERER})
 
 # Build the GLES1 dynamic library
 add_library(ref_gles1 MODULE ${GL1-Source} ${Glad-GLES1-Source} ${GL1-Header} ${Glad-GLES1-Header} ${REF-Platform-Specific-Source})
