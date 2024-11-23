@@ -39,6 +39,7 @@
 
 #ifdef _WIN32
 #include <windows.h> // GetModuleFileNameA()
+#include <wchar.h> // _wgetcwd()
 #endif
 
 #ifdef __APPLE__
