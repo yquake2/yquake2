@@ -81,7 +81,7 @@ static size_t CL_HTTP_Recv(void *ptr, size_t size, size_t nmemb, void *stream)
 
 	if (!dl->fileSize)
 	{
-		double length = 0;
+		curl_off_t length = 0;
 
 		qcurl_easy_getinfo(dl->curl, CURLINFO_CONTENT_LENGTH_DOWNLOAD_T, &length);
 
