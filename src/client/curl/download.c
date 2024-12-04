@@ -264,6 +264,9 @@ static void CL_StartHTTPDownload (dlqueue_t *entry, dlhandle_t *dl)
 	}
 
 	// Make sure that the download handle is in empty state.
+	if (dl->tempBuffer) {
+		free(dl->tempBuffer);
+	}
 	dl->tempBuffer = NULL;
 	dl->fileSize = 0;
 	dl->position = 0;
@@ -474,6 +477,10 @@ static void CL_ParseFileList(dlhandle_t *dl)
 {
 	if (!cl_http_filelists->value)
 	{
+		return;
+	}
+
+	if (!dl->tempBuffer) {
 		return;
 	}
 
