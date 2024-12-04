@@ -1326,12 +1326,20 @@ char *controller_bindnames[][2] =
 	{"+movedown", "down / crouch"},
 	{"weapnext", "next weapon"},
 	{"weapprev", "previous weapon"},
-	{"cycleweap weapon_chaingun weapon_machinegun weapon_blaster", "long range: quickswitch 1"},
-	{"cycleweap weapon_supershotgun weapon_shotgun", "close range: quickswitch 2"},
-	{"cycleweap weapon_rocketlauncher weapon_grenadelauncher ammo_grenades", "explosives: quickswitch 3"},
-	{"cycleweap weapon_bfg weapon_railgun weapon_hyperblaster", "special: quickswitch 4"},
-	{"prefweap weapon_railgun weapon_hyperblaster weapon_chaingun weapon_supershotgun weapon_machinegun weapon_shotgun weapon_blaster", "best safe weapon"},
-	{"prefweap weapon_bfg weapon_railgun weapon_rocketlauncher weapon_hyperblaster weapon_grenadelauncher weapon_chaingun ammo_grenades weapon_supershotgun", "best unsafe weapon"},
+	{"cycleweap weapon_plasmabeam weapon_boomer weapon_chaingun weapon_etf_rifle"
+	 " weapon_machinegun weapon_blaster", "long range: quickswitch 1"},
+	{"cycleweap weapon_supershotgun weapon_shotgun weapon_chainfist",
+	 "close range: quickswitch 2"},
+	{"cycleweap weapon_phalanx weapon_rocketlauncher weapon_proxlauncher"
+	 " weapon_grenadelauncher ammo_grenades", "explosives: quickswitch 3"},
+	{"cycleweap weapon_bfg weapon_disintegrator weapon_railgun weapon_hyperblaster"
+	 " ammo_tesla ammo_trap", "special: quickswitch 4"},
+	{"prefweap weapon_railgun weapon_plasmabeam weapon_boomer weapon_hyperblaster weapon_chaingun"
+	 " weapon_supershotgun weapon_etf_rifle weapon_machinegun weapon_shotgun weapon_blaster",
+	 "best safe weapon"},
+	{"prefweap weapon_bfg weapon_disintegrator weapon_phalanx weapon_railgun weapon_rocketlauncher"
+	 " weapon_plasmabeam weapon_boomer weapon_hyperblaster weapon_grenadelauncher weapon_chaingun"
+	 " weapon_proxlauncher ammo_grenades weapon_supershotgun", "best unsafe weapon"},
 	{"centerview", "center view"},
 	{"inven", "inventory"},
 	{"invuse", "use item"},
@@ -1489,12 +1497,20 @@ char *controller_alt_bindnames[][2] =
 {
 	{"weapnext", "next weapon"},
 	{"weapprev", "previous weapon"},
-	{"cycleweap weapon_chaingun weapon_machinegun weapon_blaster", "long range: quickswitch 1"},
-	{"cycleweap weapon_supershotgun weapon_shotgun", "close range: quickswitch 2"},
-	{"cycleweap weapon_rocketlauncher weapon_grenadelauncher ammo_grenades", "explosives: quickswitch 3"},
-	{"cycleweap weapon_bfg weapon_railgun weapon_hyperblaster", "special: quickswitch 4"},
-	{"prefweap weapon_railgun weapon_hyperblaster weapon_chaingun weapon_supershotgun weapon_machinegun weapon_shotgun weapon_blaster", "best safe weapon"},
-	{"prefweap weapon_bfg weapon_railgun weapon_rocketlauncher weapon_hyperblaster weapon_grenadelauncher weapon_chaingun ammo_grenades weapon_supershotgun", "best unsafe weapon"},
+	{"cycleweap weapon_plasmabeam weapon_boomer weapon_chaingun weapon_etf_rifle"
+	 " weapon_machinegun weapon_blaster", "long range: quickswitch 1"},
+	{"cycleweap weapon_supershotgun weapon_shotgun weapon_chainfist",
+	 "close range: quickswitch 2"},
+	{"cycleweap weapon_phalanx weapon_rocketlauncher weapon_proxlauncher"
+	 " weapon_grenadelauncher ammo_grenades", "explosives: quickswitch 3"},
+	{"cycleweap weapon_bfg weapon_disintegrator weapon_railgun weapon_hyperblaster"
+	 " ammo_tesla ammo_trap", "special: quickswitch 4"},
+	{"prefweap weapon_railgun weapon_plasmabeam weapon_boomer weapon_hyperblaster weapon_chaingun"
+	 " weapon_supershotgun weapon_etf_rifle weapon_machinegun weapon_shotgun weapon_blaster",
+	 "best safe weapon"},
+	{"prefweap weapon_bfg weapon_disintegrator weapon_phalanx weapon_railgun weapon_rocketlauncher"
+	 " weapon_plasmabeam weapon_boomer weapon_hyperblaster weapon_grenadelauncher weapon_chaingun"
+	 " weapon_proxlauncher ammo_grenades weapon_supershotgun", "best unsafe weapon"},
 	{"centerview", "center view"},
 	{"inven", "inventory"},
 	{"invuse", "use item"},
