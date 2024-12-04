@@ -2254,7 +2254,7 @@ ControlsSetMenuItemValues(void)
 {
     s_options_oggshuffle_box.curvalue = Cvar_VariableValue("ogg_shuffle");
     s_options_oggenable_box.curvalue = (Cvar_VariableValue("ogg_enable") != 0);
-    s_options_quality_list.curvalue = (Cvar_VariableValue("s_loadas8bit") == 0);
+    s_options_quality_list.curvalue = (Cvar_VariableValue("s_openal") == 0);
     s_options_alwaysrun_box.curvalue = (cl_run->value != 0);
     s_options_invertmouse_box.curvalue = (m_pitch->value < 0);
     s_options_lookstrafe_box.curvalue = (lookstrafe->value != 0);
@@ -2341,18 +2341,9 @@ ConsoleFunc(void *unused)
 }
 
 static void
-UpdateSoundQualityFunc(void *unused)
+UpdateSoundBackendFunc(void *unused)
 {
-    if (s_options_quality_list.curvalue == 0)
-    {
-        Cvar_SetValue("s_khz", 22);
-        Cvar_SetValue("s_loadas8bit", false);
-    }
-    else
-    {
-        Cvar_SetValue("s_khz", 44);
-        Cvar_SetValue("s_loadas8bit", false);
-    }
+    Cvar_Set("s_openal", (s_options_quality_list.curvalue == 0)? "1":"0" );
 
     m_popup_string = "Restarting the sound system. This\n"
                      "could take up to a minute, so\n"
@@ -2388,9 +2379,9 @@ Options_MenuInit(void)
         0
     };
 
-    static const char *quality_items[] =
+    static const char *sound_items[] =
     {
-        "normal", "high", 0
+        "openal (quality)", "sdl (performance)", 0
     };
 
     static const char *yesno_names[] =
@@ -2458,9 +2449,9 @@ Options_MenuInit(void)
     s_options_quality_list.generic.type = MTYPE_SPINCONTROL;
     s_options_quality_list.generic.x = 0;
     s_options_quality_list.generic.y = (y += 10);
-    s_options_quality_list.generic.name = "sound quality";
-    s_options_quality_list.generic.callback = UpdateSoundQualityFunc;
-    s_options_quality_list.itemnames = quality_items;
+    s_options_quality_list.generic.name = "sound backend";
+    s_options_quality_list.generic.callback = UpdateSoundBackendFunc;
+    s_options_quality_list.itemnames = sound_items;
 
     s_options_sensitivity_slider.generic.type = MTYPE_SLIDER;
     s_options_sensitivity_slider.generic.x = 0;
