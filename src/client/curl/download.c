@@ -278,6 +278,7 @@ static void CL_StartHTTPDownload (dlqueue_t *entry, dlhandle_t *dl)
 
 	Com_sprintf(dl->URL, sizeof(dl->URL), "%s%s", cls.downloadServer, escapedFilePath);
 
+	qcurl_easy_setopt(dl->curl, CURLOPT_SSL_VERIFYPEER, 0);
 	qcurl_easy_setopt(dl->curl, CURLOPT_ENCODING, "");
 	qcurl_easy_setopt(dl->curl, CURLOPT_WRITEDATA, dl);
 
