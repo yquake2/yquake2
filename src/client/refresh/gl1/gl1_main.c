@@ -143,6 +143,7 @@ cvar_t *gl1_stereo_separation;
 cvar_t *gl1_stereo_anaglyph_colors;
 cvar_t *gl1_stereo_convergence;
 
+static cvar_t *gl1_waterwarp;
 
 refimport_t ri;
 
@@ -740,6 +741,13 @@ R_SetPerspective(GLdouble fovy)
 	ymax = zNear * tan(fovy * M_PI / 360.0);
 	xmax = ymax * aspectratio;
 
+	if ((r_newrefdef.rdflags & RDF_UNDERWATER) && gl1_waterwarp->value)
+	{
+		const GLdouble warp = sin(r_newrefdef.time * 1.5) * 0.03 * gl1_waterwarp->value;
+		ymax *= 1.0 - warp;
+		xmax *= 1.0 + warp;
+	}
+
 	ymin = -ymax;
 	xmin = -xmax;
 
@@ -1301,6 +1309,8 @@ R_Register(void)
 	gl1_stereo_separation = ri.Cvar_Get( "gl1_stereo_separation", "-0.4", CVAR_ARCHIVE );
 	gl1_stereo_anaglyph_colors = ri.Cvar_Get( "gl1_stereo_anaglyph_colors", "rc", CVAR_ARCHIVE );
 	gl1_stereo_convergence = ri.Cvar_Get( "gl1_stereo_convergence", "1", CVAR_ARCHIVE );
+
+	gl1_waterwarp = ri.Cvar_Get( "gl1_waterwarp", "1.0", CVAR_ARCHIVE );
 
 	ri.Cmd_AddCommand("imagelist", R_ImageList_f);
 	ri.Cmd_AddCommand("screenshot", R_ScreenShot);
