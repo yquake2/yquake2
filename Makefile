@@ -286,6 +286,10 @@ else
 SDLCFLAGS := $(shell sdl2-config --cflags)
 endif
 
+ifdef NO_SDL_GYRO
+SDLCFLAGS += -DNO_SDL_GYRO
+endif
+
 # ----------
 
 # Base include path.

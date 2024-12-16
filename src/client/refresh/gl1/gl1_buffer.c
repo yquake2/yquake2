@@ -36,7 +36,7 @@ int cur_lm_copy;	// which lightmap copy to use (when lightmapcopies=on)
 
 static GLushort vtx_ptr, idx_ptr;	// pointers for array positions in gl_buf
 
-extern void R_MYgluPerspective(GLdouble fovy, GLdouble aspect, GLdouble zNear, GLdouble zFar);
+extern void R_SetPerspective(GLdouble fovy);
 
 void
 R_ResetGLBuffer(void)
@@ -50,7 +50,6 @@ R_ApplyGLBuffer(void)
 	// Properties of batched draws here
 	GLint vtx_size;
 	qboolean texture, mtex, alpha, color, alias, texenv_set;
-	float fovy, dist;
 
 	if (vtx_ptr == 0 || idx_ptr == 0)
 	{
@@ -107,9 +106,7 @@ R_ApplyGLBuffer(void)
 				glScalef(-1, 1, 1);
 			}
 
-			fovy = (r_gunfov->value < 0) ? r_newrefdef.fov_y : r_gunfov->value;
-			dist = (r_farsee->value == 0) ? 4096.0f : 8192.0f;
-			R_MYgluPerspective(fovy, (float)r_newrefdef.width / r_newrefdef.height, 4, dist);
+			R_SetPerspective( (r_gunfov->value < 0) ? r_newrefdef.fov_y : r_gunfov->value );
 
 			glMatrixMode(GL_MODELVIEW);
 
