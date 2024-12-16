@@ -6373,6 +6373,7 @@ M_Init(void)
     Cmd_AddCommand("menu_gyro", M_Menu_Gyro_f);
     Cmd_AddCommand("menu_buttons", M_Menu_ControllerButtons_f);
     Cmd_AddCommand("menu_altbuttons", M_Menu_ControllerAltButtons_f);
+    Cmd_AddCommand("menu_sticks", M_Menu_Stick_f);
     Cmd_AddCommand("menu_quit", M_Menu_Quit_f);
 
     /* initialize the server address book cvars (adr0, adr1, ...)

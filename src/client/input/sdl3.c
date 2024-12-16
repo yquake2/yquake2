@@ -799,7 +799,7 @@ IN_Update(void)
 			case SDL_EVENT_JOYSTICK_AXIS_MOTION :
 				if ( !imu_joystick || event.gdevice.which != SDL_GetJoystickID(imu_joystick) )
 				{
-					break;	// controller axes handled by SDL_CONTROLLERAXISMOTION
+					break;	// gamepad axes handled by SDL_EVENT_GAMEPAD_AXIS_MOTION
 				}
 
 				int axis_value = event.gaxis.value;
@@ -838,7 +838,7 @@ IN_Update(void)
 					}
 					gyro_pitch = event.gsensor.data[0] - gyro_calibration_x->value;
 #else	// old "joystick" gyro
-					switch (event.gaxis.axis)	// inside "case SDL_JOYAXISMOTION" here
+					switch (event.gaxis.axis)	// inside "case SDL_EVENT_JOYSTICK_AXIS_MOTION" here
 					{
 						case IMU_JOY_AXIS_GYRO_PITCH:
 							gyro_pitch = -(axis_value - gyro_calibration_x->value);
@@ -2213,7 +2213,7 @@ IN_Controller_Init(qboolean notify_user)
 #ifdef NATIVE_SDL_GYRO
 
 			if (SDL_GamepadHasSensor(controller, SDL_SENSOR_GYRO)
-				&& !SDL_SetGamepadSensorEnabled(controller, SDL_SENSOR_GYRO, true) )
+				&& SDL_SetGamepadSensorEnabled(controller, SDL_SENSOR_GYRO, true) )
 			{
 				show_gyro = true;
 				Com_Printf( "Gyro sensor enabled at %.2f Hz\n",
