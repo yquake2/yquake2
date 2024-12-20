@@ -82,7 +82,7 @@ static cleaf_t	map_leafs[MAX_MAP_LEAFS];
 static cmodel_t map_cmodels[MAX_MAP_MODELS];
 static cnode_t	map_nodes[MAX_MAP_NODES+6]; /* extra for box hull */
 static cplane_t *box_planes;
-static cplane_t map_planes[MAX_MAP_PLANES+6]; /* extra for box hull */
+static cplane_t map_planes[MAX_MAP_PLANES+12]; /* extra for box hull */
 static cvar_t *map_noareas;
 static dareaportal_t map_areaportals[MAX_MAP_AREAPORTALS];
 static dvis_t *map_vis = (dvis_t *)map_visibility;
