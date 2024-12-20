@@ -2397,7 +2397,7 @@ Options_MenuInit(void)
 
     static const char *sound_items[] =
     {
-        "openal (quality)", "sdl (performance)", 0
+        "openal", "sdl", 0
     };
 
     static const char *yesno_names[] =
