@@ -106,6 +106,9 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
 * **cl_http_max_connections**: Maximum number of parallel downloads. Set
   to `4` by default. A higher number may help with slow servers.
 
+* **cl_http_verifypeer**: SSL certificate validation. Set to `1`
+  by default, set to `0` to disable.
+
 * **cl_http_proxy**: Proxy to use, empty by default.
 
 * **cl_http_show_dw_progress**: Show a HTTP download progress bar.
