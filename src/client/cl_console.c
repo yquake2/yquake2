@@ -790,7 +790,7 @@ Con_DrawConsole(float frac)
 		sprintf(dlbar + strlen(dlbar), " %02d%%", cls.downloadpercent);
 
 		/* draw it */
-		y = con.vislines - 12;
+		y = (lines - 12 * scale) / scale;
 
 		for (i = 0; i < strlen(dlbar); i++)
 		{
