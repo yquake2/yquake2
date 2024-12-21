@@ -568,7 +568,8 @@ CL_InitLocal(void)
 	cl_vwep = Cvar_Get("cl_vwep", "1", CVAR_ARCHIVE);
 
 #ifdef USE_CURL
-	cl_http_proxy = Cvar_Get("cl_http_proxy", "", 0);
+	cl_http_verifypeer = Cvar_Get("cl_http_verifypeer", "1", CVAR_ARCHIVE);
+	cl_http_proxy = Cvar_Get("cl_http_proxy", "", CVAR_ARCHIVE);
 	cl_http_filelists = Cvar_Get("cl_http_filelists", "1", 0);
 	cl_http_downloads = Cvar_Get("cl_http_downloads", "1", CVAR_ARCHIVE);
 	cl_http_max_connections = Cvar_Get("cl_http_max_connections", "4", 0);
