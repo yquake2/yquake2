@@ -33,6 +33,7 @@
 
 cvar_t *cl_http_downloads;
 cvar_t *cl_http_filelists;
+cvar_t *cl_http_verifypeer;
 cvar_t *cl_http_proxy;
 cvar_t *cl_http_max_connections;
 cvar_t *cl_http_show_dw_progress;
@@ -278,7 +279,6 @@ static void CL_StartHTTPDownload (dlqueue_t *entry, dlhandle_t *dl)
 
 	Com_sprintf(dl->URL, sizeof(dl->URL), "%s%s", cls.downloadServer, escapedFilePath);
 
-	qcurl_easy_setopt(dl->curl, CURLOPT_SSL_VERIFYPEER, 0);
 	qcurl_easy_setopt(dl->curl, CURLOPT_ENCODING, "");
 	qcurl_easy_setopt(dl->curl, CURLOPT_WRITEDATA, dl);
 
@@ -291,6 +291,8 @@ static void CL_StartHTTPDownload (dlqueue_t *entry, dlhandle_t *dl)
 		qcurl_easy_setopt(dl->curl, CURLOPT_WRITEFUNCTION, CL_HTTP_Recv);
 	}
 
+	qcurl_easy_setopt(dl->curl, CURLOPT_SSL_VERIFYPEER, (long)cl_http_verifypeer->value);
+	qcurl_easy_setopt(dl->curl, CURLOPT_PROXY_SSL_VERIFYPEER, (long)cl_http_verifypeer->value);
 	qcurl_easy_setopt(dl->curl, CURLOPT_PROXY, cl_http_proxy->string);
 	qcurl_easy_setopt(dl->curl, CURLOPT_LOW_SPEED_TIME, (long)cl_http_bw_limit_tmout->value);
 	qcurl_easy_setopt(dl->curl, CURLOPT_LOW_SPEED_LIMIT, (long)cl_http_bw_limit_rate->value);
