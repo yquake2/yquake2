@@ -99,7 +99,7 @@ M_IsGame(const char *gamename)
 }
 
 static void
-M_Banner(char *name)
+M_Banner(const char *name)
 {
     int w, h;
 	float scale = SCR_GetMenuScale();
@@ -753,7 +753,7 @@ M_Main_Draw(void)
         ( int )(cls.realtime / 100) % NUM_CURSOR_FRAMES);
 }
 
-const char *
+static const char *
 M_Main_Key(int key)
 {
     return Default_MenuKey(&s_main, key);
@@ -1545,7 +1545,7 @@ DrawControllerAltButtonBindingFunc(void *self)
 	}
 	else
 	{
-		int x;
+		size_t x;
 		const char *name;
 
 		name = Key_KeynumToString(keys[0]);
@@ -5277,7 +5277,7 @@ AddressBook_MenuInit(void)
     }
 }
 
-const char *
+static const char *
 AddressBook_MenuKey(int key)
 {
     if (key == K_ESCAPE)
@@ -5684,7 +5684,8 @@ HasSkinsInDir(const char *dirname, int *num)
 {
 	char **list_png, **list_pcx;
 	char **curr = NULL, **list = NULL;
-	int num_png, num_pcx, dirname_size;
+	int num_png, num_pcx;
+	size_t dirname_size;
 
 	*num = 0;
 	/* dir name size plus one for skip slash */
@@ -5934,7 +5935,8 @@ PlayerConfig_ScanDirectories(void)
     return result;
 }
 
-void ListModels_f(void)
+static void
+ListModels_f(void)
 {
     PlayerConfig_ScanDirectories();
 

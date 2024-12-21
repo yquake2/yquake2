@@ -664,7 +664,7 @@ GL3_FindImage(const char *name, imagetype_t type)
 }
 
 gl3image_t *
-GL3_RegisterSkin(char *name)
+GL3_RegisterSkin(const char *name)
 {
 	return GL3_FindImage(name, it_skin);
 }

@@ -185,20 +185,20 @@ typedef struct
 	// slash will not use the "pics/" prefix or the ".pcx" postfix)
 	void	(EXPORT *BeginRegistration) (char *map);
 	struct model_s * (EXPORT *RegisterModel) (char *name);
-	struct image_s * (EXPORT *RegisterSkin) (char *name);
+	struct image_s * (EXPORT *RegisterSkin) (const char *name);
 
-	void	(EXPORT *SetSky) (char *name, float rotate, vec3_t axis);
+	void	(EXPORT *SetSky) (const char *name, float rotate, vec3_t axis);
 	void	(EXPORT *EndRegistration) (void);
 
 	void	(EXPORT *RenderFrame) (refdef_t *fd);
 
-	struct image_s * (EXPORT *DrawFindPic)(char *name);
+	struct image_s * (EXPORT *DrawFindPic)(const char *name);
 
-	void	(EXPORT *DrawGetPicSize) (int *w, int *h, char *name);	// will return 0 0 if not found
-	void 	(EXPORT *DrawPicScaled) (int x, int y, char *pic, float factor);
-	void	(EXPORT *DrawStretchPic) (int x, int y, int w, int h, char *name);
+	void	(EXPORT *DrawGetPicSize) (int *w, int *h, const char *name);	// will return 0 0 if not found
+	void 	(EXPORT *DrawPicScaled) (int x, int y, const char *pic, float factor);
+	void	(EXPORT *DrawStretchPic) (int x, int y, int w, int h, const char *name);
 	void	(EXPORT *DrawCharScaled)(int x, int y, int num, float scale);
-	void	(EXPORT *DrawTileClear) (int x, int y, int w, int h, char *name);
+	void	(EXPORT *DrawTileClear) (int x, int y, int w, int h, const char *name);
 	void	(EXPORT *DrawFill) (int x, int y, int w, int h, int c);
 	void	(EXPORT *DrawFadeScreen) (void);
 
@@ -272,18 +272,18 @@ extern refimport_t ri;
 void R_BeginRegistration(char *map);
 void R_Clear(void);
 struct model_s *R_RegisterModel(char *name);
-struct image_s *R_RegisterSkin(char *name);
-void R_SetSky(char *name, float rotate, vec3_t axis);
+struct image_s *R_RegisterSkin(const char *name);
+void R_SetSky(const char *name, float rotate, vec3_t axis);
 void R_EndRegistration(void);
-struct image_s *Draw_FindPic(char *name);
+struct image_s *Draw_FindPic(const char *name);
 void R_RenderFrame(refdef_t *fd);
-void Draw_GetPicSize(int *w, int *h, char *name);
+void Draw_GetPicSize(int *w, int *h, const char *name);
 
-void Draw_StretchPic(int x, int y, int w, int h, char *name);
-void Draw_PicScaled(int x, int y, char *pic, float factor);
+void Draw_StretchPic(int x, int y, int w, int h, const char *name);
+void Draw_PicScaled(int x, int y, const char *pic, float factor);
 
 void Draw_CharScaled(int x, int y, int num, float scale);
-void Draw_TileClear(int x, int y, int w, int h, char *name);
+void Draw_TileClear(int x, int y, int w, int h, const char *name);
 void Draw_Fill(int x, int y, int w, int h, int c);
 void Draw_FadeScreen(void);
 void Draw_StretchRaw(int x, int y, int w, int h, int cols, int rows, const byte *data, int bits);

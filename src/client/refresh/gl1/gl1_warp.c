@@ -708,7 +708,7 @@ R_DrawSkyBox(void)
 }
 
 void
-RI_SetSky(char *name, float rotate, vec3_t axis)
+RI_SetSky(const char *name, float rotate, vec3_t axis)
 {
 	char	skyname[MAX_QPATH];
 	int		i;

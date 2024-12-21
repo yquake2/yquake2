@@ -1185,7 +1185,7 @@ R_FindImage(const char *name, imagetype_t type)
 }
 
 struct image_s *
-RI_RegisterSkin(char *name)
+RI_RegisterSkin(const char *name)
 {
 	return R_FindImage(name, it_skin);
 }
