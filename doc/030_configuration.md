@@ -39,18 +39,17 @@ Yamagi Quake II ships with 4 renderers:
 
 ## Choosing a Sound System
 
-Yamagi Quake II ships with 2 sound system:
+Yamagi Quake II ships with 2 sound systems:
 
 * The **OpenAL** sound system: This is the default and highly
-  recommended. It provides full surround sound support and even HRTF for
+  recommended. It provides full surround sound support and HRTF for
   headphones. But also the plain stereo playback is much better than in
   the original sound system. The setup is done mostly through OpenAL,
   have a look at the documentation of your OpenAL library.
 * The **SDL** sound system: This is the classic sound system, providing
-  an experience like the original client. Set `s_openal` to `0` and
-  execute an `snd_restart` to activate it. The classic sound system may
-  be somewhat problematic on modern systems like Windows 10 or Linux
-  with Pulseaudio.
+  an experience like the original client. It's less CPU demanding than
+  OpenAL. Choose it in the options menu, or set `s_openal` to `0` and
+  execute an `snd_restart`, to activate it.
 
 
 ## Tuning for Precise Timings

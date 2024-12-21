@@ -1326,12 +1326,20 @@ char *controller_bindnames[][2] =
 	{"+movedown", "down / crouch"},
 	{"weapnext", "next weapon"},
 	{"weapprev", "previous weapon"},
-	{"cycleweap weapon_chaingun weapon_machinegun weapon_blaster", "long range: quickswitch 1"},
-	{"cycleweap weapon_supershotgun weapon_shotgun", "close range: quickswitch 2"},
-	{"cycleweap weapon_rocketlauncher weapon_grenadelauncher ammo_grenades", "explosives: quickswitch 3"},
-	{"cycleweap weapon_bfg weapon_railgun weapon_hyperblaster", "special: quickswitch 4"},
-	{"prefweap weapon_railgun weapon_hyperblaster weapon_chaingun weapon_supershotgun weapon_machinegun weapon_shotgun weapon_blaster", "best safe weapon"},
-	{"prefweap weapon_bfg weapon_railgun weapon_rocketlauncher weapon_hyperblaster weapon_grenadelauncher weapon_chaingun ammo_grenades weapon_supershotgun", "best unsafe weapon"},
+	{"cycleweap weapon_plasmabeam weapon_boomer weapon_chaingun weapon_etf_rifle"
+	 " weapon_machinegun weapon_blaster", "long range: quickswitch 1"},
+	{"cycleweap weapon_supershotgun weapon_shotgun weapon_chainfist",
+	 "close range: quickswitch 2"},
+	{"cycleweap weapon_phalanx weapon_rocketlauncher weapon_proxlauncher"
+	 " weapon_grenadelauncher ammo_grenades", "explosives: quickswitch 3"},
+	{"cycleweap weapon_bfg weapon_disintegrator weapon_railgun weapon_hyperblaster"
+	 " ammo_tesla ammo_trap", "special: quickswitch 4"},
+	{"prefweap weapon_railgun weapon_plasmabeam weapon_boomer weapon_hyperblaster weapon_chaingun"
+	 " weapon_supershotgun weapon_etf_rifle weapon_machinegun weapon_shotgun weapon_blaster",
+	 "best safe weapon"},
+	{"prefweap weapon_bfg weapon_disintegrator weapon_phalanx weapon_railgun weapon_rocketlauncher"
+	 " weapon_plasmabeam weapon_boomer weapon_hyperblaster weapon_grenadelauncher weapon_chaingun"
+	 " weapon_proxlauncher ammo_grenades weapon_supershotgun", "best unsafe weapon"},
 	{"centerview", "center view"},
 	{"inven", "inventory"},
 	{"invuse", "use item"},
@@ -1489,12 +1497,20 @@ char *controller_alt_bindnames[][2] =
 {
 	{"weapnext", "next weapon"},
 	{"weapprev", "previous weapon"},
-	{"cycleweap weapon_chaingun weapon_machinegun weapon_blaster", "long range: quickswitch 1"},
-	{"cycleweap weapon_supershotgun weapon_shotgun", "close range: quickswitch 2"},
-	{"cycleweap weapon_rocketlauncher weapon_grenadelauncher ammo_grenades", "explosives: quickswitch 3"},
-	{"cycleweap weapon_bfg weapon_railgun weapon_hyperblaster", "special: quickswitch 4"},
-	{"prefweap weapon_railgun weapon_hyperblaster weapon_chaingun weapon_supershotgun weapon_machinegun weapon_shotgun weapon_blaster", "best safe weapon"},
-	{"prefweap weapon_bfg weapon_railgun weapon_rocketlauncher weapon_hyperblaster weapon_grenadelauncher weapon_chaingun ammo_grenades weapon_supershotgun", "best unsafe weapon"},
+	{"cycleweap weapon_plasmabeam weapon_boomer weapon_chaingun weapon_etf_rifle"
+	 " weapon_machinegun weapon_blaster", "long range: quickswitch 1"},
+	{"cycleweap weapon_supershotgun weapon_shotgun weapon_chainfist",
+	 "close range: quickswitch 2"},
+	{"cycleweap weapon_phalanx weapon_rocketlauncher weapon_proxlauncher"
+	 " weapon_grenadelauncher ammo_grenades", "explosives: quickswitch 3"},
+	{"cycleweap weapon_bfg weapon_disintegrator weapon_railgun weapon_hyperblaster"
+	 " ammo_tesla ammo_trap", "special: quickswitch 4"},
+	{"prefweap weapon_railgun weapon_plasmabeam weapon_boomer weapon_hyperblaster weapon_chaingun"
+	 " weapon_supershotgun weapon_etf_rifle weapon_machinegun weapon_shotgun weapon_blaster",
+	 "best safe weapon"},
+	{"prefweap weapon_bfg weapon_disintegrator weapon_phalanx weapon_railgun weapon_rocketlauncher"
+	 " weapon_plasmabeam weapon_boomer weapon_hyperblaster weapon_grenadelauncher weapon_chaingun"
+	 " weapon_proxlauncher ammo_grenades weapon_supershotgun", "best unsafe weapon"},
 	{"centerview", "center view"},
 	{"inven", "inventory"},
 	{"invuse", "use item"},
@@ -2254,7 +2270,7 @@ ControlsSetMenuItemValues(void)
 {
     s_options_oggshuffle_box.curvalue = Cvar_VariableValue("ogg_shuffle");
     s_options_oggenable_box.curvalue = (Cvar_VariableValue("ogg_enable") != 0);
-    s_options_quality_list.curvalue = (Cvar_VariableValue("s_loadas8bit") == 0);
+    s_options_quality_list.curvalue = (Cvar_VariableValue("s_openal") == 0);
     s_options_alwaysrun_box.curvalue = (cl_run->value != 0);
     s_options_invertmouse_box.curvalue = (m_pitch->value < 0);
     s_options_lookstrafe_box.curvalue = (lookstrafe->value != 0);
@@ -2341,18 +2357,9 @@ ConsoleFunc(void *unused)
 }
 
 static void
-UpdateSoundQualityFunc(void *unused)
+UpdateSoundBackendFunc(void *unused)
 {
-    if (s_options_quality_list.curvalue == 0)
-    {
-        Cvar_SetValue("s_khz", 22);
-        Cvar_SetValue("s_loadas8bit", false);
-    }
-    else
-    {
-        Cvar_SetValue("s_khz", 44);
-        Cvar_SetValue("s_loadas8bit", false);
-    }
+    Cvar_Set("s_openal", (s_options_quality_list.curvalue == 0)? "1":"0" );
 
     m_popup_string = "Restarting the sound system. This\n"
                      "could take up to a minute, so\n"
@@ -2388,9 +2395,9 @@ Options_MenuInit(void)
         0
     };
 
-    static const char *quality_items[] =
+    static const char *sound_items[] =
     {
-        "normal", "high", 0
+        "openal", "sdl", 0
     };
 
     static const char *yesno_names[] =
@@ -2458,9 +2465,9 @@ Options_MenuInit(void)
     s_options_quality_list.generic.type = MTYPE_SPINCONTROL;
     s_options_quality_list.generic.x = 0;
     s_options_quality_list.generic.y = (y += 10);
-    s_options_quality_list.generic.name = "sound quality";
-    s_options_quality_list.generic.callback = UpdateSoundQualityFunc;
-    s_options_quality_list.itemnames = quality_items;
+    s_options_quality_list.generic.name = "sound backend";
+    s_options_quality_list.generic.callback = UpdateSoundBackendFunc;
+    s_options_quality_list.itemnames = sound_items;
 
     s_options_sensitivity_slider.generic.type = MTYPE_SLIDER;
     s_options_sensitivity_slider.generic.x = 0;
@@ -6366,6 +6373,7 @@ M_Init(void)
     Cmd_AddCommand("menu_gyro", M_Menu_Gyro_f);
     Cmd_AddCommand("menu_buttons", M_Menu_ControllerButtons_f);
     Cmd_AddCommand("menu_altbuttons", M_Menu_ControllerAltButtons_f);
+    Cmd_AddCommand("menu_sticks", M_Menu_Stick_f);
     Cmd_AddCommand("menu_quit", M_Menu_Quit_f);
 
     /* initialize the server address book cvars (adr0, adr1, ...)

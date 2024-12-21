@@ -511,6 +511,10 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
   look a bit better (no flickering) by using the stencil buffer. Does
   not work when `gl1_stereo` is `3`, `4` or `5`.
 
+* **gl1_waterwarp**: Intensity of the "squeeze/stretch" effect on the
+  FOV when diving underwater. Can be any floating point number, `0`
+  disables it (Vanilla Quake II look). Default `1.0`.
+
 * **gl1_lightmapcopies**: When enabled (`1`), keep 3 copies of the same
   lightmap rotating, shifting to another one when drawing a new frame.
   Meant for mobile/embedded devices, where changing textures just shown

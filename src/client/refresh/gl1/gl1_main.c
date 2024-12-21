@@ -143,6 +143,7 @@ cvar_t *gl1_stereo_separation;
 cvar_t *gl1_stereo_anaglyph_colors;
 cvar_t *gl1_stereo_convergence;
 
+static cvar_t *gl1_waterwarp;
 
 refimport_t ri;
 
@@ -727,19 +728,35 @@ R_SetupFrame(void)
 }
 
 void
-R_MYgluPerspective(GLdouble fovy, GLdouble aspect,
-		GLdouble zNear, GLdouble zFar)
+R_SetPerspective(GLdouble fovy)
 {
+	// gluPerspective style parameters
+	static const GLdouble zNear = 4;
+	const GLdouble zFar = (r_farsee->value) ? 8192.0f : 4096.0f;
+	const GLdouble aspectratio = (GLdouble)r_newrefdef.width / r_newrefdef.height;
+
 	GLdouble xmin, xmax, ymin, ymax;
 
+	// traditional gluPerspective calculations - https://youtu.be/YqSNGcF5nvM?t=644
 	ymax = zNear * tan(fovy * M_PI / 360.0);
+	xmax = ymax * aspectratio;
+
+	if ((r_newrefdef.rdflags & RDF_UNDERWATER) && gl1_waterwarp->value)
+	{
+		const GLdouble warp = sin(r_newrefdef.time * 1.5) * 0.03 * gl1_waterwarp->value;
+		ymax *= 1.0 - warp;
+		xmax *= 1.0 + warp;
+	}
+
 	ymin = -ymax;
+	xmin = -xmax;
 
-	xmin = ymin * aspect;
-	xmax = ymax * aspect;
-
-	xmin += - gl1_stereo_convergence->value * (2 * gl_state.camera_separation) / zNear;
-	xmax += - gl1_stereo_convergence->value * (2 * gl_state.camera_separation) / zNear;
+	if (gl_state.camera_separation)
+	{
+		const GLdouble separation = - gl1_stereo_convergence->value * (2 * gl_state.camera_separation) / zNear;
+		xmin += separation;
+		xmax += separation;
+	}
 
 	glFrustum(xmin, xmax, ymin, ymax, zNear, zFar);
 }
@@ -747,7 +764,6 @@ R_MYgluPerspective(GLdouble fovy, GLdouble aspect,
 void
 R_SetupGL(void)
 {
-	float screenaspect;
 	int x, x2, y2, y, w, h;
 
 	/* set up viewport */
@@ -777,18 +793,10 @@ R_SetupGL(void)
 	glViewport(x, y2, w, h);
 
 	/* set up projection matrix */
-	screenaspect = (float)r_newrefdef.width / r_newrefdef.height;
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 
-	if (r_farsee->value == 0)
-	{
-		R_MYgluPerspective(r_newrefdef.fov_y, screenaspect, 4, 4096);
-	}
-	else
-	{
-		R_MYgluPerspective(r_newrefdef.fov_y, screenaspect, 4, 8192);
-	}
+	R_SetPerspective(r_newrefdef.fov_y);
 
 	glCullFace(GL_FRONT);
 
@@ -1301,6 +1309,8 @@ R_Register(void)
 	gl1_stereo_separation = ri.Cvar_Get( "gl1_stereo_separation", "-0.4", CVAR_ARCHIVE );
 	gl1_stereo_anaglyph_colors = ri.Cvar_Get( "gl1_stereo_anaglyph_colors", "rc", CVAR_ARCHIVE );
 	gl1_stereo_convergence = ri.Cvar_Get( "gl1_stereo_convergence", "1", CVAR_ARCHIVE );
+
+	gl1_waterwarp = ri.Cvar_Get( "gl1_waterwarp", "1.0", CVAR_ARCHIVE );
 
 	ri.Cmd_AddCommand("imagelist", R_ImageList_f);
 	ri.Cmd_AddCommand("screenshot", R_ScreenShot);
