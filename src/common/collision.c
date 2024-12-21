@@ -1624,7 +1624,8 @@ CMod_LoadEntityString(const lump_t *l, const char *name)
 	if (sv_entfile->value)
 	{
 		char *buffer = NULL, entname[256];
-		int nameLen, bufLen = -1;
+		size_t nameLen;
+		int bufLen = -1;
 
 		nameLen = strlen(name);
 		if (strcmp(name + nameLen - 4, ".bsp") || nameLen > (MAX_QPATH - 1))

@@ -218,7 +218,7 @@ DeathmatchScoreboardMessage(edict_t *ent, edict_t *killer)
 {
 	char entry[1024];
 	char string[1400];
-	int stringlength;
+	size_t stringlength;
 	int i;
 	int sorted[MAX_CLIENTS];
 	int sortedscores[MAX_CLIENTS];
@@ -279,7 +279,8 @@ DeathmatchScoreboardMessage(edict_t *ent, edict_t *killer)
 	for (i = 0; i < total; i++)
 	{
 		char *tag;
-		int x, y, j;
+		int x, y;
+		size_t j;
 		gclient_t *cl;
 		edict_t *cl_ent;
 

@@ -800,7 +800,7 @@ NET_SendPacket(netsrc_t sock, int length, void *data, netadr_t to)
 
 /* ============================================================================= */
 
-int
+static int
 NET_IPSocket(char *net_interface, int port, netsrc_t type, int family)
 {
 	char Buf[BUFSIZ], *Host, *Service;
@@ -1040,7 +1040,7 @@ NET_OpenIP(void)
 	}
 }
 
-int
+static int
 NET_IPXSocket(int port)
 {
 	int newsocket;

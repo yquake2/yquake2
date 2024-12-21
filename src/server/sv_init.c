@@ -492,7 +492,7 @@ SV_Map(qboolean attractloop, char *levelstring, qboolean loadgame, qboolean isau
 {
 	char level[MAX_QPATH];
 	char *ch;
-	int l;
+	size_t l;
 	char spawnpoint[MAX_QPATH];
 
 	sv.loadgame = loadgame;

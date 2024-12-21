@@ -33,6 +33,7 @@ void CL_Changing_f(void);
 void CL_Reconnect_f(void);
 void CL_Connect_f(void);
 void CL_Rcon_f(void);
+void CL_Packet_f(void);
 void CL_CheckForResend(void);
 
 cvar_t *rcon_client_password;
@@ -597,6 +598,7 @@ CL_InitLocal(void)
 	Cmd_AddCommand("reconnect", CL_Reconnect_f);
 
 	Cmd_AddCommand("rcon", CL_Rcon_f);
+	Cmd_AddCommand("packet", CL_Packet_f);
 
 	Cmd_AddCommand("setenv", CL_Setenv_f);
 

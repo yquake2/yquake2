@@ -146,7 +146,8 @@ static void SetExecutablePath(char* exePath)
 #endif
 }
 
-qboolean Sys_GetCwd(char *buf, size_t size)
+static qboolean
+Sys_GetCwd(char *buf, size_t size)
 {
 #ifdef _WIN32
 	WCHAR wpath[PATH_MAX];

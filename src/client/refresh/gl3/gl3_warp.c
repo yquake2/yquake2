@@ -327,7 +327,7 @@ int vec_to_st[6][3] = {
 
 
 void
-GL3_SetSky(char *name, float rotate, vec3_t axis)
+GL3_SetSky(const char *name, float rotate, vec3_t axis)
 {
 	char	skyname[MAX_QPATH];
 	int		i;

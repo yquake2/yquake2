@@ -2280,7 +2280,8 @@ void
 target_string_use(edict_t *self, edict_t *other /* unused */, edict_t *activator /* unused */)
 {
 	edict_t *e;
-	int n, l;
+	size_t l;
+	int n;
 	char c;
 
 	if (!self)

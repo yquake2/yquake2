@@ -508,12 +508,12 @@ void RI_GetDrawableSize(int* width, int* height);
 int RI_GetSDLVersion();
 
 /* g11_draw */
-extern image_t * RDraw_FindPic(char *name);
-extern void RDraw_GetPicSize(int *w, int *h, char *pic);
-extern void RDraw_PicScaled(int x, int y, char *pic, float factor);
-extern void RDraw_StretchPic(int x, int y, int w, int h, char *pic);
+extern image_t * RDraw_FindPic(const char *name);
+extern void RDraw_GetPicSize(int *w, int *h, const char *pic);
+extern void RDraw_PicScaled(int x, int y, const char *pic, float factor);
+extern void RDraw_StretchPic(int x, int y, int w, int h, const char *pic);
 extern void RDraw_CharScaled(int x, int y, int num, float scale);
-extern void RDraw_TileClear(int x, int y, int w, int h, char *pic);
+extern void RDraw_TileClear(int x, int y, int w, int h, const char *pic);
 extern void RDraw_Fill(int x, int y, int w, int h, int c);
 extern void RDraw_FadeScreen(void);
 extern void RDraw_StretchRaw(int x, int y, int w, int h, int cols, int rows, const byte *data, int bits);

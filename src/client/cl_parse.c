@@ -30,9 +30,9 @@
 void CL_DownloadFileName(char *dest, int destlen, char *fn);
 void CL_ParseDownload(void);
 
-int bitcounts[32]; /* just for protocol profiling */
+static int bitcounts[32]; /* just for protocol profiling */
 
-char *svc_strings[256] = {
+static const char *svc_strings[256] = {
 	"svc_bad",
 
 	"svc_muzzleflash",
@@ -83,7 +83,7 @@ CL_RegisterSounds(void)
 /*
  * Returns the entity number and the header bits
  */
-int
+static int
 CL_ParseEntityBits(unsigned *bits)
 {
 	unsigned b, total;
@@ -137,8 +137,8 @@ CL_ParseEntityBits(unsigned *bits)
 /*
  * Can go from either a baseline or a previous packet_entity
  */
-void
-CL_ParseDelta(entity_state_t *from, entity_state_t *to, int number, int bits)
+static void
+CL_ParseDelta(const entity_state_t *from, entity_state_t *to, int number, int bits)
 {
 	/* set everything to the state we are delta'ing from */
 	*to = *from;
@@ -275,7 +275,7 @@ CL_ParseDelta(entity_state_t *from, entity_state_t *to, int number, int bits)
  * Parses deltas from the given base and adds the resulting entity to
  * the current frame
  */
-void
+static void
 CL_DeltaEntity(frame_t *frame, int newnum, entity_state_t *old, int bits)
 {
 	centity_t *ent;
@@ -339,13 +339,12 @@ CL_DeltaEntity(frame_t *frame, int newnum, entity_state_t *old, int bits)
  * parsed, deal with the rest of the
  * data stream.
  */
-void
+static void
 CL_ParsePacketEntities(frame_t *oldframe, frame_t *newframe)
 {
 	unsigned int newnum;
 	unsigned bits;
-	entity_state_t
-	*oldstate = NULL;
+	entity_state_t *oldstate = NULL;
 	int oldindex, oldnum;
 
 	newframe->parse_entities = cl.parse_entities;
@@ -518,13 +517,11 @@ CL_ParsePacketEntities(frame_t *oldframe, frame_t *newframe)
 	}
 }
 
-void
+static void
 CL_ParsePlayerstate(frame_t *oldframe, frame_t *newframe)
 {
-	int flags;
+	int flags, i, statbits;
 	player_state_t *state;
-	int i;
-	int statbits;
 
 	state = &newframe->playerstate;
 
@@ -656,14 +653,16 @@ CL_ParsePlayerstate(frame_t *oldframe, frame_t *newframe)
 	}
 }
 
-void
+static void
 CL_FireEntityEvents(frame_t *frame)
 {
-	entity_state_t *s1;
-	int pnum, num;
+	int pnum;
 
 	for (pnum = 0; pnum < frame->num_entities; pnum++)
 	{
+		entity_state_t *s1;
+		int num;
+
 		num = (frame->parse_entities + pnum) & (MAX_PARSE_ENTITIES - 1);
 		s1 = &cl_parse_entities[num];
 
@@ -679,7 +678,16 @@ CL_FireEntityEvents(frame_t *frame)
 	}
 }
 
-void
+static void
+SHOWNET(const char *s)
+{
+	if (cl_shownet->value >= 2)
+	{
+		Com_Printf("%3i:%s\n", net_message.readcount - 1, s);
+	}
+}
+
+static void
 CL_ParseFrame(void)
 {
 	int cmd;
@@ -823,7 +831,7 @@ CL_ParseFrame(void)
 	}
 }
 
-void
+static void
 CL_ParseServerData(void)
 {
 	extern cvar_t *fs_gamedirvar;
@@ -891,7 +899,7 @@ CL_ParseServerData(void)
 	}
 }
 
-void
+static void
 CL_ParseBaseline(void)
 {
 	entity_state_t *es;
@@ -1061,10 +1069,11 @@ CL_ParseClientinfo(int player)
 	CL_LoadClientinfo(ci, s);
 }
 
-void
+static void
 CL_ParseConfigString(void)
 {
-	int i, length;
+	size_t length;
+	int i;
 	char *s;
 	char olds[MAX_QPATH];
 
@@ -1072,7 +1081,7 @@ CL_ParseConfigString(void)
 
 	if ((i < 0) || (i >= MAX_CONFIGSTRINGS))
 	{
-		Com_Error(ERR_DROP, "configstring > MAX_CONFIGSTRINGS");
+		Com_Error(ERR_DROP, "%s: configstring > MAX_CONFIGSTRINGS", __func__);
 	}
 
 	s = MSG_ReadString(&net_message);
@@ -1080,9 +1089,9 @@ CL_ParseConfigString(void)
 	Q_strlcpy(olds, cl.configstrings[i], sizeof(olds));
 
 	length = strlen(s);
-	if (length > sizeof(cl.configstrings) - sizeof(cl.configstrings[0])*i - 1)
+	if (length > sizeof(cl.configstrings) - sizeof(cl.configstrings[0]) * i - 1)
 	{
-		Com_Error(ERR_DROP, "CL_ParseConfigString: oversize configstring");
+		Com_Error(ERR_DROP, "%s: oversize configstring", __func__);
 	}
 
 	strcpy(cl.configstrings[i], s);
@@ -1140,7 +1149,7 @@ CL_ParseConfigString(void)
 	}
 }
 
-void
+static void
 CL_ParseStartSoundPacket(void)
 {
 	vec3_t pos_v;
@@ -1225,15 +1234,6 @@ CL_ParseStartSoundPacket(void)
 
 	S_StartSound(pos, ent, channel, cl.sound_precache[sound_num],
 			volume, attenuation, ofs);
-}
-
-void
-SHOWNET(char *s)
-{
-	if (cl_shownet->value >= 2)
-	{
-		Com_Printf("%3i:%s\n", net_message.readcount - 1, s);
-	}
 }
 
 void

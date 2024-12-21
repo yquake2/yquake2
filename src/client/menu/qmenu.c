@@ -67,7 +67,8 @@ ClampCvar(float min, float max, float value)
 Bitmap_Draw
 =================
 */
-void Bitmap_Draw(menubitmap_s * item)
+static void
+Bitmap_Draw(menubitmap_s * item)
 {
 	float scale = SCR_GetMenuScale();
 	int x = 0;
@@ -132,19 +133,7 @@ Action_Draw(menuaction_s *a)
 	}
 }
 
-qboolean
-Field_DoEnter(menufield_s *f)
-{
-	if (f->generic.callback)
-	{
-		f->generic.callback(f);
-		return true;
-	}
-
-	return false;
-}
-
-void
+static void
 Field_Draw(menufield_s *f)
 {
 	int i, n;

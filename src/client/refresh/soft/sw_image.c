@@ -492,7 +492,8 @@ image_t	*
 R_FindImage(const char *name, imagetype_t type)
 {
 	image_t	*image;
-	int	i, len;
+	size_t len;
+	int	i;
 	char *ptr;
 	char namewe[256];
 	const char* ext;

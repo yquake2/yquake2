@@ -269,7 +269,7 @@ keyname_t keynames[] = {
 
 /* ------------------------------------------------------------------ */
 
-void
+static void
 CompleteCommand(void)
 {
 	char *cmd;
@@ -301,7 +301,7 @@ CompleteCommand(void)
 	key_lines[edit_line][key_linepos] = '\0';
 }
 
-void
+static void
 CompleteMapNameCommand(void)
 {
 	char *s, *cmdArg;
@@ -339,7 +339,7 @@ IsInConsole(void)
 		(cls.state == ca_disconnected || cls.state == ca_connecting));
 }
 
-void
+static void
 Key_Console(int key)
 {
 	char txt[2];
@@ -607,7 +607,7 @@ char chat_buffer[MAXCMDLINE];
 int chat_bufferlen = 0;
 int chat_cursorpos = 0;
 
-void
+static void
 Key_Message(int key)
 {
 	char last;
@@ -735,7 +735,7 @@ Key_Message(int key)
  * Single ascii characters return themselves, while
  * the K_* names are matched up.
  */
-int
+static int
 Key_StringToKeynum(char *str)
 {
 	keyname_t *kn;
@@ -822,7 +822,7 @@ Key_SetBinding(int keynum, char *binding)
 	keybindings[keynum] = new;
 }
 
-void
+static void
 Key_Unbind_f(void)
 {
 	int b;
@@ -844,7 +844,7 @@ Key_Unbind_f(void)
 	Key_SetBinding(b, "");
 }
 
-void
+static void
 Key_Unbindall_f(void)
 {
 	int i;
@@ -862,7 +862,7 @@ Key_Unbindall_f(void)
  * (=> default.cfg is done) */
 extern qboolean doneWithDefaultCfg;
 
-void
+static void
 Key_Bind_f(void)
 {
 	int i, c, b;
@@ -1049,7 +1049,7 @@ Key_ReadConsoleHistory()
 	fclose(f);
 }
 
-void
+static void
 Key_Bindlist_f(void)
 {
 	int i;
