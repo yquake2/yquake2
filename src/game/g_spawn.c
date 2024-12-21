@@ -327,7 +327,7 @@ char *
 ED_NewString(const char *string)
 {
 	char *newb, *new_p;
-	int i, l;
+	size_t i, l;
 
 	if (!string)
 	{

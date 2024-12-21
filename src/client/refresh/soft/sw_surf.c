@@ -104,6 +104,8 @@ R_DrawSurfaceBlock_Light (pixel_t *prowdest, pixel_t *psource, size_t size,
 		for (b=(size-1); b>=0; b--)
 		{
 			pixel_t pix;
+			int j;
+
 			pix = psource[b];
 			prowdest[b] = R_ApplyLight(pix, light);
 

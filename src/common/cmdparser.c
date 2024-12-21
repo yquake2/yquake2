@@ -67,7 +67,7 @@ char defer_text_buf[32768];
  * until next frame.  This allows commands like: bind g "impulse 5 ;
  * +attack ; wait ; -attack ; impulse 2"
  */
-void
+static void
 Cmd_Wait_f(void)
 {
 	cmd_wait = Sys_Milliseconds();
@@ -85,7 +85,7 @@ Cbuf_Init(void)
 void
 Cbuf_AddText(char *text)
 {
-	int l;
+	size_t l;
 
 	l = strlen(text);
 
@@ -299,7 +299,7 @@ qboolean
 Cbuf_AddLateCommands(void)
 {
 	int i, j;
-	int s;
+	size_t s;
 	char *text, c;
 	int argc;
 	qboolean has_args = false;
@@ -362,7 +362,7 @@ Cbuf_AddLateCommands(void)
 /*
  * Execute a script file
  */
-void
+static void
 Cmd_Exec_f(void)
 {
 	char *f, *f2;
@@ -400,7 +400,9 @@ Cmd_Exec_f(void)
 /*
  * Inserts the current value of a variable as command text
  */
-void Cmd_Vstr_f( void ) {
+static void
+Cmd_Vstr_f(void)
+{
 	const char	*v;
 
 	if (Cmd_Argc() != 2) {
@@ -415,7 +417,7 @@ void Cmd_Vstr_f( void ) {
 /*
  * Just prints the rest of the line to the console
  */
-void
+static void
 Cmd_Echo_f(void)
 {
 	int i;
@@ -432,7 +434,7 @@ Cmd_Echo_f(void)
  * Creates a new command that executes
  * a command string (possibly ; seperated)
  */
-void
+static void
 Cmd_Alias_f(void)
 {
 	cmdalias_t *a;
@@ -524,10 +526,11 @@ Cmd_Args(void)
 	return cmd_args;
 }
 
-char *
+static char *
 Cmd_MacroExpandString(char *text)
 {
-	int i, j, count, len;
+	size_t len;
+	int i, count;
 	qboolean inquote;
 	char *scan;
 	static char expanded[MAX_STRING_CHARS];
@@ -549,6 +552,8 @@ Cmd_MacroExpandString(char *text)
 
 	for (i = 0; i < len; i++)
 	{
+		size_t j;
+
 		if (scan[i] == '"')
 		{
 			inquote ^= 1;
@@ -783,7 +788,8 @@ char *
 Cmd_CompleteCommand(char *partial)
 {
 	cmd_function_t *cmd;
-	int len, i, o, p;
+	size_t len;
+	int i, o, p;
 	cmdalias_t *a;
 	cvar_t *cvar;
 	char *pmatch[1024];
@@ -907,13 +913,15 @@ char *
 Cmd_CompleteMapCommand(char *partial)
 {
 	char **mapNames;
-	int i, j, k, nbMatches, len, nMaps;
+	int i, j, k, nbMatches, nMaps;
 	char *mapName, *lastsep;
 	char *pmatch[1024];
 	qboolean partialFillContinue = true;
 
 	if ((mapNames = FS_ListFiles2("maps/*.bsp", &nMaps, 0, 0)) != NULL)
 	{
+		size_t len;
+
 		len = strlen(partial);
 		nbMatches = 0;
 		memset(retval, 0, strlen(retval));
@@ -1094,7 +1102,7 @@ Cmd_ExecuteString(char *text)
 #endif
 }
 
-void
+static void
 Cmd_List_f(void)
 {
 	cmd_function_t *cmd;

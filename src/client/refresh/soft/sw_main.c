@@ -2183,7 +2183,7 @@ RE_BufferDifferenceStart(int vmin, int vmax)
 	return (pixel_t*)back_buffer - swap_frames[0];
 }
 
-static int
+static size_t
 RE_BufferDifferenceEnd(int vmin, int vmax)
 {
 	int *front_buffer, *back_buffer, *back_min;

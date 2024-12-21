@@ -1431,7 +1431,8 @@ Q_sort_modcmp(const void *p1, const void *p2)
 char**
 FS_ListMods(int *nummods)
 {
-	int nmods = 0, numdirchildren, numpacksinchilddir, searchpathlength;
+	int nmods = 0, numdirchildren, numpacksinchilddir;
+	size_t searchpathlength;
 	char findnamepattern[MAX_OSPATH], modname[MAX_QPATH], searchpath[MAX_OSPATH];
 	char **dirchildren, **packsinchilddir, **modnames;
 

@@ -370,7 +370,7 @@ void
 WriteField1(FILE *f, field_t *field, byte *base)
 {
 	void *p;
-	int len;
+	size_t len;
 	int index;
 	functionList_t *func;
 	mmoveList_t *mmove;
@@ -492,7 +492,7 @@ WriteField1(FILE *f, field_t *field, byte *base)
 void
 WriteField2(FILE *f, field_t *field, byte *base)
 {
-	int len;
+	size_t len;
 	void *p;
 	functionList_t *func;
 	mmoveList_t *mmove;

@@ -117,7 +117,7 @@ static void
 Qcommon_Buildstring(void)
 {
 	int i;
-	int verLen;
+	size_t verLen;
 	const char* versionString;
 
 
