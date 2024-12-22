@@ -472,7 +472,7 @@ Con_DrawInput(void)
 	float scale;
 	char *text;
 	char ch;
-	int txtlen;
+	size_t txtlen;
 	int linepos;
 	int draw_icon;
 
@@ -630,7 +630,7 @@ Con_DrawConsole(float frac)
 {
 	int i, j, x, y, n;
 	int rows;
-	int verLen;
+	size_t verLen;
 	char *text;
 	int row;
 	int lines;

@@ -1726,7 +1726,7 @@ static const int	r_skysideimage[6] = {5, 2, 4, 1, 0, 3};
 extern mtexinfo_t		r_skytexinfo[6];
 
 static void
-RE_SetSky (char *name, float rotate, vec3_t axis)
+RE_SetSky (const char *name, float rotate, vec3_t axis)
 {
 	char	skyname[MAX_QPATH];
 	int		i;
@@ -1758,7 +1758,7 @@ RE_RegisterSkin
 ===============
 */
 static struct image_s *
-RE_RegisterSkin (char *name)
+RE_RegisterSkin (const char *name)
 {
 	return R_FindImage (name, it_skin);
 }
@@ -2183,7 +2183,7 @@ RE_BufferDifferenceStart(int vmin, int vmax)
 	return (pixel_t*)back_buffer - swap_frames[0];
 }
 
-static int
+static size_t
 RE_BufferDifferenceEnd(int vmin, int vmax)
 {
 	int *front_buffer, *back_buffer, *back_min;

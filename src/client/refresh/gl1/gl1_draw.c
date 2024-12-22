@@ -84,13 +84,13 @@ RDraw_CharScaled(int x, int y, int num, float scale)
 }
 
 image_t *
-RDraw_FindPic(char *name)
+RDraw_FindPic(const char *name)
 {
 	return R_FindPic(name, (findimage_t)R_FindImage);
 }
 
 void
-RDraw_GetPicSize(int *w, int *h, char *pic)
+RDraw_GetPicSize(int *w, int *h, const char *pic)
 {
 	image_t *gl;
 
@@ -107,7 +107,7 @@ RDraw_GetPicSize(int *w, int *h, char *pic)
 }
 
 void
-RDraw_StretchPic(int x, int y, int w, int h, char *pic)
+RDraw_StretchPic(int x, int y, int w, int h, const char *pic)
 {
 	image_t *gl;
 
@@ -152,7 +152,7 @@ RDraw_StretchPic(int x, int y, int w, int h, char *pic)
 }
 
 void
-RDraw_PicScaled(int x, int y, char *pic, float factor)
+RDraw_PicScaled(int x, int y, const char *pic, float factor)
 {
 	image_t *gl;
 
@@ -210,7 +210,7 @@ RDraw_PicScaled(int x, int y, char *pic, float factor)
  * refresh window.
  */
 void
-RDraw_TileClear(int x, int y, int w, int h, char *pic)
+RDraw_TileClear(int x, int y, int w, int h, const char *pic)
 {
 	image_t *image;
 
