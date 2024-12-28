@@ -374,8 +374,8 @@ FloodFillSkin(byte *skin, int skinwidth, int skinheight)
 /*
  * This is also used as an entry point for the generated r_notexture
  */
-gl3image_t *
-GL3_LoadPic(char *name, byte *pic, int width, int realwidth,
+struct image_s *
+GL3_LoadPic(const char *name, byte *pic, int width, int realwidth,
             int height, int realheight, size_t data_size,
             imagetype_t type, int bits)
 {
@@ -595,7 +595,7 @@ GL3_LoadPic(char *name, byte *pic, int width, int realwidth,
 		}
 	}
 #endif // 0
-	return image;
+	return (struct image_s *)((char *)image);
 }
 
 /*
@@ -654,7 +654,7 @@ GL3_FindImage(const char *name, imagetype_t type)
 	// load the pic from disk
 	//
 	image = (gl3image_t *)R_LoadImage(name, namewe, ext, type,
-		r_retexturing->value, (loadimage_t)GL3_LoadPic);
+		r_retexturing->value, GL3_LoadPic);
 
 	if (!image && r_validation->value)
 	{
