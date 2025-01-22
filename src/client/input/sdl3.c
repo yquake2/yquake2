@@ -2098,11 +2098,8 @@ IN_Controller_Init(qboolean notify_user)
 	if (!SDL_WasInit(SDL_INIT_GAMEPAD | SDL_INIT_HAPTIC))
 	{
 
-#ifdef SDL_HINT_JOYSTICK_HIDAPI_PS4_RUMBLE	// extended input reports on PS controllers (enables gyro thru bluetooth)
-		SDL_SetHint( SDL_HINT_JOYSTICK_HIDAPI_PS4_RUMBLE, "1" );
-#endif
-#ifdef SDL_HINT_JOYSTICK_HIDAPI_PS5_RUMBLE
-		SDL_SetHint( SDL_HINT_JOYSTICK_HIDAPI_PS5_RUMBLE, "1" );
+#ifdef SDL_HINT_JOYSTICK_ENHANCED_REPORTS	// extended input reports on PS controllers (enables gyro thru bluetooth)
+		SDL_SetHint( SDL_HINT_JOYSTICK_ENHANCED_REPORTS, "1" );
 #endif
 
 		if (!SDL_Init(SDL_INIT_GAMEPAD | SDL_INIT_HAPTIC))
