@@ -139,52 +139,6 @@ keyname_t keynames[] = {
 	{"MWHEELUP", K_MWHEELUP},
 	{"MWHEELDOWN", K_MWHEELDOWN},
 
-	{"BTN_SOUTH", K_BTN_SOUTH},
-	{"BTN_EAST", K_BTN_EAST},
-	{"BTN_WEST", K_BTN_WEST},
-	{"BTN_NORTH", K_BTN_NORTH},
-	{"STICK_LEFT", K_STICK_LEFT},
-	{"STICK_RIGHT", K_STICK_RIGHT},
-	{"SHOULDR_LEFT", K_SHOULDER_LEFT},
-	{"SHOULDR_RIGHT", K_SHOULDER_RIGHT},
-	{"TRIG_LEFT", K_TRIG_LEFT},
-	{"TRIG_RIGHT", K_TRIG_RIGHT},
-
-	{"DP_UP", K_DPAD_UP},
-	{"DP_DOWN", K_DPAD_DOWN},
-	{"DP_LEFT", K_DPAD_LEFT},
-	{"DP_RIGHT", K_DPAD_RIGHT},
-
-	{"BTN_MISC1", K_BTN_MISC1},
-	{"TOUCHPAD", K_TOUCHPAD},
-	{"BTN_BACK", K_BTN_BACK},
-	{"BTN_GUIDE", K_BTN_GUIDE},
-	{"BTN_START", K_BTN_START},
-
-	// virtual keys you get by pressing the corresponding normal joy key
-	// and the altselector key
-	{"BTN_SOUTH_ALT", K_BTN_SOUTH_ALT},
-	{"BTN_EAST_ALT", K_BTN_EAST_ALT},
-	{"BTN_WEST_ALT", K_BTN_WEST_ALT},
-	{"BTN_NORTH_ALT", K_BTN_NORTH_ALT},
-	{"STICK_LEFT_ALT", K_STICK_LEFT_ALT},
-	{"STICK_RIGHT_ALT", K_STICK_RIGHT_ALT},
-	{"SHOULDR_LEFT_ALT", K_SHOULDER_LEFT_ALT},
-	{"SHOULDR_RIGHT_ALT", K_SHOULDER_RIGHT_ALT},
-	{"TRIG_LEFT_ALT", K_TRIG_LEFT_ALT},
-	{"TRIG_RIGHT_ALT", K_TRIG_RIGHT_ALT},
-
-	{"DP_UP_ALT", K_DPAD_UP_ALT},
-	{"DP_DOWN_ALT", K_DPAD_DOWN_ALT},
-	{"DP_LEFT_ALT", K_DPAD_LEFT_ALT},
-	{"DP_RIGHT_ALT", K_DPAD_RIGHT_ALT},
-
-	{"BTN_MISC1_ALT", K_BTN_MISC1_ALT},
-	{"TOUCHPAD_ALT", K_TOUCHPAD_ALT},
-	{"BTN_BACK_ALT", K_BTN_BACK_ALT},
-	{"BTN_GUIDE_ALT", K_BTN_GUIDE_ALT},
-	{"BTN_START_ALT", K_BTN_START_ALT},
-
 	{"SUPER", K_SUPER},
 	{"COMPOSE", K_COMPOSE},
 	{"MODE", K_MODE},
@@ -256,6 +210,72 @@ keyname_t keynames[] = {
 
 	{NULL, 0}
 };
+
+static char * gamepadbtns[] =
+{
+	// It is imperative that this list of buttons follow EXACTLY the order they
+	// appear in QKEYS enum in keyboard.h, which in turn is the same order as
+	// they appear in SDL_GamepadButton / SDL_GameControllerButton enum.
+	"BTN_SOUTH",
+	"BTN_EAST",
+	"BTN_WEST",
+	"BTN_NORTH",
+	"BTN_BACK",
+	"BTN_GUIDE",
+	"BTN_START",
+	"STICK_LEFT",
+	"STICK_RIGHT",
+	"SHOULDR_LEFT",
+	"SHOULDR_RIGHT",
+	"DP_UP",
+	"DP_DOWN",
+	"DP_LEFT",
+	"DP_RIGHT",
+	"BTN_MISC1",
+	"PADDL_RIGHT1",
+	"PADDL_LEFT1",
+	"PADDL_RIGHT2",
+	"PADDL_LEFT2",
+	"TOUCHPAD",
+	"BTN_MISC2",
+	"BTN_MISC3",
+	"BTN_MISC4",
+	"BTN_MISC5",
+	"BTN_MISC6",
+	"TRIG_LEFT",
+	"TRIG_RIGHT",
+	// Same with _ALT buttons ( button + 'alt modifier' pressed )
+	"BTN_SOUTH_ALT",
+	"BTN_EAST_ALT",
+	"BTN_WEST_ALT",
+	"BTN_NORTH_ALT",
+	"BTN_BACK_ALT",
+	"BTN_GUIDE_ALT",
+	"BTN_START_ALT",
+	"STICK_LEFT_ALT",
+	"STICK_RIGHT_ALT",
+	"SHOULDR_LEFT_ALT",
+	"SHOULDR_RIGHT_ALT",
+	"DP_UP_ALT",
+	"DP_DOWN_ALT",
+	"DP_LEFT_ALT",
+	"DP_RIGHT_ALT",
+	"BTN_MISC1_ALT",
+	"PADDL_RIGHT1_ALT",
+	"PADDL_LEFT1_ALT",
+	"PADDL_RIGHT2_ALT",
+	"PADDL_LEFT2_ALT",
+	"TOUCHPAD_ALT",
+	"BTN_MISC2_ALT",
+	"BTN_MISC3_ALT",
+	"BTN_MISC4_ALT",
+	"BTN_MISC5_ALT",
+	"BTN_MISC6_ALT",
+	"TRIG_LEFT_ALT",
+	"TRIG_RIGHT_ALT"
+};
+
+#define NUM_GAMEPAD_BTNS (sizeof gamepadbtns / sizeof gamepadbtns[0])
 
 /* ------------------------------------------------------------------ */
 
@@ -729,6 +749,7 @@ static int
 Key_StringToKeynum(char *str)
 {
 	keyname_t *kn;
+	int i;
 
 	if (!str || !str[0])
 	{
@@ -745,6 +766,14 @@ Key_StringToKeynum(char *str)
 		if (!Q_stricmp(str, kn->name))
 		{
 			return kn->keynum;
+		}
+	}
+
+	for (i = 0; i < NUM_GAMEPAD_BTNS; i++)
+	{
+		if (!Q_stricmp(str, gamepadbtns[i]))
+		{
+			return K_JOY_FIRST_BTN + i;
 		}
 	}
 
@@ -773,6 +802,11 @@ Key_KeynumToString(int keynum)
 		   cvars to their values in macros/commands) and thus need escaping */
 		tinystr[0] = keynum;
 		return tinystr;
+	}
+
+	if (keynum >= K_JOY_FIRST_BTN) // gamepad button
+	{
+		return gamepadbtns[keynum - K_JOY_FIRST_BTN];
 	}
 
 	for (kn = keynames; kn->name; kn++)
