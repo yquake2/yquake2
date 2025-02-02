@@ -593,6 +593,15 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
   Back / Select / Minus, or `2` = Guide / Home / PS. Requires a game
   restart, or gamepad replug, when changed.
 
+* **joy_labels**: Defines style of button labels in binding menus. Note
+  that binding through console only uses the SDL nomenclature (`0`).
+  Default is `-1`, which requires at least SDL 2.0.12 to work.
+  - `-1`: *Autodetect*, sets to `0` if gamepad type isn't detected
+  - `0`: *SDL*, face buttons appear as cardinal points
+  - `1`: *Xbox*, with One / Series X / S labels
+  - `2`: *Playstation*, 4 & 5 format
+  - `3`: *Switch*, traditional Nintendo button format
+
 * **joy_layout**: Allows to select the stick layout of the gamepad.
   - `0`: *Default*, left stick moves, right aims
   - `1`: *Southpaw*, same as previous one with inverted sticks

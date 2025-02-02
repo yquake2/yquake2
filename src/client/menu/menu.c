@@ -1374,7 +1374,7 @@ DrawControllerButtonBindingFunc(void *self)
 		int x;
 		const char *name;
 
-		name = Key_KeynumToString(keys[0]);
+		name = Key_KeynumToString_Joy(keys[0]);
 
 		Menu_DrawString(a->generic.x + a->generic.parent->x + RCOLUMN_OFFSET * scale,
 			a->generic.y + a->generic.parent->y, name);
@@ -1387,7 +1387,7 @@ DrawControllerButtonBindingFunc(void *self)
 					a->generic.y + a->generic.parent->y, "or");
 			Menu_DrawString(a->generic.x + a->generic.parent->x + 48 * scale + (x * scale),
 					a->generic.y + a->generic.parent->y,
-					Key_KeynumToString(keys[1]));
+					Key_KeynumToString_Joy(keys[1]));
 		}
 	}
 }
@@ -1548,7 +1548,7 @@ DrawControllerAltButtonBindingFunc(void *self)
 		size_t x;
 		const char *name;
 
-		name = Key_KeynumToString(keys[0]);
+		name = Key_KeynumToString_Joy(keys[0]);
 
 		Menu_DrawString(a->generic.x + a->generic.parent->x + RCOLUMN_OFFSET * scale,
 				a->generic.y + a->generic.parent->y, name);
@@ -1561,7 +1561,7 @@ DrawControllerAltButtonBindingFunc(void *self)
 					a->generic.y + a->generic.parent->y, "or");
 			Menu_DrawString(a->generic.x + a->generic.parent->x + 48 * scale + (x * scale),
 					a->generic.y + a->generic.parent->y,
-					Key_KeynumToString(keys[1]));
+					Key_KeynumToString_Joy(keys[1]));
 		}
 	}
 }

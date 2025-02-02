@@ -486,8 +486,18 @@ void CL_BaseMove (usercmd_t *cmd);
 
 void IN_CenterView (void);
 
+typedef enum
+{
+	LBL_SDL = 0,
+	LBL_XBOX,
+	LBL_PLAYSTATION,
+	LBL_SWITCH,
+	LBL_MAX_COUNT
+} gamepad_labels_t;
+
 float CL_KeyState (kbutton_t *key);
 char *Key_KeynumToString (int keynum);
+char *Key_KeynumToString_Joy (int key);
 
 void CL_WriteDemoMessage (void);
 void CL_Stop_f (void);

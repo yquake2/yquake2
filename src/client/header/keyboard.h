@@ -240,6 +240,7 @@ enum QKEYS {
 
 	// Add other gamepad keys before this one, adjust from SDL 2/3 definitions, and
 	// add the corresponding _ALT key below! Respect the order, must be the same as above.
+	// Also, verify if cl_keyboard.c needs a refactor on its arrays.
 
 	K_BTN_SOUTH_ALT,
 	K_JOY_FIRST_BTN_ALT = K_BTN_SOUTH_ALT,

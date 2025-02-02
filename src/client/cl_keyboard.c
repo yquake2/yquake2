@@ -211,7 +211,7 @@ keyname_t keynames[] = {
 	{NULL, 0}
 };
 
-static char * gamepadbtns[] =
+static char *gamepadbtns[] =
 {
 	// It is imperative that this list of buttons follow EXACTLY the order they
 	// appear in QKEYS enum in keyboard.h, which in turn is the same order as
@@ -276,6 +276,81 @@ static char * gamepadbtns[] =
 };
 
 #define NUM_GAMEPAD_BTNS (sizeof gamepadbtns / sizeof gamepadbtns[0])
+
+static char *gpbtns_face[] =
+{
+	// Xbox
+	"A",
+	"B",
+	"X",
+	"Y",
+	"VIEW",
+	"XBOX",
+	"MENU",
+	"LS",
+	"RS",
+	"LB",
+	"RB",
+	// Playstation
+	"CROSS",
+	"CIRCLE",
+	"SQUARE",
+	"TRIANGLE",
+	"CREATE",
+	"PS",
+	"OPTIONS",
+	"L3",
+	"R3",
+	"L1",
+	"R1",
+	// Nintendo Switch
+	"B",
+	"A",
+	"Y",
+	"X",
+	"-",
+	"HOME",
+	"+",
+	"L stick",
+	"R stick",
+	"L btn",
+	"R btn",
+};
+
+static char *gpbtns_paddles[] =
+{
+	// Xbox
+	"SHARE",
+	"P1",
+	"P3",
+	"P2",
+	"P4",
+	// Playstation
+	"MIC",
+	"RB",
+	"LB",
+	"Right Fn",
+	"Left Fn",
+	// Switch
+	"CAPTURE",
+	"Right SR",
+	"Left SL",
+	"Right SL",
+	"Left SR" // JoyCon btn positions suck
+};
+
+static char *gpbtns_triggers[] =
+{
+	// Xbox
+	"LT",
+	"RT",
+	// Playstation
+	"L2",
+	"R2",
+	// Switch
+	"ZL",
+	"ZR"
+};
 
 /* ------------------------------------------------------------------ */
 
@@ -818,6 +893,49 @@ Key_KeynumToString(int keynum)
 	}
 
 	return "<UNKNOWN KEYNUM>";
+}
+
+/*
+ * Same as Key_KeynumToString(), but for joystick/gamepad buttons.
+ */
+char *
+Key_KeynumToString_Joy(int key)
+{
+	extern gamepad_labels_t joy_current_lbls;
+	const int lbl_style = (int)joy_current_lbls - 1;
+
+	if (key < K_JOY_FIRST_BTN)
+	{
+		return Key_KeynumToString(key);
+	}
+
+	// Don't print the _ALT buttons (buttons with the alt modifier pressed)
+	if (key >= K_JOY_FIRST_BTN_ALT)
+	{
+		key -= K_JOY_FIRST_BTN_ALT - K_JOY_FIRST_BTN;
+	}
+
+	if (lbl_style < 0) // was SDL
+	{
+		goto exit_sdl;
+	}
+
+	// Alter this logic if new gamepad buttons are added in SDL
+	if (key < K_DPAD_UP) // face & shoulder buttons
+	{
+		return gpbtns_face[lbl_style * (K_DPAD_UP - K_BTN_SOUTH) + key - K_BTN_SOUTH];
+	}
+	else if (key >= K_TRIG_LEFT) // triggers
+	{
+		return gpbtns_triggers[lbl_style * (K_JOY_FIRST_BTN_ALT - K_TRIG_LEFT) + key - K_TRIG_LEFT];
+	}
+	else if (key > K_DPAD_RIGHT && key < K_TOUCHPAD) // paddles & misc1
+	{
+		return gpbtns_paddles[lbl_style * (K_TOUCHPAD - K_BTN_MISC1) + key - K_BTN_MISC1];
+	}
+
+exit_sdl:
+	return gamepadbtns[key - K_JOY_FIRST_BTN];
 }
 
 void

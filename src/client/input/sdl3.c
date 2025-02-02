@@ -94,6 +94,9 @@ int sys_frame_time;
 // is pressed
 qboolean joy_altselector_pressed = false;
 
+// Gamepad labels' style (Xbox, Playstation, etc.) in use, normally set after detection
+gamepad_labels_t joy_current_lbls = LBL_SDL;
+
 // Console Variables
 cvar_t *freelook;
 cvar_t *lookstrafe;
@@ -136,6 +139,9 @@ static int last_haptic_volume = 0;
 static int last_haptic_effect_size = HAPTIC_EFFECT_LIST_SIZE;
 static int last_haptic_effect_pos = 0;
 static haptic_effects_cache_t last_haptic_effect[HAPTIC_EFFECT_LIST_SIZE];
+
+// Gamepad labels' style (Xbox, Playstation, etc.) requested by user
+static cvar_t *joy_labels;
 
 // Joystick sensitivity
 static cvar_t *joy_yawsensitivity;
@@ -503,6 +509,46 @@ IN_TranslateScancodeToQ2Key(SDL_Scancode sc)
 
 static void IN_Controller_Init(qboolean notify_user);
 static void IN_Controller_Shutdown(qboolean notify_user);
+
+/*
+ * Sets the gamepad buttons' style of labels (SDL, Xbox, PS, Switch).
+ * They are only visible in the gamepad binding options.
+ * Traditional binding uses SDL style, no matter the gamepad.
+ */
+static void
+IN_GamepadLabels_Changed(void)
+{
+	const int requested = (int)joy_labels->value;
+	joy_labels->modified = false;
+	joy_current_lbls = LBL_SDL;
+
+	if (requested < 0 && controller) // try to autodetect...
+	{
+		switch (SDL_GetGamepadType(controller))
+		{
+			case SDL_GAMEPAD_TYPE_XBOX360:
+			case SDL_GAMEPAD_TYPE_XBOXONE:
+				joy_current_lbls = LBL_XBOX;
+				return;
+
+			case SDL_GAMEPAD_TYPE_PS3:
+			case SDL_GAMEPAD_TYPE_PS4:
+			case SDL_GAMEPAD_TYPE_PS5:
+				joy_current_lbls = LBL_PLAYSTATION;
+				return;
+
+			case SDL_GAMEPAD_TYPE_NINTENDO_SWITCH_PRO:
+			case SDL_GAMEPAD_TYPE_NINTENDO_SWITCH_JOYCON_PAIR:
+				joy_current_lbls = LBL_SWITCH;
+			default:
+				return;
+		}
+	}
+	else if (requested >= LBL_SDL && requested < LBL_MAX_COUNT)
+	{
+		joy_current_lbls = (gamepad_labels_t)requested;
+	}
+}
 
 qboolean IN_NumpadIsOn()
 {
@@ -982,6 +1028,11 @@ IN_Update(void)
 			}
 			countdown_reason = REASON_NONE;
 		}
+	}
+
+	if (joy_labels->modified)
+	{
+		IN_GamepadLabels_Changed();
 	}
 }
 
@@ -2280,6 +2331,7 @@ IN_Controller_Init(qboolean notify_user)
 	}
 
 	SDL_free((void *)joysticks);
+	IN_GamepadLabels_Changed();
 }
 
 /*
@@ -2315,6 +2367,7 @@ IN_Init(void)
 	joy_forwardsensitivity = Cvar_Get("joy_forwardsensitivity", "1.0", CVAR_ARCHIVE);
 	joy_sidesensitivity = Cvar_Get("joy_sidesensitivity", "1.0", CVAR_ARCHIVE);
 
+	joy_labels = Cvar_Get("joy_labels", "-1", CVAR_ARCHIVE);
 	joy_layout = Cvar_Get("joy_layout", "0", CVAR_ARCHIVE);
 	joy_left_expo = Cvar_Get("joy_left_expo", "2.0", CVAR_ARCHIVE);
 	joy_left_snapaxis = Cvar_Get("joy_left_snapaxis", "0.15", CVAR_ARCHIVE);
