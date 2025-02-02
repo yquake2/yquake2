@@ -595,6 +595,16 @@ IN_GamepadConfirm_Changed(void)
 	}
 }
 
+static void
+IN_VirtualKeyEvent(int keynum, qboolean *state_store, qboolean new_state)
+{
+	if (new_state != *state_store)
+	{
+		*state_store = new_state;
+		Key_Event(keynum, *state_store, true);
+	}
+}
+
 qboolean IN_NumpadIsOn()
 {
     SDL_Keymod mod = SDL_GetModState();
@@ -623,6 +633,7 @@ IN_Update(void)
 
 	static qboolean left_trigger = false;
 	static qboolean right_trigger = false;
+	static qboolean left_stick[4] = {false, false, false, false};   // left, right, up, down virtual keys
 
 	static int consoleKeyCode = 0;
 
@@ -837,26 +848,12 @@ IN_Update(void)
 				switch (event.gaxis.axis)
 				{
 					case SDL_GAMEPAD_AXIS_LEFT_TRIGGER :
-					{
-						qboolean new_left_trigger = axis_value > 8192;
-						if (new_left_trigger != left_trigger)
-						{
-							left_trigger = new_left_trigger;
-							Key_Event(K_TRIG_LEFT, left_trigger, true);
-						}
+						IN_VirtualKeyEvent(K_TRIG_LEFT, &left_trigger, axis_value > 8192);
 						break;
-					}
 
 					case SDL_GAMEPAD_AXIS_RIGHT_TRIGGER :
-					{
-						qboolean new_right_trigger = axis_value > 8192;
-						if (new_right_trigger != right_trigger)
-						{
-							right_trigger = new_right_trigger;
-							Key_Event(K_TRIG_RIGHT, right_trigger, true);
-						}
+						IN_VirtualKeyEvent(K_TRIG_RIGHT, &right_trigger, axis_value > 8192);
 						break;
-					}
 				}
 
 				if (!cl_paused->value && cls.key_dest == key_game)
@@ -874,6 +871,24 @@ IN_Update(void)
 							break;
 						case SDL_GAMEPAD_AXIS_RIGHTY :
 							joystick_right_y = axis_value;
+							break;
+					}
+					break;
+				}
+
+				// Virtual keys to navigate menus with left stick
+				if (cls.key_dest == key_menu)
+				{
+					switch (event.gaxis.axis)
+					{
+						case SDL_GAMEPAD_AXIS_LEFTX :
+							IN_VirtualKeyEvent(K_LEFTARROW, &left_stick[0], axis_value < -16896);
+							IN_VirtualKeyEvent(K_RIGHTARROW, &left_stick[1], axis_value > 16896);
+							break;
+
+						case SDL_GAMEPAD_AXIS_LEFTY :
+							IN_VirtualKeyEvent(K_UPARROW, &left_stick[2], axis_value < -16896);
+							IN_VirtualKeyEvent(K_DOWNARROW, &left_stick[3], axis_value > 16896);
 							break;
 					}
 				}
