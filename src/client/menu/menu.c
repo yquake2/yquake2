@@ -240,6 +240,8 @@ M_PushMenu(menuframework_s* menu)
     cls.key_dest = key_menu;
 }
 
+extern int btn_confirm, btn_cancel;
+
 int
 Key_GetMenuKey(int key)
 {
@@ -280,12 +282,7 @@ Key_GetMenuKey(int key)
 
 		case K_KP_ENTER:
 		case K_ENTER:
-		case K_BTN_SOUTH:
 		    return K_ENTER;
-
-		case K_ESCAPE:
-		case K_BTN_EAST:
-		    return K_ESCAPE;
 
 		case K_KP_DEL:
 		    if (IN_NumpadIsOn() == true) { break; }
@@ -298,6 +295,15 @@ Key_GetMenuKey(int key)
 		    if (IN_NumpadIsOn() == true) { break; }
 		case K_INS:
 		    return K_INS;
+	}
+
+	if (key == btn_confirm)
+	{
+		return K_ENTER;
+	}
+	if (key == btn_cancel)
+	{
+		return K_ESCAPE;
 	}
 
 	return key;
@@ -1319,6 +1325,18 @@ M_Menu_Multiplayer_Keys_f(void)
  * GAME CONTROLLER ( GAMEPAD / JOYSTICK ) BUTTONS MENU
  */
 
+static void
+GamepadMenu_StatusPrompt(menuframework_s *m)
+{
+	static char m_gamepadbind_statusbar[64];
+
+	snprintf(m_gamepadbind_statusbar, 64, "%s assigns, %s clears, %s exits",
+		Key_KeynumToString_Joy(btn_confirm), Key_KeynumToString_Joy(K_BTN_NORTH),
+		Key_KeynumToString_Joy(btn_cancel));
+
+	Menu_SetStatusBar(m, m_gamepadbind_statusbar);
+}
+
 char *controller_bindnames[][2] =
 {
 	{"+attack", "attack"},
@@ -1432,7 +1450,7 @@ ControllerButtons_MenuInit(void)
 		Menu_AddItem(&s_controller_buttons_menu, (void *)&s_controller_buttons_actions[i]);
 	}
 
-	Menu_SetStatusBar(&s_controller_buttons_menu, "BTN_SOUTH assigns, BTN_NORTH clears, BTN_EAST exits");
+	GamepadMenu_StatusPrompt(&s_controller_buttons_menu);
 	Menu_Center(&s_controller_buttons_menu);
 }
 
@@ -1460,7 +1478,7 @@ ControllerButtons_MenuKey(int key)
 			Cbuf_InsertText(cmd);
 		}
 
-		Menu_SetStatusBar(&s_controller_buttons_menu, "BTN_SOUTH assigns, BTN_NORTH clears, BTN_EAST exits");
+		GamepadMenu_StatusPrompt(&s_controller_buttons_menu);
 		menukeyitem_bind = false;
 		return menu_out_sound;
 	}
@@ -1606,7 +1624,7 @@ ControllerAltButtons_MenuInit(void)
 		Menu_AddItem(&s_controller_alt_buttons_menu, (void *)&s_controller_alt_buttons_actions[i]);
 	}
 
-	Menu_SetStatusBar(&s_controller_alt_buttons_menu, "BTN_SOUTH assigns, BTN_NORTH clears, BTN_EAST exits");
+	GamepadMenu_StatusPrompt(&s_controller_alt_buttons_menu);
 	Menu_Center(&s_controller_alt_buttons_menu);
 }
 
@@ -1635,7 +1653,7 @@ ControllerAltButtons_MenuKey(int key)
 			Cbuf_InsertText(cmd);
 		}
 
-		Menu_SetStatusBar(&s_controller_alt_buttons_menu, "BTN_SOUTH assigns, BTN_NORTH clears, BTN_EAST exits");
+		GamepadMenu_StatusPrompt(&s_controller_alt_buttons_menu);
 		menukeyitem_bind = false;
 		return menu_out_sound;
 	}

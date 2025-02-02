@@ -94,6 +94,9 @@ qboolean joy_altselector_pressed = false;
 // Gamepad labels' style (Xbox, Playstation, etc.) in use, normally set after detection
 gamepad_labels_t joy_current_lbls = LBL_SDL;
 
+// Confirm & cancel buttons' keynums
+int btn_confirm = K_BTN_SOUTH, btn_cancel = K_BTN_EAST;
+
 // Console Variables
 cvar_t *freelook;
 cvar_t *lookstrafe;
@@ -139,6 +142,9 @@ static haptic_effects_cache_t last_haptic_effect[HAPTIC_EFFECT_LIST_SIZE];
 
 // Gamepad labels' style (Xbox, Playstation, etc.) requested by user
 static cvar_t *joy_labels;
+
+// Gamepad style for confirm and cancel buttons (traditional or japanese)
+static cvar_t *joy_confirm;
 
 // Joystick sensitivity
 static cvar_t *joy_yawsensitivity;
@@ -556,6 +562,50 @@ IN_GamepadLabels_Changed(void)
 	if (requested >= LBL_SDL && requested < LBL_MAX_COUNT)
 	{
 		joy_current_lbls = (gamepad_labels_t)requested;
+	}
+}
+
+/*
+ * Sets which gamepad button works as "confirm", and which
+ * works as "cancel", in menus.
+ */
+static void
+IN_GamepadConfirm_Changed(void)
+{
+	const int requested = (int)joy_confirm->value;
+	qboolean japanese_style = false;
+	joy_confirm->modified = false;
+
+#if SDL_VERSION_ATLEAST(2, 0, 12)
+	if (requested < 0 && controller) // try to autodetect...
+	{
+		switch (SDL_GameControllerGetType(controller))
+		{
+			case SDL_CONTROLLER_TYPE_NINTENDO_SWITCH_PRO:
+#if SDL_VERSION_ATLEAST(2, 24, 0)
+			case SDL_CONTROLLER_TYPE_NINTENDO_SWITCH_JOYCON_PAIR:
+#endif // SDL_VERSION_ATLEAST(2, 24, 0)
+				japanese_style = true;
+			default:
+				break;
+		}
+	}
+	else
+#endif // SDL_VERSION_ATLEAST(2, 0, 12)
+	if (requested == 1)
+	{
+		japanese_style = true;
+	}
+
+	if (japanese_style)
+	{
+		btn_confirm = K_BTN_EAST;
+		btn_cancel = K_BTN_SOUTH;
+	}
+	else
+	{
+		btn_confirm = K_BTN_SOUTH;
+		btn_cancel = K_BTN_EAST;
 	}
 }
 
@@ -1043,6 +1093,10 @@ IN_Update(void)
 	if (joy_labels->modified)
 	{
 		IN_GamepadLabels_Changed();
+	}
+	if (joy_confirm->modified)
+	{
+		IN_GamepadConfirm_Changed();
 	}
 }
 
@@ -2354,6 +2408,7 @@ IN_Controller_Init(qboolean notify_user)
 	}
 
 	IN_GamepadLabels_Changed();
+	IN_GamepadConfirm_Changed();
 }
 
 /*
@@ -2390,6 +2445,7 @@ IN_Init(void)
 	joy_sidesensitivity = Cvar_Get("joy_sidesensitivity", "1.0", CVAR_ARCHIVE);
 
 	joy_labels = Cvar_Get("joy_labels", "-1", CVAR_ARCHIVE);
+	joy_confirm = Cvar_Get("joy_confirm", "-1", CVAR_ARCHIVE);
 	joy_layout = Cvar_Get("joy_layout", "0", CVAR_ARCHIVE);
 	joy_left_expo = Cvar_Get("joy_left_expo", "2.0", CVAR_ARCHIVE);
 	joy_left_snapaxis = Cvar_Get("joy_left_snapaxis", "0.15", CVAR_ARCHIVE);

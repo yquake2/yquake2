@@ -602,6 +602,12 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
   - `2`: *Playstation*, 4 & 5 format
   - `3`: *Switch*, traditional Nintendo button format
 
+* **joy_confirm**: Style of *confirm* and *cancel* buttons in menus. As
+  with the previous one, SDL 2.0.12 is required for `-1` to work.
+  - `-1`: *Autodetect*, sets to `1` if Nintendo, `0` otherwise
+  - `0`: SOUTH to confirm, EAST to cancel (standard style)
+  - `1`: EAST to confirm, SOUTH to cancel (Japanese style)
+
 * **joy_layout**: Allows to select the stick layout of the gamepad.
   - `0`: *Default*, left stick moves, right aims
   - `1`: *Southpaw*, same as previous one with inverted sticks
