@@ -280,20 +280,20 @@ Key_GetMenuKey(int key)
 
 		case K_KP_ENTER:
 		case K_ENTER:
-		case K_BTN_A:
+		case K_BTN_SOUTH:
 		    return K_ENTER;
 
 		case K_ESCAPE:
-		case K_JOY_BACK:
-		case K_BTN_B:
+		case K_BTN_EAST:
 		    return K_ESCAPE;
 
-		case K_BACKSPACE:
-		case K_DEL:
 		case K_KP_DEL:
 		    if (IN_NumpadIsOn() == true) { break; }
-		case K_BTN_Y:
+		case K_BACKSPACE:
+		case K_DEL:
+		case K_BTN_NORTH:
 		    return K_BACKSPACE;
+
 		case K_KP_INS:
 		    if (IN_NumpadIsOn() == true) { break; }
 		case K_INS:
@@ -940,14 +940,14 @@ M_UnbindCommand(char *command, int scope)
     switch (scope)
     {
         case KEYS_KEYBOARD_MOUSE:
-             end = K_JOY_FIRST_REGULAR;
+             end = K_JOY_FIRST_BTN;
              break;
         case KEYS_CONTROLLER:
-             begin = K_JOY_FIRST_REGULAR;
-             end = K_JOY_LAST_REGULAR + 1;
+             begin = K_JOY_FIRST_BTN;
+             end = K_JOY_FIRST_BTN_ALT;
              break;
         case KEYS_CONTROLLER_ALT:
-             begin = K_JOY_FIRST_REGULAR_ALT;
+             begin = K_JOY_FIRST_BTN_ALT;
     }
 
     for (j = begin; j < end; j++)
@@ -976,14 +976,14 @@ M_FindKeysForCommand(char *command, int *twokeys, int scope)
     switch (scope)
     {
         case KEYS_KEYBOARD_MOUSE:
-             end = K_JOY_FIRST_REGULAR;
+             end = K_JOY_FIRST_BTN;
              break;
         case KEYS_CONTROLLER:
-             begin = K_JOY_FIRST_REGULAR;
-             end = K_JOY_LAST_REGULAR + 1;
+             begin = K_JOY_FIRST_BTN;
+             end = K_JOY_FIRST_BTN_ALT;
              break;
         case KEYS_CONTROLLER_ALT:
-             begin = K_JOY_FIRST_REGULAR_ALT;
+             begin = K_JOY_FIRST_BTN_ALT;
     }
 
     twokeys[0] = twokeys[1] = -1;
@@ -1124,7 +1124,7 @@ Keys_MenuKey(int key)
     if (menukeyitem_bind)
     {
         // Any key/button except from the game controller and escape keys
-        if ((key != K_ESCAPE) && (key != '`') && (key < K_JOY_FIRST_REGULAR))
+        if ((key != K_ESCAPE) && (key != '`') && (key < K_JOY_FIRST_BTN))
         {
             char cmd[1024];
 
@@ -1277,7 +1277,7 @@ MultiplayerKeys_MenuKey(int key)
     if (menukeyitem_bind)
     {
         // Any key/button but the escape ones
-        if ((key != K_ESCAPE) && (key != '`') && (key != K_JOY_BACK))
+        if ((key != K_ESCAPE) && (key != '`'))
         {
             char cmd[1024];
 
@@ -1432,7 +1432,7 @@ ControllerButtons_MenuInit(void)
 		Menu_AddItem(&s_controller_buttons_menu, (void *)&s_controller_buttons_actions[i]);
 	}
 
-	Menu_SetStatusBar(&s_controller_buttons_menu, "BTN_A assigns, BTN_Y clears, BTN_B exits");
+	Menu_SetStatusBar(&s_controller_buttons_menu, "BTN_SOUTH assigns, BTN_NORTH clears, BTN_EAST exits");
 	Menu_Center(&s_controller_buttons_menu);
 }
 
@@ -1451,7 +1451,7 @@ ControllerButtons_MenuKey(int key)
 	if (menukeyitem_bind)
 	{
 		// Only controller buttons allowed
-		if (key >= K_JOY_FIRST_REGULAR && key != K_JOY_BACK)
+		if (key >= K_JOY_FIRST_BTN)
 		{
 			char cmd[1024];
 
@@ -1460,7 +1460,7 @@ ControllerButtons_MenuKey(int key)
 			Cbuf_InsertText(cmd);
 		}
 
-		Menu_SetStatusBar(&s_controller_buttons_menu, "BTN_A assigns, BTN_Y clears, BTN_B exits");
+		Menu_SetStatusBar(&s_controller_buttons_menu, "BTN_SOUTH assigns, BTN_NORTH clears, BTN_EAST exits");
 		menukeyitem_bind = false;
 		return menu_out_sound;
 	}
@@ -1606,7 +1606,7 @@ ControllerAltButtons_MenuInit(void)
 		Menu_AddItem(&s_controller_alt_buttons_menu, (void *)&s_controller_alt_buttons_actions[i]);
 	}
 
-	Menu_SetStatusBar(&s_controller_alt_buttons_menu, "BTN_A assigns, BTN_Y clears, BTN_B exits");
+	Menu_SetStatusBar(&s_controller_alt_buttons_menu, "BTN_SOUTH assigns, BTN_NORTH clears, BTN_EAST exits");
 	Menu_Center(&s_controller_alt_buttons_menu);
 }
 
@@ -1625,17 +1625,17 @@ ControllerAltButtons_MenuKey(int key)
 	if (menukeyitem_bind)
 	{
 		// Only controller buttons allowed, different from the alt buttons modifier
-		if (key >= K_JOY_FIRST_REGULAR && key != K_JOY_BACK && (keybindings[key] == NULL || strcmp(keybindings[key], "+joyaltselector") != 0))
+		if (key >= K_JOY_FIRST_BTN && (keybindings[key] == NULL || strcmp(keybindings[key], "+joyaltselector") != 0))
 		{
 			char cmd[1024];
-			key = key + (K_JOY_FIRST_REGULAR_ALT - K_JOY_FIRST_REGULAR);   // change input to its ALT mode
+			key = key + (K_JOY_FIRST_BTN_ALT - K_JOY_FIRST_BTN);   // change input to its ALT mode
 
 			Com_sprintf(cmd, sizeof(cmd), "bind \"%s\" \"%s\"\n",
 					Key_KeynumToString(key), controller_alt_bindnames[item->generic.localdata[0]][0]);
 			Cbuf_InsertText(cmd);
 		}
 
-		Menu_SetStatusBar(&s_controller_alt_buttons_menu, "BTN_A assigns, BTN_Y clears, BTN_B exits");
+		Menu_SetStatusBar(&s_controller_alt_buttons_menu, "BTN_SOUTH assigns, BTN_NORTH clears, BTN_EAST exits");
 		menukeyitem_bind = false;
 		return menu_out_sound;
 	}

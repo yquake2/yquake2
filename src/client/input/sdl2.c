@@ -78,7 +78,7 @@ typedef enum
 // IN_Update() called at the beginning of a frame to the
 // actual movement functions called at a later time.
 static float mouse_x, mouse_y;
-static unsigned char sdl_back_button = SDL_CONTROLLER_BUTTON_START;
+static unsigned char joy_escbutton = SDL_CONTROLLER_BUTTON_START;
 static int joystick_left_x, joystick_left_y, joystick_right_x, joystick_right_y;
 static float gyro_yaw, gyro_pitch;
 static qboolean mlooking;
@@ -734,8 +734,8 @@ IN_Update(void)
 				qboolean down = (event.type == SDL_CONTROLLERBUTTONDOWN);
 				unsigned char btn = event.cbutton.button;
 
-				// Handle Back Button, to override its original key
-				Key_Event( (btn == sdl_back_button)? K_JOY_BACK : K_BTN_A + btn,
+				// Handle Esc button first, to override its original key
+				Key_Event( (btn == joy_escbutton)? K_ESCAPE : K_JOY_FIRST_BTN + btn,
 					down, true );
 				break;
 			}
@@ -2070,19 +2070,19 @@ IN_Controller_Init(qboolean notify_user)
 	SDL_Joystick *joystick = NULL;
 	SDL_bool is_controller = SDL_FALSE;
 
-	cvar = Cvar_Get("in_sdlbackbutton", "1", CVAR_ARCHIVE);
+	cvar = Cvar_Get("joy_escbutton", "0", CVAR_ARCHIVE);
 	if (cvar)
 	{
 		switch ((int)cvar->value)
 		{
-			case 0:
-				sdl_back_button = SDL_CONTROLLER_BUTTON_BACK;
+			case 1:
+				joy_escbutton = SDL_CONTROLLER_BUTTON_BACK;
 				break;
 			case 2:
-				sdl_back_button = SDL_CONTROLLER_BUTTON_GUIDE;
+				joy_escbutton = SDL_CONTROLLER_BUTTON_GUIDE;
 				break;
 			default:
-				sdl_back_button = SDL_CONTROLLER_BUTTON_START;
+				joy_escbutton = SDL_CONTROLLER_BUTTON_START;
 		}
 	}
 
@@ -2105,6 +2105,9 @@ IN_Controller_Init(qboolean notify_user)
 #endif
 #ifdef SDL_HINT_JOYSTICK_HIDAPI_PS5_RUMBLE
 		SDL_SetHint( SDL_HINT_JOYSTICK_HIDAPI_PS5_RUMBLE, "1" );
+#endif
+#ifdef SDL_HINT_GAMECONTROLLER_USE_BUTTON_LABELS	// use button positions instead of labels, like SDL3
+		SDL_SetHint( SDL_HINT_GAMECONTROLLER_USE_BUTTON_LABELS, "0" );
 #endif
 
 		if (SDL_Init(SDL_INIT_GAMECONTROLLER | SDL_INIT_HAPTIC) == -1)

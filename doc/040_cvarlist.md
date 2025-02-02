@@ -581,16 +581,16 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
 * **sw_colorlight**: enable experimental color lighting.
 
 
-## Game Controller
+## Gamepad
 
 * **in_initjoy**: Toggles initialization of game controller. Default is
   `1`, which enables gamepad usage; `0` disables its detection at
   startup. Can only be set from command line.
 
-* **in_sdlbackbutton**: Defines which button is used in the gamepad as
+* **joy_escbutton**: Defines which button is used in the gamepad as
   the `Esc` key, to pull the main menu and 'cancel' / 'go back' on its
-  options. Valid values are `0` = Back / Select / Minus, `1` = Start /
-  Menu / Plus (default), or `2` = Guide / Home / PS. Requires a game
+  options. Valid values are `0` = Start / Menu / Plus (default), `1` =
+  Back / Select / Minus, or `2` = Guide / Home / PS. Requires a game
   restart, or gamepad replug, when changed.
 
 * **joy_layout**: Allows to select the stick layout of the gamepad.

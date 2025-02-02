@@ -139,10 +139,10 @@ keyname_t keynames[] = {
 	{"MWHEELUP", K_MWHEELUP},
 	{"MWHEELDOWN", K_MWHEELDOWN},
 
-	{"BTN_A", K_BTN_A},
-	{"BTN_B", K_BTN_B},
-	{"BTN_X", K_BTN_X},
-	{"BTN_Y", K_BTN_Y},
+	{"BTN_SOUTH", K_BTN_SOUTH},
+	{"BTN_EAST", K_BTN_EAST},
+	{"BTN_WEST", K_BTN_WEST},
+	{"BTN_NORTH", K_BTN_NORTH},
 	{"STICK_LEFT", K_STICK_LEFT},
 	{"STICK_RIGHT", K_STICK_RIGHT},
 	{"SHOULDR_LEFT", K_SHOULDER_LEFT},
@@ -155,10 +155,6 @@ keyname_t keynames[] = {
 	{"DP_LEFT", K_DPAD_LEFT},
 	{"DP_RIGHT", K_DPAD_RIGHT},
 
-	{"PADDLE_1", K_PADDLE_1},
-	{"PADDLE_2", K_PADDLE_2},
-	{"PADDLE_3", K_PADDLE_3},
-	{"PADDLE_4", K_PADDLE_4},
 	{"BTN_MISC1", K_BTN_MISC1},
 	{"TOUCHPAD", K_TOUCHPAD},
 	{"BTN_BACK", K_BTN_BACK},
@@ -167,10 +163,10 @@ keyname_t keynames[] = {
 
 	// virtual keys you get by pressing the corresponding normal joy key
 	// and the altselector key
-	{"BTN_A_ALT", K_BTN_A_ALT},
-	{"BTN_B_ALT", K_BTN_B_ALT},
-	{"BTN_X_ALT", K_BTN_X_ALT},
-	{"BTN_Y_ALT", K_BTN_Y_ALT},
+	{"BTN_SOUTH_ALT", K_BTN_SOUTH_ALT},
+	{"BTN_EAST_ALT", K_BTN_EAST_ALT},
+	{"BTN_WEST_ALT", K_BTN_WEST_ALT},
+	{"BTN_NORTH_ALT", K_BTN_NORTH_ALT},
 	{"STICK_LEFT_ALT", K_STICK_LEFT_ALT},
 	{"STICK_RIGHT_ALT", K_STICK_RIGHT_ALT},
 	{"SHOULDR_LEFT_ALT", K_SHOULDER_LEFT_ALT},
@@ -183,17 +179,11 @@ keyname_t keynames[] = {
 	{"DP_LEFT_ALT", K_DPAD_LEFT_ALT},
 	{"DP_RIGHT_ALT", K_DPAD_RIGHT_ALT},
 
-	{"PADDLE_1_ALT", K_PADDLE_1_ALT},
-	{"PADDLE_2_ALT", K_PADDLE_2_ALT},
-	{"PADDLE_3_ALT", K_PADDLE_3_ALT},
-	{"PADDLE_4_ALT", K_PADDLE_4_ALT},
 	{"BTN_MISC1_ALT", K_BTN_MISC1_ALT},
 	{"TOUCHPAD_ALT", K_TOUCHPAD_ALT},
 	{"BTN_BACK_ALT", K_BTN_BACK_ALT},
 	{"BTN_GUIDE_ALT", K_BTN_GUIDE_ALT},
 	{"BTN_START_ALT", K_BTN_START_ALT},
-
-	{"JOY_BACK", K_JOY_BACK},
 
 	{"SUPER", K_SUPER},
 	{"COMPOSE", K_COMPOSE},
@@ -885,7 +875,7 @@ Key_Bind_f(void)
 	}
 
 	/* don't allow binding escape or the special console keys */
-	if(b == K_ESCAPE || b == '^' || b == '`' || b == '~' || b == K_JOY_BACK)
+	if(b == K_ESCAPE || b == '^' || b == '`' || b == '~')
 	{
 		if(doneWithDefaultCfg)
 		{
@@ -1203,12 +1193,12 @@ Key_Event(int key, qboolean down, qboolean special)
 	unsigned int time = Sys_Milliseconds();
 
 	// evil hack for the joystick key altselector, which turns K_BTN_x into K_BTN_x_ALT
-	if(joy_altselector_pressed && key >= K_JOY_FIRST_REGULAR && key <= K_JOY_LAST_REGULAR)
+	if(joy_altselector_pressed && key >= K_JOY_FIRST_BTN && key < K_JOY_FIRST_BTN_ALT)
 	{
 		// make sure key is not the altselector itself (which we won't turn into *_ALT)
 		if(keybindings[key] == NULL || strcmp(keybindings[key], "+joyaltselector") != 0)
 		{
-			int altkey = key + (K_JOY_FIRST_REGULAR_ALT - K_JOY_FIRST_REGULAR);
+			int altkey = key + (K_JOY_FIRST_BTN_ALT - K_JOY_FIRST_BTN);
 			// allow fallback to binding with non-alt key
 			if(keybindings[altkey] != NULL || keybindings[key] == NULL)
 				key = altkey;
@@ -1275,7 +1265,7 @@ Key_Event(int key, qboolean down, qboolean special)
 	}
 
 	/* Key is unbound */
-	if ((key >= K_MOUSE1 && key != K_JOY_BACK) && !keybindings[key] && (cls.key_dest != key_console) &&
+	if ((key >= K_MOUSE1) && !keybindings[key] && (cls.key_dest != key_console) &&
 		(cls.state == ca_active))
 	{
 		Com_Printf("%s (%d) is unbound, hit F4 to set.\n", Key_KeynumToString(key), key);
@@ -1296,47 +1286,43 @@ Key_Event(int key, qboolean down, qboolean special)
 	   - moves one menu level up
 	   - closes the menu
 	   - closes the help computer
-	   - closes the chat window
-	   Fully same logic for K_JOY_BACK */
-	if (!cls.disable_screen)
+	   - closes the chat window	*/
+	if (key == K_ESCAPE && !cls.disable_screen)
 	{
-		if (key == K_ESCAPE || key == K_JOY_BACK)
+		if (!down)
 		{
-			if (!down)
-			{
-				return;
-			}
-
-			/* Close the help computer */
-			if (cl.frame.playerstate.stats[STAT_LAYOUTS] &&
-				(cls.key_dest == key_game))
-			{
-				Cbuf_AddText("cmd putaway\n");
-				return;
-			}
-
-			switch (cls.key_dest)
-			{
-				/* Close chat window */
-				case key_message:
-					Key_Message(key);
-					break;
-
-				/* Close menu or one layer up */
-				case key_menu:
-					M_Keydown(key);
-					break;
-
-				/* Pause game and / or leave console,
-				   break into the menu. */
-				case key_game:
-				case key_console:
-					M_Menu_Main_f();
-					break;
-			}
-
 			return;
 		}
+
+		/* Close the help computer */
+		if (cl.frame.playerstate.stats[STAT_LAYOUTS] &&
+			(cls.key_dest == key_game))
+		{
+			Cbuf_AddText("cmd putaway\n");
+			return;
+		}
+
+		switch (cls.key_dest)
+		{
+			/* Close chat window */
+			case key_message:
+				Key_Message(key);
+				break;
+
+			/* Close menu or one layer up */
+			case key_menu:
+				M_Keydown(key);
+				break;
+
+			/* Pause game and / or leave console,
+			   break into the menu. */
+			case key_game:
+			case key_console:
+				M_Menu_Main_f();
+				break;
+		}
+
+		return;
 	}
 
 	/* This is one of the most ugly constructs I've
