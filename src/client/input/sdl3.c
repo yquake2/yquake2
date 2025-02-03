@@ -596,6 +596,20 @@ IN_GamepadConfirm_Changed(void)
 }
 
 static void
+IN_GyroMode_Changed(void)
+{
+	if (gyro_mode->value < 2)
+	{
+		gyro_active = false;
+	}
+	else
+	{
+		gyro_active = true;
+	}
+	gyro_mode->modified = false;
+}
+
+static void
 IN_VirtualKeyEvent(int keynum, qboolean *state_store, qboolean new_state)
 {
 	if (new_state != *state_store)
@@ -939,8 +953,7 @@ IN_Update(void)
 
 #endif	// !NO_SDL_GYRO
 
-				if (gyro_active && gyro_mode->value &&
-					!cl_paused->value && cls.key_dest == key_game)
+				if (gyro_active && !cl_paused->value && cls.key_dest == key_game)
 				{
 #ifndef NO_SDL_GYRO
 					if (!gyro_turning_axis->value)
@@ -1098,6 +1111,10 @@ IN_Update(void)
 	if (joy_confirm->modified)
 	{
 		IN_GamepadConfirm_Changed();
+	}
+	if (gyro_mode->modified)
+	{
+		IN_GyroMode_Changed();
 	}
 }
 
@@ -2398,6 +2415,7 @@ IN_Controller_Init(qboolean notify_user)
 	SDL_free((void *)joysticks);
 	IN_GamepadLabels_Changed();
 	IN_GamepadConfirm_Changed();
+	IN_GyroMode_Changed();
 }
 
 /*
@@ -2449,16 +2467,11 @@ IN_Init(void)
 	gyro_calibration_y = Cvar_Get("gyro_calibration_y", "0.0", CVAR_ARCHIVE);
 	gyro_calibration_z = Cvar_Get("gyro_calibration_z", "0.0", CVAR_ARCHIVE);
 
-	gyro_yawsensitivity = Cvar_Get("gyro_yawsensitivity", "1.0", CVAR_ARCHIVE);
-	gyro_pitchsensitivity = Cvar_Get("gyro_pitchsensitivity", "1.0", CVAR_ARCHIVE);
+	gyro_yawsensitivity = Cvar_Get("gyro_yawsensitivity", "2.5", CVAR_ARCHIVE);
+	gyro_pitchsensitivity = Cvar_Get("gyro_pitchsensitivity", "2.5", CVAR_ARCHIVE);
 	gyro_tightening = Cvar_Get("gyro_tightening", "3.5", CVAR_ARCHIVE);
 	gyro_turning_axis = Cvar_Get("gyro_turning_axis", "0", CVAR_ARCHIVE);
-
 	gyro_mode = Cvar_Get("gyro_mode", "2", CVAR_ARCHIVE);
-	if ((int)gyro_mode->value == 2)
-	{
-		gyro_active = true;
-	}
 
 	windowed_pauseonfocuslost = Cvar_Get("vid_pauseonfocuslost", "0", CVAR_USERINFO | CVAR_ARCHIVE);
 	windowed_mouse = Cvar_Get("windowed_mouse", "1", CVAR_USERINFO | CVAR_ARCHIVE);
