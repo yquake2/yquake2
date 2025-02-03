@@ -52,6 +52,27 @@ jobs:
         cp doc/070_packaging.md publish/quake2-macos-${{github.sha}}/misc/docs/070_packaging.txt
         cp doc/080_contributing.md publish/quake2-macos-${{github.sha}}/misc/docs/080_contributing.txt
         cp doc/090_filelists.md publish/quake2-macos-${{github.sha}}/misc/docs/090_filelists.md
+    - name: Create dmg package
+      run: |
+        rm -rf build/macos-dmg
+        mkdir -p build/macos-dmg
+        # start with app bundle template
+        unzip stuff/osx/quake2-appbundle.zip -d build/macos-dmg
+        # add files in root of disk image
+        cp LICENSE README.md build/macos-dmg
+        # copy all binaries to Resources dir
+        cp -r release/* "build/macos-dmg/Quake 2.app/Contents/Resources"
+        # dependency: libSDL2
+        cp -R /opt/homebrew/opt/sdl2/lib/libSDL2-2.0.0.dylib "build/macos-dmg/Quake 2.app/Contents/Resources"
+        install_name_tool -id "libSDL2-2.0.0.dylib" "build/macos-dmg/Quake 2.app/Contents/Resources/libSDL2-2.0.0.dylib"
+        install_name_tool -change "/opt/homebrew/opt/sdl2/lib/libSDL2-2.0.0.dylib" "@executable_path/../Resources/libSDL2-2.0.0.dylib" "build/macos-dmg/Quake 2.app/Contents/Resources/quake2"
+        install_name_tool -change "/opt/homebrew/opt/sdl2/lib/libSDL2-2.0.0.dylib" "@executable_path/../Resources/libSDL2-2.0.0.dylib" "build/macos-dmg/Quake 2.app/Contents/Resources/ref_gl1.dylib"
+        install_name_tool -change "/opt/homebrew/opt/sdl2/lib/libSDL2-2.0.0.dylib" "@executable_path/../Resources/libSDL2-2.0.0.dylib" "build/macos-dmg/Quake 2.app/Contents/Resources/ref_gl3.dylib"
+        install_name_tool -change "/opt/homebrew/opt/sdl2/lib/libSDL2-2.0.0.dylib" "@executable_path/../Resources/libSDL2-2.0.0.dylib" "build/macos-dmg/Quake 2.app/Contents/Resources/ref_gles3.dylib"
+        install_name_tool -change "/opt/homebrew/opt/sdl2/lib/libSDL2-2.0.0.dylib" "@executable_path/../Resources/libSDL2-2.0.0.dylib" "build/macos-dmg/Quake 2.app/Contents/Resources/ref_soft.dylib"
+        # make disk image
+        hdiutil create -srcfolder build/macos-dmg -layout SPUD -fs HFS+ -volname "Yamagi Quake II" "release/yquake2.dmg"
+        cp release/yquake2.dmg publish/quake2-macos-${{github.sha}}/
     - name: Upload testbuild package
       uses: actions/upload-artifact@v4
       with:
