@@ -97,8 +97,8 @@ qboolean joy_altselector_pressed = false;
 // Gamepad labels' style (Xbox, Playstation, etc.) in use, normally set after detection
 gamepad_labels_t joy_current_lbls = LBL_SDL;
 
-// Confirm & cancel buttons' keynums
-int btn_confirm = K_BTN_SOUTH, btn_cancel = K_BTN_EAST;
+// Using japanese style for confirm & cancel buttons on gamepad
+qboolean japanese_confirm = false;
 
 // Console Variables
 cvar_t *freelook;
@@ -564,7 +564,7 @@ static void
 IN_GamepadConfirm_Changed(void)
 {
 	const int requested = (int)joy_confirm->value;
-	qboolean japanese_style = false;
+	japanese_confirm = false;
 	joy_confirm->modified = false;
 
 	if (requested < 0 && controller) // try to autodetect...
@@ -573,25 +573,14 @@ IN_GamepadConfirm_Changed(void)
 		{
 			case SDL_GAMEPAD_TYPE_NINTENDO_SWITCH_PRO:
 			case SDL_GAMEPAD_TYPE_NINTENDO_SWITCH_JOYCON_PAIR:
-				japanese_style = true;
+				japanese_confirm = true;
 			default:
-				break;
+				return;
 		}
 	}
 	else if (requested == 1)
 	{
-		japanese_style = true;
-	}
-
-	if (japanese_style)
-	{
-		btn_confirm = K_BTN_EAST;
-		btn_cancel = K_BTN_SOUTH;
-	}
-	else
-	{
-		btn_confirm = K_BTN_SOUTH;
-		btn_cancel = K_BTN_EAST;
+		japanese_confirm = true;
 	}
 }
 

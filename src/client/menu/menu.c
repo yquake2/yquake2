@@ -240,7 +240,7 @@ M_PushMenu(menuframework_s* menu)
     cls.key_dest = key_menu;
 }
 
-extern int btn_confirm, btn_cancel;
+extern qboolean japanese_confirm;
 
 int
 Key_GetMenuKey(int key)
@@ -295,15 +295,14 @@ Key_GetMenuKey(int key)
 		    if (IN_NumpadIsOn() == true) { break; }
 		case K_INS:
 		    return K_INS;
-	}
 
-	if (key == btn_confirm)
-	{
-		return K_ENTER;
-	}
-	if (key == btn_cancel)
-	{
-		return K_ESCAPE;
+		case K_BTN_SOUTH:
+		    if (japanese_confirm) return K_ESCAPE;
+		    else return K_ENTER;
+
+		case K_BTN_EAST:
+		    if (japanese_confirm) return K_ENTER;
+		    else return K_ESCAPE;
 	}
 
 	return key;
@@ -1329,6 +1328,18 @@ static void
 GamepadMenu_StatusPrompt(menuframework_s *m)
 {
 	static char m_gamepadbind_statusbar[64];
+	int btn_confirm, btn_cancel;
+
+	if (japanese_confirm)
+	{
+		btn_confirm = K_BTN_EAST;
+		btn_cancel = K_BTN_SOUTH;
+	}
+	else
+	{
+		btn_confirm = K_BTN_SOUTH;
+		btn_cancel = K_BTN_EAST;
+	}
 
 	snprintf(m_gamepadbind_statusbar, 64, "%s assigns, %s clears, %s exits",
 		Key_KeynumToString_Joy(btn_confirm), Key_KeynumToString_Joy(K_BTN_NORTH),
