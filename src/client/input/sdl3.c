@@ -610,14 +610,14 @@ IN_VirtualKeyEvent(int keynum, qboolean *state_store, qboolean new_state)
 
 qboolean IN_NumpadIsOn()
 {
-    SDL_Keymod mod = SDL_GetModState();
+	SDL_Keymod mod = SDL_GetModState();
 
-    if ((mod & SDL_KMOD_NUM) == SDL_KMOD_NUM)
-    {
-        return true;
-    }
+	if ((mod & SDL_KMOD_NUM) == SDL_KMOD_NUM)
+	{
+		return true;
+	}
 
-    return false;
+	return false;
 }
 
 /* ------------------------------------------------------------------ */
@@ -2252,6 +2252,8 @@ IN_Controller_Init(qboolean notify_user)
 			IN_Haptic_Effects_Info();
 			show_haptic = true;
 		}
+
+		SDL_free((void *)joysticks);
 
 		return;
 	}
