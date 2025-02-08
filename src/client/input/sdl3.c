@@ -81,7 +81,7 @@ typedef enum
 // IN_Update() called at the beginning of a frame to the
 // actual movement functions called at a later time.
 static float mouse_x, mouse_y;
-static unsigned char sdl_back_button = SDL_GAMEPAD_BUTTON_START;
+static unsigned char joy_escbutton = SDL_GAMEPAD_BUTTON_START;
 static int joystick_left_x, joystick_left_y, joystick_right_x, joystick_right_y;
 static float gyro_yaw, gyro_pitch;
 static qboolean mlooking;
@@ -93,6 +93,12 @@ int sys_frame_time;
 // the joystick altselector that turns K_BTN_X into K_BTN_X_ALT
 // is pressed
 qboolean joy_altselector_pressed = false;
+
+// Gamepad labels' style (Xbox, Playstation, etc.) in use, normally set after detection
+gamepad_labels_t joy_current_lbls = LBL_SDL;
+
+// Using japanese style for confirm & cancel buttons on gamepad
+qboolean japanese_confirm = false;
 
 // Console Variables
 cvar_t *freelook;
@@ -136,6 +142,12 @@ static int last_haptic_volume = 0;
 static int last_haptic_effect_size = HAPTIC_EFFECT_LIST_SIZE;
 static int last_haptic_effect_pos = 0;
 static haptic_effects_cache_t last_haptic_effect[HAPTIC_EFFECT_LIST_SIZE];
+
+// Gamepad labels' style (Xbox, Playstation, etc.) requested by user
+static cvar_t *joy_labels;
+
+// Gamepad style for confirm and cancel buttons (traditional or japanese)
+static cvar_t *joy_confirm;
 
 // Joystick sensitivity
 static cvar_t *joy_yawsensitivity;
@@ -504,6 +516,98 @@ IN_TranslateScancodeToQ2Key(SDL_Scancode sc)
 static void IN_Controller_Init(qboolean notify_user);
 static void IN_Controller_Shutdown(qboolean notify_user);
 
+/*
+ * Sets the gamepad buttons' style of labels (SDL, Xbox, PS, Switch).
+ * They are only visible in the gamepad binding options.
+ * Traditional binding uses SDL style, no matter the gamepad.
+ */
+static void
+IN_GamepadLabels_Changed(void)
+{
+	const int requested = (int)joy_labels->value;
+	joy_labels->modified = false;
+	joy_current_lbls = LBL_SDL;
+
+	if (requested < 0 && controller) // try to autodetect...
+	{
+		switch (SDL_GetGamepadType(controller))
+		{
+			case SDL_GAMEPAD_TYPE_XBOX360:
+			case SDL_GAMEPAD_TYPE_XBOXONE:
+				joy_current_lbls = LBL_XBOX;
+				return;
+
+			case SDL_GAMEPAD_TYPE_PS3:
+			case SDL_GAMEPAD_TYPE_PS4:
+			case SDL_GAMEPAD_TYPE_PS5:
+				joy_current_lbls = LBL_PLAYSTATION;
+				return;
+
+			case SDL_GAMEPAD_TYPE_NINTENDO_SWITCH_PRO:
+			case SDL_GAMEPAD_TYPE_NINTENDO_SWITCH_JOYCON_PAIR:
+				joy_current_lbls = LBL_SWITCH;
+			default:
+				return;
+		}
+	}
+	else if (requested >= LBL_SDL && requested < LBL_MAX_COUNT)
+	{
+		joy_current_lbls = (gamepad_labels_t)requested;
+	}
+}
+
+/*
+ * Sets which gamepad button works as "confirm", and which
+ * works as "cancel", in menus.
+ */
+static void
+IN_GamepadConfirm_Changed(void)
+{
+	const int requested = (int)joy_confirm->value;
+	japanese_confirm = false;
+	joy_confirm->modified = false;
+
+	if (requested < 0 && controller) // try to autodetect...
+	{
+		switch (SDL_GetGamepadType(controller))
+		{
+			case SDL_GAMEPAD_TYPE_NINTENDO_SWITCH_PRO:
+			case SDL_GAMEPAD_TYPE_NINTENDO_SWITCH_JOYCON_PAIR:
+				japanese_confirm = true;
+			default:
+				return;
+		}
+	}
+	else if (requested == 1)
+	{
+		japanese_confirm = true;
+	}
+}
+
+static void
+IN_GyroMode_Changed(void)
+{
+	if (gyro_mode->value < 2)
+	{
+		gyro_active = false;
+	}
+	else
+	{
+		gyro_active = true;
+	}
+	gyro_mode->modified = false;
+}
+
+static void
+IN_VirtualKeyEvent(int keynum, qboolean *state_store, qboolean new_state)
+{
+	if (new_state != *state_store)
+	{
+		*state_store = new_state;
+		Key_Event(keynum, *state_store, true);
+	}
+}
+
 qboolean IN_NumpadIsOn()
 {
     SDL_Keymod mod = SDL_GetModState();
@@ -532,6 +636,7 @@ IN_Update(void)
 
 	static qboolean left_trigger = false;
 	static qboolean right_trigger = false;
+	static qboolean left_stick[4] = {false, false, false, false};   // left, right, up, down virtual keys
 
 	static int consoleKeyCode = 0;
 
@@ -733,8 +838,8 @@ IN_Update(void)
 				qboolean down = (event.type == SDL_EVENT_GAMEPAD_BUTTON_DOWN);
 				unsigned char btn = event.gbutton.button;
 
-				// Handle Back Button, to override its original key
-				Key_Event( (btn == sdl_back_button)? K_JOY_BACK : K_BTN_A + btn,
+				// Handle Esc button first, to override its original key
+				Key_Event( (btn == joy_escbutton)? K_ESCAPE : K_JOY_FIRST_BTN + btn,
 					down, true );
 				break;
 			}
@@ -746,26 +851,12 @@ IN_Update(void)
 				switch (event.gaxis.axis)
 				{
 					case SDL_GAMEPAD_AXIS_LEFT_TRIGGER :
-					{
-						qboolean new_left_trigger = axis_value > 8192;
-						if (new_left_trigger != left_trigger)
-						{
-							left_trigger = new_left_trigger;
-							Key_Event(K_TRIG_LEFT, left_trigger, true);
-						}
+						IN_VirtualKeyEvent(K_TRIG_LEFT, &left_trigger, axis_value > 8192);
 						break;
-					}
 
 					case SDL_GAMEPAD_AXIS_RIGHT_TRIGGER :
-					{
-						qboolean new_right_trigger = axis_value > 8192;
-						if (new_right_trigger != right_trigger)
-						{
-							right_trigger = new_right_trigger;
-							Key_Event(K_TRIG_RIGHT, right_trigger, true);
-						}
+						IN_VirtualKeyEvent(K_TRIG_RIGHT, &right_trigger, axis_value > 8192);
 						break;
-					}
 				}
 
 				if (!cl_paused->value && cls.key_dest == key_game)
@@ -783,6 +874,24 @@ IN_Update(void)
 							break;
 						case SDL_GAMEPAD_AXIS_RIGHTY :
 							joystick_right_y = axis_value;
+							break;
+					}
+					break;
+				}
+
+				// Virtual keys to navigate menus with left stick
+				if (cls.key_dest == key_menu)
+				{
+					switch (event.gaxis.axis)
+					{
+						case SDL_GAMEPAD_AXIS_LEFTX :
+							IN_VirtualKeyEvent(K_LEFTARROW, &left_stick[0], axis_value < -16896);
+							IN_VirtualKeyEvent(K_RIGHTARROW, &left_stick[1], axis_value > 16896);
+							break;
+
+						case SDL_GAMEPAD_AXIS_LEFTY :
+							IN_VirtualKeyEvent(K_UPARROW, &left_stick[2], axis_value < -16896);
+							IN_VirtualKeyEvent(K_DOWNARROW, &left_stick[3], axis_value > 16896);
 							break;
 					}
 				}
@@ -833,8 +942,7 @@ IN_Update(void)
 
 #endif	// !NO_SDL_GYRO
 
-				if (gyro_active && gyro_mode->value &&
-					!cl_paused->value && cls.key_dest == key_game)
+				if (gyro_active && !cl_paused->value && cls.key_dest == key_game)
 				{
 #ifndef NO_SDL_GYRO
 					if (!gyro_turning_axis->value)
@@ -982,6 +1090,20 @@ IN_Update(void)
 			}
 			countdown_reason = REASON_NONE;
 		}
+	}
+
+	// Gamepad labels' type and "confirm & cancel style" change handling
+	if (joy_labels->modified)
+	{
+		IN_GamepadLabels_Changed();
+	}
+	if (joy_confirm->modified)
+	{
+		IN_GamepadConfirm_Changed();
+	}
+	if (gyro_mode->modified)
+	{
+		IN_GyroMode_Changed();
 	}
 }
 
@@ -2068,19 +2190,19 @@ IN_Controller_Init(qboolean notify_user)
 	SDL_Joystick *joystick = NULL;
 	bool is_controller = false;
 
-	cvar = Cvar_Get("in_sdlbackbutton", "1", CVAR_ARCHIVE);
+	cvar = Cvar_Get("joy_escbutton", "0", CVAR_ARCHIVE);
 	if (cvar)
 	{
 		switch ((int)cvar->value)
 		{
-			case 0:
-				sdl_back_button = SDL_GAMEPAD_BUTTON_BACK;
+			case 1:
+				joy_escbutton = SDL_GAMEPAD_BUTTON_BACK;
 				break;
 			case 2:
-				sdl_back_button = SDL_GAMEPAD_BUTTON_GUIDE;
+				joy_escbutton = SDL_GAMEPAD_BUTTON_GUIDE;
 				break;
 			default:
-				sdl_back_button = SDL_GAMEPAD_BUTTON_START;
+				joy_escbutton = SDL_GAMEPAD_BUTTON_START;
 		}
 	}
 
@@ -2280,6 +2402,9 @@ IN_Controller_Init(qboolean notify_user)
 	}
 
 	SDL_free((void *)joysticks);
+	IN_GamepadLabels_Changed();
+	IN_GamepadConfirm_Changed();
+	IN_GyroMode_Changed();
 }
 
 /*
@@ -2315,6 +2440,8 @@ IN_Init(void)
 	joy_forwardsensitivity = Cvar_Get("joy_forwardsensitivity", "1.0", CVAR_ARCHIVE);
 	joy_sidesensitivity = Cvar_Get("joy_sidesensitivity", "1.0", CVAR_ARCHIVE);
 
+	joy_labels = Cvar_Get("joy_labels", "-1", CVAR_ARCHIVE);
+	joy_confirm = Cvar_Get("joy_confirm", "-1", CVAR_ARCHIVE);
 	joy_layout = Cvar_Get("joy_layout", "0", CVAR_ARCHIVE);
 	joy_left_expo = Cvar_Get("joy_left_expo", "2.0", CVAR_ARCHIVE);
 	joy_left_snapaxis = Cvar_Get("joy_left_snapaxis", "0.15", CVAR_ARCHIVE);
@@ -2329,16 +2456,11 @@ IN_Init(void)
 	gyro_calibration_y = Cvar_Get("gyro_calibration_y", "0.0", CVAR_ARCHIVE);
 	gyro_calibration_z = Cvar_Get("gyro_calibration_z", "0.0", CVAR_ARCHIVE);
 
-	gyro_yawsensitivity = Cvar_Get("gyro_yawsensitivity", "1.0", CVAR_ARCHIVE);
-	gyro_pitchsensitivity = Cvar_Get("gyro_pitchsensitivity", "1.0", CVAR_ARCHIVE);
+	gyro_yawsensitivity = Cvar_Get("gyro_yawsensitivity", "2.5", CVAR_ARCHIVE);
+	gyro_pitchsensitivity = Cvar_Get("gyro_pitchsensitivity", "2.5", CVAR_ARCHIVE);
 	gyro_tightening = Cvar_Get("gyro_tightening", "3.5", CVAR_ARCHIVE);
 	gyro_turning_axis = Cvar_Get("gyro_turning_axis", "0", CVAR_ARCHIVE);
-
 	gyro_mode = Cvar_Get("gyro_mode", "2", CVAR_ARCHIVE);
-	if ((int)gyro_mode->value == 2)
-	{
-		gyro_active = true;
-	}
 
 	windowed_pauseonfocuslost = Cvar_Get("vid_pauseonfocuslost", "0", CVAR_USERINFO | CVAR_ARCHIVE);
 	windowed_mouse = Cvar_Get("windowed_mouse", "1", CVAR_USERINFO | CVAR_ARCHIVE);

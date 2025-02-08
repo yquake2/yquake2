@@ -240,6 +240,8 @@ M_PushMenu(menuframework_s* menu)
     cls.key_dest = key_menu;
 }
 
+extern qboolean japanese_confirm;
+
 int
 Key_GetMenuKey(int key)
 {
@@ -280,24 +282,27 @@ Key_GetMenuKey(int key)
 
 		case K_KP_ENTER:
 		case K_ENTER:
-		case K_BTN_A:
 		    return K_ENTER;
 
-		case K_ESCAPE:
-		case K_JOY_BACK:
-		case K_BTN_B:
-		    return K_ESCAPE;
-
-		case K_BACKSPACE:
-		case K_DEL:
 		case K_KP_DEL:
 		    if (IN_NumpadIsOn() == true) { break; }
-		case K_BTN_Y:
+		case K_BACKSPACE:
+		case K_DEL:
+		case K_BTN_NORTH:
 		    return K_BACKSPACE;
+
 		case K_KP_INS:
 		    if (IN_NumpadIsOn() == true) { break; }
 		case K_INS:
 		    return K_INS;
+
+		case K_BTN_SOUTH:
+		    if (japanese_confirm) return K_ESCAPE;
+		    else return K_ENTER;
+
+		case K_BTN_EAST:
+		    if (japanese_confirm) return K_ENTER;
+		    else return K_ESCAPE;
 	}
 
 	return key;
@@ -940,14 +945,14 @@ M_UnbindCommand(char *command, int scope)
     switch (scope)
     {
         case KEYS_KEYBOARD_MOUSE:
-             end = K_JOY_FIRST_REGULAR;
+             end = K_JOY_FIRST_BTN;
              break;
         case KEYS_CONTROLLER:
-             begin = K_JOY_FIRST_REGULAR;
-             end = K_JOY_LAST_REGULAR + 1;
+             begin = K_JOY_FIRST_BTN;
+             end = K_JOY_FIRST_BTN_ALT;
              break;
         case KEYS_CONTROLLER_ALT:
-             begin = K_JOY_FIRST_REGULAR_ALT;
+             begin = K_JOY_FIRST_BTN_ALT;
     }
 
     for (j = begin; j < end; j++)
@@ -976,14 +981,14 @@ M_FindKeysForCommand(char *command, int *twokeys, int scope)
     switch (scope)
     {
         case KEYS_KEYBOARD_MOUSE:
-             end = K_JOY_FIRST_REGULAR;
+             end = K_JOY_FIRST_BTN;
              break;
         case KEYS_CONTROLLER:
-             begin = K_JOY_FIRST_REGULAR;
-             end = K_JOY_LAST_REGULAR + 1;
+             begin = K_JOY_FIRST_BTN;
+             end = K_JOY_FIRST_BTN_ALT;
              break;
         case KEYS_CONTROLLER_ALT:
-             begin = K_JOY_FIRST_REGULAR_ALT;
+             begin = K_JOY_FIRST_BTN_ALT;
     }
 
     twokeys[0] = twokeys[1] = -1;
@@ -1124,7 +1129,7 @@ Keys_MenuKey(int key)
     if (menukeyitem_bind)
     {
         // Any key/button except from the game controller and escape keys
-        if ((key != K_ESCAPE) && (key != '`') && (key < K_JOY_FIRST_REGULAR))
+        if ((key != K_ESCAPE) && (key != '`') && (key < K_JOY_FIRST_BTN))
         {
             char cmd[1024];
 
@@ -1277,7 +1282,7 @@ MultiplayerKeys_MenuKey(int key)
     if (menukeyitem_bind)
     {
         // Any key/button but the escape ones
-        if ((key != K_ESCAPE) && (key != '`') && (key != K_JOY_BACK))
+        if ((key != K_ESCAPE) && (key != '`'))
         {
             char cmd[1024];
 
@@ -1318,6 +1323,30 @@ M_Menu_Multiplayer_Keys_f(void)
 /*
  * GAME CONTROLLER ( GAMEPAD / JOYSTICK ) BUTTONS MENU
  */
+
+static void
+GamepadMenu_StatusPrompt(menuframework_s *m)
+{
+	static char m_gamepadbind_statusbar[64];
+	int btn_confirm, btn_cancel;
+
+	if (japanese_confirm)
+	{
+		btn_confirm = K_BTN_EAST;
+		btn_cancel = K_BTN_SOUTH;
+	}
+	else
+	{
+		btn_confirm = K_BTN_SOUTH;
+		btn_cancel = K_BTN_EAST;
+	}
+
+	snprintf(m_gamepadbind_statusbar, 64, "%s assigns, %s clears, %s exits",
+		Key_KeynumToString_Joy(btn_confirm), Key_KeynumToString_Joy(K_BTN_NORTH),
+		Key_KeynumToString_Joy(btn_cancel));
+
+	Menu_SetStatusBar(m, m_gamepadbind_statusbar);
+}
 
 char *controller_bindnames[][2] =
 {
@@ -1374,7 +1403,7 @@ DrawControllerButtonBindingFunc(void *self)
 		int x;
 		const char *name;
 
-		name = Key_KeynumToString(keys[0]);
+		name = Key_KeynumToString_Joy(keys[0]);
 
 		Menu_DrawString(a->generic.x + a->generic.parent->x + RCOLUMN_OFFSET * scale,
 			a->generic.y + a->generic.parent->y, name);
@@ -1387,7 +1416,7 @@ DrawControllerButtonBindingFunc(void *self)
 					a->generic.y + a->generic.parent->y, "or");
 			Menu_DrawString(a->generic.x + a->generic.parent->x + 48 * scale + (x * scale),
 					a->generic.y + a->generic.parent->y,
-					Key_KeynumToString(keys[1]));
+					Key_KeynumToString_Joy(keys[1]));
 		}
 	}
 }
@@ -1432,7 +1461,7 @@ ControllerButtons_MenuInit(void)
 		Menu_AddItem(&s_controller_buttons_menu, (void *)&s_controller_buttons_actions[i]);
 	}
 
-	Menu_SetStatusBar(&s_controller_buttons_menu, "BTN_A assigns, BTN_Y clears, BTN_B exits");
+	GamepadMenu_StatusPrompt(&s_controller_buttons_menu);
 	Menu_Center(&s_controller_buttons_menu);
 }
 
@@ -1451,7 +1480,7 @@ ControllerButtons_MenuKey(int key)
 	if (menukeyitem_bind)
 	{
 		// Only controller buttons allowed
-		if (key >= K_JOY_FIRST_REGULAR && key != K_JOY_BACK)
+		if (key >= K_JOY_FIRST_BTN)
 		{
 			char cmd[1024];
 
@@ -1460,7 +1489,7 @@ ControllerButtons_MenuKey(int key)
 			Cbuf_InsertText(cmd);
 		}
 
-		Menu_SetStatusBar(&s_controller_buttons_menu, "BTN_A assigns, BTN_Y clears, BTN_B exits");
+		GamepadMenu_StatusPrompt(&s_controller_buttons_menu);
 		menukeyitem_bind = false;
 		return menu_out_sound;
 	}
@@ -1548,7 +1577,7 @@ DrawControllerAltButtonBindingFunc(void *self)
 		size_t x;
 		const char *name;
 
-		name = Key_KeynumToString(keys[0]);
+		name = Key_KeynumToString_Joy(keys[0]);
 
 		Menu_DrawString(a->generic.x + a->generic.parent->x + RCOLUMN_OFFSET * scale,
 				a->generic.y + a->generic.parent->y, name);
@@ -1561,7 +1590,7 @@ DrawControllerAltButtonBindingFunc(void *self)
 					a->generic.y + a->generic.parent->y, "or");
 			Menu_DrawString(a->generic.x + a->generic.parent->x + 48 * scale + (x * scale),
 					a->generic.y + a->generic.parent->y,
-					Key_KeynumToString(keys[1]));
+					Key_KeynumToString_Joy(keys[1]));
 		}
 	}
 }
@@ -1606,7 +1635,7 @@ ControllerAltButtons_MenuInit(void)
 		Menu_AddItem(&s_controller_alt_buttons_menu, (void *)&s_controller_alt_buttons_actions[i]);
 	}
 
-	Menu_SetStatusBar(&s_controller_alt_buttons_menu, "BTN_A assigns, BTN_Y clears, BTN_B exits");
+	GamepadMenu_StatusPrompt(&s_controller_alt_buttons_menu);
 	Menu_Center(&s_controller_alt_buttons_menu);
 }
 
@@ -1625,17 +1654,17 @@ ControllerAltButtons_MenuKey(int key)
 	if (menukeyitem_bind)
 	{
 		// Only controller buttons allowed, different from the alt buttons modifier
-		if (key >= K_JOY_FIRST_REGULAR && key != K_JOY_BACK && (keybindings[key] == NULL || strcmp(keybindings[key], "+joyaltselector") != 0))
+		if (key >= K_JOY_FIRST_BTN && (keybindings[key] == NULL || strcmp(keybindings[key], "+joyaltselector") != 0))
 		{
 			char cmd[1024];
-			key = key + (K_JOY_FIRST_REGULAR_ALT - K_JOY_FIRST_REGULAR);   // change input to its ALT mode
+			key = key + (K_JOY_FIRST_BTN_ALT - K_JOY_FIRST_BTN);   // change input to its ALT mode
 
 			Com_sprintf(cmd, sizeof(cmd), "bind \"%s\" \"%s\"\n",
 					Key_KeynumToString(key), controller_alt_bindnames[item->generic.localdata[0]][0]);
 			Cbuf_InsertText(cmd);
 		}
 
-		Menu_SetStatusBar(&s_controller_alt_buttons_menu, "BTN_A assigns, BTN_Y clears, BTN_B exits");
+		GamepadMenu_StatusPrompt(&s_controller_alt_buttons_menu);
 		menukeyitem_bind = false;
 		return menu_out_sound;
 	}

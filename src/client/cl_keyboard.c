@@ -139,62 +139,6 @@ keyname_t keynames[] = {
 	{"MWHEELUP", K_MWHEELUP},
 	{"MWHEELDOWN", K_MWHEELDOWN},
 
-	{"BTN_A", K_BTN_A},
-	{"BTN_B", K_BTN_B},
-	{"BTN_X", K_BTN_X},
-	{"BTN_Y", K_BTN_Y},
-	{"STICK_LEFT", K_STICK_LEFT},
-	{"STICK_RIGHT", K_STICK_RIGHT},
-	{"SHOULDR_LEFT", K_SHOULDER_LEFT},
-	{"SHOULDR_RIGHT", K_SHOULDER_RIGHT},
-	{"TRIG_LEFT", K_TRIG_LEFT},
-	{"TRIG_RIGHT", K_TRIG_RIGHT},
-
-	{"DP_UP", K_DPAD_UP},
-	{"DP_DOWN", K_DPAD_DOWN},
-	{"DP_LEFT", K_DPAD_LEFT},
-	{"DP_RIGHT", K_DPAD_RIGHT},
-
-	{"PADDLE_1", K_PADDLE_1},
-	{"PADDLE_2", K_PADDLE_2},
-	{"PADDLE_3", K_PADDLE_3},
-	{"PADDLE_4", K_PADDLE_4},
-	{"BTN_MISC1", K_BTN_MISC1},
-	{"TOUCHPAD", K_TOUCHPAD},
-	{"BTN_BACK", K_BTN_BACK},
-	{"BTN_GUIDE", K_BTN_GUIDE},
-	{"BTN_START", K_BTN_START},
-
-	// virtual keys you get by pressing the corresponding normal joy key
-	// and the altselector key
-	{"BTN_A_ALT", K_BTN_A_ALT},
-	{"BTN_B_ALT", K_BTN_B_ALT},
-	{"BTN_X_ALT", K_BTN_X_ALT},
-	{"BTN_Y_ALT", K_BTN_Y_ALT},
-	{"STICK_LEFT_ALT", K_STICK_LEFT_ALT},
-	{"STICK_RIGHT_ALT", K_STICK_RIGHT_ALT},
-	{"SHOULDR_LEFT_ALT", K_SHOULDER_LEFT_ALT},
-	{"SHOULDR_RIGHT_ALT", K_SHOULDER_RIGHT_ALT},
-	{"TRIG_LEFT_ALT", K_TRIG_LEFT_ALT},
-	{"TRIG_RIGHT_ALT", K_TRIG_RIGHT_ALT},
-
-	{"DP_UP_ALT", K_DPAD_UP_ALT},
-	{"DP_DOWN_ALT", K_DPAD_DOWN_ALT},
-	{"DP_LEFT_ALT", K_DPAD_LEFT_ALT},
-	{"DP_RIGHT_ALT", K_DPAD_RIGHT_ALT},
-
-	{"PADDLE_1_ALT", K_PADDLE_1_ALT},
-	{"PADDLE_2_ALT", K_PADDLE_2_ALT},
-	{"PADDLE_3_ALT", K_PADDLE_3_ALT},
-	{"PADDLE_4_ALT", K_PADDLE_4_ALT},
-	{"BTN_MISC1_ALT", K_BTN_MISC1_ALT},
-	{"TOUCHPAD_ALT", K_TOUCHPAD_ALT},
-	{"BTN_BACK_ALT", K_BTN_BACK_ALT},
-	{"BTN_GUIDE_ALT", K_BTN_GUIDE_ALT},
-	{"BTN_START_ALT", K_BTN_START_ALT},
-
-	{"JOY_BACK", K_JOY_BACK},
-
 	{"SUPER", K_SUPER},
 	{"COMPOSE", K_COMPOSE},
 	{"MODE", K_MODE},
@@ -265,6 +209,147 @@ keyname_t keynames[] = {
 #undef MY_SC_ENTRY
 
 	{NULL, 0}
+};
+
+static char *gamepadbtns[] =
+{
+	// It is imperative that this list of buttons follow EXACTLY the order they
+	// appear in QKEYS enum in keyboard.h, which in turn is the same order as
+	// they appear in SDL_GamepadButton / SDL_GameControllerButton enum.
+	"BTN_SOUTH",
+	"BTN_EAST",
+	"BTN_WEST",
+	"BTN_NORTH",
+	"BTN_BACK",
+	"BTN_GUIDE",
+	"BTN_START",
+	"STICK_LEFT",
+	"STICK_RIGHT",
+	"SHOULDR_LEFT",
+	"SHOULDR_RIGHT",
+	"DP_UP",
+	"DP_DOWN",
+	"DP_LEFT",
+	"DP_RIGHT",
+	"BTN_MISC1",
+	"PADDL_RIGHT1",
+	"PADDL_LEFT1",
+	"PADDL_RIGHT2",
+	"PADDL_LEFT2",
+	"TOUCHPAD",
+	"BTN_MISC2",
+	"BTN_MISC3",
+	"BTN_MISC4",
+	"BTN_MISC5",
+	"BTN_MISC6",
+	"TRIG_LEFT",
+	"TRIG_RIGHT",
+	// Same with _ALT buttons ( button + 'alt modifier' pressed )
+	"BTN_SOUTH_ALT",
+	"BTN_EAST_ALT",
+	"BTN_WEST_ALT",
+	"BTN_NORTH_ALT",
+	"BTN_BACK_ALT",
+	"BTN_GUIDE_ALT",
+	"BTN_START_ALT",
+	"STICK_LEFT_ALT",
+	"STICK_RIGHT_ALT",
+	"SHOULDR_LEFT_ALT",
+	"SHOULDR_RIGHT_ALT",
+	"DP_UP_ALT",
+	"DP_DOWN_ALT",
+	"DP_LEFT_ALT",
+	"DP_RIGHT_ALT",
+	"BTN_MISC1_ALT",
+	"PADDL_RIGHT1_ALT",
+	"PADDL_LEFT1_ALT",
+	"PADDL_RIGHT2_ALT",
+	"PADDL_LEFT2_ALT",
+	"TOUCHPAD_ALT",
+	"BTN_MISC2_ALT",
+	"BTN_MISC3_ALT",
+	"BTN_MISC4_ALT",
+	"BTN_MISC5_ALT",
+	"BTN_MISC6_ALT",
+	"TRIG_LEFT_ALT",
+	"TRIG_RIGHT_ALT"
+};
+
+#define NUM_GAMEPAD_BTNS (sizeof gamepadbtns / sizeof gamepadbtns[0])
+
+static char *gpbtns_face[] =
+{
+	// Xbox
+	"A",
+	"B",
+	"X",
+	"Y",
+	"VIEW",
+	"XBOX",
+	"MENU",
+	"LS",
+	"RS",
+	"LB",
+	"RB",
+	// Playstation
+	"CROSS",
+	"CIRCLE",
+	"SQUARE",
+	"TRIANGLE",
+	"CREATE",
+	"PS",
+	"OPTIONS",
+	"L3",
+	"R3",
+	"L1",
+	"R1",
+	// Nintendo Switch
+	"B",
+	"A",
+	"Y",
+	"X",
+	"-",
+	"HOME",
+	"+",
+	"L stick",
+	"R stick",
+	"L btn",
+	"R btn",
+};
+
+static char *gpbtns_paddles[] =
+{
+	// Xbox
+	"SHARE",
+	"P1",
+	"P3",
+	"P2",
+	"P4",
+	// Playstation
+	"MIC",
+	"RB",
+	"LB",
+	"Right Fn",
+	"Left Fn",
+	// Switch
+	"CAPTURE",
+	"Right SR",
+	"Left SL",
+	"Right SL",
+	"Left SR" // JoyCon btn positions suck
+};
+
+static char *gpbtns_triggers[] =
+{
+	// Xbox
+	"LT",
+	"RT",
+	// Playstation
+	"L2",
+	"R2",
+	// Switch
+	"ZL",
+	"ZR"
 };
 
 /* ------------------------------------------------------------------ */
@@ -739,6 +824,7 @@ static int
 Key_StringToKeynum(char *str)
 {
 	keyname_t *kn;
+	int i;
 
 	if (!str || !str[0])
 	{
@@ -755,6 +841,14 @@ Key_StringToKeynum(char *str)
 		if (!Q_stricmp(str, kn->name))
 		{
 			return kn->keynum;
+		}
+	}
+
+	for (i = 0; i < NUM_GAMEPAD_BTNS; i++)
+	{
+		if (!Q_stricmp(str, gamepadbtns[i]))
+		{
+			return K_JOY_FIRST_BTN + i;
 		}
 	}
 
@@ -785,6 +879,11 @@ Key_KeynumToString(int keynum)
 		return tinystr;
 	}
 
+	if (keynum >= K_JOY_FIRST_BTN) // gamepad button
+	{
+		return gamepadbtns[keynum - K_JOY_FIRST_BTN];
+	}
+
 	for (kn = keynames; kn->name; kn++)
 	{
 		if (keynum == kn->keynum)
@@ -794,6 +893,49 @@ Key_KeynumToString(int keynum)
 	}
 
 	return "<UNKNOWN KEYNUM>";
+}
+
+/*
+ * Same as Key_KeynumToString(), but for joystick/gamepad buttons.
+ */
+char *
+Key_KeynumToString_Joy(int key)
+{
+	extern gamepad_labels_t joy_current_lbls;
+	const int lbl_style = (int)joy_current_lbls - 1;
+
+	if (key < K_JOY_FIRST_BTN)
+	{
+		return Key_KeynumToString(key);
+	}
+
+	// Don't print the _ALT buttons (buttons with the alt modifier pressed)
+	if (key >= K_JOY_FIRST_BTN_ALT)
+	{
+		key -= K_JOY_FIRST_BTN_ALT - K_JOY_FIRST_BTN;
+	}
+
+	if (lbl_style < 0) // was SDL
+	{
+		goto exit_sdl;
+	}
+
+	// Alter this logic if new gamepad buttons are added in SDL
+	if (key < K_DPAD_UP) // face & shoulder buttons
+	{
+		return gpbtns_face[lbl_style * (K_DPAD_UP - K_BTN_SOUTH) + key - K_BTN_SOUTH];
+	}
+	else if (key >= K_TRIG_LEFT) // triggers
+	{
+		return gpbtns_triggers[lbl_style * (K_JOY_FIRST_BTN_ALT - K_TRIG_LEFT) + key - K_TRIG_LEFT];
+	}
+	else if (key > K_DPAD_RIGHT && key < K_TOUCHPAD) // paddles & misc1
+	{
+		return gpbtns_paddles[lbl_style * (K_TOUCHPAD - K_BTN_MISC1) + key - K_BTN_MISC1];
+	}
+
+exit_sdl:
+	return gamepadbtns[key - K_JOY_FIRST_BTN];
 }
 
 void
@@ -885,7 +1027,7 @@ Key_Bind_f(void)
 	}
 
 	/* don't allow binding escape or the special console keys */
-	if(b == K_ESCAPE || b == '^' || b == '`' || b == '~' || b == K_JOY_BACK)
+	if(b == K_ESCAPE || b == '^' || b == '`' || b == '~')
 	{
 		if(doneWithDefaultCfg)
 		{
@@ -1203,12 +1345,12 @@ Key_Event(int key, qboolean down, qboolean special)
 	unsigned int time = Sys_Milliseconds();
 
 	// evil hack for the joystick key altselector, which turns K_BTN_x into K_BTN_x_ALT
-	if(joy_altselector_pressed && key >= K_JOY_FIRST_REGULAR && key <= K_JOY_LAST_REGULAR)
+	if(joy_altselector_pressed && key >= K_JOY_FIRST_BTN && key < K_JOY_FIRST_BTN_ALT)
 	{
 		// make sure key is not the altselector itself (which we won't turn into *_ALT)
 		if(keybindings[key] == NULL || strcmp(keybindings[key], "+joyaltselector") != 0)
 		{
-			int altkey = key + (K_JOY_FIRST_REGULAR_ALT - K_JOY_FIRST_REGULAR);
+			int altkey = key + (K_JOY_FIRST_BTN_ALT - K_JOY_FIRST_BTN);
 			// allow fallback to binding with non-alt key
 			if(keybindings[altkey] != NULL || keybindings[key] == NULL)
 				key = altkey;
@@ -1275,7 +1417,7 @@ Key_Event(int key, qboolean down, qboolean special)
 	}
 
 	/* Key is unbound */
-	if ((key >= K_MOUSE1 && key != K_JOY_BACK) && !keybindings[key] && (cls.key_dest != key_console) &&
+	if ((key >= K_MOUSE1) && !keybindings[key] && (cls.key_dest != key_console) &&
 		(cls.state == ca_active))
 	{
 		Com_Printf("%s (%d) is unbound, hit F4 to set.\n", Key_KeynumToString(key), key);
@@ -1296,47 +1438,43 @@ Key_Event(int key, qboolean down, qboolean special)
 	   - moves one menu level up
 	   - closes the menu
 	   - closes the help computer
-	   - closes the chat window
-	   Fully same logic for K_JOY_BACK */
-	if (!cls.disable_screen)
+	   - closes the chat window	*/
+	if (key == K_ESCAPE && !cls.disable_screen)
 	{
-		if (key == K_ESCAPE || key == K_JOY_BACK)
+		if (!down)
 		{
-			if (!down)
-			{
-				return;
-			}
-
-			/* Close the help computer */
-			if (cl.frame.playerstate.stats[STAT_LAYOUTS] &&
-				(cls.key_dest == key_game))
-			{
-				Cbuf_AddText("cmd putaway\n");
-				return;
-			}
-
-			switch (cls.key_dest)
-			{
-				/* Close chat window */
-				case key_message:
-					Key_Message(key);
-					break;
-
-				/* Close menu or one layer up */
-				case key_menu:
-					M_Keydown(key);
-					break;
-
-				/* Pause game and / or leave console,
-				   break into the menu. */
-				case key_game:
-				case key_console:
-					M_Menu_Main_f();
-					break;
-			}
-
 			return;
 		}
+
+		/* Close the help computer */
+		if (cl.frame.playerstate.stats[STAT_LAYOUTS] &&
+			(cls.key_dest == key_game))
+		{
+			Cbuf_AddText("cmd putaway\n");
+			return;
+		}
+
+		switch (cls.key_dest)
+		{
+			/* Close chat window */
+			case key_message:
+				Key_Message(key);
+				break;
+
+			/* Close menu or one layer up */
+			case key_menu:
+				M_Keydown(key);
+				break;
+
+			/* Pause game and / or leave console,
+			   break into the menu. */
+			case key_game:
+			case key_console:
+				M_Menu_Main_f();
+				break;
+		}
+
+		return;
 	}
 
 	/* This is one of the most ugly constructs I've

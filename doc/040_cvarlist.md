@@ -581,17 +581,32 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
 * **sw_colorlight**: enable experimental color lighting.
 
 
-## Game Controller
+## Gamepad
 
 * **in_initjoy**: Toggles initialization of game controller. Default is
   `1`, which enables gamepad usage; `0` disables its detection at
   startup. Can only be set from command line.
 
-* **in_sdlbackbutton**: Defines which button is used in the gamepad as
+* **joy_escbutton**: Defines which button is used in the gamepad as
   the `Esc` key, to pull the main menu and 'cancel' / 'go back' on its
-  options. Valid values are `0` = Back / Select / Minus, `1` = Start /
-  Menu / Plus (default), or `2` = Guide / Home / PS. Requires a game
+  options. Valid values are `0` = Start / Menu / Plus (default), `1` =
+  Back / Select / Minus, or `2` = Guide / Home / PS. Requires a game
   restart, or gamepad replug, when changed.
+
+* **joy_labels**: Defines style of button labels in binding menus. Note
+  that binding through console only uses the SDL nomenclature (`0`).
+  Default is `-1`, which requires at least SDL 2.0.12 to work.
+  - `-1`: *Autodetect*, sets to `0` if gamepad type isn't detected
+  - `0`: *SDL*, face buttons appear as cardinal points
+  - `1`: *Xbox*, with One / Series X / S labels
+  - `2`: *Playstation*, 4 & 5 format
+  - `3`: *Switch*, traditional Nintendo button format
+
+* **joy_confirm**: Style of *confirm* and *cancel* buttons in menus. As
+  with the previous one, SDL 2.0.12 is required for `-1` to work.
+  - `-1`: *Autodetect*, sets to `1` if Nintendo, `0` otherwise
+  - `0`: SOUTH to confirm, EAST to cancel (standard style)
+  - `1`: EAST to confirm, SOUTH to cancel (Japanese style)
 
 * **joy_layout**: Allows to select the stick layout of the gamepad.
   - `0`: *Default*, left stick moves, right aims
