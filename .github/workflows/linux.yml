@@ -30,9 +30,9 @@ jobs:
       uses: actions/checkout@v4
     - name: Build
       run: |
-        # Public runners come with 2 CPUs.
-        make -j2
-        make -j2 ref_gles1
+        # Public runners come with 4 CPUs.
+        make -j4
+        make -j4 ref_gles1
     - name: Create testbuild package
       run: |
         # Create release directory tree
