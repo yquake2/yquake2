@@ -1,0 +1,87 @@
+name: Testbuild for Win64
+run-name: testbuild_win64
+on:
+  push:
+    branches:
+      - 'master'
+  pull_request:
+    types:
+      - edited
+      - opened
+      - synchronize
+concurrency:
+  # Cancel concurrent workflows for the same PR or commit hash.
+  group: ${{github.workflow}}-${{github.event_name == 'pull_request' && github.head_ref || github.sha}}
+  cancel-in-progress: true
+jobs:
+  build_mingw_x86_64:
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { sys: mingw64, env: x86_64 }
+    steps:
+    - uses: msys2/setup-msys2@v2
+      with:
+        msystem: ${{matrix.sys}}
+        update: true
+        install: >-
+          git
+          make
+          zip
+          unzip
+          mingw-w64-${{matrix.env}}-curl
+          mingw-w64-${{matrix.env}}-gcc
+          mingw-w64-${{matrix.env}}-make
+          mingw-w64-${{matrix.env}}-openal
+          mingw-w64-${{matrix.env}}-sdl3
+          mingw-w64-${{matrix.env}}-wget
+          mingw-w64-${{matrix.env}}-pkgconf
+    - name: Check out repository code
+      uses: actions/checkout@v4
+    - name: Build
+      shell: msys2 {0}
+      run: |
+        sed -i 's|WITH_SDL3:=no|WITH_SDL3:=yes|g' Makefile
+        # Public runners come with 2 CPUs.
+        make -j2
+    - name: Create testbuild package
+      shell: msys2 {0}
+      run: |
+        # Create release directory tree
+        mkdir -p publish/quake2-win64-${{github.sha}}/misc/docs
+        # Copy release assets
+        cp -r release/* publish/quake2-win64-${{github.sha}}/
+        # Copy misc assets
+        cp -r stuff/yq2.cfg publish/quake2-win64-${{github.sha}}/misc/yq2.cfg
+        cp -r stuff/mapfixes publish/quake2-win64-${{github.sha}}/misc
+        cp LICENSE publish/quake2-win64-${{github.sha}}/misc/docs/LICENSE.txt
+        cp README.md publish/quake2-win64-${{github.sha}}/misc/docs/README.txt
+        cp doc/010_index.md publish/quake2-win64-${{github.sha}}/misc/docs/010_index.txt
+        cp doc/020_installation.md publish/quake2-win64-${{github.sha}}/misc/docs/020_installation.txt
+        cp doc/030_configuration.md publish/quake2-win64-${{github.sha}}/misc/docs/030_configuration.txt
+        cp doc/040_cvarlist.md publish/quake2-win64-${{github.sha}}/misc/docs/040_cvarlist.txt
+        cp doc/050_commands.md publish/quake2-win64-${{github.sha}}/misc/docs/050_commands.txt
+        cp doc/060_multiplayer.md publish/quake2-win64-${{github.sha}}/misc/docs/060_multiplayer.txt
+        cp doc/070_packaging.md publish/quake2-win64-${{github.sha}}/misc/docs/070_packaging.txt
+        cp doc/080_contributing.md publish/quake2-win64-${{github.sha}}/misc/docs/080_contributing.txt
+        cp doc/090_filelists.md publish/quake2-win64-${{github.sha}}/misc/docs/090_filelists.md
+        # SDL3
+        wget -c https://github.com/libsdl-org/SDL/releases/download/release-3.2.4/SDL3-3.2.4-win32-x64.zip
+        unzip -o SDL3-3.2.4-win32-x64.zip
+        cp SDL3.dll publish/quake2-win64-${{github.sha}}/
+        # openal-soft
+        wget -c https://github.com/kcat/openal-soft/releases/download/1.23.1/openal-soft-1.23.1-bin.zip
+        unzip -o openal-soft-1.23.1-bin.zip
+        cp openal-soft-1.23.1-bin/bin/Win64/soft_oal.dll publish/quake2-win64-${{github.sha}}/openal32.dll
+        # curl (releases use a custom build curl.dll)
+        wget -c -O curl-mingw-latest.zip "https://curl.se/windows/latest.cgi?p=win64-mingw.zip"
+        unzip -o curl-mingw-latest.zip
+        cp curl-*-win64-mingw/bin/libcurl-x64.dll publish/quake2-win64-${{github.sha}}/curl.dll
+    - name: Upload testbuild package
+      uses: actions/upload-artifact@v4
+      with:
+        name: quake2-win64-${{github.sha}}
+        path: publish/
+        if-no-files-found: error
