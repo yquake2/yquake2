@@ -2265,7 +2265,7 @@ CrosshairFunc(void *unused)
 }
 
 static void
-PauseFocusFunc()
+PauseFocusFunc(void *unused)
 {
     Cvar_SetValue("vid_pauseonfocuslost", (float)s_options_pauseonfocus_box.curvalue);
 }
