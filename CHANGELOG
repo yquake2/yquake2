@@ -1,3 +1,33 @@
+Quake II 8.41 to 8.50:
+- Consistent bindings between multiple gamepad types. (by protocultor)
+- Improved menu navigation with gamepads. (by protocultor)
+- The SDL 3 code now supports the stable SDL 3 API. Several bugs with
+  SDL 3 were fixed. (by 0lvin, BjossiAlfreds, erysdren and protocultor)
+- Water warp effect for the OpenGL 1.4 renderer. (by protocultor)
+- Add a sound backend selector to the menu. (by protocultor)
+- Fix several problems with HTTP downloads. (by SiemensSchuckert)
+- Better navigation in input fields in the menu. Support left and right
+  navigation, add support for the ctrl-l,c,x,v shortcuts. (by
+  BjossiAlfreds)
+- Performance optimizations for the OpenGL 1.4  renderer, especially on
+  embedded and mobile GPUs. Includes an alternative GL ES 1.0 renderer.
+  (by protocultor)
+- Several fixes to `gl1_stereo`. (by protocultor)
+- Fix the SDL2 sound backend not working with modern backends.
+- Make the Windows key bindable. (by Andrew Malchuk)
+- Support true randomness when shuffling audio tracks. (by
+  apartfromtime)
+- Fix leaking temporary spawnflags into entities spawned mid-level. (by
+  BjossiAlfreds)
+- Support the unofficial GL4 renderer lib in the video menu (by atsb)
+- Clipboard support for the console and better navigation in the console
+  line editor. (By BjossiAlfreds)
+- Support player models inside pak files in the menu. (by 0lvin)
+- Support 24 bit PCX files. (by 0lvin)
+- Check if an entity file matches the current map before loading it.
+  This fixes problems with loading entity files from Quake II against
+  Quake II Remaster maps and the other way round. (by 0lvin)
+
 Quake II 8.40 to 8.41:
 - Fix an endless loop in the OpenGL 1.4 renderer crashing the game and
   blocking further progress under some circumstances. (by protocultor)
