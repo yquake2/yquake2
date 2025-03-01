@@ -872,7 +872,7 @@ char *sb_nums[2][11] = {
 
 #define ICON_WIDTH 24
 #define ICON_HEIGHT 24
-#define CHAR_WIDTH 16
+#define CHARACTER_WIDTH 16
 #define ICON_SPACE 8
 
 /*
@@ -983,7 +983,7 @@ SCR_DrawFieldScaled(int x, int y, int color, int width, int value, float factor)
 	}
 
 	SCR_AddDirtyPoint(x, y);
-	SCR_AddDirtyPoint(x + (width * CHAR_WIDTH + 2)*factor, y + factor*24);
+	SCR_AddDirtyPoint(x + (width * CHARACTER_WIDTH + 2)*factor, y + factor*24);
 
 	Com_sprintf(num, sizeof(num), "%i", value);
 	l = (int)strlen(num);
@@ -993,7 +993,7 @@ SCR_DrawFieldScaled(int x, int y, int color, int width, int value, float factor)
 		l = width;
 	}
 
-	x += (2 + CHAR_WIDTH * (width - l)) * factor;
+	x += (2 + CHARACTER_WIDTH * (width - l)) * factor;
 
 	ptr = num;
 
@@ -1010,7 +1010,7 @@ SCR_DrawFieldScaled(int x, int y, int color, int width, int value, float factor)
 		}
 
 		Draw_PicScaled(x, y, sb_nums[color][frame], factor);
-		x += CHAR_WIDTH*factor;
+		x += CHARACTER_WIDTH*factor;
 		ptr++;
 		l--;
 	}
