@@ -38,6 +38,9 @@
 #include <stdlib.h>
 #include <time.h>
 
+#if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 202000L // C23 or newer
+typedef bool qboolean;
+#else
 #ifdef true
  #undef true
 #endif
@@ -47,6 +50,8 @@
 #endif
 
 typedef enum {false, true}  qboolean;
+#endif
+
 typedef unsigned char byte;
 
 #ifndef NULL
