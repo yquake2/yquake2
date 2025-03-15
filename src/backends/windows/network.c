@@ -193,7 +193,7 @@ NET_CompareAdr(netadr_t a, netadr_t b)
 
 	if (a.type == NA_LOOPBACK)
 	{
-		return TRUE;
+		return true;
 	}
 
 	if (a.type == NA_IP)
@@ -240,7 +240,7 @@ NET_CompareBaseAdr(netadr_t a, netadr_t b)
 
 	if (a.type == NA_LOOPBACK)
 	{
-		return TRUE;
+		return true;
 	}
 
 	if (a.type == NA_IP)
@@ -411,7 +411,7 @@ NET_StringToSockaddr(const char *s, struct sockaddr_storage *sadr)
 		if (!*space)
 		{
 			Com_Printf("NET_StringToSockaddr: invalid IPv6 address %s\n", s);
-			return 0;
+			return false;
 		}
 
 		*space++ = '\0';
@@ -431,7 +431,7 @@ NET_StringToSockaddr(const char *s, struct sockaddr_storage *sadr)
 		/* Error */
 		Com_Printf("NET_StringToSockaddr: string %s:\n%s\n", s,
 				gai_strerror(err));
-		return 0;
+		return false;
 	}
 
 	switch (resultp->ai_family)

@@ -54,7 +54,6 @@ int alias_count; /* for detecting runaway loops */
 cmdalias_t *cmd_alias;
 int cmd_wait;
 static int cmd_argc;
-static int cmd_argc;
 static char *cmd_argv[MAX_STRING_TOKENS];
 static char *cmd_null_string = "";
 static char cmd_args[MAX_STRING_CHARS];

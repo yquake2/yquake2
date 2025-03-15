@@ -1344,7 +1344,7 @@ SDL_BackendInit(void)
 	   but this is Quake 2 ... */
 	if (snd_inited)
 	{
-		return 1;
+		return true;
 	}
 
 	int sndbits = (Cvar_Get("sndbits", "16", CVAR_ARCHIVE))->value;
@@ -1369,7 +1369,7 @@ SDL_BackendInit(void)
 #endif
 		{
 			Com_Printf ("Couldn't init SDL audio: %s.\n", SDL_GetError ());
-			return 0;
+			return false;
 		}
 	}
 	const char* drivername = SDL_GetCurrentAudioDriver();
@@ -1432,7 +1432,7 @@ SDL_BackendInit(void)
 	{
 		Com_Printf("SDL_OpenAudio() failed: %s\n", SDL_GetError());
 		SDL_QuitSubSystem(SDL_INIT_AUDIO);
-		return 0;
+		return false;
 	}
 
 	/* This points to the frontend */
@@ -1473,7 +1473,7 @@ SDL_BackendInit(void)
 	soundtime = 0;
 	snd_inited = 1;
 
-	return 1;
+	return true;
 }
 
 /*
@@ -1508,7 +1508,7 @@ SDL_BackendInit(void)
 	   but this is Quake 2 ... */
 	if (snd_inited)
 	{
-		return 1;
+		return true;
 	}
 
 	int sndbits = (Cvar_Get("sndbits", "16", CVAR_ARCHIVE))->value;
@@ -1529,7 +1529,7 @@ SDL_BackendInit(void)
 		if (SDL_Init(SDL_INIT_AUDIO) == -1)
 		{
 			Com_Printf ("Couldn't init SDL audio: %s.\n", SDL_GetError ());
-			return 0;
+			return false;
 		}
 	}
 	const char* drivername = SDL_GetCurrentAudioDriver();
@@ -1592,7 +1592,7 @@ SDL_BackendInit(void)
 	{
 		Com_Printf("SDL_OpenAudio() failed: %s\n", SDL_GetError());
 		SDL_QuitSubSystem(SDL_INIT_AUDIO);
-		return 0;
+		return false;
 	}
 
 	/* This points to the frontend */
@@ -1633,7 +1633,7 @@ SDL_BackendInit(void)
 	soundtime = 0;
 	snd_inited = 1;
 
-	return 1;
+	return true;
 }
 
 /*

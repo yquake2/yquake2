@@ -1179,7 +1179,7 @@ qboolean CL_PendingHTTPDownloads(void)
 		return false;
 	}
 
-	return pendingCount + handleCount;
+	return ((pendingCount + handleCount) > 0);
 }
 
 /*

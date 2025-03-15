@@ -397,7 +397,7 @@ NET_StringToSockaddr(const char *s, struct sockaddr_storage *sadr)
 		if (!*space)
 		{
 			Com_Printf("NET_StringToSockaddr: invalid IPv6 address %s\n", s);
-			return 0;
+			return false;
 		}
 
 		*space++ = '\0';
@@ -417,7 +417,7 @@ NET_StringToSockaddr(const char *s, struct sockaddr_storage *sadr)
 		/* Error */
 		Com_Printf("NET_StringToSockaddr: string %s:\n%s\n", s,
 				gai_strerror(err));
-		return 0;
+		return false;
 	}
 
 	switch (resultp->ai_family)
@@ -432,7 +432,7 @@ NET_StringToSockaddr(const char *s, struct sockaddr_storage *sadr)
 		default:
 			Com_Printf("NET_StringToSockaddr: string %s:\nprotocol family %d not supported\n",
 				s, resultp->ai_family);
-			return 0;
+			return false;
 	}
 
 	freeaddrinfo(resultp);
