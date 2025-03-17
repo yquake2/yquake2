@@ -980,4 +980,6 @@ CL_Shutdown(void)
 	S_Shutdown();
 	IN_Shutdown();
 	VID_Shutdown();
+
+	Mods_NamesFinish();
 }
