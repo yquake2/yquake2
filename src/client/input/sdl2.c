@@ -39,6 +39,7 @@
  */
 
 #include <SDL2/SDL.h>
+#include <limits.h>
 
 #include "header/input.h"
 #include "../header/keyboard.h"
