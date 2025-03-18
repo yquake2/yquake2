@@ -1298,7 +1298,7 @@ IN_FlickStick(thumbstick_t stick, float axial_deadzone)
 			// Flicking begins now, with a new target
 			is_flicking = true;
 			flick_progress = 0.0f;
-			started_flick = cls.realtime;
+			started_flick = sys_frame_time;
 			target_angle = stick_angle;
 			IN_ResetSmoothSamples();
 		}
@@ -1542,7 +1542,7 @@ IN_Move(usercmd_t *cmd)
 	// Flick Stick: flick in progress, changing the yaw angle to the target progressively
 	if (flick_progress < 1.0f)
 	{
-		float cur_progress = (float)(cls.realtime - started_flick) / FLICK_TIME;
+		float cur_progress = (float)(sys_frame_time - started_flick) / FLICK_TIME;
 
 		if (cur_progress > 1.0f)
 		{
@@ -2438,8 +2438,8 @@ IN_Init(void)
 	joy_haptic_distance = Cvar_Get("joy_haptic_distance", "100.0", CVAR_ARCHIVE);
 	haptic_feedback_filter = Cvar_Get("joy_haptic_filter", default_haptic_filter, CVAR_ARCHIVE);
 
-	joy_yawsensitivity = Cvar_Get("joy_yawsensitivity", "1.0", CVAR_ARCHIVE);
-	joy_pitchsensitivity = Cvar_Get("joy_pitchsensitivity", "1.0", CVAR_ARCHIVE);
+	joy_yawsensitivity = Cvar_Get("joy_yawsensitivity", "2.5", CVAR_ARCHIVE);
+	joy_pitchsensitivity = Cvar_Get("joy_pitchsensitivity", "2.5", CVAR_ARCHIVE);
 	joy_forwardsensitivity = Cvar_Get("joy_forwardsensitivity", "1.0", CVAR_ARCHIVE);
 	joy_sidesensitivity = Cvar_Get("joy_sidesensitivity", "1.0", CVAR_ARCHIVE);
 
