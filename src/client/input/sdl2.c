@@ -348,7 +348,7 @@ static cvar_t *joy_haptic_distance;
 
 // Gyro mode (0=off, 3=on, 1-2=uses button to enable/disable)
 cvar_t *gyro_mode;
-cvar_t *gyro_turning_axis;	// yaw or roll
+cvar_t *gyro_turning_axis;	// yaw, roll, local space, player space, world space
 
 // Gyro sensitivity
 static cvar_t *gyro_yawsensitivity;
