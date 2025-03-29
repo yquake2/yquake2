@@ -445,6 +445,7 @@ VID_MenuInit(void)
 		"[3840 2160 ]",
 		"[4096 2160 ]",
 		"[5120 2880 ]",
+		"[1600 900  ]",
 		AUTO_MODE_NAME,
 		CUSTOM_MODE_NAME,
 		0

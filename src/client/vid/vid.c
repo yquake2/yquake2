@@ -240,6 +240,7 @@ vidmode_t vid_modes[] = {
 	{"Mode 29: 3840x2160", 3840, 2160, 29},
 	{"Mode 30: 4096x2160", 4096, 2160, 30},
 	{"Mode 31: 5120x2880", 5120, 2880, 31},
+	{"Mode 32: 1600x900", 1600, 900, 32},
 };
 
 #define VID_NUM_MODES (sizeof(vid_modes) / sizeof(vid_modes[0]))
