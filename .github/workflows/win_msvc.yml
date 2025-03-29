@@ -1,0 +1,172 @@
+name: Testbuild for x86 and x86_64 Windows with MSVC
+run-name: testbuild_windows
+on:
+  push:
+    branches:
+      - 'master'
+  pull_request:
+    types:
+      - edited
+      - opened
+      - synchronize
+concurrency:
+  # Cancel concurrent workflows for the same PR or commit hash.
+  group: ${{github.workflow}}-${{github.event_name == 'pull_request' && github.head_ref || github.sha}}
+  cancel-in-progress: true
+jobs:
+  build_win_x86_msvc:
+    runs-on: windows-latest
+    defaults:
+      run:
+        # use git bash for for all steps (unless specified otherwise per step)
+        shell: bash
+    strategy:
+      fail-fast: false
+    steps:
+    - name: Install build dependencies
+      run: |
+        # Download and extract dhewm3-libs
+        # as the repo will be cloned into the directory we're currently in (O_o)
+        # go one directory up to D:\a\yquake2\ (or similar) and put the dhewm3libs there
+        cd ..
+        # https://github.com/dhewm/dhewm3-libs/archive/refs/heads/master.zip
+        # for some reason the following downloads an empty file, so use the other URL I got from
+        # "Copy Download Link" in Firefox (after downloading the file there) instead
+        #curl -o dhewm3libs.zip https://github.com/dhewm/dhewm3-libs/archive/refs/heads/master.zip
+        curl -o dhewm3libs.zip https://codeload.github.com/dhewm/dhewm3-libs/zip/refs/heads/master
+        # only unpack the stuff needed (no x86_64 stuff, no docs from share/)
+        unzip dhewm3libs.zip "dhewm3-libs-master/i686-w64-mingw32/**" -x "dhewm3-libs-master/i686-w64-mingw32/share/**"
+    - name: Check out repository code
+      uses: actions/checkout@v4
+    - name: Build
+      run: |
+        # build with cmake and visual studio
+        #echo $PWD # /d/a/dhewm3/dhewm3
+        # NOTE: not setting -G "Visual Studio 17 2022" so it just uses the default VS version it can find
+        cmake -A Win32 -DYQUAKE2LIBS="../dhewm3-libs-master/i686-w64-mingw32/" -S . -B build
+        time cmake --build build/ --config RelWithDebInfo
+    - name: Create testbuild package
+      run: |
+        # Create release directory tree
+        export PKGDIR="yquake2-win32-$(git rev-parse --short HEAD)"
+        echo "pkgname=$PKGDIR" >> $GITHUB_ENV
+        mkdir -p publish/$PKGDIR/misc/docs
+        mkdir -p publish/$PKGDIR/baseq2
+        # debug symbols (*.pdb) are put in a separate zip
+        mkdir -p debug-syms/$PKGDIR
+        # Copy release assets
+        cd build/release/RelWithDebInfo/
+        cp *.exe *.dll ../../../publish/$PKGDIR/
+        cp baseq2/*.dll ../../../publish/$PKGDIR/baseq2/
+        cp *.pdb ../../../debug-syms/$PKGDIR/
+        cp baseq2/*.pdb ../../../debug-syms/$PKGDIR/
+        cd ../../..
+        # Copy misc assets
+        cp -r stuff/yq2.cfg publish/$PKGDIR/misc/yq2.cfg
+        cp -r stuff/mapfixes publish/$PKGDIR/misc
+        cp LICENSE publish/$PKGDIR/misc/docs/LICENSE.txt
+        cp README.md publish/$PKGDIR/misc/docs/README.txt
+        cp doc/010_index.md publish/$PKGDIR/misc/docs/010_index.txt
+        cp doc/020_installation.md publish/$PKGDIR/misc/docs/020_installation.txt
+        cp doc/030_configuration.md publish/$PKGDIR/misc/docs/030_configuration.txt
+        cp doc/040_cvarlist.md publish/$PKGDIR/misc/docs/040_cvarlist.txt
+        cp doc/050_commands.md publish/$PKGDIR/misc/docs/050_commands.txt
+        cp doc/060_multiplayer.md publish/$PKGDIR/misc/docs/060_multiplayer.txt
+        cp doc/070_packaging.md publish/$PKGDIR/misc/docs/070_packaging.txt
+        cp doc/080_contributing.md publish/$PKGDIR/misc/docs/080_contributing.txt
+        cp doc/090_filelists.md publish/$PKGDIR/misc/docs/090_filelists.md
+        # copy runtime libraries (SDL, OpenAL, cURL)
+        cd ../dhewm3-libs-master/i686-w64-mingw32/bin/
+        cp OpenAL32.dll SDL2.dll ../../../yquake2/publish/$PKGDIR/
+        cp libcurl-4.dll ../../../yquake2/publish/$PKGDIR/curl.dll
+        cd -
+    - name: Upload testbuild package
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ env.pkgname }}
+        path: publish/
+        if-no-files-found: error
+    - name: Upload testbuild debug symbols
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ env.pkgname }}-debugsyms
+        path: debug-syms/
+        if-no-files-found: error
+  build_win_x86_64_msvc:
+    runs-on: windows-latest
+    defaults:
+      run:
+        # use git bash for for all steps (unless specified otherwise per step)
+        shell: bash
+    strategy:
+      fail-fast: false
+    steps:
+    - name: Install build dependencies
+      run: |
+        # Download and extract dhewm3-libs
+        #echo $PWD # /d/a/dhewm3/dhewm3
+        # as the repo will be cloned into the directory we're currently in (O_o)
+        # go one directory up to D:\a\dhewm3\ and put the dhewm3libs there
+        cd ..
+        # https://github.com/dhewm/dhewm3-libs/archive/refs/heads/master.zip
+        # for some reason the following downloads an empty file, so use the other URL I got from
+        # "Copy Download Link" in Firefox (after downloading the file there) instead
+        #curl -o dhewm3libs.zip https://github.com/dhewm/dhewm3-libs/archive/refs/heads/master.zip
+        curl -o dhewm3libs.zip https://codeload.github.com/dhewm/dhewm3-libs/zip/refs/heads/master
+        # only unpack the stuff needed (no i686 stuff, no docs from share/)
+        unzip dhewm3libs.zip "dhewm3-libs-master/x86_64-w64-mingw32/**" -x "dhewm3-libs-master/x86_64-w64-mingw32/share/**"
+    - name: Check out repository code
+      uses: actions/checkout@v4
+    - name: Build
+      run: |
+        # build with cmake and visual studio
+        # NOTE: not setting -G "Visual Studio 17 2022" so it just uses the default VS version it can find
+        cmake -A x64 -DYQUAKE2LIBS="../dhewm3-libs-master/x86_64-w64-mingw32/" -S . -B build
+        time cmake --build build/ --config RelWithDebInfo
+    - name: Create testbuild package
+      run: |
+        # Create release directory tree
+        export PKGDIR="yquake2-win64-$(git rev-parse --short HEAD)"
+        echo "pkgname=$PKGDIR" >> $GITHUB_ENV
+        mkdir -p publish/$PKGDIR/misc/docs
+        mkdir -p publish/$PKGDIR/baseq2
+        # debug symbols (*.pdb) are put in a separate zip
+        mkdir -p debug-syms/$PKGDIR
+        # Copy release assets
+        cd build/release/RelWithDebInfo/
+        cp *.exe *.dll ../../../publish/$PKGDIR/
+        cp baseq2/*.dll ../../../publish/$PKGDIR/baseq2/
+        cp *.pdb ../../../debug-syms/$PKGDIR/
+        cp baseq2/*.pdb ../../../debug-syms/$PKGDIR/
+        cd ../../..
+        # Copy misc assets
+        cp -r stuff/yq2.cfg publish/$PKGDIR/misc/yq2.cfg
+        cp -r stuff/mapfixes publish/$PKGDIR/misc
+        cp LICENSE publish/$PKGDIR/misc/docs/LICENSE.txt
+        cp README.md publish/$PKGDIR/misc/docs/README.txt
+        cp doc/010_index.md publish/$PKGDIR/misc/docs/010_index.txt
+        cp doc/020_installation.md publish/$PKGDIR/misc/docs/020_installation.txt
+        cp doc/030_configuration.md publish/$PKGDIR/misc/docs/030_configuration.txt
+        cp doc/040_cvarlist.md publish/$PKGDIR/misc/docs/040_cvarlist.txt
+        cp doc/050_commands.md publish/$PKGDIR/misc/docs/050_commands.txt
+        cp doc/060_multiplayer.md publish/$PKGDIR/misc/docs/060_multiplayer.txt
+        cp doc/070_packaging.md publish/$PKGDIR/misc/docs/070_packaging.txt
+        cp doc/080_contributing.md publish/$PKGDIR/misc/docs/080_contributing.txt
+        cp doc/090_filelists.md publish/$PKGDIR/misc/docs/090_filelists.md
+        # copy runtime libraries (SDL, OpenAL, cURL)
+        cd ../dhewm3-libs-master/x86_64-w64-mingw32/bin/
+        cp OpenAL32.dll SDL2.dll ../../../yquake2/publish/$PKGDIR/
+        cp libcurl-4.dll ../../../yquake2/publish/$PKGDIR/curl.dll
+        cd -
+    - name: Upload testbuild package
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ env.pkgname }}
+        path: publish/
+        if-no-files-found: error
+    - name: Upload testbuild debug symbols
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ env.pkgname }}-debugsyms
+        path: debug-syms/
+        if-no-files-found: error
