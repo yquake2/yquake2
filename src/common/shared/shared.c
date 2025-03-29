@@ -26,6 +26,10 @@
 
 #include <ctype.h>
 
+#ifndef _MSC_VER
+#include <strings.h>
+#endif
+
 #include "../header/shared.h"
 
 #define DEG2RAD(a) (a * M_PI) / 180.0F
