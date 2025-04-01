@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.1 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.5 FATAL_ERROR)
 
 # Print a message that using the Makefiles is recommended.
 message(NOTICE: " The CMakeLists.txt is unmaintained. Use the Makefile if possible.")
