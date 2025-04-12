@@ -96,8 +96,11 @@ R_FindFreeImage (void)
 	for (i=0, image=r_images ; i<numr_images ; i++,image++)
 	{
 		if (!image->registration_sequence)
+		{
 			break;
+		}
 	}
+
 	if (i == numr_images)
 	{
 		if (numr_images == MAX_RIMAGES)
@@ -245,7 +248,7 @@ R_LoadPic
 ================
 */
 static image_t *
-R_LoadPic8 (char *name, byte *pic, int width, int realwidth, int height, int realheight,
+R_LoadPic8(const char *name, const byte *pic, int width, int realwidth, int height, int realheight,
 	size_t data_size, imagetype_t type)
 {
 	image_t	*image;
@@ -255,7 +258,9 @@ R_LoadPic8 (char *name, byte *pic, int width, int realwidth, int height, int rea
 
 	/* data_size/size are unsigned */
 	if (!pic || data_size == 0 || width <= 0 || height <= 0 || size == 0)
+	{
 		return NULL;
+	}
 
 	image = R_FindFreeImage();
 	if (strlen(name) >= sizeof(image->name))
@@ -314,7 +319,7 @@ R_LoadPic8 (char *name, byte *pic, int width, int realwidth, int height, int rea
 }
 
 static image_t *
-R_LoadPic (char *name, byte *pic, int width, int realwidth, int height, int realheight,
+R_LoadPic(const char *name, const byte *pic, int width, int realwidth, int height, int realheight,
 	size_t data_size, imagetype_t type, int bits)
 {
 	if (!realwidth || !realheight)
@@ -516,16 +521,15 @@ R_FindImage(const char *name, imagetype_t type)
 		return NULL;
 	}
 
-	len = strlen(name);
-
 	/* Remove the extension */
-	memset(namewe, 0, 256);
-	memcpy(namewe, name, len - (strlen(ext) + 1));
-
-	if (len < 5)
+	len = (ext - name) - 1;
+	if (len < 1)
 	{
 		return NULL;
 	}
+
+	memcpy(namewe, name, len);
+	namewe[len] = 0;
 
 	/* fix backslashes */
 	while ((ptr = strchr(name, '\\')))

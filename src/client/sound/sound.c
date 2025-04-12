@@ -230,16 +230,15 @@ S_LoadVorbis(const char *path, const char* name, wavinfo_t *info, void **buffer)
 		return;
 	}
 
-	len = strlen(path);
-
-	if (len < 5)
+	/* Remove the extension */
+	len = (ext - name) - 1;
+	if (len < 1)
 	{
 		return;
 	}
 
-	/* Remove the extension */
-	memset(namewe, 0, sizeof(namewe));
-	memcpy(namewe, path, len - (strlen(ext) + 1));
+	memcpy(namewe, name, len);
+	namewe[len] = 0;
 
 	/* Combine with ogg */
 	Q_strlcpy(filename, namewe, sizeof(filename));
@@ -1378,7 +1377,7 @@ S_BuildSoundList(int *sounds)
  */
 void
 S_RawSamples(int samples, int rate, int width,
-		int channels, byte *data, float volume)
+		int channels, const byte *data, float volume)
 {
 	if (sound_started == SS_NOT)
 	{

@@ -148,13 +148,13 @@ int upload_width, upload_height;
 qboolean uploaded_paletted;
 
 void
-R_SetTexturePalette(unsigned palette[256])
+R_SetTexturePalette(const unsigned palette[256])
 {
-	int i;
-	unsigned char temptable[768];
-
 	if (gl_config.palettedtexture)
 	{
+		unsigned char temptable[768];
+		int i;
+
 		for (i = 0; i < 256; i++)
 		{
 			temptable[i * 3 + 0] = (palette[i] >> 0) & 0xff;
@@ -269,7 +269,7 @@ R_EnableMultitexture(qboolean enable)
 }
 
 void
-R_TextureMode(char *string)
+R_TextureMode(const char *string)
 {
 	int i;
 	image_t *glt;
@@ -360,7 +360,7 @@ R_TextureMode(char *string)
 }
 
 void
-R_TextureAlphaMode(char *string)
+R_TextureAlphaMode(const char *string)
 {
 	int i;
 
@@ -382,7 +382,7 @@ R_TextureAlphaMode(char *string)
 }
 
 void
-R_TextureSolidMode(char *string)
+R_TextureSolidMode(const char *string)
 {
 	int i;
 
@@ -1007,7 +1007,7 @@ R_LoadPic(const char *name, byte *pic, int width, int realwidth,
 		(image->width < 64) && (image->height < 64))
 	{
 		int x, y;
-		int i, j, k;
+		int i, k;
 		int texnum;
 
 		texnum = Scrap_AllocBlock(image->width, image->height, &x, &y);
@@ -1024,6 +1024,8 @@ R_LoadPic(const char *name, byte *pic, int width, int realwidth,
 
 		for (i = 0; i < image->height; i++)
 		{
+			int j;
+
 			for (j = 0; j < image->width; j++, k++)
 			{
 				scrap_texels[texnum][(y + i) * gl_state.scrap_width + x + j] = pic[k];
@@ -1144,16 +1146,15 @@ R_FindImage(const char *name, imagetype_t type)
 		return NULL;
 	}
 
-	len = strlen(name);
-
 	/* Remove the extension */
-	memset(namewe, 0, 256);
-	memcpy(namewe, name, len - (strlen(ext) + 1));
-
-	if (len < 5)
+	len = (ext - name) - 1;
+	if (len < 1)
 	{
 		return NULL;
 	}
+
+	memcpy(namewe, name, len);
+	namewe[len] = 0;
 
 	/* fix backslashes */
 	while ((ptr = strchr(name, '\\')))
@@ -1260,7 +1261,7 @@ void
 R_InitImages(void)
 {
 	byte *colormap;
-	int i, j;
+	int i;
 
 	registration_sequence = 1;
 	image_max = 0;
@@ -1297,6 +1298,8 @@ R_InitImages(void)
 
 	for (i = 0; i < 256; i++)
 	{
+		int j;
+
 		j = i * intensity->value;
 
 		if (j > 255)

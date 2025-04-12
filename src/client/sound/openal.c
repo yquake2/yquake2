@@ -954,7 +954,7 @@ AL_IssuePlaysounds(void)
  */
 void
 AL_RawSamples(int samples, int rate, int width, int channels,
-		byte *data, float volume)
+		const byte *data, float volume)
 {
 	ALuint buffer;
 	ALuint format = 0;
