@@ -32,6 +32,10 @@
  * https://github.com/JibbSmart/GamepadMotionHelpers
  * https://github.com/AL2009man/GyroSpace-and-Play
  *
+ * Gyro Space (Local Space, Player Space, World Space) is based on:
+ * http://gyrowiki.jibbsmart.com/blog:player-space-gyro-and-alternatives-explained
+ * https://github.com/JibbSmart/GamepadMotionHelpers
+ *
  * =======================================================================
  *
  * This is the Quake II input system backend, implemented with SDL.
@@ -46,8 +50,10 @@
 #include "SDL3/SDL_properties.h"
 #include "SDL3/SDL_stdinc.h"
 #include "header/input.h"
+#include "header/GyroSpace/GyroSpace.h"
 #include "../header/keyboard.h"
 #include "../header/client.h"
+#include "stdio.h"	
 
 // ----
 
@@ -89,7 +95,7 @@ typedef enum
 static float mouse_x, mouse_y;
 static unsigned char joy_escbutton = SDL_GAMEPAD_BUTTON_START;
 static int joystick_left_x, joystick_left_y, joystick_right_x, joystick_right_y;
-static float gyro_yaw, gyro_pitch;
+static float gyro_yaw, gyro_roll, gyro_pitch;
 static qboolean mlooking;
 
 // The last time input events were processed.
@@ -178,7 +184,7 @@ static cvar_t *joy_haptic_distance;
 
 // Gyro mode (0=off, 3=on, 1-2=uses button to enable/disable)
 cvar_t *gyro_mode;
-cvar_t *gyro_turning_axis;	// yaw or roll
+cvar_t *gyro_turning_axis;	// yaw, roll, local space, player space, world space
 
 // Gyro sensitivity
 static cvar_t *gyro_yawsensitivity;
@@ -904,84 +910,301 @@ IN_Update(void)
 				break;
 			}
 
-#ifndef NO_SDL_GYRO	// gamepad sensors' reading is supported (gyro, accelerometer)
-			case SDL_EVENT_GAMEPAD_SENSOR_UPDATE :
-				if (event.gsensor.sensor != SDL_SENSOR_GYRO)
-				{
+#ifndef NO_SDL_GYRO  // Gamepad sensors' reading is supported (gyro, accelerometer)
+			case SDL_EVENT_GAMEPAD_SENSOR_UPDATE:
+				if (event.gsensor.sensor == SDL_SENSOR_GYRO) {
+					// Handle gyro calibration
+					if (countdown_reason == REASON_GYROCALIBRATION && updates_countdown) {
+						gyro_accum[0] += event.sensor.data[0];
+						gyro_accum[1] += event.gsensor.data[1];
+						gyro_accum[2] += event.gsensor.data[2];
+						num_samples++;
+						break;
+					}
+				}
+				else if (event.gsensor.sensor == SDL_SENSOR_ACCEL) {
+					// Update gravNorm from accelerometer data
+					Vector3 accelData = Vec3_New(
+						event.gsensor.data[0],  // X-axis
+						event.gsensor.data[1],  // Y-axis
+						event.gsensor.data[2]   // Z-axis
+					);
+
+					// Normalize or set fallback value
+					gravNorm = Vec3_IsZero(accelData) ? Vec3_New(0.0f, 1.0f, 0.0f) : Vec3_Normalize(accelData);
+					printf("Updated gravNorm: (%f, %f, %f)\n", gravNorm.x, gravNorm.y, gravNorm.z);
 					break;
 				}
-				if (countdown_reason == REASON_GYROCALIBRATION && updates_countdown)
-				{
-					gyro_accum[0] += event.gsensor.data[0];
-					gyro_accum[1] += event.gsensor.data[1];
-					gyro_accum[2] += event.gsensor.data[2];
-					num_samples++;
-					break;
+#else  // Gyro read from a "secondary joystick" (usually with name ending in "IMU")
+			case SDL_EVENT_JOYSTICK_AXIS_MOTION:
+				if (!imu_joystick || event.cdevice.which != SDL_GetJoystickID(imu_joystick)) {
+					break;  // Gamepad axes handled by SDL_EVENT_GAMEPAD_AXIS_MOTION
 				}
 
-#else	// gyro read from a "secondary joystick" (usually with name ending in "IMU")
-			case SDL_EVENT_JOYSTICK_AXIS_MOTION :
-				if ( !imu_joystick || event.gdevice.which != SDL_GetJoystickID(imu_joystick) )
-				{
-					break;	// gamepad axes handled by SDL_EVENT_GAMEPAD_AXIS_MOTION
-				}
+				int axis_value = event.caxis.value;
 
-				int axis_value = event.gaxis.value;
-				if (countdown_reason == REASON_GYROCALIBRATION && updates_countdown)
-				{
-					switch (event.gaxis.axis)
-					{
-						case IMU_JOY_AXIS_GYRO_PITCH:
-							gyro_accum[0] += axis_value;
-							num_samples[0]++;
-							break;
-						case IMU_JOY_AXIS_GYRO_YAW:
-							gyro_accum[1] += axis_value;
-							num_samples[1]++;
-							break;
-						case IMU_JOY_AXIS_GYRO_ROLL:
-							gyro_accum[2] += axis_value;
-							num_samples[2]++;
+				// Handle calibration for secondary joystick
+				if (countdown_reason == REASON_GYROCALIBRATION && updates_countdown) {
+					switch (event.caxis.axis) {
+					case IMU_JOY_AXIS_GYRO_PITCH:
+						gyro_accum[0] += axis_value;
+						num_samples[0]++;
+						break;
+					case IMU_JOY_AXIS_GYRO_YAW:
+						gyro_accum[1] += axis_value;
+						num_samples[1]++;
+						break;
+					case IMU_JOY_AXIS_GYRO_ROLL:
+						gyro_accum[2] += axis_value;
+						num_samples[2]++;
+						break;
 					}
 					break;
 				}
 
-#endif	// !NO_SDL_GYRO
+				// Process accelerometer data for gravNorm (if available)
+				if (event.caxis.axis == IMU_JOY_AXIS_GYRO_ROLL) {
+					Vector3 accelData = Vec3_New(
+						(float)(axis_value),  // X-axis roll
+						gravNorm.y,           // Y-axis (retain existing value if unavailable)
+						gravNorm.z            // Z-axis (retain existing value if unavailable)
+					);
 
-				if (gyro_active && !cl_paused->value && cls.key_dest == key_game)
-				{
-#ifndef NO_SDL_GYRO
-					if (!gyro_turning_axis->value)
-					{
-						gyro_yaw = event.gsensor.data[1] - gyro_calibration_y->value;		// yaw
-					}
-					else
-					{
-						gyro_yaw = -(event.gsensor.data[2] - gyro_calibration_z->value);	// roll
-					}
-					gyro_pitch = event.gsensor.data[0] - gyro_calibration_x->value;
-#else	// old "joystick" gyro
-					switch (event.gaxis.axis)	// inside "case SDL_EVENT_JOYSTICK_AXIS_MOTION" here
-					{
-						case IMU_JOY_AXIS_GYRO_PITCH:
-							gyro_pitch = -(axis_value - gyro_calibration_x->value);
-							break;
-						case IMU_JOY_AXIS_GYRO_YAW:
-							if (!gyro_turning_axis->value)
-							{
-								gyro_yaw = axis_value - gyro_calibration_y->value;
-							}
-							break;
-						case IMU_JOY_AXIS_GYRO_ROLL:
-							if (gyro_turning_axis->value)
-							{
-								gyro_yaw = axis_value - gyro_calibration_z->value;
-							}
-					}
-#endif	// !NO_SDL_GYRO
+					// Normalize or set fallback value
+					gravNorm = Vec3_IsZero(accelData) ? Vec3_New(0.0f, 1.0f, 0.0f) : Vec3_Normalize(accelData);
+					printf("Updated gravNorm (secondary joystick): (%f, %f, %f)\n", gravNorm.x, gravNorm.y, gravNorm.z);
 				}
-				else
-				{
+#endif
+
+				if (gyro_active && !cl_paused->value && cls.key_dest == key_game) {
+#ifndef NO_SDL_GYRO  // Gamepad sensors supported (gyro, accelerometer)
+					switch ((int)gyro_turning_axis->value) {
+					case 0:  // Yaw mode
+						gyro_yaw = event.gsensor.data[1] - gyro_calibration_y->value;  // Yaw
+						gyro_pitch = event.gsensor.data[0] - gyro_calibration_x->value;  // Pitch
+						break;
+
+					case 1:  // Roll mode
+						gyro_yaw = -(event.gsensor.data[2] - gyro_calibration_z->value);  // Roll
+						gyro_pitch = event.gsensor.data[0] - gyro_calibration_x->value;  // Pitch
+						break;
+
+					case 2:  // Local Space Mode
+					{
+						// ---- Extract Raw Calibrated Inputs ----
+						float yaw_input = event.gsensor.data[1] - gyro_calibration_y->value;  // Yaw
+						float roll_input = event.gsensor.data[2] - gyro_calibration_z->value; // Roll
+						float pitch_input = event.gsensor.data[0] - gyro_calibration_x->value; // Pitch
+
+						// ---- Sensitivity and Coupling Parameters ----
+						float yawSensitivity = 1.0f;
+						float pitchSensitivity = 1.0f;
+						float rollSensitivity = 1.0f;
+						float couplingFactor = 0.075f;
+
+						// ---- Apply Local Space Transformation ----
+						Vector3 transformedGyro = TransformToLocalSpace(
+							yaw_input, pitch_input, roll_input,
+							yawSensitivity, pitchSensitivity, rollSensitivity, couplingFactor
+						);
+
+						// ---- Map Transformed Values ----
+						gyro_yaw = transformedGyro.x;
+						gyro_pitch = transformedGyro.y;
+						gyro_roll = transformedGyro.z;
+
+						// ---- Debugging Logs ----
+						printf("Local Space Gyro: Yaw=%f, Pitch=%f, Roll=%f\n", gyro_yaw, gyro_pitch, gyro_roll);
+
+						break;
+					}
+
+					case 3:  // Player Space Mode
+					{
+						// ---- Extract Raw Calibrated Inputs ----
+						float yaw_input = event.gsensor.data[1] - gyro_calibration_y->value;  // Yaw
+						float roll_input = event.gsensor.data[2] - gyro_calibration_z->value; // Roll
+						float pitch_input = event.gsensor.data[0] - gyro_calibration_x->value; // Pitch
+
+						// ---- Sensitivity Parameters ----
+						float yawSensitivity = 1.0f;
+						float pitchSensitivity = 1.0f;
+						float rollSensitivity = 1.0f;
+
+						// ---- Apply Player Space Transformation ----
+						Vector3 transformedGyro = TransformToPlayerSpace(
+							yaw_input, pitch_input, roll_input, gravNorm,
+							yawSensitivity, pitchSensitivity, rollSensitivity
+						);
+
+						// ---- Map Transformed Values ----
+						gyro_yaw = transformedGyro.x;
+						gyro_pitch = transformedGyro.y;
+						gyro_roll = transformedGyro.z;
+
+						// ---- Debugging Logs ----
+						printf("Player Space Gyro: Yaw=%f, Pitch=%f, Roll=%f\n", gyro_yaw, gyro_pitch, gyro_roll);
+
+						break;
+					}
+
+					case 4:  // World Space Mode
+					{
+						// ---- Extract Raw Calibrated Inputs ----
+						float yaw_input = event.gsensor.data[1] - gyro_calibration_y->value;  // Yaw
+						float roll_input = event.gsensor.data[2] - gyro_calibration_z->value; // Roll
+						float pitch_input = event.gsensor.data[0] - gyro_calibration_x->value; // Pitch
+
+						// ---- Sensitivity Parameters ----
+						float yawSensitivity = 1.0f;
+						float pitchSensitivity = 1.0f;
+						float rollSensitivity = 1.0f;
+
+						// ---- Apply World Space Transformation ----
+						Vector3 transformedGyro = TransformToWorldSpace(
+							yaw_input, pitch_input, roll_input, gravNorm,
+							yawSensitivity, pitchSensitivity, rollSensitivity
+						);
+
+						// ---- Map Transformed Values ----
+						gyro_yaw = transformedGyro.x;
+						gyro_pitch = transformedGyro.y;
+						gyro_roll = transformedGyro.z;
+
+						// ---- Debugging Logs ----
+						printf("World Space Gyro: Yaw=%f, Pitch=%f, Roll=%f\n", gyro_yaw, gyro_pitch, gyro_roll);
+
+						break;
+					}
+
+					default:
+						gyro_yaw = gyro_pitch = 0;  // Reset for unsupported modes
+						break;
+					}
+#else  // Old "joystick" gyro
+					switch (event.caxis.axis) {
+					case IMU_JOY_AXIS_GYRO_PITCH:
+						// Handle vertical rotation (Pitch)
+						gyro_pitch = -(axis_value - gyro_calibration_x->value);
+						break;
+
+					case IMU_JOY_AXIS_GYRO_YAW:
+						// Handle horizontal rotation (Yaw)
+						switch ((int)gyro_turning_axis->value) {
+						case 0:  // Standard Yaw calculation
+							gyro_yaw = axis_value - gyro_calibration_y->value;
+							break;
+
+						case 2:  // Local Space Mode
+						{
+							// ---- Extract Raw Calibrated Inputs ----
+							float yaw_input = axis_value - gyro_calibration_y->value;        // Raw Yaw
+							float roll_input = axis_value - gyro_calibration_z->value;       // Raw Roll
+							float pitch_input = axis_value - gyro_calibration_x->value;      // Raw Pitch
+
+							// ---- Sensitivity and Coupling Parameters ----
+							float yawSensitivity = 1.0f;
+							float pitchSensitivity = 1.0f;
+							float rollSensitivity = 1.0f;
+							float couplingFactor = 0.075f;
+
+							// ---- Apply Local Space Transformation ----
+							Vector3 transformedGyro = TransformToLocalSpace(
+								yaw_input, pitch_input, roll_input,
+								yawSensitivity, pitchSensitivity, rollSensitivity, couplingFactor
+							);
+
+							// ---- Map Transformed Values ----
+							gyro_yaw = transformedGyro.x;
+							gyro_pitch = transformedGyro.y;
+							gyro_roll = transformedGyro.z;
+
+							// ---- Debugging Logs ----
+							printf("Local Space Gyro (Joystick): Yaw=%f, Pitch=%f, Roll=%f\n", gyro_yaw, gyro_pitch, gyro_roll);
+
+							break;
+						}
+
+						case 3:  // Player Space Mode
+						{
+							// ---- Extract Raw Calibrated Inputs ----
+							float yaw_input = axis_value - gyro_calibration_y->value;        // Raw Yaw
+							float roll_input = axis_value - gyro_calibration_z->value;       // Raw Roll
+							float pitch_input = axis_value - gyro_calibration_x->value;      // Raw Pitch
+
+							// ---- Sensitivity Parameters ----
+							float yawSensitivity = 1.0f;
+							float pitchSensitivity = 1.0f;
+							float rollSensitivity = 1.0f;
+
+							// ---- Apply Player Space Transformation ----
+							Vector3 transformedGyro = TransformToPlayerSpace(
+								yaw_input, pitch_input, roll_input, gravNorm,
+								yawSensitivity, pitchSensitivity, rollSensitivity
+							);
+
+							// ---- Map Transformed Values ----
+							gyro_yaw = transformedGyro.x;
+							gyro_pitch = transformedGyro.y;
+							gyro_roll = transformedGyro.z;
+
+							// ---- Debugging Logs ----
+							printf("Player Space Gyro (Joystick): Yaw=%f, Pitch=%f, Roll=%f\n", gyro_yaw, gyro_pitch, gyro_roll);
+
+							break;
+						}
+
+						case 4:  // World Space Mode
+						{
+							// ---- Extract Raw Calibrated Inputs ----
+							float yaw_input = axis_value - gyro_calibration_y->value;        // Raw Yaw
+							float roll_input = axis_value - gyro_calibration_z->value;       // Raw Roll
+							float pitch_input = axis_value - gyro_calibration_x->value;      // Raw Pitch
+
+							// ---- Sensitivity Parameters ----
+							float yawSensitivity = 1.0f;
+							float pitchSensitivity = 1.0f;
+							float rollSensitivity = 1.0f;
+
+							// ---- Apply World Space Transformation ----
+							Vector3 transformedGyro = TransformToWorldSpace(
+								yaw_input, pitch_input, roll_input, gravNorm,
+								yawSensitivity, pitchSensitivity, rollSensitivity
+							);
+
+							// ---- Map Transformed Values ----
+							gyro_yaw = transformedGyro.x;
+							gyro_pitch = transformedGyro.y;
+							gyro_roll = transformedGyro.z;
+
+							// ---- Debugging Logs ----
+							printf("World Space Gyro (Joystick): Yaw=%f, Pitch=%f, Roll=%f\n", gyro_yaw, gyro_pitch, gyro_roll);
+
+							break;
+						}
+
+						default:
+							// Fallback for unsupported turning_axis values
+							gyro_yaw = gyro_pitch = 0;
+							break;
+						}
+						break;
+
+					case IMU_JOY_AXIS_GYRO_ROLL:
+						if ((int)gyro_turning_axis->value == 1) {
+							// Handle Roll
+							gyro_yaw = axis_value - gyro_calibration_z->value;
+						}
+						break;
+
+					default:
+						// Fallback to reset gyro values
+						gyro_yaw = gyro_pitch = 0;
+						break;
+					}
+#endif  // !NO_SDL_GYRO
+				}
+				else {
 					gyro_yaw = gyro_pitch = 0;
 				}
 				break;

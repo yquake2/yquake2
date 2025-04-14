@@ -512,7 +512,7 @@ set(Client-Header
 	${CLIENT_SRC_DIR}/curl/header/download.h
 	${CLIENT_SRC_DIR}/curl/header/qcurl.h
 	${CLIENT_SRC_DIR}/input/header/input.h
-	${CLIENT_SRC_DIR}/input/header/GyroSpace/GyroSpace.h
+  ${CLIENT_SRC_DIR}/input/header/GyroSpace/GyroSpace.h
 	${CLIENT_SRC_DIR}/menu/header/qmenu.h
 	${CLIENT_SRC_DIR}/sound/header/local.h
 	${CLIENT_SRC_DIR}/sound/header/qal.h
