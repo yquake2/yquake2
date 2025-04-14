@@ -35,6 +35,7 @@
  * Gyro Space (Local Space, Player Space, World Space) is based on:
  * http://gyrowiki.jibbsmart.com/blog:player-space-gyro-and-alternatives-explained
  * https://github.com/JibbSmart/GamepadMotionHelpers
+ * https://github.com/AL2009man/GyroSpace-and-Play
  *
  * =======================================================================
  *
