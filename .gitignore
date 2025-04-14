@@ -3,3 +3,5 @@
 *.mk
 *.user
 *.d
+/.vs
+/out/build/x64-Debug
