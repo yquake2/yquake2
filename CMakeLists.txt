@@ -11,6 +11,9 @@ endif()
 # CMake project configuration.
 project(yquake2 C)
 
+# Gyro Space and Play header to handle additional gyro_turning_axis modes
+include_directories(${CMAKE_SOURCE_DIR}/src/client/input/header/GyroSpace)
+
 # Cmake module search path.
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/stuff/cmake/modules ${CMAKE_MODULE_PATH})
 set(CMAKE_C_STANDARD 11)
@@ -509,6 +512,7 @@ set(Client-Header
 	${CLIENT_SRC_DIR}/curl/header/download.h
 	${CLIENT_SRC_DIR}/curl/header/qcurl.h
 	${CLIENT_SRC_DIR}/input/header/input.h
+	${CLIENT_SRC_DIR}/input/header/GyroSpace/GyroSpace.h
 	${CLIENT_SRC_DIR}/menu/header/qmenu.h
 	${CLIENT_SRC_DIR}/sound/header/local.h
 	${CLIENT_SRC_DIR}/sound/header/qal.h
