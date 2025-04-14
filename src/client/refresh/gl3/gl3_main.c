@@ -379,10 +379,14 @@ SetMode_impl(int *pwidth, int *pheight, int mode, int fullscreen)
 
 	R_Printf(PRINT_ALL, " %dx%d (vid_fullscreen %i)\n", *pwidth, *pheight, fullscreen);
 
-
 	if (!ri.GLimp_InitGraphics(fullscreen, pwidth, pheight))
 	{
 		return rserr_invalid_mode;
+	}
+
+	if (mode == -2 || fullscreen)
+	{
+		GL3_BindVBO(0);
 	}
 
 	/* This is totaly obscure: For some strange reasons the renderer

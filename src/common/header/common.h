@@ -32,7 +32,7 @@
 #include "shared.h"
 #include "crc.h"
 
-#define YQ2VERSION "8.42pre"
+#define YQ2VERSION "8.51pre"
 #define BASEDIRNAME "baseq2"
 
 #ifndef YQ2OSTYPE
@@ -867,5 +867,7 @@ const char *Sys_GetBinaryDir(void);
 void Sys_SetupFPU(void);
 
 /* ======================================================================= */
+
+void Mods_NamesFinish(void);
 
 #endif
