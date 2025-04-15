@@ -998,90 +998,52 @@ IN_Update(void)
 						gyro_pitch = event.csensor.data[0] - gyro_calibration_x->value;  // Pitch
 						break;
 
-					case 2:  // Local Space Mode
+					case 2: // Local Space mode
 					{
-						// ---- Extract Raw Calibrated Inputs ----
-						float yaw_input = event.csensor.data[1] - gyro_calibration_y->value;  // Yaw
-						float roll_input = event.csensor.data[2] - gyro_calibration_z->value; // Roll
-						float pitch_input = event.csensor.data[0] - gyro_calibration_x->value; // Pitch
-
-						// ---- Sensitivity and Coupling Parameters ----
-						float yawSensitivity = 1.0f;
-						float pitchSensitivity = 1.0f;
-						float rollSensitivity = 1.0f;
-						float couplingFactor = 0.075f;
-
-						// ---- Apply Local Space Transformation ----
-						Vector3 transformedGyro = TransformToLocalSpace(
-							yaw_input, pitch_input, roll_input,
-							yawSensitivity, pitchSensitivity, rollSensitivity, couplingFactor
+						Vector3 localGyro = TransformToLocalSpace(
+							event.csensor.data[1] - gyro_calibration_y->value,
+							event.csensor.data[0] - gyro_calibration_x->value,
+							event.csensor.data[2] - gyro_calibration_z->value,
+							1.0f, 1.0f, 1.0f, 0.075f
 						);
 
-						// ---- Map Transformed Values ----
-						gyro_yaw = transformedGyro.x;
-						gyro_pitch = transformedGyro.y;
-						gyro_roll = transformedGyro.z;
+						gyro_yaw = localGyro.x;
+						gyro_pitch = localGyro.y;
+						gyro_roll = localGyro.z;
 
-						// ---- Debugging Logs ----
-						printf("Local Space Gyro: Yaw=%f, Pitch=%f, Roll=%f\n", gyro_yaw, gyro_pitch, gyro_roll);
-
-						break;
 					}
+					break;
 
-					case 3:  // Player Space Mode
+					case 3: // Player Space mode
 					{
-						// ---- Extract Raw Calibrated Inputs ----
-						float yaw_input = event.csensor.data[1] - gyro_calibration_y->value;  // Yaw
-						float roll_input = event.csensor.data[2] - gyro_calibration_z->value; // Roll
-						float pitch_input = event.csensor.data[0] - gyro_calibration_x->value; // Pitch
-
-						// ---- Sensitivity Parameters ----
-						float yawSensitivity = 1.0f;
-						float pitchSensitivity = 1.0f;
-						float rollSensitivity = 1.0f;
-
-						// ---- Apply Player Space Transformation ----
-						Vector3 transformedGyro = TransformToPlayerSpace(
-							yaw_input, pitch_input, roll_input, gravNorm,
-							yawSensitivity, pitchSensitivity, rollSensitivity
+						Vector3 playerGyro = TransformToPlayerSpace(
+							event.csensor.data[1] - gyro_calibration_y->value,
+							event.csensor.data[0] - gyro_calibration_x->value,
+							event.csensor.data[2] - gyro_calibration_z->value,
+							gravNorm,
+							1.0f, 1.0f, 1.0f
 						);
 
-						// ---- Map Transformed Values ----
-						gyro_yaw = transformedGyro.x;
-						gyro_pitch = transformedGyro.y;
-						gyro_roll = transformedGyro.z;
+						gyro_yaw = playerGyro.x;
+						gyro_pitch = playerGyro.y;
+						gyro_roll = playerGyro.z;
 
-						// ---- Debugging Logs ----
-						printf("Player Space Gyro: Yaw=%f, Pitch=%f, Roll=%f\n", gyro_yaw, gyro_pitch, gyro_roll);
-
-						break;
 					}
+					break;
 
-					case 4:  // World Space Mode
+					case 4: // World Space mode
 					{
-						// ---- Extract Raw Calibrated Inputs ----
-						float yaw_input = event.csensor.data[1] - gyro_calibration_y->value;  // Yaw
-						float roll_input = event.csensor.data[2] - gyro_calibration_z->value; // Roll
-						float pitch_input = event.csensor.data[0] - gyro_calibration_x->value; // Pitch
-
-						// ---- Sensitivity Parameters ----
-						float yawSensitivity = 1.0f;
-						float pitchSensitivity = 1.0f;
-						float rollSensitivity = 1.0f;
-
-						// ---- Apply World Space Transformation ----
-						Vector3 transformedGyro = TransformToWorldSpace(
-							yaw_input, pitch_input, roll_input, gravNorm,
-							yawSensitivity, pitchSensitivity, rollSensitivity
+						Vector3 worldGyro = TransformToWorldSpace(
+							event.csensor.data[1] - gyro_calibration_y->value,
+							event.csensor.data[0] - gyro_calibration_x->value,
+							event.csensor.data[2] - gyro_calibration_z->value,
+							gravNorm,
+							1.0f, 1.0f, 1.0f
 						);
 
-						// ---- Map Transformed Values ----
-						gyro_yaw = transformedGyro.x;
-						gyro_pitch = transformedGyro.y;
-						gyro_roll = transformedGyro.z;
-
-						// ---- Debugging Logs ----
-						printf("World Space Gyro: Yaw=%f, Pitch=%f, Roll=%f\n", gyro_yaw, gyro_pitch, gyro_roll);
+						gyro_yaw = worldGyro.x;
+						gyro_pitch = worldGyro.y;
+						gyro_roll = worldGyro.z;
 
 						break;
 					}
@@ -1094,100 +1056,62 @@ IN_Update(void)
 					switch (event.caxis.axis) {
 					case IMU_JOY_AXIS_GYRO_PITCH:
 						// Handle vertical rotation (Pitch)
-						gyro_pitch = -(axis_value - gyro_calibration_x->value);  // Raw Pitch
+						gyro_pitch = -(axis_value - gyro_calibration_x->value);
 						break;
 
 					case IMU_JOY_AXIS_GYRO_YAW:
 						// Handle horizontal rotation (Yaw)
 						switch ((int)gyro_turning_axis->value) {
 						case 0:  // Standard Yaw calculation
-							gyro_yaw = axis_value - gyro_calibration_y->value;  // Raw Yaw 
+							gyro_yaw = axis_value - gyro_calibration_y->value;
 							break;
 
-						case 2:  // Local Space Mode
+						case 2: // Local Space Mode mode
 						{
-							// ---- Extract Raw Calibrated Inputs ----
-							float yaw_input = axis_value - gyro_calibration_y->value;        // Raw Yaw
-							float roll_input = axis_value - gyro_calibration_z->value;       // Raw Roll
-							float pitch_input = axis_value - gyro_calibration_x->value;      // Raw Pitch
-
-							// ---- Sensitivity and Coupling Parameters ----
-							float yawSensitivity = 1.0f;
-							float pitchSensitivity = 1.0f;
-							float rollSensitivity = 1.0f;
-							float couplingFactor = 0.075f;
-
-							// ---- Apply Local Space Transformation ----
-							Vector3 transformedGyro = TransformToLocalSpace(
-								yaw_input, pitch_input, roll_input,
-								yawSensitivity, pitchSensitivity, rollSensitivity, couplingFactor
+							Vector3 localGyro = TransformToLocalSpace(
+								axis_value - gyro_calibration_y->value,
+								axis_value - gyro_calibration_x->value,
+								axis_value - gyro_calibration_z->value,
+								1.0f, 1.0f, 1.0f, 0.075f 
 							);
 
-							// ---- Map Transformed Values ----
-							gyro_yaw = transformedGyro.x;
-							gyro_pitch = transformedGyro.y;
-							gyro_roll = transformedGyro.z;
+							gyro_yaw = localGyro.x;
+							gyro_pitch = localGyro.y;
+							gyro_roll = localGyro.z;
 
-							// ---- Debugging Logs ----
-							printf("Local Space Gyro (Joystick): Yaw=%f, Pitch=%f, Roll=%f\n", gyro_yaw, gyro_pitch, gyro_roll);
-
-							break;
 						}
+						break;
 
-						case 3:  // Player Space Mode
+						case 3: // Player Space mode
 						{
-							// ---- Extract Raw Calibrated Inputs ----
-							float yaw_input = axis_value - gyro_calibration_y->value;        // Raw Yaw
-							float roll_input = axis_value - gyro_calibration_z->value;       // Raw Roll
-							float pitch_input = axis_value - gyro_calibration_x->value;      // Raw Pitch
-
-							// ---- Sensitivity Parameters ----
-							float yawSensitivity = 1.0f;
-							float pitchSensitivity = 1.0f;
-							float rollSensitivity = 1.0f;
-
-							// ---- Apply Player Space Transformation ----
-							Vector3 transformedGyro = TransformToPlayerSpace(
-								yaw_input, pitch_input, roll_input, gravNorm,
-								yawSensitivity, pitchSensitivity, rollSensitivity
+							Vector3 playerGyro = TransformToPlayerSpace(
+								axis_value - gyro_calibration_y->value,
+								axis_value - gyro_calibration_x->value,
+								axis_value - gyro_calibration_z->value,
+								gravNorm,
+								1.0f, 1.0f, 1.0f
 							);
 
-							// ---- Map Transformed Values ----
-							gyro_yaw = transformedGyro.x;
-							gyro_pitch = transformedGyro.y;
-							gyro_roll = transformedGyro.z;
+							gyro_yaw = playerGyro.x;
+							gyro_pitch = playerGyro.y;
+							gyro_roll = playerGyro.z;
 
-							// ---- Debugging Logs ----
-							printf("Player Space Gyro (Joystick): Yaw=%f, Pitch=%f, Roll=%f\n", gyro_yaw, gyro_pitch, gyro_roll);
-
-							break;
 						}
+						break;
 
-						case 4:  // World Space Mode
+						case 4: // World Space mode
 						{
-							// ---- Extract Raw Calibrated Inputs ----
-							float yaw_input = axis_value - gyro_calibration_y->value;  // Yaw
-							float pitch_input = axis_value - gyro_calibration_x->value; // Pitch
-							float roll_input = axis_value - gyro_calibration_z->value;  // Roll
-
-							// ---- Sensitivity Parameters ----
-							float yawSensitivity = 1.0f;
-							float pitchSensitivity = 1.0f;
-							float rollSensitivity = 1.0f;
-
-							// ---- Apply World Space Transformation ----
-							Vector3 transformedGyro = TransformToWorldSpace(
-								yaw_input, pitch_input, roll_input, gravNorm,
-								yawSensitivity, pitchSensitivity, rollSensitivity
+							Vector3 worldGyro = TransformToWorldSpace(
+								axis_value - gyro_calibration_y->value,
+								axis_value - gyro_calibration_x->value,
+								axis_value - gyro_calibration_z->value,
+								gravNorm,
+								1.0f, 1.0f, 1.0f
 							);
 
-							// ---- Map Transformed Values ----
-							gyro_yaw = transformedGyro.x;
-							gyro_pitch = transformedGyro.y;
-							gyro_roll = transformedGyro.z;
-
-							// ---- Debugging Logs ----
-							printf("World Space Gyro (Joystick): Yaw=%f, Pitch=%f, Roll=%f\n", gyro_yaw, gyro_pitch, gyro_roll);
+							gyro_yaw = worldGyro.x;
+							gyro_pitch = worldGyro.y;
+							gyro_roll = worldGyro.z;
 
 							break;
 						}
@@ -1204,7 +1128,7 @@ IN_Update(void)
 					case IMU_JOY_AXIS_GYRO_ROLL:
 						if ((int)gyro_turning_axis->value == 1) {
 							// Handle Roll
-							gyro_yaw = axis_value - gyro_calibration_z->value;  // Raw Roll (Tilt)
+							gyro_yaw = axis_value - gyro_calibration_z->value;
 						}
 						break;
 
