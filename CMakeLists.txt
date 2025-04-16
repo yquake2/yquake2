@@ -19,7 +19,6 @@ if(NOT EXISTS "${CMAKE_SOURCE_DIR}/src/client/input/header/GyroSpace")
     )
 endif()
 
-
 # Cmake module search path.
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/stuff/cmake/modules ${CMAKE_MODULE_PATH})
 set(CMAKE_C_STANDARD 11)
