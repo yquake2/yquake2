@@ -12,7 +12,13 @@ endif()
 project(yquake2 C)
 
 # Gyro Space and Play header to handle additional gyro_turning_axis modes
-include_directories(${CMAKE_SOURCE_DIR}/src/client/input/header/GyroSpace)
+if(NOT EXISTS "${CMAKE_SOURCE_DIR}/src/client/input/header/GyroSpace")
+    execute_process(
+        COMMAND git submodule update --init --recursive
+        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    )
+endif()
+
 
 # Cmake module search path.
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/stuff/cmake/modules ${CMAKE_MODULE_PATH})
