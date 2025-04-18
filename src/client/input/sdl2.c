@@ -1020,14 +1020,13 @@ IN_Update(void)
 							event.csensor.data[1] - gyro_calibration_y->value,
 							event.csensor.data[0] - gyro_calibration_x->value,
 							event.csensor.data[2] - gyro_calibration_z->value,
-							gravNorm,
+							GetGravityVector(), 
 							1.0f, 1.0f, 1.0f
 						);
 
 						gyro_yaw = playerGyro.x;
 						gyro_pitch = playerGyro.y;
 						gyro_roll = playerGyro.z;
-
 					}
 					break;
 
@@ -1037,16 +1036,15 @@ IN_Update(void)
 							event.csensor.data[1] - gyro_calibration_y->value,
 							event.csensor.data[0] - gyro_calibration_x->value,
 							event.csensor.data[2] - gyro_calibration_z->value,
-							gravNorm,
+							GetGravityVector(),
 							1.0f, 1.0f, 1.0f
 						);
 
 						gyro_yaw = worldGyro.x;
 						gyro_pitch = worldGyro.y;
 						gyro_roll = worldGyro.z;
-
-						break;
 					}
+					break;
 
 					default:
 						gyro_yaw = gyro_pitch = 0;  // Reset for unsupported modes
@@ -1088,7 +1086,7 @@ IN_Update(void)
 								axis_value - gyro_calibration_y->value,
 								axis_value - gyro_calibration_x->value,
 								axis_value - gyro_calibration_z->value,
-								gravNorm,
+								GetGravityVector(),
 								1.0f, 1.0f, 1.0f
 							);
 
@@ -1105,7 +1103,7 @@ IN_Update(void)
 								axis_value - gyro_calibration_y->value,
 								axis_value - gyro_calibration_x->value,
 								axis_value - gyro_calibration_z->value,
-								gravNorm,
+								GetGravityVector(),
 								1.0f, 1.0f, 1.0f
 							);
 
