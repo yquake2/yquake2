@@ -191,6 +191,170 @@ vec3_t bytedirs[NUMVERTEXNORMALS] = {
 	{-0.688191, -0.587785, -0.425325}
 };
 
+size_t
+MSG_String_Size(const char *s)
+{
+	return strlen(s) + 4; /* string length + null char + message type + index */
+}
+
+size_t
+MSG_DeltaEntity_Size(const entity_state_t *from, const entity_state_t *to,
+	qboolean force, qboolean newentity)
+{
+	size_t sz;
+	int bits = DeltaEntityBits(from, to, newentity);
+
+	if (!bits && !force)
+	{
+		return 0;
+	}
+
+	sz = 1;
+
+	if (bits & 0xff000000)
+	{
+		sz += 3;
+	}
+	else if (bits & 0x00ff0000)
+	{
+		sz += 2;
+	}
+	else if (bits & 0x0000ff00)
+	{
+		sz++;
+	}
+
+	if (bits & U_NUMBER16)
+	{
+		sz += 2;
+	}
+	else
+	{
+		sz++;
+	}
+
+	if (bits & U_MODEL)
+	{
+		sz++;
+	}
+
+	if (bits & U_MODEL2)
+	{
+		sz++;
+	}
+
+	if (bits & U_MODEL3)
+	{
+		sz++;
+	}
+
+	if (bits & U_MODEL4)
+	{
+		sz++;
+	}
+
+	if (bits & U_FRAME8)
+	{
+		sz++;
+	}
+
+	if (bits & U_FRAME16)
+	{
+		sz += 2;
+	}
+
+	if ((bits & U_SKIN8) && (bits & U_SKIN16)) /*used for laser colors */
+	{
+		sz += 4;
+	}
+	else if (bits & U_SKIN8)
+	{
+		sz++;
+	}
+	else if (bits & U_SKIN16)
+	{
+		sz += 2;
+	}
+
+	if ((bits & (U_EFFECTS8 | U_EFFECTS16)) == (U_EFFECTS8 | U_EFFECTS16))
+	{
+		sz += 4;
+	}
+	else if (bits & U_EFFECTS8)
+	{
+		sz++;
+	}
+	else if (bits & U_EFFECTS16)
+	{
+		sz += 2;
+	}
+
+	if ((bits & (U_RENDERFX8 | U_RENDERFX16)) == (U_RENDERFX8 | U_RENDERFX16))
+	{
+		sz += 4;
+	}
+	else if (bits & U_RENDERFX8)
+	{
+		sz++;
+	}
+	else if (bits & U_RENDERFX16)
+	{
+		sz += 2;
+	}
+
+	if (bits & U_ORIGIN1)
+	{
+		sz += 2;
+	}
+
+	if (bits & U_ORIGIN2)
+	{
+		sz += 2;
+	}
+
+	if (bits & U_ORIGIN3)
+	{
+		sz += 2;
+	}
+
+	if (bits & U_ANGLE1)
+	{
+		sz++;
+	}
+
+	if (bits & U_ANGLE2)
+	{
+		sz++;
+	}
+
+	if (bits & U_ANGLE3)
+	{
+		sz++;
+	}
+
+	if (bits & U_OLDORIGIN)
+	{
+		sz += 6;
+	}
+
+	if (bits & U_SOUND)
+	{
+		sz++;
+	}
+
+	if (bits & U_EVENT)
+	{
+		sz++;
+	}
+
+	if (bits & U_SOLID)
+	{
+		sz += 2;
+	}
+
+	return sz;
+}
+
 void
 MSG_WriteChar(sizebuf_t *sb, int c)
 {
@@ -428,28 +592,12 @@ MSG_ReadDir(sizebuf_t *sb, vec3_t dir)
  * Writes part of a packetentities message.
  * Can delta from either a baseline or a previous packet_entity
  */
-void
-MSG_WriteDeltaEntity(entity_state_t *from,
-		entity_state_t *to,
-		sizebuf_t *msg,
-		qboolean force,
+int
+DeltaEntityBits(const entity_state_t *from,
+		const entity_state_t *to,
 		qboolean newentity)
 {
-	int bits;
-
-	if (!to->number)
-	{
-		Com_Error(ERR_FATAL, "Unset entity number");
-	}
-
-	if (to->number >= MAX_EDICTS)
-	{
-		Com_Error(ERR_DROP, "%s: bad entity %d >= %d\n",
-			__func__, to->number, MAX_EDICTS);
-	}
-
-	/* send an update */
-	bits = 0;
+	int bits = 0;
 
 	if (to->number >= 256)
 	{
@@ -594,12 +742,6 @@ MSG_WriteDeltaEntity(entity_state_t *from,
 		bits |= U_OLDORIGIN;
 	}
 
-	/* write the message */
-	if (!bits && !force)
-	{
-		return; /* nothing to send! */
-	}
-
 	if (bits & 0xff000000)
 	{
 		bits |= U_MOREBITS3 | U_MOREBITS2 | U_MOREBITS1;
@@ -613,6 +755,37 @@ MSG_WriteDeltaEntity(entity_state_t *from,
 	else if (bits & 0x0000ff00)
 	{
 		bits |= U_MOREBITS1;
+	}
+
+	return bits;
+}
+
+void
+MSG_WriteDeltaEntity(entity_state_t *from,
+		entity_state_t *to,
+		sizebuf_t *msg,
+		qboolean force,
+		qboolean newentity)
+{
+	int bits;
+
+	if (!to->number)
+	{
+		Com_Error(ERR_FATAL, "Unset entity number");
+	}
+
+	if (to->number >= MAX_EDICTS)
+	{
+		Com_Error(ERR_DROP, "%s: bad entity %d >= %d\n",
+			__func__, to->number, MAX_EDICTS);
+	}
+
+	/* send an update */
+	bits = DeltaEntityBits(from, to, newentity);
+
+	if (!bits && !force)
+	{
+		return;
 	}
 
 	MSG_WriteByte(msg, bits & 255);
