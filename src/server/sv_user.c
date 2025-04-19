@@ -28,6 +28,9 @@
 
 #define MAX_STRINGCMDS 8
 
+#define CMD_MARGIN 40 /* space in message reserved for command */
+#define SAFE_MARGIN 24 /* space reserved for more data added elsewhere */
+
 edict_t *sv_player;
 
 void
@@ -115,6 +118,7 @@ void
 SV_Configstrings_f(void)
 {
 	int start;
+	char *cs;
 
 	Com_DPrintf("Configstrings() from %s\n", sv_client->name);
 
@@ -135,15 +139,21 @@ SV_Configstrings_f(void)
 	start = (int)strtol(Cmd_Argv(2), (char **)NULL, 10);
 
 	/* write a packet full of data */
-	while (sv_client->netchan.message.cursize < MAX_MSGLEN / 2 &&
-		   start < MAX_CONFIGSTRINGS)
+	while (start < MAX_CONFIGSTRINGS)
 	{
-		if (sv.configstrings[start][0])
+		cs = sv.configstrings[start];
+
+		if (*cs != '\0')
 		{
+			if ((sv_client->netchan.message.cursize + MSG_String_Size(cs))
+				> (MAX_MSGLEN - (CMD_MARGIN + SAFE_MARGIN)))
+			{
+				break;
+			}
+
 			MSG_WriteByte(&sv_client->netchan.message, svc_configstring);
 			MSG_WriteShort(&sv_client->netchan.message, start);
-			MSG_WriteString(&sv_client->netchan.message,
-					sv.configstrings[start]);
+			MSG_WriteString(&sv_client->netchan.message, cs);
 		}
 
 		start++;
@@ -191,13 +201,18 @@ SV_Baselines_f(void)
 	memset(&nullstate, 0, sizeof(nullstate));
 
 	/* write a packet full of data */
-	while (sv_client->netchan.message.cursize < MAX_MSGLEN / 2 &&
-		   start < MAX_EDICTS)
+	while (start < MAX_EDICTS)
 	{
 		base = &sv.baselines[start];
 
 		if (base->modelindex || base->sound || base->effects)
 		{
+			if ((sv_client->netchan.message.cursize + MSG_DeltaEntity_Size(&nullstate, base, true, true))
+				> (MAX_MSGLEN - (CMD_MARGIN + SAFE_MARGIN)))
+			{
+				break;
+			}
+
 			MSG_WriteByte(&sv_client->netchan.message, svc_spawnbaseline);
 			MSG_WriteDeltaEntity(&nullstate, base,
 					&sv_client->netchan.message,
