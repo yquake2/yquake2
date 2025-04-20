@@ -138,6 +138,11 @@ SV_Configstrings_f(void)
 
 	start = (int)strtol(Cmd_Argv(2), (char **)NULL, 10);
 
+	if (start < 0)
+	{
+		start = 0;
+	}
+
 	/* write a packet full of data */
 	while (start < MAX_CONFIGSTRINGS)
 	{
@@ -198,6 +203,12 @@ SV_Baselines_f(void)
 	}
 
 	start = (int)strtol(Cmd_Argv(2), (char **)NULL, 10);
+
+	if (start < 0)
+	{
+		start = 0;
+	}
+
 	memset(&nullstate, 0, sizeof(nullstate));
 
 	/* write a packet full of data */
