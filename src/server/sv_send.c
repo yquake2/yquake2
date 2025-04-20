@@ -607,15 +607,48 @@ SV_SendClientMessages(void)
 
 			SV_SendClientDatagram(c);
 		}
-		else
-		{
-			/* just update reliable	if needed */
-			if (c->netchan.message.cursize ||
-				(curtime - c->netchan.last_sent > 1000))
-			{
-				Netchan_Transmit(&c->netchan, 0, NULL);
-			}
-		}
+
+		/* messages to non-spawned clients are sent by SendPrepClientMessages */
 	}
 }
 
+void
+SV_SendPrepClientMessages(void)
+{
+	client_t *c;
+	int i;
+
+	if ((sv.state == ss_cinematic) ||
+		(sv.state == ss_demo) ||
+		(sv.state == ss_pic))
+	{
+		return;
+	}
+
+	/* send a message to each connected client */
+	for (i = 0, c = svs.clients; i < maxclients->value; i++, c++)
+	{
+		if (!c->state || (c->state == cs_spawned))
+		{
+			continue;
+		}
+
+		/* if the reliable message 
+		   overflowed, drop the 
+		   client */
+		if (c->netchan.message.overflowed)
+		{
+			SZ_Clear(&c->netchan.message);
+			SZ_Clear(&c->datagram);
+			SV_BroadcastPrintf(PRINT_HIGH, "%s overflowed\n", c->name);
+			SV_DropClient(c);
+		}
+
+		/* just update reliable	if needed */
+		if (c->netchan.message.cursize ||
+			(curtime - c->netchan.last_sent > 1000))
+		{
+			Netchan_Transmit(&c->netchan, 0, NULL);
+		}
+	}
+}

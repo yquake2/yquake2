@@ -397,6 +397,11 @@ SV_Frame(int usec)
 	/* get packets from clients */
 	SV_ReadPackets();
 
+	/* send messages more often to new clients getting ready for spawning in
+	   speeds up the process of sending configstrings, entty deltas, etc.
+	*/
+	SV_SendPrepClientMessages();
+
 	/* move autonomous things around if enough time has passed */
 	if (!sv_timedemo->value && (svs.realtime < sv.time))
 	{

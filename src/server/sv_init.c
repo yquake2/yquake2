@@ -582,6 +582,7 @@ SV_Map(qboolean attractloop, char *levelstring, qboolean loadgame, qboolean isau
 		SCR_BeginLoadingPlaque(); /* for local system */
 #endif
 		SV_BroadcastCommand("changing\n");
+		SV_SendPrepClientMessages();
 		SV_SendClientMessages();
 		SV_SpawnServer(level, spawnpoint, ss_game, attractloop, loadgame, isautosave);
 		Cbuf_CopyToDefer();
