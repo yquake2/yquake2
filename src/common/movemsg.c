@@ -192,7 +192,7 @@ vec3_t bytedirs[NUMVERTEXNORMALS] = {
 };
 
 size_t
-MSG_String_Size(const char *s)
+MSG_ConfigString_Size(const char *s)
 {
 	return strlen(s) + 4; /* string length + null char + message type + index */
 }
@@ -448,6 +448,13 @@ void
 MSG_WriteAngle16(sizebuf_t *sb, float f)
 {
 	MSG_WriteShort(sb, ANGLE2SHORT(f));
+}
+
+void
+MSG_WriteConfigString(sizebuf_t *buf, short index, const char *s)
+{
+	MSG_WriteShort(buf, index);
+	MSG_WriteString(buf, s);
 }
 
 void

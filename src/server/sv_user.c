@@ -150,15 +150,14 @@ SV_Configstrings_f(void)
 
 		if (*cs != '\0')
 		{
-			if ((sv_client->netchan.message.cursize + MSG_String_Size(cs))
+			if ((sv_client->netchan.message.cursize + MSG_ConfigString_Size(cs))
 				> (MAX_MSGLEN - (CMD_MARGIN + SAFE_MARGIN)))
 			{
 				break;
 			}
 
 			MSG_WriteByte(&sv_client->netchan.message, svc_configstring);
-			MSG_WriteShort(&sv_client->netchan.message, start);
-			MSG_WriteString(&sv_client->netchan.message, cs);
+			MSG_WriteConfigString(&sv_client->netchan.message, start, cs);
 		}
 
 		start++;
