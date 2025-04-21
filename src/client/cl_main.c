@@ -222,9 +222,7 @@ CL_Record_f(void)
 			}
 
 			MSG_WriteByte(&buf, svc_configstring);
-
-			MSG_WriteShort(&buf, i);
-			MSG_WriteString(&buf, cl.configstrings[i]);
+			MSG_WriteConfigString(&buf, i, cl.configstrings[i]);
 		}
 	}
 
