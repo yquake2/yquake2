@@ -493,6 +493,7 @@ SV_Map(qboolean attractloop, char *levelstring, qboolean loadgame, qboolean isau
 	char *ch;
 	size_t l;
 	char spawnpoint[MAX_QPATH];
+	char *ext;
 
 	sv.loadgame = loadgame;
 	sv.attractloop = attractloop;
@@ -548,7 +549,9 @@ SV_Map(qboolean attractloop, char *levelstring, qboolean loadgame, qboolean isau
 		--l;
 	}
 
-	if ((l > 4) && !strcmp(level + l - 4, ".cin"))
+	ext = (l <= 4) ? NULL : level + l - 4;
+
+	if (ext && !strcmp(ext, ".cin"))
 	{
 #ifndef DEDICATED_ONLY
 		SCR_BeginLoadingPlaque(); /* for local system */
@@ -556,7 +559,7 @@ SV_Map(qboolean attractloop, char *levelstring, qboolean loadgame, qboolean isau
 		SV_BroadcastCommand("changing\n");
 		SV_SpawnServer(level, spawnpoint, ss_cinematic, attractloop, loadgame, isautosave);
 	}
-	else if ((l > 4) && !strcmp(level + l - 4, ".dm2"))
+	else if (ext && !strcmp(ext, ".dm2"))
 	{
 #ifndef DEDICATED_ONLY
 		SCR_BeginLoadingPlaque(); /* for local system */
@@ -564,10 +567,10 @@ SV_Map(qboolean attractloop, char *levelstring, qboolean loadgame, qboolean isau
 		SV_BroadcastCommand("changing\n");
 		SV_SpawnServer(level, spawnpoint, ss_demo, attractloop, loadgame, isautosave);
 	}
-	else if ((l > 4) && (!strcmp(level + l - 4, ".pcx") ||
-						!strcmp(level + l - 4, ".tga") ||
-						!strcmp(level + l - 4, ".jpg") ||
-						!strcmp(level + l - 4, ".png")))
+	else if (ext && (!strcmp(ext, ".pcx") ||
+					!strcmp(ext, ".tga") ||
+					!strcmp(ext, ".jpg") ||
+					!strcmp(ext, ".png")))
 	{
 #ifndef DEDICATED_ONLY
 		SCR_BeginLoadingPlaque(); /* for local system */
@@ -581,8 +584,7 @@ SV_Map(qboolean attractloop, char *levelstring, qboolean loadgame, qboolean isau
 		SCR_BeginLoadingPlaque(); /* for local system */
 #endif
 		SV_BroadcastCommand("changing\n");
-		SV_SendPrepClientMessages();
-		SV_SendClientMessages();
+
 		SV_SpawnServer(level, spawnpoint, ss_game, attractloop, loadgame, isautosave);
 		Cbuf_CopyToDefer();
 	}
