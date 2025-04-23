@@ -665,6 +665,7 @@ AL_Spatialize(channel_t *ch)
 			{
 				AL_ApplyReverb();
 			}
+
 			/* Forsed reverb effect */
 			else if (s_reverb_preset->value >= 0)
 			{
@@ -852,11 +853,6 @@ AL_AddLoopSounds(void)
 {
 	int i;
 	int sounds[MAX_EDICTS];
-	channel_t *ch;
-	sfx_t *sfx;
-	sfxcache_t *sc;
-	int num;
-	entity_state_t *ent;
 
 	if ((cls.state != ca_active) || (cl_paused->value && cl_audiopaused->value) || !s_ambient->value)
 	{
@@ -868,6 +864,12 @@ AL_AddLoopSounds(void)
 
 	for (i = 0; i < cl.frame.num_entities; i++)
 	{
+		channel_t *ch;
+		sfx_t *sfx;
+		sfxcache_t *sc;
+		int num;
+		entity_state_t *ent;
+
 		if (!sounds[i])
 		{
 			continue;

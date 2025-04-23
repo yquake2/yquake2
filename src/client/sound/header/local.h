@@ -355,6 +355,8 @@ void AL_RawSamples(int samples, int rate, int width,
  */
 void AL_UnqueueRawSamples();
 
+void AL_Underwater();
+void AL_Overwater();
+
 #endif /* USE_OPENAL */
 #endif /* CL_SOUND_LOCAL_H */
-

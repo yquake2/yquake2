@@ -681,14 +681,8 @@ SDL_Spatialize(channel_t *ch)
 void
 SDL_AddLoopSounds(void)
 {
-	int i, j;
+	int i;
 	int sounds[MAX_EDICTS];
-	int left, right, left_total, right_total;
-	channel_t *ch;
-	sfx_t *sfx;
-	sfxcache_t *sc;
-	int num;
-	entity_state_t *ent;
 
 	if ((cls.state != ca_active) || (cl_paused->value && cl_audiopaused->value) ||
 	    !cl.sound_prepped || !s_ambient->value)
@@ -701,6 +695,14 @@ SDL_AddLoopSounds(void)
 
 	for (i = 0; i < cl.frame.num_entities; i++)
 	{
+		int left, right, left_total, right_total;
+		channel_t *ch;
+		sfx_t *sfx;
+		sfxcache_t *sc;
+		int num;
+		entity_state_t *ent;
+		int j;
+
 		if (!sounds[i])
 		{
 			continue;
