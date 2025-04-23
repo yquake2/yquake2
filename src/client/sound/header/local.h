@@ -196,7 +196,6 @@ extern vec3_t listener_right;
 extern vec3_t listener_up;
 
 extern qboolean snd_is_underwater;
-extern qboolean snd_is_underwater_enabled;
 
 /*
  * Returns the header infos

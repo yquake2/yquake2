@@ -92,7 +92,6 @@ static qboolean s_registering;
 qboolean s_active;
 
 qboolean snd_is_underwater;
-qboolean snd_is_underwater_enabled;
 /* ----------------------------------------------------------------- */
 
 static qboolean

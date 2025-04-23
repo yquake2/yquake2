@@ -72,7 +72,7 @@ float pm_waterspeed = 400;
 
 #define STOP_EPSILON 0.1 /* Slide off of the impacting object returns the blocked flags (1 = floor, 2 = step / wall) */
 #define MIN_STEP_NORMAL 0.7 /* can't step up onto very steep slopes */
-#define MAX_CLIP_PLANES 5  
+#define MAX_CLIP_PLANES 5
 
 void
 PM_ClipVelocity(vec3_t in, vec3_t normal, vec3_t out, float overbounce)
@@ -554,7 +554,7 @@ PM_WaterMove(void)
 	/* user intentions */
 	for (i = 0; i < 3; i++)
 	{
-		wishvel[i] = pml.forward[i] * pm->cmd.forwardmove + 
+		wishvel[i] = pml.forward[i] * pm->cmd.forwardmove +
 					 pml.right[i] * pm->cmd.sidemove;
 	}
 
@@ -1309,23 +1309,23 @@ void PM_UpdateUnderwaterSfx()
 {
 	static int underwater;
 
-	if ((pm->waterlevel == 3) && !underwater) {
+	if ((pm->waterlevel == 3) && !underwater)
+	{
 		underwater = 1;
 		snd_is_underwater = 1;
 
 #ifdef USE_OPENAL
-		if (snd_is_underwater_enabled)
-			AL_Underwater();
+		AL_Underwater();
 #endif
 	}
 
-	if ((pm->waterlevel < 3) && underwater) {
+	if ((pm->waterlevel < 3) && underwater)
+	{
 		underwater = 0;
 		snd_is_underwater = 0;
 
 #ifdef USE_OPENAL
-		if (snd_is_underwater_enabled)
-			AL_Overwater();
+		AL_Overwater();
 #endif
 	}
 }
