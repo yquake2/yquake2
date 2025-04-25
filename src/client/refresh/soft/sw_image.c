@@ -515,7 +515,7 @@ R_FindImage(const char *name, imagetype_t type)
 	}
 
 	ext = COM_FileExtension(name);
-	if(!ext[0])
+	if (!ext[0])
 	{
 		/* file has no extension */
 		return NULL;
@@ -523,7 +523,7 @@ R_FindImage(const char *name, imagetype_t type)
 
 	/* Remove the extension */
 	len = (ext - name) - 1;
-	if (len < 1)
+	if ((len < 1) || (len > sizeof(namewe) - 1))
 	{
 		return NULL;
 	}
