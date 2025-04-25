@@ -36,7 +36,7 @@ extern int edit_line;
 extern int key_linepos;
 
 void
-DrawStringScaled(int x, int y, char *s, float factor)
+DrawStringScaled(int x, int y, const char *s, float factor)
 {
 	while (*s)
 	{
@@ -47,7 +47,7 @@ DrawStringScaled(int x, int y, char *s, float factor)
 }
 
 void
-DrawAltStringScaled(int x, int y, char *s, float factor)
+DrawAltStringScaled(int x, int y, const char *s, float factor)
 {
 	while (*s)
 	{
