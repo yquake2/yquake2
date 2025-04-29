@@ -650,10 +650,19 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
   disable (default), `3` = always on.
 
 * **gyro_turning_axis**: Sets which gyro axis will be used for turning.
-  The default `0` is "yaw" (turn), for people who prefer to hold their
-  controller flat, like using a pointing device. `1` is "roll" (lean),
-  for people who hold the controller upright, or use a device with the
-  controller attached to the screen, e.g. Steam Deck.
+
+  - `0`: *yaw (turn)*, for people who prefer to hold their
+  controller flat, like using a pointing device. Default is `0`.
+  - `1`: *roll (lean)*, for people who hold the controller upright.
+  - `2`: *local space*, which combines yaw and roll together. Preferred
+  for people to use a device with a controller attached to the screen.
+  (e.g, Steam Deck, Lenovo Legion GO, ASUS ROG Ally)
+  - `3`: *player space*, similar to Local Space but taking into account
+  for gravity and player's view orientation. Preferred for those who
+  use external controllers. 
+  - `4`: *world space*, similar to Local Space but taking account on
+  the gravity influence. Preferred for those who are more familiar 
+  with Nintendo games' gyro aim function.
 
 * **gyro_tightening**: Threshold of rotation in degrees per second,
   where gyro inputs below it will be dampened. Meant to counter a
