@@ -176,7 +176,13 @@ typedef struct
 	FILE *demofile;
 	sizebuf_t demo_multicast;
 	byte demo_multicast_buf[MAX_MSGLEN];
+
+	int gamemode;
 } server_static_t;
+
+#define GAMEMODE_SP 1
+#define GAMEMODE_COOP 2
+#define GAMEMODE_DM 3
 
 extern netadr_t net_from;
 extern sizebuf_t net_message;
@@ -185,6 +191,9 @@ extern netadr_t master_adr[MAX_MASTERS];    /* address of the master server */
 
 extern server_static_t svs;                 /* persistant server info */
 extern server_t sv;                         /* local server */
+
+extern cvar_t *sv_optimize_sp_loadtime;
+extern cvar_t *sv_optimize_mp_loadtime;
 
 extern cvar_t *sv_paused;
 extern cvar_t *maxclients;
@@ -283,6 +292,14 @@ int SV_PointContents(vec3_t p);
 
 trace_t SV_Trace(vec3_t start, vec3_t mins, vec3_t maxs,
 		vec3_t end, edict_t *passedict, int contentmask);
+
+/* loadtime optimizations */
+
+#define OPTIMIZE_MSGUTIL 1
+#define OPTIMIZE_SENDRATE 2
+#define OPTIMIZE_RECONNECT 4
+
+int SV_Optimizations(void);
 
 #endif
 

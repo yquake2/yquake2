@@ -26,10 +26,6 @@
 
 #include "header/server.h"
 
-#define GAMEMODE_SP 0
-#define GAMEMODE_COOP 1
-#define GAMEMODE_DM 2
-
 server_static_t svs; /* persistant server info */
 server_t sv; /* local server */
 
@@ -435,6 +431,7 @@ SV_InitGame(void)
 		Cvar_FullSet("maxclients", "1", CVAR_SERVERINFO | CVAR_LATCH);
 	}
 
+	svs.gamemode = gamemode;
 	svs.spawncount = randk();
 	svs.clients = Z_Malloc(sizeof(client_t) * maxclients->value);
 	svs.num_client_entities = maxclients->value * UPDATE_BACKUP * 64;
@@ -584,6 +581,13 @@ SV_Map(qboolean attractloop, char *levelstring, qboolean loadgame, qboolean isau
 		SCR_BeginLoadingPlaque(); /* for local system */
 #endif
 		SV_BroadcastCommand("changing\n");
+
+		/* for some reason calling send messages here causes a lengthy reconnect delay */
+		if (!(SV_Optimizations() & OPTIMIZE_RECONNECT))
+		{
+			SV_SendClientMessages();
+			SV_SendPrepClientMessages();
+		}
 
 		SV_SpawnServer(level, spawnpoint, ss_game, attractloop, loadgame, isautosave);
 		Cbuf_CopyToDefer();
