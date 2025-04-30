@@ -36,7 +36,7 @@ typedef struct
 } replacement_t;
 
 /* An ugly hack to rewrite CVARs loaded from config.cfg */
-replacement_t replacements[] = {
+static const replacement_t replacements[] = {
 	{"cd_shuffle", "ogg_shuffle"},
 	{"cl_anglekicks", "cl_kickangles"},
 	{"cl_drawfps", "cl_showfps"},
@@ -289,7 +289,7 @@ Cvar_Get(const char *var_name, const char *var_value, int flags)
 	return var;
 }
 
-cvar_t *
+static cvar_t *
 Cvar_Set2(const char *var_name, const char *value, qboolean force)
 {
 	cvar_t *var;
@@ -524,7 +524,7 @@ Cvar_Command(void)
 /*
  * Allows setting and defining of arbitrary cvars from console
  */
-void
+static void
 Cvar_Set_f(void)
 {
 	char *firstarg;
@@ -553,7 +553,12 @@ Cvar_Set_f(void)
 	{
 		int flags;
 
-		if (!strcmp(Cmd_Argv(3), "u"))
+		if (!strcmp(Cmd_Argv(3), "a"))
+		{
+			flags = CVAR_ARCHIVE;
+		}
+
+		else if (!strcmp(Cmd_Argv(3), "u"))
 		{
 			flags = CVAR_USERINFO;
 		}
@@ -565,7 +570,7 @@ Cvar_Set_f(void)
 
 		else
 		{
-			Com_Printf("flags can only be 'u' or 's'\n");
+			Com_Printf("flags can only be 'a', 'u' or 's'\n");
 			return;
 		}
 
@@ -604,7 +609,7 @@ Cvar_WriteVariables(const char *path)
 	fclose(f);
 }
 
-void
+static void
 Cvar_List_f(void)
 {
 	cvar_t *var;
@@ -667,7 +672,7 @@ Cvar_List_f(void)
 
 qboolean userinfo_modified;
 
-char *
+static char *
 Cvar_BitInfo(int bit)
 {
 	static char info[MAX_INFO_STRING];
@@ -710,7 +715,8 @@ Cvar_Serverinfo(void)
  * Increments the given cvar by 1 or adds the
  * optional given float value to it.
  */
-void Cvar_Inc_f(void)
+static void
+Cvar_Inc_f(void)
 {
 	char string[MAX_QPATH];
     cvar_t *var;
@@ -753,7 +759,8 @@ void Cvar_Inc_f(void)
 /*
  * Resets a cvar to its default value.
  */
-void Cvar_Reset_f(void)
+static void
+Cvar_Reset_f(void)
 {
     cvar_t *var;
 
@@ -779,7 +786,8 @@ void Cvar_Reset_f(void)
  * Resets all known cvar (with the exception of `game') to
  * their default values.
  */
-void Cvar_ResetAll_f(void)
+static void
+Cvar_ResetAll_f(void)
 {
     cvar_t *var;
 
@@ -801,7 +809,8 @@ void Cvar_ResetAll_f(void)
 /*
  * Toggles a cvar between 0 and 1 or the given values.
  */
-void Cvar_Toggle_f(void)
+static void
+Cvar_Toggle_f(void)
 {
     cvar_t *var;
     int i, argc = Cmd_Argc();
@@ -882,7 +891,7 @@ Cvar_Fini(void)
 		Z_Free(var->name);
 		Z_Free(var->default_string);
 		Z_Free(var);
-        var = c;
+		var = c;
 	}
 
 	Cmd_RemoveCommand("cvarlist");

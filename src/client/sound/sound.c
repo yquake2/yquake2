@@ -92,7 +92,6 @@ static qboolean s_registering;
 qboolean s_active;
 
 qboolean snd_is_underwater;
-qboolean snd_is_underwater_enabled;
 /* ----------------------------------------------------------------- */
 
 static qboolean
@@ -211,12 +210,12 @@ S_IsSilencedMuzzleFlash(const wavinfo_t* info, const void* raw_data, const char*
 }
 
 static void
-S_LoadVorbis(const char *path, const char* name, wavinfo_t *info, void **buffer)
+S_LoadVorbis(const char *path, wavinfo_t *info, void **buffer)
 {
-	int	len;
-	char namewe[256];
+	const char ogg_ext[] = ".ogg";
 	char filename[MAX_QPATH];
 	const char* ext;
+	int	len;
 
 	if (!path)
 	{
@@ -224,28 +223,25 @@ S_LoadVorbis(const char *path, const char* name, wavinfo_t *info, void **buffer)
 	}
 
 	ext = COM_FileExtension(path);
-	if(!ext[0])
+	if (!ext[0])
 	{
 		/* file has no extension */
 		return;
 	}
 
-	len = strlen(path);
-
-	if (len < 5)
+	/* Remove the extension */
+	len = (ext - path) - 1;
+	if ((len < 1) || (len > sizeof(filename) - 5))
 	{
+		Com_DPrintf("%s: Bad filename %s\n", __func__, path);
 		return;
 	}
 
-	/* Remove the extension */
-	memset(namewe, 0, sizeof(namewe));
-	memcpy(namewe, path, len - (strlen(ext) + 1));
-
-	/* Combine with ogg */
-	Q_strlcpy(filename, namewe, sizeof(filename));
+	/* copy base path */
+	memcpy(filename, path, len);
 
 	/* Add the extension */
-	Q_strlcat(filename, ".ogg", sizeof(filename));
+	memcpy(filename + len, ogg_ext, sizeof(ogg_ext));
 
 	OGG_LoadAsWav(filename, info, buffer);
 }
@@ -488,7 +484,7 @@ S_LoadSound(sfx_t *s)
 		Com_sprintf(namebuffer, sizeof(namebuffer), "sound/%s", name);
 	}
 
-	S_LoadVorbis(namebuffer, s->name, &info, (void **)&data);
+	S_LoadVorbis(namebuffer, &info, (void **)&data);
 
 	// can't load ogg file
 	if (!data)
@@ -1378,7 +1374,7 @@ S_BuildSoundList(int *sounds)
  */
 void
 S_RawSamples(int samples, int rate, int width,
-		int channels, byte *data, float volume)
+		int channels, const byte *data, float volume)
 {
 	if (sound_started == SS_NOT)
 	{

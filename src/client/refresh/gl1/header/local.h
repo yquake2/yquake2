@@ -303,10 +303,10 @@ void R_SwapBuffers(int);
 image_t *R_LoadPic(const char *name, byte *pic, int width, int realwidth,
 		int height, int realheight, size_t data_size, imagetype_t type, int bits);
 image_t *R_FindImage(const char *name, imagetype_t type);
-void R_TextureMode(char *string);
+void R_TextureMode(const char *string);
 void R_ImageList_f(void);
 
-void R_SetTexturePalette(unsigned palette[256]);
+void R_SetTexturePalette(const unsigned palette[256]);
 
 void R_InitImages(void);
 void R_ShutdownImages(void);
@@ -314,8 +314,8 @@ void R_ShutdownImages(void);
 void R_FreeUnusedImages(void);
 qboolean R_ImageHasFreeSpace(void);
 
-void R_TextureAlphaMode(char *string);
-void R_TextureSolidMode(char *string);
+void R_TextureAlphaMode(const char *string);
+void R_TextureSolidMode(const char *string);
 int Scrap_AllocBlock(int w, int h, int *x, int *y);
 
 // GL buffer operations

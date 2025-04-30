@@ -406,7 +406,8 @@ OGG_Stream(void)
 void
 OGG_PlayTrack(const char *track, qboolean cdtrack, qboolean immediate)
 {
-	char name[MAX_OSPATH], *path = NULL;
+	const char *path = NULL;
+	char name[MAX_OSPATH];
 	int trackNo;
 
 	if (sound_started == SS_NOT)

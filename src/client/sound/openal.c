@@ -69,6 +69,7 @@ static ALuint underwaterFilter;
 static ALuint ReverbEffect[QAL_EFX_MAX] = {0};
 static ALuint ReverbEffectSlot[QAL_EFX_MAX] = {0};
 static int lastreverteffect = -1; /* just some invalid index value */
+static qboolean snd_is_underwater_enabled = false;
 
 /* ----------------------------------------------------------------- */
 
@@ -82,7 +83,9 @@ AL_StreamDie(void)
 
 	/* openal might not be initialised yet */
 	if (!qalSourceStop)
-            return;
+	{
+		return;
+	}
 
 	streamPlaying = false;
 	qalSourceStop(streamSource);
@@ -662,6 +665,7 @@ AL_Spatialize(channel_t *ch)
 			{
 				AL_ApplyReverb();
 			}
+
 			/* Forsed reverb effect */
 			else if (s_reverb_preset->value >= 0)
 			{
@@ -849,11 +853,6 @@ AL_AddLoopSounds(void)
 {
 	int i;
 	int sounds[MAX_EDICTS];
-	channel_t *ch;
-	sfx_t *sfx;
-	sfxcache_t *sc;
-	int num;
-	entity_state_t *ent;
 
 	if ((cls.state != ca_active) || (cl_paused->value && cl_audiopaused->value) || !s_ambient->value)
 	{
@@ -865,6 +864,12 @@ AL_AddLoopSounds(void)
 
 	for (i = 0; i < cl.frame.num_entities; i++)
 	{
+		channel_t *ch;
+		sfx_t *sfx;
+		sfxcache_t *sc;
+		int num;
+		entity_state_t *ent;
+
 		if (!sounds[i])
 		{
 			continue;
@@ -954,7 +959,7 @@ AL_IssuePlaysounds(void)
  */
 void
 AL_RawSamples(int samples, int rate, int width, int channels,
-		byte *data, float volume)
+		const byte *data, float volume)
 {
 	ALuint buffer;
 	ALuint format = 0;
@@ -1189,7 +1194,7 @@ AL_Underwater()
 {
 	int i;
 
-	if (sound_started != SS_OAL)
+	if (sound_started != SS_OAL || !snd_is_underwater_enabled)
 	{
 		return;
 	}
@@ -1214,13 +1219,15 @@ AL_Overwater()
 {
 	int i;
 
-	if (sound_started != SS_OAL)
+	if (sound_started != SS_OAL || !snd_is_underwater_enabled)
 	{
 		return;
 	}
 
 	if (underwaterFilter == 0)
+	{
 		return;
+	}
 
 	/* Apply to all sources */
 	for (i = 0; i < s_numchannels; i++)
