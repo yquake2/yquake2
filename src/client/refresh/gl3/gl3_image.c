@@ -617,22 +617,21 @@ GL3_FindImage(const char *name, imagetype_t type)
 	}
 
 	ext = COM_FileExtension(name);
-	if(!ext[0])
+	if (!ext[0])
 	{
 		/* file has no extension */
 		return NULL;
 	}
 
-	len = strlen(name);
-
 	/* Remove the extension */
-	memset(namewe, 0, 256);
-	memcpy(namewe, name, len - (strlen(ext) + 1));
-
-	if (len < 5)
+	len = (ext - name) - 1;
+	if ((len < 1) || (len > sizeof(namewe) - 1))
 	{
 		return NULL;
 	}
+
+	memcpy(namewe, name, len);
+	namewe[len] = 0;
 
 	/* fix backslashes */
 	while ((ptr = strchr(name, '\\')))

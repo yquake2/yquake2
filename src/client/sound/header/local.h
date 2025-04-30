@@ -196,7 +196,6 @@ extern vec3_t listener_right;
 extern vec3_t listener_up;
 
 extern qboolean snd_is_underwater;
-extern qboolean snd_is_underwater_enabled;
 
 /*
  * Returns the header infos
@@ -276,7 +275,7 @@ void SDL_Update(void);
  * playback
  */
 void SDL_RawSamples(int samples, int rate, int width,
-		int channels, byte *data, float volume);
+		int channels, const byte *data, float volume);
 
 /*
  * Spartializes a sample
@@ -348,7 +347,7 @@ void AL_Update(void);
  * Plays raw samples
  */
 void AL_RawSamples(int samples, int rate, int width,
-		int channels, byte *data, float volume);
+		int channels, const byte *data, float volume);
 
 /*
  * Unqueues any raw samples
@@ -356,6 +355,8 @@ void AL_RawSamples(int samples, int rate, int width,
  */
 void AL_UnqueueRawSamples();
 
+void AL_Underwater();
+void AL_Overwater();
+
 #endif /* USE_OPENAL */
 #endif /* CL_SOUND_LOCAL_H */
-
