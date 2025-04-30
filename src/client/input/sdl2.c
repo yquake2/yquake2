@@ -43,7 +43,7 @@
 #include <limits.h>
 
 #include "header/input.h"
-#include "header/GyroSpace/GyroSpace.h"
+#include "header/gyrospace.h"
 #include "../header/keyboard.h"
 #include "../header/client.h"
 #include "stdio.h"

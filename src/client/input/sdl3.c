@@ -46,10 +46,10 @@
 #include "SDL3/SDL_properties.h"
 #include "SDL3/SDL_stdinc.h"
 #include "header/input.h"
-#include "header/GyroSpace/GyroSpace.h"
+#include "header/gyrospace.h"
 #include "../header/keyboard.h"
 #include "../header/client.h"
-#include "stdio.h"	
+#include "stdio.h"
 
 // ----
 

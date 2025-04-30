@@ -24,18 +24,10 @@ jobs:
     steps:
     - name: Install build dependencies
       run: |
-        # Update Homebrew and install required dependencies
         brew update
         brew install sdl2 openal-soft make
     - name: Check out repository code
       uses: actions/checkout@v4
-      with:
-        submodules: recursive # Ensures submodules are checked out
-        fetch-depth: 0        # Fetches the full history for submodules
-    - name: Update submodules
-      run: |
-        # Initialize and update Git submodules
-        git submodule update --init --recursive
     - name: Build
       run: |
         # Public runners come with 3 CPUs.
@@ -62,7 +54,6 @@ jobs:
         cp doc/090_filelists.md publish/quake2-macos-${{github.sha}}/misc/docs/090_filelists.md
     - name: Create dmg package
       run: |
-        # remove any existing dmg build directory
         rm -rf build/macos-dmg
         mkdir -p build/macos-dmg
         # start with app bundle template

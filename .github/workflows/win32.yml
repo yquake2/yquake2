@@ -39,11 +39,6 @@ jobs:
           mingw-w64-${{matrix.env}}-wget
     - name: Check out repository code
       uses: actions/checkout@v4
-      with:
-        submodules: recursive # Ensures submodules are checked out
-        fetch-depth: 0        # Fetches the full history for submodules
-    - name: Update submodules
-      run: git submodule update --init --recursive
     - name: Build
       shell: msys2 {0}
       run: |
