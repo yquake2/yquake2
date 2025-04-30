@@ -32,6 +32,9 @@ netadr_t master_adr[MAX_MASTERS]; /* address of group servers */
 
 client_t *sv_client; /* current client */
 
+cvar_t *sv_optimize_sp_loadtime;
+cvar_t *sv_optimize_mp_loadtime;
+
 cvar_t *sv_paused;
 cvar_t *sv_timedemo;
 cvar_t *sv_enforcetime;
@@ -373,9 +376,27 @@ SV_RunGameFrame(void)
 #endif
 }
 
+int
+SV_Optimizations(void)
+{
+	cvar_t *cv;
+
+	if (svs.gamemode <= 0 || svs.gamemode > 3)
+	{
+		return 0;
+	}
+
+	cv = (svs.gamemode == GAMEMODE_SP) ?
+		sv_optimize_sp_loadtime : sv_optimize_mp_loadtime;
+
+	return cv ? cv->value : 0;
+}
+
 void
 SV_Frame(int usec)
 {
+	int opt_sendrate;
+
 #ifndef DEDICATED_ONLY
 	time_before_game = time_after_game = 0;
 #endif
@@ -400,7 +421,12 @@ SV_Frame(int usec)
 	/* send messages more often to new clients getting ready for spawning in
 	   speeds up the process of sending configstrings, entty deltas, etc.
 	*/
-	SV_SendPrepClientMessages();
+	opt_sendrate = SV_Optimizations() & OPTIMIZE_SENDRATE;
+
+	if (opt_sendrate)
+	{
+		SV_SendPrepClientMessages();
+	}
 
 	/* move autonomous things around if enough time has passed */
 	if (!sv_timedemo->value && (svs.realtime < sv.time))
@@ -431,6 +457,12 @@ SV_Frame(int usec)
 
 	/* send messages back to the clients that had packets read this frame */
 	SV_SendClientMessages();
+
+	/* if not optimizing, send all messages here */
+	if (!opt_sendrate)
+	{
+		SV_SendPrepClientMessages();
+	}
 
 	/* save the entire world state if recording a serverdemo */
 	SV_RecordDemoMessage();
@@ -578,6 +610,9 @@ void
 SV_Init(void)
 {
 	SV_InitOperatorCommands();
+
+	sv_optimize_sp_loadtime = Cvar_Get("sv_optimize_sp_loadtime", "7", 0);
+	sv_optimize_mp_loadtime = Cvar_Get("sv_optimize_mp_loadtime", "0", 0);
 
 	rcon_password = Cvar_Get("rcon_password", "", 0);
 	Cvar_Get("skill", "1", 0);
