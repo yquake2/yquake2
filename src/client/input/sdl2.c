@@ -1004,13 +1004,12 @@ IN_Update(void)
 							event.csensor.data[1] - gyro_calibration_y->value,
 							event.csensor.data[0] - gyro_calibration_x->value,
 							event.csensor.data[2] - gyro_calibration_z->value,
-							1.0f, 1.0f, 1.0f, 0.0f
+							0.0f
 						);
 
 						gyro_yaw = localGyro.x;
 						gyro_pitch = localGyro.y;
 						gyro_roll = localGyro.z;
-
 					}
 					break;
 
@@ -1020,8 +1019,7 @@ IN_Update(void)
 							event.csensor.data[1] - gyro_calibration_y->value,
 							event.csensor.data[0] - gyro_calibration_x->value,
 							event.csensor.data[2] - gyro_calibration_z->value,
-							GetGravityVector(), 
-							1.0f, 1.0f, 1.0f
+							GetGravityVector()
 						);
 
 						gyro_yaw = playerGyro.x;
@@ -1036,8 +1034,7 @@ IN_Update(void)
 							event.csensor.data[1] - gyro_calibration_y->value,
 							event.csensor.data[0] - gyro_calibration_x->value,
 							event.csensor.data[2] - gyro_calibration_z->value,
-							GetGravityVector(),
-							1.0f, 1.0f, 1.0f
+							GetGravityVector()
 						);
 
 						gyro_yaw = worldGyro.x;
@@ -1064,19 +1061,18 @@ IN_Update(void)
 							gyro_yaw = axis_value - gyro_calibration_y->value;
 							break;
 
-						case 2: // Local Space Mode mode
+						case 2: // Local Space mode
 						{
 							Vector3 localGyro = TransformToLocalSpace(
 								axis_value - gyro_calibration_y->value,
 								axis_value - gyro_calibration_x->value,
 								axis_value - gyro_calibration_z->value,
-								1.0f, 1.0f, 1.0f, 0.0f
+								0.0f
 							);
 
 							gyro_yaw = localGyro.x;
 							gyro_pitch = localGyro.y;
 							gyro_roll = localGyro.z;
-
 						}
 						break;
 
@@ -1086,14 +1082,12 @@ IN_Update(void)
 								axis_value - gyro_calibration_y->value,
 								axis_value - gyro_calibration_x->value,
 								axis_value - gyro_calibration_z->value,
-								GetGravityVector(),
-								1.0f, 1.0f, 1.0f
+								GetGravityVector()
 							);
 
 							gyro_yaw = playerGyro.x;
 							gyro_pitch = playerGyro.y;
 							gyro_roll = playerGyro.z;
-
 						}
 						break;
 
@@ -1103,16 +1097,14 @@ IN_Update(void)
 								axis_value - gyro_calibration_y->value,
 								axis_value - gyro_calibration_x->value,
 								axis_value - gyro_calibration_z->value,
-								GetGravityVector(),
-								1.0f, 1.0f, 1.0f
+								GetGravityVector() 
 							);
 
 							gyro_yaw = worldGyro.x;
 							gyro_pitch = worldGyro.y;
 							gyro_roll = worldGyro.z;
-
-							break;
 						}
+						break;
 
 						default:
 							// Fallback for unsupported turning_axis values
