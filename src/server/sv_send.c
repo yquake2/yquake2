@@ -530,6 +530,42 @@ SV_RateDrop(client_t *c)
 	return false;
 }
 
+static int
+SV_NextDemoChunk(byte *msgbuf)
+{
+	size_t r;
+	int n;
+
+	if (sv_paused->value)
+	{
+		return 0;
+	}
+
+	r = FS_FRead(&n, 4, 1, sv.demofile);
+
+	if (r != 4)
+	{
+		return -1;
+	}
+
+	n = LittleLong(n);
+
+	if (n == -1)
+	{
+		return -1;
+	}
+
+	if (n > MAX_MSGLEN)
+	{
+		Com_Error(ERR_DROP,
+				"SV_SendClientMessages: msglen > MAX_MSGLEN");
+	}
+
+	r = FS_FRead(msgbuf, n, 1, sv.demofile);
+
+	return (r == n) ? n : -1;
+}
+
 void
 SV_SendClientMessages(void)
 {
@@ -537,50 +573,21 @@ SV_SendClientMessages(void)
 	client_t *c;
 	int msglen;
 	byte msgbuf[MAX_MSGLEN];
-	size_t r;
-
-	msglen = 0;
 
 	/* read the next demo message if needed */
 	if (sv.demofile && (sv.state == ss_demo))
 	{
-		if (sv_paused->value)
+		msglen = SV_NextDemoChunk(msgbuf);
+
+		if (msglen < 0)
 		{
-			msglen = 0;
+			SV_DemoCompleted();
+			return;
 		}
-		else
-		{
-			/* get the next message */
-			r = FS_FRead(&msglen, 4, 1, sv.demofile);
-
-			if (r != 4)
-			{
-				SV_DemoCompleted();
-				return;
-			}
-
-			msglen = LittleLong(msglen);
-
-			if (msglen == -1)
-			{
-				SV_DemoCompleted();
-				return;
-			}
-
-			if (msglen > MAX_MSGLEN)
-			{
-				Com_Error(ERR_DROP,
-						"SV_SendClientMessages: msglen > MAX_MSGLEN");
-			}
-
-			r = FS_FRead(msgbuf, msglen, 1, sv.demofile);
-
-			if (r != msglen)
-			{
-				SV_DemoCompleted();
-				return;
-			}
-		}
+	}
+	else
+	{
+		msglen = 0;
 	}
 
 	/* send a message to each connected client */
