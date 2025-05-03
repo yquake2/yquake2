@@ -217,8 +217,6 @@ Field_ResetCursor(menuframework_s *m)
 	}
 }
 
-extern int keydown[];
-
 qboolean
 Field_Key(menufield_s *f, int key)
 {
