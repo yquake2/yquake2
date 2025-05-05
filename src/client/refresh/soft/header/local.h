@@ -474,7 +474,7 @@ extern msurface_t	*r_alpha_surfaces;
 void R_DrawAlphaSurfaces(const entity_t *currententity);
 
 void R_DrawSprite(entity_t *currententity, const model_t *currentmodel);
-
+void R_ClipAndDrawPoly(float alpha, int isturbulent, qboolean textured);
 void R_RenderFace(entity_t *currententity, const model_t *currentmodel, msurface_t *fa, int clipflags, qboolean insubmodel);
 void R_RenderBmodelFace(entity_t *currententity, bedge_t *pedges, msurface_t *psurf, int r_currentbkey);
 void R_TransformFrustum(void);
@@ -484,7 +484,7 @@ void R_DrawSolidClippedSubmodelPolygons(entity_t *currententity, const model_t *
 
 void R_AliasDrawModel(entity_t *currententity, const model_t *currentmodel);
 void R_BeginEdgeFrame(void);
-void R_ScanEdges(entity_t *currententity, surf_t *surface);
+void R_ScanEdges(entity_t *currententity, const surf_t *surface);
 void R_PushDlights(const model_t *model);
 void R_RotateBmodel(const entity_t *currententity);
 

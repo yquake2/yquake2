@@ -33,9 +33,6 @@ static qboolean enemy_infront;
 static int enemy_range;
 static float enemy_yaw;
 
-qboolean FindTarget(edict_t *self);
-qboolean ai_checkattack(edict_t *self);
-
 /*
  * Called once each frame to set level.sight_client
  * to the player to be checked for in findtarget.
@@ -394,7 +391,7 @@ infront(edict_t *self, edict_t *other)
 
 /* ============================================================================ */
 
-void
+static void
 HuntTarget(edict_t *self)
 {
 	vec3_t vec;

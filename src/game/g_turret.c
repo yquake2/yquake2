@@ -30,7 +30,6 @@ void infantry_die(edict_t *self, edict_t *inflictor, edict_t *attacker,
 		int damage, vec3_t point);
 void infantry_stand(edict_t *self);
 void monster_use(edict_t *self, edict_t *other, edict_t *activator);
-qboolean FindTarget(edict_t *self);
 
 void
 AnglesNormalize(vec3_t vec)

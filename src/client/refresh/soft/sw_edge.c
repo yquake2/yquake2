@@ -581,7 +581,7 @@ R_GenerateSpansBackward (void)
 	R_CleanupSpan ();
 }
 
-static void D_DrawSurfaces (entity_t *currententity, surf_t *surface);
+static void D_DrawSurfaces (entity_t *currententity, const surf_t *surface);
 
 /*
 ==============
@@ -597,7 +597,7 @@ Each surface has a linked list of its visible spans
 ==============
 */
 void
-R_ScanEdges (entity_t *currententity, surf_t *surface)
+R_ScanEdges (entity_t *currententity, const surf_t *surface)
 {
 	shift20_t	iv, bottom;
 	surf_t		*s;
@@ -1028,7 +1028,7 @@ May be called more than once a frame if the surf list overflows (higher res)
 ==============
 */
 static void
-D_DrawSurfaces (entity_t *currententity, surf_t *surface)
+D_DrawSurfaces (entity_t *currententity, const surf_t *surface)
 {
 	VectorSubtract (r_origin, vec3_origin, modelorg);
 	TransformVector (modelorg, transformed_modelorg);
