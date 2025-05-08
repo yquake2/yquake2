@@ -566,6 +566,21 @@ SV_NextDemoChunk(byte *msgbuf)
 	return (r == n) ? n : -1;
 }
 
+/* if the reliable message 
+   overflowed, drop the 
+   client */
+static void
+SV_SendDisconnect(client_t *c)
+{
+	SZ_Clear(&c->netchan.message);
+	SZ_Clear(&c->datagram);
+
+	SV_BroadcastPrintf(PRINT_HIGH, "%s overflowed\n", c->name);
+	SV_DropClient(c);
+
+	Netchan_Transmit(&c->netchan, 0, NULL);
+}
+
 void
 SV_SendClientMessages(void)
 {
@@ -590,23 +605,18 @@ SV_SendClientMessages(void)
 		msglen = 0;
 	}
 
-	/* send a message to each connected client */
+	/* send a message to each spawned client */
 	for (i = 0, c = svs.clients; i < maxclients->value; i++, c++)
 	{
-		if (!c->state)
+		if (c->state == cs_free)
 		{
 			continue;
 		}
 
-		/* if the reliable message 
-		   overflowed, drop the 
-		   client */
 		if (c->netchan.message.overflowed)
 		{
-			SZ_Clear(&c->netchan.message);
-			SZ_Clear(&c->datagram);
-			SV_BroadcastPrintf(PRINT_HIGH, "%s overflowed\n", c->name);
-			SV_DropClient(c);
+			SV_SendDisconnect(c);
+			continue;
 		}
 
 		if ((sv.state == ss_cinematic) ||
@@ -643,23 +653,18 @@ SV_SendPrepClientMessages(void)
 		return;
 	}
 
-	/* send a message to each connected client */
+	/* send a message to each inactive client if needed */
 	for (i = 0, c = svs.clients; i < maxclients->value; i++, c++)
 	{
-		if (!c->state || (c->state == cs_spawned))
+		if ((c->state == cs_free) || (c->state == cs_spawned))
 		{
 			continue;
 		}
 
-		/* if the reliable message 
-		   overflowed, drop the 
-		   client */
 		if (c->netchan.message.overflowed)
 		{
-			SZ_Clear(&c->netchan.message);
-			SZ_Clear(&c->datagram);
-			SV_BroadcastPrintf(PRINT_HIGH, "%s overflowed\n", c->name);
-			SV_DropClient(c);
+			SV_SendDisconnect(c);
+			continue;
 		}
 
 		/* just update reliable	if needed */
