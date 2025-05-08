@@ -240,7 +240,7 @@ CL_PrepRefresh(void)
 {
 	char mapname[MAX_QPATH];
 	int i;
-	char name[MAX_QPATH];
+	char *name;
 	float rotate;
 	vec3_t axis;
 
@@ -260,33 +260,25 @@ CL_PrepRefresh(void)
 	Com_Printf("Map: %s\r", mapname);
 	SCR_UpdateScreen();
 	R_BeginRegistration (mapname);
-	Com_Printf("                                     \r");
 
 	/* precache status bar pics */
 	Com_Printf("pics\r");
 	SCR_UpdateScreen();
 	SCR_TouchPics();
-	Com_Printf("                                     \r");
 
 	CL_RegisterTEntModels();
 
 	num_cl_weaponmodels = 1;
 	strcpy(cl_weaponmodels[0], "weapon.md2");
 
+	Com_Printf("models\r");
+	SCR_UpdateScreen();
+
 	for (i = 1; i < MAX_MODELS && cl.configstrings[CS_MODELS + i][0]; i++)
 	{
-		strcpy(name, cl.configstrings[CS_MODELS + i]);
-		name[37] = 0; /* never go beyond one line */
+		name = cl.configstrings[CS_MODELS + i];
 
-		if (name[0] != '*')
-		{
-			Com_Printf("%s\r", name);
-		}
-
-		SCR_UpdateScreen();
-		IN_Update();
-
-		if (name[0] == '#')
+		if (*name == '#')
 		{
 			/* special player weapon model */
 			if (num_cl_weaponmodels < MAX_CLIENTWEAPONMODELS)
@@ -294,6 +286,7 @@ CL_PrepRefresh(void)
 				Q_strlcpy(cl_weaponmodels[num_cl_weaponmodels],
 						cl.configstrings[CS_MODELS + i] + 1,
 						sizeof(cl_weaponmodels[num_cl_weaponmodels]));
+
 				num_cl_weaponmodels++;
 			}
 		}
@@ -301,20 +294,9 @@ CL_PrepRefresh(void)
 		{
 			cl.model_draw[i] = R_RegisterModel(cl.configstrings[CS_MODELS + i]);
 
-			if (name[0] == '*')
-			{
-				cl.model_clip[i] = CM_InlineModel(cl.configstrings[CS_MODELS + i]);
-			}
-
-			else
-			{
-				cl.model_clip[i] = NULL;
-			}
-		}
-
-		if (name[0] != '*')
-		{
-			Com_Printf("                                     \r");
+			cl.model_clip[i] = (*name == '*') ?
+				CM_InlineModel(name) :
+				NULL;
 		}
 	}
 
@@ -324,23 +306,17 @@ CL_PrepRefresh(void)
 	for (i = 1; i < MAX_IMAGES && cl.configstrings[CS_IMAGES + i][0]; i++)
 	{
 		cl.image_precache[i] = Draw_FindPic(cl.configstrings[CS_IMAGES + i]);
-		IN_Update();
 	}
 
-	Com_Printf("                                     \r");
+	Com_Printf("clients\r");
+	SCR_UpdateScreen();
 
 	for (i = 0; i < MAX_CLIENTS; i++)
 	{
-		if (!cl.configstrings[CS_PLAYERSKINS + i][0])
+		if (cl.configstrings[CS_PLAYERSKINS + i][0])
 		{
-			continue;
+			CL_ParseClientinfo(i);
 		}
-
-		Com_Printf("client %i\r", i);
-		SCR_UpdateScreen();
-		IN_Update();
-		CL_ParseClientinfo(i);
-		Com_Printf("                                     \r");
 	}
 
 	CL_LoadClientinfo(&cl.baseclientinfo, "unnamed\\male/grunt");
@@ -351,6 +327,7 @@ CL_PrepRefresh(void)
 	rotate = (float)strtod(cl.configstrings[CS_SKYROTATE], (char **)NULL);
 	sscanf(cl.configstrings[CS_SKYAXIS], "%f %f %f", &axis[0], &axis[1], &axis[2]);
 	R_SetSky(cl.configstrings[CS_SKY], rotate, axis);
+
 	Com_Printf("                                     \r");
 
 	/* the renderer can now free unneeded stuff */

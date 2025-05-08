@@ -444,6 +444,13 @@ CL_Changing_f(void)
 
 	SCR_BeginLoadingPlaque();
 	cls.state = ca_connected; /* not active anymore, but not disconnected */
+
+	/* reset this to 0 just in case it didn't get a chance to settle normally
+		this became a problem with the faster client connection changes
+		but is a good idea to do this regardless
+	*/
+	anykeydown = 0;
+
 	Com_Printf("\nChanging map...\n");
 
 #ifdef USE_CURL
