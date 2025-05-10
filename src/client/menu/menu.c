@@ -14,10 +14,10 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,                                            l
  * USA.
  *
- * =======================================================================
+ * =======================================================================                l
  *
  * This file implements the non generic part of the menu system, e.g.
  * the menu shown to the player. Beware! This code is very fragile and
@@ -1928,6 +1928,9 @@ Gyro_MenuInit(void)
 	{
 		"yaw (turn)",
 		"roll (lean)",
+		"local space",
+		"player space",
+		"world space",
 		0
 	};
 
@@ -1958,7 +1961,7 @@ Gyro_MenuInit(void)
 	s_turning_axis_box.generic.name = "turning axis";
 	s_turning_axis_box.generic.callback = TurningAxisFunc;
 	s_turning_axis_box.itemnames = axis_choices;
-	s_turning_axis_box.curvalue = ClampCvar(0, 1, gyro_turning_axis->value);
+	s_turning_axis_box.curvalue = ClampCvar(0, 4, gyro_turning_axis->value);
 
 	s_gyro_yawsensitivity_slider.generic.type = MTYPE_SLIDER;
 	s_gyro_yawsensitivity_slider.generic.x = 0;

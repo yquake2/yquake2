@@ -1,0 +1,3 @@
+[submodule "src/client/input/header/GyroSpace"]
+	path = src/client/input/header/GyroSpace
+	url = https://github.com/AL2009man/GyroSpace-and-Play
