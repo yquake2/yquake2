@@ -612,8 +612,7 @@ SV_ServerRecord_f(void)
 		if (sv.configstrings[i][0])
 		{
 			MSG_WriteByte(&buf, svc_configstring);
-			MSG_WriteShort(&buf, i);
-			MSG_WriteString(&buf, sv.configstrings[i]);
+			MSG_WriteConfigString(&buf, i, sv.configstrings[i]);
 
 			if (buf.cursize + 67 >= buf.maxsize)
 			{

@@ -212,8 +212,7 @@ PF_Configstring(int index, char *val)
 		/* send the update to everyone */
 		SZ_Clear(&sv.multicast);
 		MSG_WriteChar(&sv.multicast, svc_configstring);
-		MSG_WriteShort(&sv.multicast, index);
-		MSG_WriteString(&sv.multicast, val);
+		MSG_WriteConfigString(&sv.multicast, index, val);
 
 		SV_Multicast(vec3_origin, MULTICAST_ALL_R);
 	}
