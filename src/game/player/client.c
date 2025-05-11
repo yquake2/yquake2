@@ -148,7 +148,7 @@ SP_CreateUnnamedSpawn(edict_t *self)
 	}
 
 	/* mine1 */
-    if (Q_stricmp(level.mapname, "mine1") == 0)
+	if (Q_stricmp(level.mapname, "mine1") == 0)
 	{
 		if (Q_stricmp(self->targetname, "mintro") == 0)
 		{
@@ -164,7 +164,7 @@ SP_CreateUnnamedSpawn(edict_t *self)
 	}
 
 	/* mine2 */
-    if (Q_stricmp(level.mapname, "mine2") == 0)
+	if (Q_stricmp(level.mapname, "mine2") == 0)
 	{
 		if (Q_stricmp(self->targetname, "mine1") == 0)
 		{
@@ -180,7 +180,7 @@ SP_CreateUnnamedSpawn(edict_t *self)
 	}
 
 	/* mine3 */
-    if (Q_stricmp(level.mapname, "mine3") == 0)
+	if (Q_stricmp(level.mapname, "mine3") == 0)
 	{
 		if (Q_stricmp(self->targetname, "mine2a") == 0)
 		{
@@ -196,7 +196,7 @@ SP_CreateUnnamedSpawn(edict_t *self)
 	}
 
 	/* mine4 */
-    if (Q_stricmp(level.mapname, "mine4") == 0)
+	if (Q_stricmp(level.mapname, "mine4") == 0)
 	{
 		if (Q_stricmp(self->targetname, "mine3") == 0)
 		{
@@ -211,8 +211,8 @@ SP_CreateUnnamedSpawn(edict_t *self)
 		}
 	}
 
- 	/* power2 */
-    if (Q_stricmp(level.mapname, "power2") == 0)
+	/* power2 */
+	if (Q_stricmp(level.mapname, "power2") == 0)
 	{
 		if (Q_stricmp(self->targetname, "power1") == 0)
 		{
@@ -228,7 +228,7 @@ SP_CreateUnnamedSpawn(edict_t *self)
 	}
 
 	/* waste1 */
-    if (Q_stricmp(level.mapname, "waste1") == 0)
+	if (Q_stricmp(level.mapname, "waste1") == 0)
 	{
 		if (Q_stricmp(self->targetname, "power2") == 0)
 		{
@@ -244,7 +244,7 @@ SP_CreateUnnamedSpawn(edict_t *self)
 	}
 
 	/* waste2 */
-    if (Q_stricmp(level.mapname, "waste2") == 0)
+	if (Q_stricmp(level.mapname, "waste2") == 0)
 	{
 		if (Q_stricmp(self->targetname, "waste1") == 0)
 		{
@@ -260,7 +260,7 @@ SP_CreateUnnamedSpawn(edict_t *self)
 	}
 
 	/* city3 */
-    if (Q_stricmp(level.mapname, "city2") == 0)
+	if (Q_stricmp(level.mapname, "city2") == 0)
 	{
 		if (Q_stricmp(self->targetname, "city2NL") == 0)
 		{
@@ -278,6 +278,7 @@ SP_CreateUnnamedSpawn(edict_t *self)
 
 /*
  * QUAKED info_player_start (1 0 0) (-16 -16 -24) (16 16 32)
+ *
  * The normal starting point for a level.
  */
 void
@@ -288,7 +289,7 @@ SP_info_player_start(edict_t *self)
 		return;
 	}
 
-    /* Call function to hack unnamed spawn points */
+	/* Call function to hack unnamed spawn points */
 	self->think = SP_CreateUnnamedSpawn;
 	self->nextthink = level.time + FRAMETIME;
 
@@ -307,6 +308,7 @@ SP_info_player_start(edict_t *self)
 
 /*
  * QUAKED info_player_deathmatch (1 0 1) (-16 -16 -24) (16 16 32)
+ *
  * potential spawning position for deathmatch games
  */
 void
@@ -378,7 +380,7 @@ SP_info_player_coop(edict_t *self)
 void
 SP_info_player_intermission(edict_t *self)
 {
-	/* Thus function cannot be removed
+	/* This function cannot be removed
 	 * since the info_player_intermission
 	 * needs a callback function. Like
 	 * every entity. */
@@ -388,7 +390,7 @@ SP_info_player_intermission(edict_t *self)
 
 void
 player_pain(edict_t *self /* unused */, edict_t *other /* unused */,
-	   	float kick /* unused */, int damage /* unused */)
+		float kick /* unused */, int damage /* unused */)
 {
 	/* Player pain is handled at the end
 	 * of the frame in P_DamageFeedback.
@@ -397,7 +399,7 @@ player_pain(edict_t *self /* unused */, edict_t *other /* unused */,
 	 * a pain callback */
 }
 
-qboolean
+static qboolean
 IsFemale(edict_t *ent)
 {
 	char *info;
@@ -427,7 +429,7 @@ IsFemale(edict_t *ent)
 	return false;
 }
 
-qboolean
+static qboolean
 IsNeutral(edict_t *ent)
 {
 	char *info;
@@ -460,7 +462,7 @@ IsNeutral(edict_t *ent)
 
 void
 ClientObituary(edict_t *self, edict_t *inflictor /* unused */,
-	   	edict_t *attacker)
+		edict_t *attacker)
 {
 	int mod;
 	char *message;
@@ -1039,7 +1041,7 @@ SaveClientData(void)
 	}
 }
 
-void
+static void
 FetchClientEntData(edict_t *ent)
 {
 	if (!ent)
@@ -1074,7 +1076,7 @@ PlayersRangeFromSpot(edict_t *spot)
 
 	if (!spot)
 	{
-		return 0;
+		return 0.0;
 	}
 
 	bestplayerdistance = 9999999;
@@ -1214,7 +1216,7 @@ SelectFarthestDeathmatchSpawnPoint(void)
 	return spot;
 }
 
-edict_t *
+static edict_t *
 SelectDeathmatchSpawnPoint(void)
 {
 	if ((int)(dmflags->value) & DF_SPAWN_FARTHEST)
@@ -1227,7 +1229,7 @@ SelectDeathmatchSpawnPoint(void)
 	}
 }
 
-edict_t *
+static edict_t *
 SelectCoopSpawnPoint(edict_t *ent)
 {
 	int index;
@@ -1409,7 +1411,7 @@ InitBodyQue(void)
 
 void
 body_die(edict_t *self, edict_t *inflictor /* unused */,
-	   	edict_t *attacker /* unused */, int damage,
+		edict_t *attacker /* unused */, int damage,
 		vec3_t point /* unused */)
 {
 	int n;
@@ -2135,7 +2137,7 @@ static edict_t *pm_passent;
  * pmove doesn't need to know
  * about passent and contentmask
  */
-trace_t
+static trace_t
 PM_trace(vec3_t start, vec3_t mins, vec3_t maxs, vec3_t end)
 {
 	if (pm_passent->health > 0)
@@ -2193,7 +2195,6 @@ ClientThink(edict_t *ent, usercmd_t *ucmd)
 	gclient_t *client;
 	edict_t *other;
 	int i, j;
-	pmove_t pm;
 
 	if (!ent || !ucmd)
 	{
@@ -2227,9 +2228,9 @@ ClientThink(edict_t *ent, usercmd_t *ucmd)
 	}
 	else
 	{
-		/* set up for pmove */
-		memset(&pm, 0, sizeof(pm));
+		pmove_t pm = {0};
 
+		/* set up for pmove */
 		if (ent->movetype == MOVETYPE_NOCLIP)
 		{
 			client->ps.pmove.pm_type = PM_SPECTATOR;
