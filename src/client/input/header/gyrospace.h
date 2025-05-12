@@ -16,8 +16,8 @@
  * =======================================================================
  */
 
- #ifndef GYROSPACE_HPP
- #define GYROSPACE_HPP
+#ifndef GYROSPACE_HPP
+#define GYROSPACE_HPP
  
 #include <math.h>
 #include <stdbool.h>
@@ -253,20 +253,16 @@ Vector3 TransformWithDynamicOrientation(float yaw_input, float pitch_input, floa
   * while handling sensitivity adjustments and gravity alignment.
   */
 
- /**
-  * Transforms gyro inputs to Local Space.
-  *
-  * Converts raw gyro input into direct motion scaling.
-  * Preserves natural gyro responsiveness for intuitive movement.
-  */
-Vector3 TransformToLocalSpace(float yaw, float pitch, float roll, float couplingFactor) {
-    // Adjust roll to compensate for yaw–roll coupling.
-    // The rollCompensation factor reduces the influence of roll.
-    float rollCompensation = 0.85f;
-    float adjustedRoll = (roll * rollCompensation) - (yaw * couplingFactor);
+/* Transforms gyro inputs to Local Space.
+ *
+ * Converts raw gyro input into direct motion scaling.
+ * Preserves natural gyro responsiveness for intuitive movement.
+ */
+static inline Vector3 TransformToLocalSpace(float yaw, float pitch, float roll, float couplingFactor) {
+    // Adjust roll to compensate for yawâ€“roll coupling, accounting for Natural Sensitivity Scale.
+    float adjustedRoll = (roll * 0.85f) - (yaw * couplingFactor);
     
     // Combine the inputs into a local gyro vector.
-    // Here, yaw is reduced by the corrected roll and pitch remains unchanged.
     Vector3 localGyro = Vec3_New(yaw - adjustedRoll, pitch, adjustedRoll);
     
     return localGyro;
@@ -276,7 +272,7 @@ Vector3 TransformToLocalSpace(float yaw, float pitch, float roll, float coupling
   * Transforms gyro inputs to Player Space.
   * Adjusts motion relative to the player's perspective while ensuring gravity alignment.
   */
-Vector3 TransformToPlayerSpace(float yaw, float pitch, float roll, Vector3 gravity) {
+static inline Vector3 TransformToPlayerSpace(float yaw, float pitch, float roll, Vector3 gravity) {
     // Validate and normalize the gravity vector.
     if (Vec3_IsZero(gravity))
         gravity = Vec3_New(0.0f, 1.0f, 0.0f);
@@ -306,7 +302,7 @@ Vector3 TransformToPlayerSpace(float yaw, float pitch, float roll, Vector3 gravi
   * Transforms gyro inputs to World Space.
   * Aligns input with the game world while maintaining spatial consistency.
   */
-Vector3 TransformToWorldSpace(float yaw, float pitch, float roll, Vector3 gravity) {
+static inline Vector3 TransformToWorldSpace(float yaw, float pitch, float roll, Vector3 gravity) {
     // Validate and normalize gravity.
     if (Vec3_IsZero(gravity)) {
         gravity = Vec3_New(0.0f, 1.0f, 0.0f);
@@ -341,4 +337,4 @@ Vector3 TransformToWorldSpace(float yaw, float pitch, float roll, Vector3 gravit
 }
 #endif
  
-#endif // GYROSPACE_H
+#endif // GYROSPACE_HPP
