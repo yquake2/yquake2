@@ -941,7 +941,6 @@ IN_Update(void)
 
 					// Normalize or set fallback value
 					gravNorm = Vec3_IsZero(accelData) ? Vec3_New(0.0f, 1.0f, 0.0f) : Vec3_Normalize(accelData);
-					printf("Updated gravNorm: (%f, %f, %f)\n", gravNorm.x, gravNorm.y, gravNorm.z);
 					break;
 				}
 #else  // Gyro read from a "secondary joystick" (usually with name ending in "IMU")
