@@ -1127,10 +1127,10 @@ IN_Update(void)
 						gyro_roll = 0.0f;
 						break;
 					}
-#endif  // !NO_SDL_GYRO
-
+#endif	// !NO_SDL_GYRO
 				}
-				else {
+				else
+				{
 					gyro_yaw = gyro_pitch = 0;
 				}
 				break;
@@ -1144,7 +1144,8 @@ IN_Update(void)
 				break;
 
 			case SDL_JOYDEVICEADDED:
-				if (!controller) {
+				if (!controller)
+				{
 					// This should be lower, but some controllers just don't want to get detected by the OS
 					updates_countdown = 100;
 					countdown_reason = REASON_CONTROLLERINIT;
