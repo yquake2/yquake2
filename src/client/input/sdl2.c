@@ -2508,15 +2508,15 @@ IN_Controller_Init(qboolean notify_user)
 
 #ifndef NO_SDL_GYRO
 
-			if ( SDL_GameControllerHasSensor(controller, SDL_SENSOR_GYRO)
-				&& !SDL_GameControllerSetSensorEnabled(controller, SDL_SENSOR_GYRO, SDL_TRUE) )
+			if (SDL_GameControllerHasSensor(controller, SDL_SENSOR_GYRO)
+				&& !SDL_GameControllerSetSensorEnabled(controller, SDL_SENSOR_GYRO, SDL_TRUE))
 			{
 				show_gyro = true;
 #if SDL_VERSION_ATLEAST(2, 0, 16)
-				Com_Printf( "Gyro sensor enabled at %.2f Hz\n",
-					SDL_GameControllerGetSensorDataRate(controller, SDL_SENSOR_GYRO) );
+				Com_Printf("Gyro sensor enabled at %.2f Hz\n",
+					SDL_GameControllerGetSensorDataRate(controller, SDL_SENSOR_GYRO));
 #else
-				Com_Printf( "Gyro sensor enabled.\n" );
+				Com_Printf("Gyro sensor enabled.\n");
 #endif	// #if SDL_VERSION_ATLEAST(2, 0, 16)
 			}
 			else
@@ -2524,12 +2524,27 @@ IN_Controller_Init(qboolean notify_user)
 				Com_Printf("Gyro sensor not found.\n");
 			}
 
-			if ( SDL_GameControllerHasLED(controller) )
+			if (SDL_GameControllerHasSensor(controller, SDL_SENSOR_ACCEL)
+				&& !SDL_GameControllerSetSensorEnabled(controller, SDL_SENSOR_ACCEL, SDL_TRUE))
 			{
-				SDL_GameControllerSetLED(controller, 0, 80, 0);	// green light
+#if SDL_VERSION_ATLEAST(2, 0, 16)
+				Com_Printf("Accel sensor enabled at %.2f Hz\n",
+					SDL_GameControllerGetSensorDataRate(controller, SDL_SENSOR_ACCEL));
+#else
+				Com_Printf("Accel sensor enabled.\n");
+#endif  // SDL_VERSION_ATLEAST(2, 0, 16)
+			}
+			else
+			{
+				Com_Printf("Accel sensor not found.\n");
 			}
 
-#endif	// !NO_SDL_GYRO
+			if (SDL_GameControllerHasLED(controller))
+			{
+				SDL_GameControllerSetLED(controller, 0, 80, 0);  // green light
+			}
+
+#endif  // !NO_SDL_GYRO
 
 			joystick_haptic = SDL_HapticOpenFromJoystick(SDL_GameControllerGetJoystick(controller));
 
