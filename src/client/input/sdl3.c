@@ -911,7 +911,7 @@ IN_Update(void)
 				if (event.gsensor.sensor == SDL_SENSOR_GYRO) {
 					// Handle gyro calibration
 					if (countdown_reason == REASON_GYROCALIBRATION && updates_countdown) {
-						gyro_accum[0] += event.sensor.data[0];
+						gyro_accum[0] += event.gsensor.data[0];
 						gyro_accum[1] += event.gsensor.data[1];
 						gyro_accum[2] += event.gsensor.data[2];
 						num_samples++;
