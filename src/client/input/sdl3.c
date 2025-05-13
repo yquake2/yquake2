@@ -1120,7 +1120,7 @@ IN_Update(void)
 				}
 				break;
 
-			case SDL_EVENT_GAMEPAD_REMOVED:
+			case SDL_EVENT_GAMEPAD_REMOVED :
 				if (controller && event.gdevice.which == SDL_GetJoystickID(SDL_GetGamepadJoystick(controller))) {
 					Cvar_SetValue("paused", 1);
 					IN_Controller_Shutdown(true);
@@ -1128,7 +1128,7 @@ IN_Update(void)
 				}
 				break;
 
-			case SDL_EVENT_JOYSTICK_ADDED:
+			case SDL_EVENT_JOYSTICK_ADDED :
 				if (!controller)
 				{
 					// This should be lower, but some controllers just don't want to get detected by the OS
@@ -1137,7 +1137,7 @@ IN_Update(void)
 				}
 				break;
 
-			case SDL_EVENT_JOYSTICK_BATTERY_UPDATED:
+			case SDL_EVENT_JOYSTICK_BATTERY_UPDATED :
 				if (!controller || event.jbattery.which != SDL_GetJoystickID(SDL_GetGamepadJoystick(controller)))
 				{
 					break;
@@ -1152,7 +1152,7 @@ IN_Update(void)
 				}
 				break;
 
-			case SDL_EVENT_QUIT:
+			case SDL_EVENT_QUIT :
 				Com_Quit();
 				break;
 		}
