@@ -60,8 +60,6 @@ static lightstyle_t r_lightstyles[MAX_LIGHTSTYLES];
 char cl_weaponmodels[MAX_CLIENTWEAPONMODELS][MAX_QPATH];
 int num_cl_weaponmodels;
 
-static void V_Render3dCrosshair(void);
-
 /*
  * Specifies the model that will be used as the world
  */
@@ -415,6 +413,52 @@ entitycmpfnc(const entity_t *a, const entity_t *b)
 	}
 }
 
+static void
+V_Render3dCrosshair(void)
+{
+	trace_t crosshair_trace;
+	vec3_t end;
+
+	crosshair_3d = Cvar_Get("crosshair_3d", "0", CVAR_ARCHIVE);
+	crosshair_3d_glow = Cvar_Get("crosshair_3d_glow", "0", CVAR_ARCHIVE);
+
+
+	if(crosshair_3d->value || crosshair_3d_glow->value){
+		VectorMA(cl.refdef.vieworg, 8192, cl.v_forward,end);
+		crosshair_trace = CL_PMTrace(cl.refdef.vieworg, vec3_origin, vec3_origin, end);
+
+		if(crosshair_3d_glow->value){
+			crosshair_3d_glow_r = Cvar_Get("crosshair_3d_glow_r", "5", CVAR_ARCHIVE);
+			crosshair_3d_glow_g = Cvar_Get("crosshair_3d_glow_g", "1", CVAR_ARCHIVE);
+			crosshair_3d_glow_b = Cvar_Get("crosshair_3d_glow_b", "4", CVAR_ARCHIVE);
+
+			V_AddLight(
+				crosshair_trace.endpos,
+				crosshair_3d_glow->value,
+				crosshair_3d_glow_r->value,
+				crosshair_3d_glow_g->value,
+				crosshair_3d_glow_b->value
+			);
+		}
+
+		if(crosshair_3d->value){
+			entity_t crosshair_ent = {0};
+
+			crosshair_ent.origin[0] = crosshair_trace.endpos[0];
+			crosshair_ent.origin[1] = crosshair_trace.endpos[1];
+			crosshair_ent.origin[2] = crosshair_trace.endpos[2];
+
+			crosshair_ent.model = R_RegisterModel("models/crosshair/tris.md2");
+			//crosshair_ent.skin = R_RegisterSkin("models/crosshair/skin.pcx");
+
+			AngleVectors2(crosshair_trace.plane.normal, crosshair_ent.angles);
+			crosshair_ent.flags = RF_DEPTHHACK | RF_FULLBRIGHT | RF_NOSHADOW;
+
+			V_AddEntity(&crosshair_ent);
+		}
+	}
+}
+
 void
 V_RenderView(float stereo_separation)
 {
@@ -575,52 +619,6 @@ V_RenderView(float stereo_separation)
 			scr_vrect.y + scr_vrect.height - 1);
 
 	SCR_DrawCrosshair();
-}
-
-static void
-V_Render3dCrosshair(void)
-{
-	trace_t crosshair_trace;
-	vec3_t end;
-
-	crosshair_3d = Cvar_Get("crosshair_3d", "0", CVAR_ARCHIVE);
-	crosshair_3d_glow = Cvar_Get("crosshair_3d_glow", "0", CVAR_ARCHIVE);
-
-
-	if(crosshair_3d->value || crosshair_3d_glow->value){
-		VectorMA(cl.refdef.vieworg,8192,cl.v_forward,end);
-		crosshair_trace = CL_PMTrace(cl.refdef.vieworg, vec3_origin, vec3_origin, end);
-
-		if(crosshair_3d_glow->value){
-			crosshair_3d_glow_r = Cvar_Get("crosshair_3d_glow_r", "5", CVAR_ARCHIVE);
-			crosshair_3d_glow_g = Cvar_Get("crosshair_3d_glow_g", "1", CVAR_ARCHIVE);
-			crosshair_3d_glow_b = Cvar_Get("crosshair_3d_glow_b", "4", CVAR_ARCHIVE);
-
-			V_AddLight(
-				crosshair_trace.endpos,
-				crosshair_3d_glow->value,
-				crosshair_3d_glow_r->value,
-				crosshair_3d_glow_g->value,
-				crosshair_3d_glow_b->value
-			);
-		}
-
-		if(crosshair_3d->value){
-			entity_t crosshair_ent = {0};
-
-			crosshair_ent.origin[0] = crosshair_trace.endpos[0];
-			crosshair_ent.origin[1] = crosshair_trace.endpos[1];
-			crosshair_ent.origin[2] = crosshair_trace.endpos[2];
-
-			crosshair_ent.model = R_RegisterModel("models/crosshair/tris.md2");
-			//crosshair_ent.skin = R_RegisterSkin("models/crosshair/skin.pcx");
-
-			AngleVectors2(crosshair_trace.plane.normal, crosshair_ent.angles);
-			crosshair_ent.flags = RF_DEPTHHACK | RF_FULLBRIGHT | RF_NOSHADOW;
-
-			V_AddEntity(&crosshair_ent);
-		}
-	}
 }
 
 static void

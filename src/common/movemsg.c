@@ -720,7 +720,7 @@ MSG_WriteDeltaUsercmd(sizebuf_t *buf, const usercmd_t *from, const usercmd_t *cm
 }
 
 void
-MSG_WriteDir(sizebuf_t *sb, vec3_t dir)
+MSG_WriteDir(sizebuf_t *sb, const vec3_t dir)
 {
 	int i, best;
 	float d, bestd;

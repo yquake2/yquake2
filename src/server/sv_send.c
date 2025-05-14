@@ -240,7 +240,7 @@ SV_Multicast(vec3_t origin, multicast_t to)
 
 		default:
 			mask = NULL;
-			Com_Error(ERR_FATAL, "SV_Multicast: bad to:%i", to);
+			Com_Error(ERR_FATAL, "%s: bad to:%i", __func__, to);
 	}
 
 	/* send the data to all relevent clients */
@@ -303,17 +303,17 @@ SV_StartSound(vec3_t origin, edict_t *entity, int channel, int soundindex,
 
 	if ((volume < 0) || (volume > 1.0))
 	{
-		Com_Error(ERR_FATAL, "SV_StartSound: volume = %f", volume);
+		Com_Error(ERR_FATAL, "%s: volume = %f", __func__, volume);
 	}
 
 	if ((attenuation < 0) || (attenuation > 4))
 	{
-		Com_Error(ERR_FATAL, "SV_StartSound: attenuation = %f", attenuation);
+		Com_Error(ERR_FATAL, "%s: attenuation = %f", __func__, attenuation);
 	}
 
 	if ((timeofs < 0) || (timeofs > 0.255))
 	{
-		Com_Error(ERR_FATAL, "SV_StartSound: timeofs = %f", timeofs);
+		Com_Error(ERR_FATAL, "%s: timeofs = %f", __func__, timeofs);
 	}
 
 	ent = NUM_FOR_EDICT(entity);
@@ -342,8 +342,8 @@ SV_StartSound(vec3_t origin, edict_t *entity, int channel, int soundindex,
 		flags |= SND_ATTENUATION;
 	}
 
-	/* the client doesn't know that bmodels have 
-	   weird origins the origin can also be 
+	/* the client doesn't know that bmodels have
+	   weird origins the origin can also be
 	   explicitly set */
 	if ((entity->svflags & SVF_NOCLIENT) ||
 		(entity->solid == SOLID_BSP) ||
@@ -439,7 +439,7 @@ SV_StartSound(vec3_t origin, edict_t *entity, int channel, int soundindex,
 	}
 }
 
-qboolean
+static qboolean
 SV_SendClientDatagram(client_t *client)
 {
 	byte msg_buf[MAX_MSGLEN];
@@ -485,7 +485,7 @@ SV_SendClientDatagram(client_t *client)
 	return true;
 }
 
-void
+static void
 SV_DemoCompleted(void)
 {
 	if (sv.demofile)
@@ -501,7 +501,7 @@ SV_DemoCompleted(void)
  * Returns true if the client is over its current
  * bandwidth estimation and should not be sent another packet
  */
-qboolean
+static qboolean
 SV_RateDrop(client_t *c)
 {
 	int total;
@@ -566,8 +566,8 @@ SV_NextDemoChunk(byte *msgbuf)
 	return (r == n) ? n : -1;
 }
 
-/* if the reliable message 
-   overflowed, drop the 
+/* if the reliable message
+   overflowed, drop the
    client */
 static void
 SV_SendDisconnect(client_t *c)
