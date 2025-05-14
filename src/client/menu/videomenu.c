@@ -51,7 +51,6 @@ static menuframework_s s_opengl_menu;
 
 static menulist_s s_renderer_list;
 static menulist_s s_mode_list;
-static menulist_s s_display_list;
 static menulist_s s_uiscale_list;
 static menuslider_s s_brightness_slider;
 static menuslider_s s_fov_slider;
@@ -300,12 +299,6 @@ ApplyChanges(void *unused)
 	else
 	{
 		Cvar_SetValue("r_mode", s_mode_list.curvalue);
-		restart = true;
-	}
-
-	if (s_display_list.curvalue != GLimp_GetWindowDisplayIndex() )
-	{
-		Cvar_SetValue( "vid_displayindex", s_display_list.curvalue );
 		restart = true;
 	}
 
@@ -582,16 +575,6 @@ VID_MenuInit(void)
 		s_mode_list.curvalue = GetCustomValue(&s_mode_list);
 	}
 
-	if (GLimp_GetNumVideoDisplays() > 1)
-	{
-		s_display_list.generic.type = MTYPE_SPINCONTROL;
-		s_display_list.generic.name = "display index";
-		s_display_list.generic.x = 0;
-		s_display_list.generic.y = (y += 10);
-		s_display_list.itemnames = GLimp_GetDisplayIndices();
-		s_display_list.curvalue = GLimp_GetWindowDisplayIndex();
-	}
-
 	s_brightness_slider.generic.type = MTYPE_SLIDER;
 	s_brightness_slider.generic.name = "brightness";
 	s_brightness_slider.generic.x = 0;
@@ -855,12 +838,6 @@ VID_MenuInit(void)
 
 	Menu_AddItem(&s_opengl_menu, (void *)&s_renderer_list);
 	Menu_AddItem(&s_opengl_menu, (void *)&s_mode_list);
-
-	// only show this option if we have multiple displays
-	if (GLimp_GetNumVideoDisplays() > 1)
-	{
-		Menu_AddItem(&s_opengl_menu, (void *)&s_display_list);
-	}
 
 	Menu_AddItem(&s_opengl_menu, (void *)&s_brightness_slider);
 	Menu_AddItem(&s_opengl_menu, (void *)&s_fov_slider);
