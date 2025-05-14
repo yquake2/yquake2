@@ -197,6 +197,174 @@ MSG_ConfigString_Size(const char *s)
 	return strlen(s) + 4; /* string length + null char + message type + index */
 }
 
+static int
+DeltaEntityBits(const entity_state_t *from,
+		const entity_state_t *to,
+		qboolean newentity)
+{
+	int bits = 0;
+
+	if (to->number >= 256)
+	{
+		bits |= U_NUMBER16; /* number8 is implicit otherwise */
+	}
+
+	if (to->origin[0] != from->origin[0])
+	{
+		bits |= U_ORIGIN1;
+	}
+
+	if (to->origin[1] != from->origin[1])
+	{
+		bits |= U_ORIGIN2;
+	}
+
+	if (to->origin[2] != from->origin[2])
+	{
+		bits |= U_ORIGIN3;
+	}
+
+	if (to->angles[0] != from->angles[0])
+	{
+		bits |= U_ANGLE1;
+	}
+
+	if (to->angles[1] != from->angles[1])
+	{
+		bits |= U_ANGLE2;
+	}
+
+	if (to->angles[2] != from->angles[2])
+	{
+		bits |= U_ANGLE3;
+	}
+
+	if (to->skinnum != from->skinnum)
+	{
+		if ((unsigned)to->skinnum < 256)
+		{
+			bits |= U_SKIN8;
+		}
+
+		else if ((unsigned)to->skinnum < 0x10000)
+		{
+			bits |= U_SKIN16;
+		}
+
+		else
+		{
+			bits |= (U_SKIN8 | U_SKIN16);
+		}
+	}
+
+	if (to->frame != from->frame)
+	{
+		if (to->frame < 256)
+		{
+			bits |= U_FRAME8;
+		}
+
+		else
+		{
+			bits |= U_FRAME16;
+		}
+	}
+
+	if (to->effects != from->effects)
+	{
+		if (to->effects < 256)
+		{
+			bits |= U_EFFECTS8;
+		}
+
+		else if (to->effects < 0x8000)
+		{
+			bits |= U_EFFECTS16;
+		}
+
+		else
+		{
+			bits |= U_EFFECTS8 | U_EFFECTS16;
+		}
+	}
+
+	if (to->renderfx != from->renderfx)
+	{
+		if (to->renderfx < 256)
+		{
+			bits |= U_RENDERFX8;
+		}
+
+		else if (to->renderfx < 0x8000)
+		{
+			bits |= U_RENDERFX16;
+		}
+
+		else
+		{
+			bits |= U_RENDERFX8 | U_RENDERFX16;
+		}
+	}
+
+	if (to->solid != from->solid)
+	{
+		bits |= U_SOLID;
+	}
+
+	/* event is not delta compressed, just 0 compressed */
+	if (to->event)
+	{
+		bits |= U_EVENT;
+	}
+
+	if (to->modelindex != from->modelindex)
+	{
+		bits |= U_MODEL;
+	}
+
+	if (to->modelindex2 != from->modelindex2)
+	{
+		bits |= U_MODEL2;
+	}
+
+	if (to->modelindex3 != from->modelindex3)
+	{
+		bits |= U_MODEL3;
+	}
+
+	if (to->modelindex4 != from->modelindex4)
+	{
+		bits |= U_MODEL4;
+	}
+
+	if (to->sound != from->sound)
+	{
+		bits |= U_SOUND;
+	}
+
+	if (newentity || (to->renderfx & RF_BEAM))
+	{
+		bits |= U_OLDORIGIN;
+	}
+
+	if (bits & 0xff000000)
+	{
+		bits |= U_MOREBITS3 | U_MOREBITS2 | U_MOREBITS1;
+	}
+
+	else if (bits & 0x00ff0000)
+	{
+		bits |= U_MOREBITS2 | U_MOREBITS1;
+	}
+
+	else if (bits & 0x0000ff00)
+	{
+		bits |= U_MOREBITS1;
+	}
+
+	return bits;
+}
+
 size_t
 MSG_DeltaEntity_Size(const entity_state_t *from, const entity_state_t *to,
 	qboolean force, qboolean newentity)
@@ -411,7 +579,7 @@ MSG_WriteFloat(sizebuf_t *sb, float f)
 }
 
 void
-MSG_WriteString(sizebuf_t *sb, char *s)
+MSG_WriteString(sizebuf_t *sb, const char *s)
 {
 	if (!s)
 	{
@@ -458,7 +626,7 @@ MSG_WriteConfigString(sizebuf_t *buf, short index, const char *s)
 }
 
 void
-MSG_WriteDeltaUsercmd(sizebuf_t *buf, usercmd_t *from, usercmd_t *cmd)
+MSG_WriteDeltaUsercmd(sizebuf_t *buf, const usercmd_t *from, const usercmd_t *cmd)
 {
 	int bits;
 
@@ -599,177 +767,9 @@ MSG_ReadDir(sizebuf_t *sb, vec3_t dir)
  * Writes part of a packetentities message.
  * Can delta from either a baseline or a previous packet_entity
  */
-int
-DeltaEntityBits(const entity_state_t *from,
-		const entity_state_t *to,
-		qboolean newentity)
-{
-	int bits = 0;
-
-	if (to->number >= 256)
-	{
-		bits |= U_NUMBER16; /* number8 is implicit otherwise */
-	}
-
-	if (to->origin[0] != from->origin[0])
-	{
-		bits |= U_ORIGIN1;
-	}
-
-	if (to->origin[1] != from->origin[1])
-	{
-		bits |= U_ORIGIN2;
-	}
-
-	if (to->origin[2] != from->origin[2])
-	{
-		bits |= U_ORIGIN3;
-	}
-
-	if (to->angles[0] != from->angles[0])
-	{
-		bits |= U_ANGLE1;
-	}
-
-	if (to->angles[1] != from->angles[1])
-	{
-		bits |= U_ANGLE2;
-	}
-
-	if (to->angles[2] != from->angles[2])
-	{
-		bits |= U_ANGLE3;
-	}
-
-	if (to->skinnum != from->skinnum)
-	{
-		if ((unsigned)to->skinnum < 256)
-		{
-			bits |= U_SKIN8;
-		}
-
-		else if ((unsigned)to->skinnum < 0x10000)
-		{
-			bits |= U_SKIN16;
-		}
-
-		else
-		{
-			bits |= (U_SKIN8 | U_SKIN16);
-		}
-	}
-
-	if (to->frame != from->frame)
-	{
-		if (to->frame < 256)
-		{
-			bits |= U_FRAME8;
-		}
-
-		else
-		{
-			bits |= U_FRAME16;
-		}
-	}
-
-	if (to->effects != from->effects)
-	{
-		if (to->effects < 256)
-		{
-			bits |= U_EFFECTS8;
-		}
-
-		else if (to->effects < 0x8000)
-		{
-			bits |= U_EFFECTS16;
-		}
-
-		else
-		{
-			bits |= U_EFFECTS8 | U_EFFECTS16;
-		}
-	}
-
-	if (to->renderfx != from->renderfx)
-	{
-		if (to->renderfx < 256)
-		{
-			bits |= U_RENDERFX8;
-		}
-
-		else if (to->renderfx < 0x8000)
-		{
-			bits |= U_RENDERFX16;
-		}
-
-		else
-		{
-			bits |= U_RENDERFX8 | U_RENDERFX16;
-		}
-	}
-
-	if (to->solid != from->solid)
-	{
-		bits |= U_SOLID;
-	}
-
-	/* event is not delta compressed, just 0 compressed */
-	if (to->event)
-	{
-		bits |= U_EVENT;
-	}
-
-	if (to->modelindex != from->modelindex)
-	{
-		bits |= U_MODEL;
-	}
-
-	if (to->modelindex2 != from->modelindex2)
-	{
-		bits |= U_MODEL2;
-	}
-
-	if (to->modelindex3 != from->modelindex3)
-	{
-		bits |= U_MODEL3;
-	}
-
-	if (to->modelindex4 != from->modelindex4)
-	{
-		bits |= U_MODEL4;
-	}
-
-	if (to->sound != from->sound)
-	{
-		bits |= U_SOUND;
-	}
-
-	if (newentity || (to->renderfx & RF_BEAM))
-	{
-		bits |= U_OLDORIGIN;
-	}
-
-	if (bits & 0xff000000)
-	{
-		bits |= U_MOREBITS3 | U_MOREBITS2 | U_MOREBITS1;
-	}
-
-	else if (bits & 0x00ff0000)
-	{
-		bits |= U_MOREBITS2 | U_MOREBITS1;
-	}
-
-	else if (bits & 0x0000ff00)
-	{
-		bits |= U_MOREBITS1;
-	}
-
-	return bits;
-}
-
 void
-MSG_WriteDeltaEntity(entity_state_t *from,
-		entity_state_t *to,
+MSG_WriteDeltaEntity(const entity_state_t *from,
+		const entity_state_t *to,
 		sizebuf_t *msg,
 		qboolean force,
 		qboolean newentity)

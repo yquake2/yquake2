@@ -32,8 +32,8 @@ netadr_t master_adr[MAX_MASTERS]; /* address of group servers */
 
 client_t *sv_client; /* current client */
 
-cvar_t *sv_optimize_sp_loadtime;
-cvar_t *sv_optimize_mp_loadtime;
+static cvar_t *sv_optimize_sp_loadtime;
+static cvar_t *sv_optimize_mp_loadtime;
 
 cvar_t *sv_paused;
 cvar_t *sv_timedemo;
@@ -652,7 +652,7 @@ SV_Init(void)
 
 /*
  * Used by SV_Shutdown to send a final message to all
- * connected clients before the server goes down. The 
+ * connected clients before the server goes down. The
  * messages are sent immediately, not just stuck on the
  * outgoing message list, because the server is going
  * to totally exit after returning from this function.
