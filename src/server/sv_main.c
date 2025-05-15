@@ -32,8 +32,8 @@ netadr_t master_adr[MAX_MASTERS]; /* address of group servers */
 
 client_t *sv_client; /* current client */
 
-cvar_t *sv_optimize_sp_loadtime;
-cvar_t *sv_optimize_mp_loadtime;
+static cvar_t *sv_optimize_sp_loadtime;
+static cvar_t *sv_optimize_mp_loadtime;
 
 cvar_t *sv_paused;
 cvar_t *sv_timedemo;
@@ -55,7 +55,6 @@ cvar_t *public_server; /* should heartbeats be sent */
 cvar_t *sv_entfile; /* External entity files. */
 cvar_t *sv_downloadserver; /* Download server. */
 
-void Master_Shutdown(void);
 void SV_ConnectionlessPacket(void);
 
 /*
@@ -129,7 +128,7 @@ SV_StatusString(void)
 /*
  * Updates the cl->ping variables
  */
-void
+static void
 SV_CalcPings(void)
 {
 	int i, j;
@@ -175,7 +174,7 @@ SV_CalcPings(void)
  * Every few frames, gives all clients an allotment of milliseconds
  * for their command moves. If they exceed it, assume cheating.
  */
-void
+static void
 SV_GiveMsec(void)
 {
 	int i;
@@ -199,7 +198,7 @@ SV_GiveMsec(void)
 	}
 }
 
-void
+static void
 SV_ReadPackets(void)
 {
 	int i;
@@ -242,7 +241,7 @@ SV_ReadPackets(void)
 
 			if (cl->netchan.remote_address.port != net_from.port)
 			{
-				Com_Printf("SV_ReadPackets: fixing up a translated port\n");
+				Com_Printf("%s: fixing up a translated port\n", __func__);
 				cl->netchan.remote_address.port = net_from.port;
 			}
 
@@ -279,7 +278,7 @@ SV_ReadPackets(void)
  * for a few seconds to make sure any final reliable message gets resent
  * if necessary
  */
-void
+static void
 SV_CheckTimeouts(void)
 {
 	int i;
@@ -334,7 +333,7 @@ SV_PrepWorldFrame(void)
 	}
 }
 
-void
+static void
 SV_RunGameFrame(void)
 {
 #ifndef DEDICATED_ONLY
@@ -526,7 +525,7 @@ Master_Heartbeat(void)
 /*
  * Informs all masters that this server is going down
  */
-void
+static void
 Master_Shutdown(void)
 {
 	int i;
@@ -652,7 +651,7 @@ SV_Init(void)
 
 /*
  * Used by SV_Shutdown to send a final message to all
- * connected clients before the server goes down. The 
+ * connected clients before the server goes down. The
  * messages are sent immediately, not just stuck on the
  * outgoing message list, because the server is going
  * to totally exit after returning from this function.

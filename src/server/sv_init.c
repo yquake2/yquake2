@@ -30,7 +30,7 @@ server_static_t svs; /* persistant server info */
 server_t sv; /* local server */
 
 static int
-SV_FindIndex(char *name, int start, int max, qboolean create)
+SV_FindIndex(const char *name, int start, int max, qboolean create)
 {
 	int i;
 
@@ -490,7 +490,7 @@ SV_Map(qboolean attractloop, char *levelstring, qboolean loadgame, qboolean isau
 	char *ch;
 	size_t l;
 	char spawnpoint[MAX_QPATH];
-	char *ext;
+	const char *ext;
 
 	sv.loadgame = loadgame;
 	sv.attractloop = attractloop;
