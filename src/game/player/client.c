@@ -137,143 +137,50 @@ SP_CreateCoopSpots(edict_t *self)
  * Therefore create an unnamed info_player_start
  * at the correct point.
  */
+static void
+CreateUnnamedSpawnpoint(const edict_t *self, const char *mapname, const char *spotname)
+{
+	edict_t *spot;
+
+	if (Q_stricmp(level.mapname, mapname) != 0)
+	{
+		return;
+	}
+
+	if (!self->targetname || Q_stricmp(self->targetname, spotname) != 0)
+	{
+		return;
+	}
+
+	spot = G_SpawnOptional();
+
+	if (!spot)
+	{
+		return;
+	}
+
+	spot->classname = "info_player_start";
+
+	VectorCopy(self->s.origin, spot->s.origin);
+	spot->s.angles[1] = self->s.angles[1];
+}
+
 void
 SP_CreateUnnamedSpawn(edict_t *self)
 {
-	edict_t *spot = G_Spawn();
-
 	if (!self)
 	{
 		return;
 	}
 
-	/* mine1 */
-	if (Q_stricmp(level.mapname, "mine1") == 0)
-	{
-		if (Q_stricmp(self->targetname, "mintro") == 0)
-		{
-			spot->classname = self->classname;
-			spot->s.origin[0] = self->s.origin[0];
-			spot->s.origin[1] = self->s.origin[1];
-			spot->s.origin[2] = self->s.origin[2];
-			spot->s.angles[1] = self->s.angles[1];
-			spot->targetname = NULL;
-
-			return;
-		}
-	}
-
-	/* mine2 */
-	if (Q_stricmp(level.mapname, "mine2") == 0)
-	{
-		if (Q_stricmp(self->targetname, "mine1") == 0)
-		{
-			spot->classname = self->classname;
-			spot->s.origin[0] = self->s.origin[0];
-			spot->s.origin[1] = self->s.origin[1];
-			spot->s.origin[2] = self->s.origin[2];
-			spot->s.angles[1] = self->s.angles[1];
-			spot->targetname = NULL;
-
-			return;
-		}
-	}
-
-	/* mine3 */
-	if (Q_stricmp(level.mapname, "mine3") == 0)
-	{
-		if (Q_stricmp(self->targetname, "mine2a") == 0)
-		{
-			spot->classname = self->classname;
-			spot->s.origin[0] = self->s.origin[0];
-			spot->s.origin[1] = self->s.origin[1];
-			spot->s.origin[2] = self->s.origin[2];
-			spot->s.angles[1] = self->s.angles[1];
-			spot->targetname = NULL;
-
-			return;
-		}
-	}
-
-	/* mine4 */
-	if (Q_stricmp(level.mapname, "mine4") == 0)
-	{
-		if (Q_stricmp(self->targetname, "mine3") == 0)
-		{
-			spot->classname = self->classname;
-			spot->s.origin[0] = self->s.origin[0];
-			spot->s.origin[1] = self->s.origin[1];
-			spot->s.origin[2] = self->s.origin[2];
-			spot->s.angles[1] = self->s.angles[1];
-			spot->targetname = NULL;
-
-			return;
-		}
-	}
-
-	/* power2 */
-	if (Q_stricmp(level.mapname, "power2") == 0)
-	{
-		if (Q_stricmp(self->targetname, "power1") == 0)
-		{
-			spot->classname = self->classname;
-			spot->s.origin[0] = self->s.origin[0];
-			spot->s.origin[1] = self->s.origin[1];
-			spot->s.origin[2] = self->s.origin[2];
-			spot->s.angles[1] = self->s.angles[1];
-			spot->targetname = NULL;
-
-			return;
-		}
-	}
-
-	/* waste1 */
-	if (Q_stricmp(level.mapname, "waste1") == 0)
-	{
-		if (Q_stricmp(self->targetname, "power2") == 0)
-		{
-			spot->classname = self->classname;
-			spot->s.origin[0] = self->s.origin[0];
-			spot->s.origin[1] = self->s.origin[1];
-			spot->s.origin[2] = self->s.origin[2];
-			spot->s.angles[1] = self->s.angles[1];
-			spot->targetname = NULL;
-
-			return;
-		}
-	}
-
-	/* waste2 */
-	if (Q_stricmp(level.mapname, "waste2") == 0)
-	{
-		if (Q_stricmp(self->targetname, "waste1") == 0)
-		{
-			spot->classname = self->classname;
-			spot->s.origin[0] = self->s.origin[0];
-			spot->s.origin[1] = self->s.origin[1];
-			spot->s.origin[2] = self->s.origin[2];
-			spot->s.angles[1] = self->s.angles[1];
-			spot->targetname = NULL;
-
-			return;
-		}
-	}
-
-	/* city3 */
-	if (Q_stricmp(level.mapname, "city2") == 0)
-	{
-		if (Q_stricmp(self->targetname, "city2NL") == 0)
-		{
-			spot->classname = self->classname;
-			spot->s.origin[0] = self->s.origin[0];
-			spot->s.origin[1] = self->s.origin[1];
-			spot->s.origin[2] = self->s.origin[2];
-			spot->s.angles[1] = self->s.angles[1];
-			spot->targetname = NULL;
-
-			return;
-		}
-	}
+	CreateUnnamedSpawnpoint(self, "mine1",  "mintro");
+	CreateUnnamedSpawnpoint(self, "mine2",  "mine1");
+	CreateUnnamedSpawnpoint(self, "mine3",  "mine2a");
+	CreateUnnamedSpawnpoint(self, "mine4",  "mine3");
+	CreateUnnamedSpawnpoint(self, "power2", "power1");
+	CreateUnnamedSpawnpoint(self, "waste1", "power2");
+	CreateUnnamedSpawnpoint(self, "waste2", "waste1");
+	CreateUnnamedSpawnpoint(self, "city2",  "city2NL");
 }
 
 /*
@@ -293,12 +200,8 @@ SP_info_player_start(edict_t *self)
 	self->think = SP_CreateUnnamedSpawn;
 	self->nextthink = level.time + FRAMETIME;
 
-	if (!coop->value)
-	{
-		return;
-	}
-
-	if (Q_stricmp(level.mapname, "security") == 0)
+	if (coop->value &&
+		Q_stricmp(level.mapname, "security") == 0)
 	{
 		/* invoke one of our gross, ugly, disgusting hacks */
 		self->think = SP_CreateCoopSpots;
