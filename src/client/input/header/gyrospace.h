@@ -2,7 +2,6 @@
  * =======================================================================
  *
  * Gyro Space to Play - A plug-and-play Gyro Space Transformer code
- * Version 0.8.6
  *
  * Provides functionality for transforming gyro inputs into Local Space,
  * Player Space, and World Space, while handling sensitivity adjustments,
@@ -268,10 +267,10 @@ static inline Vector3 TransformToLocalSpace(float yaw, float pitch, float roll, 
     return localGyro;
 }
  
- /**
-  * Transforms gyro inputs to Player Space.
-  * Adjusts motion relative to the player's perspective while ensuring gravity alignment.
-  */
+/**
+ * Transforms gyro inputs to Player Space.
+ * Adjusts motion relative to the player's perspective while ensuring gravity alignment.
+ */
 static inline Vector3 TransformToPlayerSpace(float yaw, float pitch, float roll, Vector3 gravity) {
     // Validate and normalize the gravity vector.
     if (Vec3_IsZero(gravity))
@@ -279,29 +278,42 @@ static inline Vector3 TransformToPlayerSpace(float yaw, float pitch, float roll,
     else
         gravity = Vec3_Normalize(gravity);
 
-    // Compute world-aligned yaw using gravity (mixes yaw and roll inputs).
+    // Compose the raw gyro vector.
+    Vector3 gyro = Vec3_New(yaw, pitch, roll);
+
+    //  Player space yaw: combine yaw and roll, use gravity for direction 
     float worldYaw = yaw * gravity.y + roll * gravity.z;
 
-    // Adjust roll to remove the unwanted influence from gravity.
-    float adjustedRoll = roll - (roll * gravity.y);
-
-    // Apply yaw relaxation to smooth out abrupt inversions.
-    float yawRelaxation = 1.41f;
+    //  Yaw relaxation: buffer zone for local aiming freedom 
+    float yawRelaxFactor = 2.0f; // 1.41f for ~45°, 2.0f for ~60° buffer
     float yawSign = (worldYaw >= 0) ? 1.0f : -1.0f;
-    float yawMagnitude = Vec3_Magnitude(Vec3_New(yaw, adjustedRoll, 0.0f));
-    float adjustedYaw = yawSign * fminf(fabsf(worldYaw) * yawRelaxation, yawMagnitude);
+    float combinedYawRoll = sqrtf(yaw * yaw + roll * roll);
+    float adjustedYaw = yawSign * fminf(fabsf(worldYaw) * yawRelaxFactor, combinedYawRoll);
+
+    //  Local pitch: use directly 
+    float adjustedPitch = pitch;
+
+    //  Roll: project (0,0,1) onto plane perpendicular to gravity (optional, for completeness) 
+    Vector3 rollAxis = Vec3_New(0.0f, 0.0f, 1.0f);
+    float gravDotRoll = Vec3_Dot(gravity, rollAxis);
+    Vector3 projectedRollAxis = Vec3_Subtract(rollAxis, Vec3_Scale(gravity, gravDotRoll));
+    float adjustedRoll = 0.0f;
+    if (!Vec3_IsZero(projectedRollAxis)) {
+        projectedRollAxis = Vec3_Normalize(projectedRollAxis);
+        adjustedRoll = Vec3_Dot(gyro, projectedRollAxis);
+    }
 
     // Transform the computed gyro vector into Player Space using a view matrix.
     Matrix4 playerViewMatrix = Matrix4_FromGravity(gravity);
-    Vector3 playerGyro = MultiplyMatrixVector(playerViewMatrix, Vec3_New(adjustedYaw, pitch, adjustedRoll));
+    Vector3 playerGyro = MultiplyMatrixVector(playerViewMatrix, Vec3_New(adjustedYaw, adjustedPitch, adjustedRoll));
 
     return playerGyro;
 }
  
- /**
-  * Transforms gyro inputs to World Space.
-  * Aligns input with the game world while maintaining spatial consistency.
-  */
+/**
+ * Transforms gyro inputs to World Space.
+ * Aligns input with the game world while maintaining spatial consistency.
+ */
 static inline Vector3 TransformToWorldSpace(float yaw, float pitch, float roll, Vector3 gravity) {
     // Validate and normalize gravity.
     if (Vec3_IsZero(gravity)) {
@@ -309,27 +321,42 @@ static inline Vector3 TransformToWorldSpace(float yaw, float pitch, float roll, 
     } else {
         gravity = Vec3_Normalize(gravity);
     }
-    
-    // Compute world yaw by mixing yaw and roll according to gravity.
-    float worldYaw = yaw * gravity.y + roll * gravity.z;
-    
-    // Adjust roll to remove the component influenced by gravity.
-    float adjustedRoll = roll - (roll * gravity.y);
-    
-    // Project the controller's local pitch axis (1, 0, 0) onto the horizontal plane.
-    float gravDotPitch = Vec3_Dot(gravity, Vec3_New(1.0f, 0.0f, 0.0f));
-    Vector3 pitchVector = Vec3_Subtract(Vec3_New(1.0f, 0.0f, 0.0f), Vec3_Scale(gravity, gravDotPitch));
+
+    // Compose the raw gyro vector.
+    Vector3 gyro = Vec3_New(yaw, pitch, roll);
+
+    //  World yaw: dot product with gravity (world up) 
+    float worldYaw = Vec3_Dot(gyro, gravity);
+
+    //  Pitch: project (1,0,0) onto plane perpendicular to gravity 
+    float gravDotPitchAxis = gravity.x; // (1,0,0) . gravity
+    Vector3 pitchVector = Vec3_Subtract(Vec3_New(1.0f, 0.0f, 0.0f), Vec3_Scale(gravity, gravDotPitchAxis));
+
+    //  Side reduction: reduce pitch when controller is on its side 
+    float flatness = fabsf(gravity.y);
+    float upness = fabsf(gravity.z);
+    float sideReduction = clamp((fmaxf(flatness, upness) - 0.125f) / 0.125f, 0.0f, 1.0f);
+
+    float adjustedPitch = 0.0f;
     if (!Vec3_IsZero(pitchVector)) {
         pitchVector = Vec3_Normalize(pitchVector);
+        adjustedPitch = sideReduction * Vec3_Dot(gyro, pitchVector);
     }
-    
-    // Compute adjusted pitch based on the projected pitch axis.
-    float adjustedPitch = Vec3_Dot(Vec3_New(pitch, 0.0f, adjustedRoll), pitchVector);
-    
+
+    //  Roll: project (0,0,1) onto plane perpendicular to gravity 
+    Vector3 rollAxis = Vec3_New(0.0f, 0.0f, 1.0f);
+    float gravDotRoll = Vec3_Dot(gravity, rollAxis);
+    Vector3 projectedRollAxis = Vec3_Subtract(rollAxis, Vec3_Scale(gravity, gravDotRoll));
+    float adjustedRoll = 0.0f;
+    if (!Vec3_IsZero(projectedRollAxis)) {
+        projectedRollAxis = Vec3_Normalize(projectedRollAxis);
+        adjustedRoll = Vec3_Dot(gyro, projectedRollAxis);
+    }
+
     // Transform the computed components into world space.
     Matrix4 worldViewMatrix = Matrix4_FromGravity(gravity);
-    Vector3 worldGyro = MultiplyMatrixVector(worldViewMatrix, Vec3_New(worldYaw, adjustedPitch, adjustedRoll));
-    
+    Vector3 worldGyro = MultiplyMatrixVector(worldViewMatrix, Vec3_New(adjustedPitch, worldYaw, adjustedRoll));
+
     return worldGyro;
 }
  
