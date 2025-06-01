@@ -251,7 +251,7 @@ CL_PrepRefresh(void)
 	SCR_AddDirtyPoint(viddef.width - 1, viddef.height - 1);
 
 	/* let the refresher load the map */
-	strcpy(mapname, cl.configstrings[CS_MODELS + 1] + 5); /* skip "maps/" */
+	Q_strlcpy(mapname, cl.configstrings[CS_MODELS + 1] + 5, sizeof(mapname)); /* skip "maps/" */
 	mapname[strlen(mapname) - 4] = 0; /* cut off ".bsp" */
 
 	/* register models, pics, and skins */
