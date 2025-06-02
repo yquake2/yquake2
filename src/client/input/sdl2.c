@@ -2525,27 +2525,12 @@ IN_Controller_Init(qboolean notify_user)
 				Com_Printf("Gyro sensor not found.\n");
 			}
 
-			if (SDL_GameControllerHasSensor(controller, SDL_SENSOR_ACCEL)
-				&& !SDL_GameControllerSetSensorEnabled(controller, SDL_SENSOR_ACCEL, SDL_TRUE))
-			{
-#if SDL_VERSION_ATLEAST(2, 0, 16)
-				Com_Printf("Accel sensor enabled at %.2f Hz\n",
-					SDL_GameControllerGetSensorDataRate(controller, SDL_SENSOR_ACCEL));
-#else
-				Com_Printf("Accel sensor enabled.\n");
-#endif  // SDL_VERSION_ATLEAST(2, 0, 16)
-			}
-			else
-			{
-				Com_Printf("Accel sensor not found.\n");
-			}
-
 			if (SDL_GameControllerHasLED(controller))
 			{
-				SDL_GameControllerSetLED(controller, 0, 80, 0);  // green light
+				SDL_GameControllerSetLED(controller, 0, 80, 0);	// green light
 			}
 
-#endif  // !NO_SDL_GYRO
+#endif	// !NO_SDL_GYRO
 
 			joystick_haptic = SDL_HapticOpenFromJoystick(SDL_GameControllerGetJoystick(controller));
 
