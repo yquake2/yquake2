@@ -28,9 +28,12 @@
 
 #define MAX_STRINGCMDS 8
 
+#define CMD_MARGIN 40 /* space in message reserved for command */
+#define SAFE_MARGIN 24 /* space reserved for more data added elsewhere */
+
 edict_t *sv_player;
 
-void
+static void
 SV_BeginDemoserver(void)
 {
 	char name[MAX_OSPATH];
@@ -48,7 +51,7 @@ SV_BeginDemoserver(void)
  * Sends the first message from the server to a connected client.
  * This will be sent on the initial connection and upon each server load.
  */
-void
+static void
 SV_New_f(void)
 {
 	static char *gamedir;
@@ -111,10 +114,11 @@ SV_New_f(void)
 	}
 }
 
-void
+static void
 SV_Configstrings_f(void)
 {
 	int start;
+	int max_msgutil;
 
 	Com_DPrintf("Configstrings() from %s\n", sv_client->name);
 
@@ -134,16 +138,32 @@ SV_Configstrings_f(void)
 
 	start = (int)strtol(Cmd_Argv(2), (char **)NULL, 10);
 
-	/* write a packet full of data */
-	while (sv_client->netchan.message.cursize < MAX_MSGLEN / 2 &&
-		   start < MAX_CONFIGSTRINGS)
+	if (start < 0)
 	{
-		if (sv.configstrings[start][0])
+		start = 0;
+	}
+
+	/* 560 is roughly the legacy safety margin */
+	max_msgutil = (SV_Optimizations() & OPTIMIZE_MSGUTIL) ?
+		SAFE_MARGIN : 560;
+
+	/* write a packet full of data */
+	while (start < MAX_CONFIGSTRINGS)
+	{
+		const char *cs;
+
+		cs = sv.configstrings[start];
+
+		if (*cs != '\0')
 		{
+			if ((sv_client->netchan.message.cursize + MSG_ConfigString_Size(cs))
+				> (MAX_MSGLEN - (CMD_MARGIN + max_msgutil)))
+			{
+				break;
+			}
+
 			MSG_WriteByte(&sv_client->netchan.message, svc_configstring);
-			MSG_WriteShort(&sv_client->netchan.message, start);
-			MSG_WriteString(&sv_client->netchan.message,
-					sv.configstrings[start]);
+			MSG_WriteConfigString(&sv_client->netchan.message, start, cs);
 		}
 
 		start++;
@@ -164,10 +184,11 @@ SV_Configstrings_f(void)
 	}
 }
 
-void
+static void
 SV_Baselines_f(void)
 {
 	int start;
+	int max_msgutil;
 	entity_state_t nullstate;
 	entity_state_t *base;
 
@@ -188,16 +209,31 @@ SV_Baselines_f(void)
 	}
 
 	start = (int)strtol(Cmd_Argv(2), (char **)NULL, 10);
+
+	if (start < 0)
+	{
+		start = 0;
+	}
+
 	memset(&nullstate, 0, sizeof(nullstate));
 
+	/* 560 is roughly the legacy safety margin */
+	max_msgutil = (SV_Optimizations() & OPTIMIZE_MSGUTIL) ?
+		SAFE_MARGIN : 560;
+
 	/* write a packet full of data */
-	while (sv_client->netchan.message.cursize < MAX_MSGLEN / 2 &&
-		   start < MAX_EDICTS)
+	while (start < MAX_EDICTS)
 	{
 		base = &sv.baselines[start];
 
 		if (base->modelindex || base->sound || base->effects)
 		{
+			if ((sv_client->netchan.message.cursize + MSG_DeltaEntity_Size(&nullstate, base, true, true))
+				> (MAX_MSGLEN - (CMD_MARGIN + max_msgutil)))
+			{
+				break;
+			}
+
 			MSG_WriteByte(&sv_client->netchan.message, svc_spawnbaseline);
 			MSG_WriteDeltaEntity(&nullstate, base,
 					&sv_client->netchan.message,
@@ -222,7 +258,7 @@ SV_Baselines_f(void)
 	}
 }
 
-void
+static void
 SV_Begin_f(void)
 {
 	Com_DPrintf("Begin() from %s\n", sv_client->name);
@@ -243,7 +279,7 @@ SV_Begin_f(void)
 	Cbuf_InsertFromDefer();
 }
 
-void
+static void
 SV_NextDownload_f(void)
 {
 	int r;
@@ -287,7 +323,7 @@ SV_NextDownload_f(void)
 	sv_client->download = NULL;
 }
 
-void
+static void
 SV_BeginDownload_f(void)
 {
 	char *name;
@@ -366,7 +402,7 @@ SV_BeginDownload_f(void)
 /*
  * The client is going to disconnect, so remove the connection immediately
  */
-void
+static void
 SV_Disconnect_f(void)
 {
 	SV_DropClient(sv_client);
@@ -375,7 +411,7 @@ SV_Disconnect_f(void)
 /*
  * Dumps the serverinfo info string
  */
-void
+static void
 SV_ShowServerinfo_f(void)
 {
 	Info_Print(Cvar_Serverinfo());
@@ -413,7 +449,7 @@ SV_Nextserver(void)
  * A cinematic has completed or been aborted by a client, so move
  * to the next server,
  */
-void
+static void
 SV_Nextserver_f(void)
 {
 	if ((int)strtol(Cmd_Argv(1), (char **)NULL, 10) != svs.spawncount)
@@ -477,9 +513,8 @@ SV_ExecuteUserCommand(char *s)
 	}
 }
 
-void
+static void
 SV_ClientThink(client_t *cl, usercmd_t *cmd)
-
 {
 	cl->commandMsec -= cmd->msec;
 

@@ -32,7 +32,7 @@
 #include "shared.h"
 #include "crc.h"
 
-#define YQ2VERSION "8.51pre"
+#define YQ2VERSION "8.52pre"
 #define BASEDIRNAME "baseq2"
 
 #ifndef YQ2OSTYPE
@@ -98,30 +98,35 @@ typedef struct sizebuf_s
 void SZ_Init(sizebuf_t *buf, byte *data, int length);
 void SZ_Clear(sizebuf_t *buf);
 void *SZ_GetSpace(sizebuf_t *buf, int length);
-void SZ_Write(sizebuf_t *buf, void *data, int length);
-void SZ_Print(sizebuf_t *buf, char *data);  /* strcats onto the sizebuf */
+void SZ_Write(sizebuf_t *buf, const void *data, int length);
+void SZ_Print(sizebuf_t *buf, const char *data);  /* strcats onto the sizebuf */
 
 /* ================================================================== */
 
 struct usercmd_s;
 struct entity_state_s;
 
+size_t MSG_ConfigString_Size(const char *s);
+size_t MSG_DeltaEntity_Size(const entity_state_t *from, const entity_state_t *to,
+	qboolean force, qboolean newentity);
+
 void MSG_WriteChar(sizebuf_t *sb, int c);
 void MSG_WriteByte(sizebuf_t *sb, int c);
 void MSG_WriteShort(sizebuf_t *sb, int c);
 void MSG_WriteLong(sizebuf_t *sb, int c);
 void MSG_WriteFloat(sizebuf_t *sb, float f);
-void MSG_WriteString(sizebuf_t *sb, char *s);
+void MSG_WriteString(sizebuf_t *sb, const char *s);
 void MSG_WriteCoord(sizebuf_t *sb, float f);
 void MSG_WritePos(sizebuf_t *sb, vec3_t pos);
 void MSG_WriteAngle(sizebuf_t *sb, float f);
 void MSG_WriteAngle16(sizebuf_t *sb, float f);
-void MSG_WriteDeltaUsercmd(sizebuf_t *sb, struct usercmd_s *from,
-		struct usercmd_s *cmd);
-void MSG_WriteDeltaEntity(struct entity_state_s *from,
-		struct entity_state_s *to, sizebuf_t *msg,
+void MSG_WriteConfigString(sizebuf_t *sb, short index, const char *s);
+void MSG_WriteDeltaUsercmd(sizebuf_t *sb, const struct usercmd_s *from,
+		const struct usercmd_s *cmd);
+void MSG_WriteDeltaEntity(const struct entity_state_s *from,
+		const struct entity_state_s *to, sizebuf_t *msg,
 		qboolean force, qboolean newentity);
-void MSG_WriteDir(sizebuf_t *sb, vec3_t vector);
+void MSG_WriteDir(sizebuf_t *sb, const vec3_t vector);
 
 void MSG_BeginReading(sizebuf_t *sb);
 

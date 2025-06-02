@@ -137,147 +137,55 @@ SP_CreateCoopSpots(edict_t *self)
  * Therefore create an unnamed info_player_start
  * at the correct point.
  */
+static void
+CreateUnnamedSpawnpoint(const edict_t *self, const char *mapname, const char *spotname)
+{
+	edict_t *spot;
+
+	if (Q_stricmp(level.mapname, mapname) != 0)
+	{
+		return;
+	}
+
+	if (!self->targetname || Q_stricmp(self->targetname, spotname) != 0)
+	{
+		return;
+	}
+
+	spot = G_SpawnOptional();
+
+	if (!spot)
+	{
+		return;
+	}
+
+	spot->classname = "info_player_start";
+
+	VectorCopy(self->s.origin, spot->s.origin);
+	spot->s.angles[1] = self->s.angles[1];
+}
+
 void
 SP_CreateUnnamedSpawn(edict_t *self)
 {
-	edict_t *spot = G_Spawn();
-
 	if (!self)
 	{
 		return;
 	}
 
-	/* mine1 */
-    if (Q_stricmp(level.mapname, "mine1") == 0)
-	{
-		if (Q_stricmp(self->targetname, "mintro") == 0)
-		{
-			spot->classname = self->classname;
-			spot->s.origin[0] = self->s.origin[0];
-			spot->s.origin[1] = self->s.origin[1];
-			spot->s.origin[2] = self->s.origin[2];
-			spot->s.angles[1] = self->s.angles[1];
-			spot->targetname = NULL;
-
-			return;
-		}
-	}
-
-	/* mine2 */
-    if (Q_stricmp(level.mapname, "mine2") == 0)
-	{
-		if (Q_stricmp(self->targetname, "mine1") == 0)
-		{
-			spot->classname = self->classname;
-			spot->s.origin[0] = self->s.origin[0];
-			spot->s.origin[1] = self->s.origin[1];
-			spot->s.origin[2] = self->s.origin[2];
-			spot->s.angles[1] = self->s.angles[1];
-			spot->targetname = NULL;
-
-			return;
-		}
-	}
-
-	/* mine3 */
-    if (Q_stricmp(level.mapname, "mine3") == 0)
-	{
-		if (Q_stricmp(self->targetname, "mine2a") == 0)
-		{
-			spot->classname = self->classname;
-			spot->s.origin[0] = self->s.origin[0];
-			spot->s.origin[1] = self->s.origin[1];
-			spot->s.origin[2] = self->s.origin[2];
-			spot->s.angles[1] = self->s.angles[1];
-			spot->targetname = NULL;
-
-			return;
-		}
-	}
-
-	/* mine4 */
-    if (Q_stricmp(level.mapname, "mine4") == 0)
-	{
-		if (Q_stricmp(self->targetname, "mine3") == 0)
-		{
-			spot->classname = self->classname;
-			spot->s.origin[0] = self->s.origin[0];
-			spot->s.origin[1] = self->s.origin[1];
-			spot->s.origin[2] = self->s.origin[2];
-			spot->s.angles[1] = self->s.angles[1];
-			spot->targetname = NULL;
-
-			return;
-		}
-	}
-
- 	/* power2 */
-    if (Q_stricmp(level.mapname, "power2") == 0)
-	{
-		if (Q_stricmp(self->targetname, "power1") == 0)
-		{
-			spot->classname = self->classname;
-			spot->s.origin[0] = self->s.origin[0];
-			spot->s.origin[1] = self->s.origin[1];
-			spot->s.origin[2] = self->s.origin[2];
-			spot->s.angles[1] = self->s.angles[1];
-			spot->targetname = NULL;
-
-			return;
-		}
-	}
-
-	/* waste1 */
-    if (Q_stricmp(level.mapname, "waste1") == 0)
-	{
-		if (Q_stricmp(self->targetname, "power2") == 0)
-		{
-			spot->classname = self->classname;
-			spot->s.origin[0] = self->s.origin[0];
-			spot->s.origin[1] = self->s.origin[1];
-			spot->s.origin[2] = self->s.origin[2];
-			spot->s.angles[1] = self->s.angles[1];
-			spot->targetname = NULL;
-
-			return;
-		}
-	}
-
-	/* waste2 */
-    if (Q_stricmp(level.mapname, "waste2") == 0)
-	{
-		if (Q_stricmp(self->targetname, "waste1") == 0)
-		{
-			spot->classname = self->classname;
-			spot->s.origin[0] = self->s.origin[0];
-			spot->s.origin[1] = self->s.origin[1];
-			spot->s.origin[2] = self->s.origin[2];
-			spot->s.angles[1] = self->s.angles[1];
-			spot->targetname = NULL;
-
-			return;
-		}
-	}
-
-	/* city3 */
-    if (Q_stricmp(level.mapname, "city2") == 0)
-	{
-		if (Q_stricmp(self->targetname, "city2NL") == 0)
-		{
-			spot->classname = self->classname;
-			spot->s.origin[0] = self->s.origin[0];
-			spot->s.origin[1] = self->s.origin[1];
-			spot->s.origin[2] = self->s.origin[2];
-			spot->s.angles[1] = self->s.angles[1];
-			spot->targetname = NULL;
-
-			return;
-		}
-	}
+	CreateUnnamedSpawnpoint(self, "mine1",  "mintro");
+	CreateUnnamedSpawnpoint(self, "mine2",  "mine1");
+	CreateUnnamedSpawnpoint(self, "mine3",  "mine2a");
+	CreateUnnamedSpawnpoint(self, "mine4",  "mine3");
+	CreateUnnamedSpawnpoint(self, "power2", "power1");
+	CreateUnnamedSpawnpoint(self, "waste1", "power2");
+	CreateUnnamedSpawnpoint(self, "waste2", "waste1");
+	CreateUnnamedSpawnpoint(self, "city2",  "city2NL");
 }
 
 /*
  * QUAKED info_player_start (1 0 0) (-16 -16 -24) (16 16 32)
+ *
  * The normal starting point for a level.
  */
 void
@@ -288,16 +196,12 @@ SP_info_player_start(edict_t *self)
 		return;
 	}
 
-    /* Call function to hack unnamed spawn points */
+	/* Call function to hack unnamed spawn points */
 	self->think = SP_CreateUnnamedSpawn;
 	self->nextthink = level.time + FRAMETIME;
 
-	if (!coop->value)
-	{
-		return;
-	}
-
-	if (Q_stricmp(level.mapname, "security") == 0)
+	if (coop->value &&
+		Q_stricmp(level.mapname, "security") == 0)
 	{
 		/* invoke one of our gross, ugly, disgusting hacks */
 		self->think = SP_CreateCoopSpots;
@@ -307,6 +211,7 @@ SP_info_player_start(edict_t *self)
 
 /*
  * QUAKED info_player_deathmatch (1 0 1) (-16 -16 -24) (16 16 32)
+ *
  * potential spawning position for deathmatch games
  */
 void
@@ -378,7 +283,7 @@ SP_info_player_coop(edict_t *self)
 void
 SP_info_player_intermission(edict_t *self)
 {
-	/* Thus function cannot be removed
+	/* This function cannot be removed
 	 * since the info_player_intermission
 	 * needs a callback function. Like
 	 * every entity. */
@@ -388,7 +293,7 @@ SP_info_player_intermission(edict_t *self)
 
 void
 player_pain(edict_t *self /* unused */, edict_t *other /* unused */,
-	   	float kick /* unused */, int damage /* unused */)
+		float kick /* unused */, int damage /* unused */)
 {
 	/* Player pain is handled at the end
 	 * of the frame in P_DamageFeedback.
@@ -397,7 +302,7 @@ player_pain(edict_t *self /* unused */, edict_t *other /* unused */,
 	 * a pain callback */
 }
 
-qboolean
+static qboolean
 IsFemale(edict_t *ent)
 {
 	char *info;
@@ -427,7 +332,7 @@ IsFemale(edict_t *ent)
 	return false;
 }
 
-qboolean
+static qboolean
 IsNeutral(edict_t *ent)
 {
 	char *info;
@@ -460,7 +365,7 @@ IsNeutral(edict_t *ent)
 
 void
 ClientObituary(edict_t *self, edict_t *inflictor /* unused */,
-	   	edict_t *attacker)
+		edict_t *attacker)
 {
 	int mod;
 	char *message;
@@ -1039,7 +944,7 @@ SaveClientData(void)
 	}
 }
 
-void
+static void
 FetchClientEntData(edict_t *ent)
 {
 	if (!ent)
@@ -1074,7 +979,7 @@ PlayersRangeFromSpot(edict_t *spot)
 
 	if (!spot)
 	{
-		return 0;
+		return 0.0;
 	}
 
 	bestplayerdistance = 9999999;
@@ -1214,7 +1119,7 @@ SelectFarthestDeathmatchSpawnPoint(void)
 	return spot;
 }
 
-edict_t *
+static edict_t *
 SelectDeathmatchSpawnPoint(void)
 {
 	if ((int)(dmflags->value) & DF_SPAWN_FARTHEST)
@@ -1227,7 +1132,7 @@ SelectDeathmatchSpawnPoint(void)
 	}
 }
 
-edict_t *
+static edict_t *
 SelectCoopSpawnPoint(edict_t *ent)
 {
 	int index;
@@ -1409,7 +1314,7 @@ InitBodyQue(void)
 
 void
 body_die(edict_t *self, edict_t *inflictor /* unused */,
-	   	edict_t *attacker /* unused */, int damage,
+		edict_t *attacker /* unused */, int damage,
 		vec3_t point /* unused */)
 {
 	int n;
@@ -2135,7 +2040,7 @@ static edict_t *pm_passent;
  * pmove doesn't need to know
  * about passent and contentmask
  */
-trace_t
+static trace_t
 PM_trace(vec3_t start, vec3_t mins, vec3_t maxs, vec3_t end)
 {
 	if (pm_passent->health > 0)
@@ -2193,7 +2098,6 @@ ClientThink(edict_t *ent, usercmd_t *ucmd)
 	gclient_t *client;
 	edict_t *other;
 	int i, j;
-	pmove_t pm;
 
 	if (!ent || !ucmd)
 	{
@@ -2227,9 +2131,9 @@ ClientThink(edict_t *ent, usercmd_t *ucmd)
 	}
 	else
 	{
-		/* set up for pmove */
-		memset(&pm, 0, sizeof(pm));
+		pmove_t pm = {0};
 
+		/* set up for pmove */
 		if (ent->movetype == MOVETYPE_NOCLIP)
 		{
 			client->ps.pmove.pm_type = PM_SPECTATOR;

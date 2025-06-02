@@ -501,7 +501,6 @@ char *Key_KeynumToString_Joy (int key);
 
 void CL_WriteDemoMessage (void);
 void CL_Stop_f (void);
-void CL_Record_f (void);
 
 void CL_ParseServerMessage (void);
 void CL_LoadClientinfo (clientinfo_t *ci, char *s);

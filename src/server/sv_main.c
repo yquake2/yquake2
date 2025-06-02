@@ -32,6 +32,9 @@ netadr_t master_adr[MAX_MASTERS]; /* address of group servers */
 
 client_t *sv_client; /* current client */
 
+static cvar_t *sv_optimize_sp_loadtime;
+static cvar_t *sv_optimize_mp_loadtime;
+
 cvar_t *sv_paused;
 cvar_t *sv_timedemo;
 cvar_t *sv_enforcetime;
@@ -52,7 +55,6 @@ cvar_t *public_server; /* should heartbeats be sent */
 cvar_t *sv_entfile; /* External entity files. */
 cvar_t *sv_downloadserver; /* Download server. */
 
-void Master_Shutdown(void);
 void SV_ConnectionlessPacket(void);
 
 /*
@@ -126,7 +128,7 @@ SV_StatusString(void)
 /*
  * Updates the cl->ping variables
  */
-void
+static void
 SV_CalcPings(void)
 {
 	int i, j;
@@ -172,7 +174,7 @@ SV_CalcPings(void)
  * Every few frames, gives all clients an allotment of milliseconds
  * for their command moves. If they exceed it, assume cheating.
  */
-void
+static void
 SV_GiveMsec(void)
 {
 	int i;
@@ -196,7 +198,7 @@ SV_GiveMsec(void)
 	}
 }
 
-void
+static void
 SV_ReadPackets(void)
 {
 	int i;
@@ -239,7 +241,7 @@ SV_ReadPackets(void)
 
 			if (cl->netchan.remote_address.port != net_from.port)
 			{
-				Com_Printf("SV_ReadPackets: fixing up a translated port\n");
+				Com_Printf("%s: fixing up a translated port\n", __func__);
 				cl->netchan.remote_address.port = net_from.port;
 			}
 
@@ -276,7 +278,7 @@ SV_ReadPackets(void)
  * for a few seconds to make sure any final reliable message gets resent
  * if necessary
  */
-void
+static void
 SV_CheckTimeouts(void)
 {
 	int i;
@@ -331,7 +333,7 @@ SV_PrepWorldFrame(void)
 	}
 }
 
-void
+static void
 SV_RunGameFrame(void)
 {
 #ifndef DEDICATED_ONLY
@@ -373,9 +375,27 @@ SV_RunGameFrame(void)
 #endif
 }
 
+int
+SV_Optimizations(void)
+{
+	cvar_t *cv;
+
+	if (svs.gamemode <= 0 || svs.gamemode > 3)
+	{
+		return 0;
+	}
+
+	cv = (svs.gamemode == GAMEMODE_SP) ?
+		sv_optimize_sp_loadtime : sv_optimize_mp_loadtime;
+
+	return cv ? cv->value : 0;
+}
+
 void
 SV_Frame(int usec)
 {
+	int opt_sendrate;
+
 #ifndef DEDICATED_ONLY
 	time_before_game = time_after_game = 0;
 #endif
@@ -396,6 +416,16 @@ SV_Frame(int usec)
 
 	/* get packets from clients */
 	SV_ReadPackets();
+
+	/* send messages more often to new clients getting ready for spawning in
+	   speeds up the process of sending configstrings, entty deltas, etc.
+	*/
+	opt_sendrate = SV_Optimizations() & OPTIMIZE_SENDRATE;
+
+	if (opt_sendrate)
+	{
+		SV_SendPrepClientMessages();
+	}
 
 	/* move autonomous things around if enough time has passed */
 	if (!sv_timedemo->value && (svs.realtime < sv.time))
@@ -426,6 +456,12 @@ SV_Frame(int usec)
 
 	/* send messages back to the clients that had packets read this frame */
 	SV_SendClientMessages();
+
+	/* if not optimizing, send all messages here */
+	if (!opt_sendrate)
+	{
+		SV_SendPrepClientMessages();
+	}
 
 	/* save the entire world state if recording a serverdemo */
 	SV_RecordDemoMessage();
@@ -489,7 +525,7 @@ Master_Heartbeat(void)
 /*
  * Informs all masters that this server is going down
  */
-void
+static void
 Master_Shutdown(void)
 {
 	int i;
@@ -574,6 +610,9 @@ SV_Init(void)
 {
 	SV_InitOperatorCommands();
 
+	sv_optimize_sp_loadtime = Cvar_Get("sv_optimize_sp_loadtime", "7", 0);
+	sv_optimize_mp_loadtime = Cvar_Get("sv_optimize_mp_loadtime", "0", 0);
+
 	rcon_password = Cvar_Get("rcon_password", "", 0);
 	Cvar_Get("skill", "1", 0);
 	Cvar_Get("singleplayer", "0", CVAR_SERVERINFO | CVAR_LATCH);
@@ -612,7 +651,7 @@ SV_Init(void)
 
 /*
  * Used by SV_Shutdown to send a final message to all
- * connected clients before the server goes down. The 
+ * connected clients before the server goes down. The
  * messages are sent immediately, not just stuck on the
  * outgoing message list, because the server is going
  * to totally exit after returning from this function.
