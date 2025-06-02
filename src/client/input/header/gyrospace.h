@@ -2,7 +2,7 @@
  * =======================================================================
  *
  * Gyro Space to Play - A plug-and-play Gyro Space Transformer code
- * Version 0.9.0
+ * Version 0.9.1-preview
  *
  * Provides functionality for transforming gyro inputs into Local Space,
  * Player Space, and World Space, while handling sensitivity adjustments,
@@ -36,10 +36,6 @@ extern "C" {
 typedef struct {
     float x, y, z;
 } Vector3;
-
-typedef struct {
-    float m[4][4];
-} Matrix4;
 
 // Utility Functions
 
@@ -111,139 +107,42 @@ static inline Vector3 Vec3_Reflect(Vector3 v, Vector3 normal) {
     return Vec3_Subtract(v, Vec3_Scale(normal, 2.0f * Vec3_Dot(v, normal)));
 }
 
-
-// Matrix Operations
-
-/** Returns a 4x4 identity matrix. */
-static inline Matrix4 Matrix4_Identity() {
-    Matrix4 matrix = { {
-        {1.0f, 0.0f, 0.0f, 0.0f},
-        {0.0f, 1.0f, 0.0f, 0.0f},
-        {0.0f, 0.0f, 1.0f, 0.0f},
-        {0.0f, 0.0f, 0.0f, 1.0f}
-    } };
-    return matrix;
-}
-
-/**
- * Creates a transformation matrix from a normalized gravity vector.
- * The gravity vector defines the "up" (Y-axis) direction.
- */
-static inline Matrix4 Matrix4_FromGravity(Vector3 gravNorm) {
-    gravNorm = Vec3_Normalize(gravNorm);
-    if (Vec3_IsZero(gravNorm))
-        return Matrix4_Identity();
-    
-    Vector3 worldUp = Vec3_New(0.0f, 1.0f, 0.0f);
-    Vector3 yAxis = gravNorm;
-    Vector3 tempZ = Vec3_Cross(worldUp, yAxis);
-    Vector3 zAxis = Vec3_IsZero(tempZ) ? Vec3_New(0.0f, 0.0f, 1.0f) : Vec3_Normalize(tempZ);
-    Vector3 xAxis = Vec3_Normalize(Vec3_Cross(yAxis, zAxis));
-    
-    Matrix4 matrix = { {
-        { xAxis.x, xAxis.y, xAxis.z, 0.0f },
-        { yAxis.x, yAxis.y, yAxis.z, 0.0f },
-        { zAxis.x, zAxis.y, zAxis.z, 0.0f },
-        { 0.0f,    0.0f,    0.0f,    1.0f }
-    } };
-    return matrix;
-}
-
-/**
- * Multiplies a 4x4 matrix by a 3D vector (assumes w = 1).
- */
-static inline Vector3 MultiplyMatrixVector(Matrix4 matrix, Vector3 vector) {
-    float w = 1.0f;
-    return Vec3_New(
-        matrix.m[0][0]*vector.x + matrix.m[0][1]*vector.y + matrix.m[0][2]*vector.z + matrix.m[0][3]*w,
-        matrix.m[1][0]*vector.x + matrix.m[1][1]*vector.y + matrix.m[1][2]*vector.z + matrix.m[1][3]*w,
-        matrix.m[2][0]*vector.x + matrix.m[2][1]*vector.y + matrix.m[2][2]*vector.z + matrix.m[2][3]*w
-    );
-}
-
-
 // Global Gravity Vector Management
 
 /** Global gravity vector (default: (0, 1, 0)). */
 static Vector3 gravNorm = { 0.0f, 1.0f, 0.0f };
 
-/**
- * Updates the global gravity vector using a complementary filter.
- * Combines gyro and accelerometer data.
- */
-static inline void UpdateGravityVector(Vector3 accel, Vector3 gyroRotation, float fusionFactor, float deltaTime) {
-    if (fusionFactor < 0.0f || fusionFactor > 1.0f)
-        return;
-    
-    if (isnan(accel.x) || isnan(accel.y) || isnan(accel.z) ||
-        isnan(gyroRotation.x) || isnan(gyroRotation.y) || isnan(gyroRotation.z))
-        return;
-    
-    Vector3 accelNorm = Vec3_Normalize(accel);
-    
-    if (Vec3_IsZero(accelNorm)) {
-        Vector3 rotationDelta = Vec3_Cross(gyroRotation, gravNorm);
-        gravNorm = Vec3_Add(gravNorm, Vec3_Scale(rotationDelta, deltaTime));
-    } else {
-        Vector3 rotationDelta = Vec3_Cross(gyroRotation, gravNorm);
-        Vector3 rotatedGravity = Vec3_Add(gravNorm, Vec3_Scale(rotationDelta, deltaTime));
-        gravNorm = Vec3_Lerp(rotatedGravity, accelNorm, fusionFactor);
-    }
-    
-    if (!Vec3_IsZero(gravNorm))
-        gravNorm = Vec3_Normalize(gravNorm);
-    else
-        gravNorm = Vec3_New(0.0f, 1.0f, 0.0f);
-}
-
-/** Sets the global gravity vector manually. */
+/** Sets the global gravity vector manually (should be called with raw accel data). */
 static inline void SetGravityVector(float x, float y, float z) {
     if (isnan(x) || isnan(y) || isnan(z))
         return;
-    
+
     Vector3 newGrav = Vec3_New(x, y, z);
     if (Vec3_Magnitude(newGrav) < EPSILON)
         return;
-    
+
+    // Prevent gravity from being exactly (0,0,1) unless explicitly allowed
+    if (fabsf(newGrav.x) < EPSILON && fabsf(newGrav.y) < EPSILON && fabsf(newGrav.z - 1.0f) < EPSILON) {
+        // Fallback to Y-up
+        gravNorm = Vec3_New(0.0f, 1.0f, 0.0f);
+        return;
+    }
+
     gravNorm = Vec3_Normalize(newGrav);
+}
+
+/**
+ * Updates the global gravity vector using the raw accelerometer vector.
+ * This is a generic approach for all input APIs.
+ */
+static inline void UpdateGravityVector(Vector3 accel, Vector3 gyroRotation, float fusionFactor, float deltaTime) {
+    // Use only the raw accelerometer vector for gravity
+    SetGravityVector(accel.x, accel.y, accel.z);
 }
 
 /** Returns the current global gravity vector. */
 static inline Vector3 GetGravityVector(void) {
     return gravNorm;
-}
- 
- // Dynamic Orientation Adjustment
- 
- /**
-  * Adapts gyro input for switching between normal controller grip and handheld-style grip.
-  * This function takes yaw, pitch, and roll inputs and adjusts them to maintain consistent orientation.
-  */
-Vector3 TransformWithDynamicOrientation(float yaw_input, float pitch_input, float roll_input) {
-    // Validate inputs.
-    if (isnan(yaw_input) || isnan(pitch_input) || isnan(roll_input)) {
-        return Vec3_New(0.0f, 0.0f, 0.0f);
-    }
-
-    // Clamp inputs to prevent extreme values.
-    yaw_input   = clamp(yaw_input, -360.0f, 360.0f);
-    pitch_input = clamp(pitch_input, -360.0f, 360.0f);
-    roll_input  = clamp(roll_input, -360.0f, 360.0f);
-
-    // Combine inputs into a single vector.
-    Vector3 combined = Vec3_New(yaw_input, pitch_input, roll_input);
-    
-    // Remove the gravity component to adjust orientation.
-    Vector3 adjusted = Vec3_Subtract(combined, Vec3_Scale(gravNorm, Vec3_Dot(combined, gravNorm)));
-    
-    // Normalize if necessary.
-    if (Vec3_Magnitude(adjusted) > EPSILON)
-        adjusted = Vec3_Normalize(adjusted);
-    
-    // Dynamic roll compensation based on gravity.
-    float adjRoll = roll_input - Vec3_Dot(gravNorm, Vec3_New(0.0f, 0.0f, roll_input));
-    
-    return Vec3_New(adjusted.x, adjusted.y, adjRoll);
 }
  
  // Gyro Space Transformation Function
@@ -272,18 +171,10 @@ static inline Vector3 TransformToLocalSpace(float yaw, float pitch, float roll, 
  * Transforms gyro inputs to Player Space.
  * Adjusts motion relative to the player's perspective while ensuring gravity alignment.
  */
-static inline Vector3 TransformToPlayerSpace(float yaw, float pitch, float roll, Vector3 gravity) {
-    // Validate and normalize the gravity vector.
-    if (Vec3_IsZero(gravity))
-        gravity = Vec3_New(0.0f, 1.0f, 0.0f);
-    else
-        gravity = Vec3_Normalize(gravity);
-
-    // Compose the raw gyro vector.
-    Vector3 gyro = Vec3_New(yaw, pitch, roll);
+static inline Vector3 TransformToPlayerSpace(float yaw, float pitch, float roll) {
 
     //  Player space yaw: combine yaw and roll, use gravity for direction 
-    float worldYaw = yaw * gravity.y + roll * gravity.z;
+    float worldYaw = yaw * gravNorm.y + roll * gravNorm.z;
 
     //  Yaw relaxation: buffer zone for local aiming freedom 
     float yawRelaxFactor = 2.0f; // 1.41f for ~45°, 2.0f for ~60° buffer
@@ -294,20 +185,7 @@ static inline Vector3 TransformToPlayerSpace(float yaw, float pitch, float roll,
     //  Local pitch: use directly 
     float adjustedPitch = pitch;
 
-    //  Roll: project (0,0,1) onto plane perpendicular to gravity (optional, for completeness) 
-    Vector3 rollAxis = Vec3_New(0.0f, 0.0f, 1.0f);
-    float gravDotRoll = Vec3_Dot(gravity, rollAxis);
-    Vector3 projectedRollAxis = Vec3_Subtract(rollAxis, Vec3_Scale(gravity, gravDotRoll));
-    float adjustedRoll = 0.0f;
-    if (!Vec3_IsZero(projectedRollAxis)) {
-        projectedRollAxis = Vec3_Normalize(projectedRollAxis);
-        adjustedRoll = Vec3_Dot(gyro, projectedRollAxis);
-    }
-
-    // Transform the computed gyro vector into Player Space using a view matrix.
-    Matrix4 playerViewMatrix = Matrix4_FromGravity(gravity);
-    Vector3 playerGyro = MultiplyMatrixVector(playerViewMatrix, Vec3_New(adjustedYaw, adjustedPitch, adjustedRoll));
-
+    Vector3 playerGyro = Vec3_New(adjustedYaw, adjustedPitch, 0);
     return playerGyro;
 }
  
@@ -315,50 +193,27 @@ static inline Vector3 TransformToPlayerSpace(float yaw, float pitch, float roll,
  * Transforms gyro inputs to World Space.
  * Aligns input with the game world while maintaining spatial consistency.
  */
-static inline Vector3 TransformToWorldSpace(float yaw, float pitch, float roll, Vector3 gravity) {
-    // Validate and normalize gravity.
-    if (Vec3_IsZero(gravity)) {
-        gravity = Vec3_New(0.0f, 1.0f, 0.0f);
-    } else {
-        gravity = Vec3_Normalize(gravity);
-    }
-
-    // Compose the raw gyro vector.
+static inline Vector3 TransformToWorldSpace(float yaw, float pitch, float roll) {
     Vector3 gyro = Vec3_New(yaw, pitch, roll);
+    Vector3 gravity = GetGravityVector();
+    gravity = Vec3_Normalize(gravity);
 
-    //  World yaw: dot product with gravity (world up) 
-    float worldYaw = Vec3_Dot(gyro, gravity);
-
-    //  Pitch: project (1,0,0) onto plane perpendicular to gravity 
-    float gravDotPitchAxis = gravity.x; // (1,0,0) . gravity
-    Vector3 pitchVector = Vec3_Subtract(Vec3_New(1.0f, 0.0f, 0.0f), Vec3_Scale(gravity, gravDotPitchAxis));
-
-    //  Side reduction: reduce pitch when controller is on its side 
-    float flatness = fabsf(gravity.y);
-    float upness = fabsf(gravity.z);
-    float sideReduction = clamp((fmaxf(flatness, upness) - 0.125f) / 0.125f, 0.0f, 1.0f);
-
-    float adjustedPitch = 0.0f;
-    if (!Vec3_IsZero(pitchVector)) {
-        pitchVector = Vec3_Normalize(pitchVector);
-        adjustedPitch = sideReduction * Vec3_Dot(gyro, pitchVector);
+    // World axes
+    Vector3 worldFwd = Vec3_New(0.0f, 0.0f, 1.0f); // Z+
+    if (fabsf(Vec3_Dot(gravity, worldFwd)) > 0.99f) {
+        worldFwd = Vec3_New(1.0f, 0.0f, 0.0f); // X+ fallback
     }
 
-    //  Roll: project (0,0,1) onto plane perpendicular to gravity 
-    Vector3 rollAxis = Vec3_New(0.0f, 0.0f, 1.0f);
-    float gravDotRoll = Vec3_Dot(gravity, rollAxis);
-    Vector3 projectedRollAxis = Vec3_Subtract(rollAxis, Vec3_Scale(gravity, gravDotRoll));
-    float adjustedRoll = 0.0f;
-    if (!Vec3_IsZero(projectedRollAxis)) {
-        projectedRollAxis = Vec3_Normalize(projectedRollAxis);
-        adjustedRoll = Vec3_Dot(gyro, projectedRollAxis);
-    }
+    Vector3 worldRight = Vec3_Normalize(Vec3_Cross(gravity, worldFwd));
+    Vector3 worldFwdProj = Vec3_Normalize(Vec3_Cross(worldRight, gravity));
 
-    // Transform the computed components into world space.
-    Matrix4 worldViewMatrix = Matrix4_FromGravity(gravity);
-    Vector3 worldGyro = MultiplyMatrixVector(worldViewMatrix, Vec3_New(adjustedPitch, worldYaw, adjustedRoll));
+    // Calculate world axes rotations
+    float worldYaw   = Vec3_Dot(gyro, gravity);
+    float worldPitch = Vec3_Dot(gyro, worldRight);
+    float worldRoll  = Vec3_Dot(gyro, worldFwdProj);
 
-    return worldGyro;
+    // Output as (pitch, yaw, roll) for typical FPS/game engines
+    return Vec3_New(worldPitch, worldYaw, worldRoll);
 }
  
 #ifdef __cplusplus

@@ -1003,8 +1003,7 @@ IN_Update(void)
 						Vector3 playerGyro = TransformToPlayerSpace(
 							event.gsensor.data[1] - gyro_calibration_y->value,
 							event.gsensor.data[0] - gyro_calibration_x->value,
-							event.gsensor.data[2] - gyro_calibration_z->value,
-							GetGravityVector()
+							event.gsensor.data[2] - gyro_calibration_z->value
 						);
 
 						gyro_yaw = playerGyro.x;
@@ -1018,8 +1017,7 @@ IN_Update(void)
 						Vector3 worldGyro = TransformToWorldSpace(
 							event.gsensor.data[1] - gyro_calibration_y->value,
 							event.gsensor.data[0] - gyro_calibration_x->value,
-							event.gsensor.data[2] - gyro_calibration_z->value,
-							GetGravityVector()
+							event.gsensor.data[2] - gyro_calibration_z->value
 						);
 
 						gyro_yaw = worldGyro.x;
@@ -1066,8 +1064,7 @@ IN_Update(void)
 							Vector3 playerGyro = TransformToPlayerSpace(
 								axis_value - gyro_calibration_y->value,
 								axis_value - gyro_calibration_x->value,
-								axis_value - gyro_calibration_z->value,
-								GetGravityVector()
+								axis_value - gyro_calibration_z->value
 							);
 
 							gyro_yaw = playerGyro.x;
@@ -1081,8 +1078,7 @@ IN_Update(void)
 							Vector3 worldGyro = TransformToWorldSpace(
 								axis_value - gyro_calibration_y->value,
 								axis_value - gyro_calibration_x->value,
-								axis_value - gyro_calibration_z->value,
-								GetGravityVector()
+								axis_value - gyro_calibration_z->value
 							);
 
 							gyro_yaw = worldGyro.x;
@@ -2491,24 +2487,35 @@ IN_Controller_Init(qboolean notify_user)
 #ifndef NO_SDL_GYRO
 
 			if (SDL_GamepadHasSensor(controller, SDL_SENSOR_GYRO)
-				&& SDL_SetGamepadSensorEnabled(controller, SDL_SENSOR_GYRO, true) )
+				&& SDL_SetGamepadSensorEnabled(controller, SDL_SENSOR_GYRO, true))
 			{
 				show_gyro = true;
-				Com_Printf( "Gyro sensor enabled at %.2f Hz\n",
-					SDL_GetGamepadSensorDataRate(controller, SDL_SENSOR_GYRO) );
+				Com_Printf("Gyro sensor enabled at %.2f Hz\n",
+					SDL_GetGamepadSensorDataRate(controller, SDL_SENSOR_GYRO));
 			}
 			else
 			{
 				Com_Printf("Gyro sensor not found.\n");
 			}
 
+			if (SDL_GamepadHasSensor(controller, SDL_SENSOR_ACCEL))
+			{
+				SDL_SetGamepadSensorEnabled(controller, SDL_SENSOR_ACCEL, true);
+				Com_Printf("Accel sensor enabled at %.2f Hz\n",
+					SDL_GetGamepadSensorDataRate(controller, SDL_SENSOR_ACCEL));
+			}
+			else
+			{
+				Com_Printf("Accel sensor not found.\n");
+			}
+
 			bool hasLED = SDL_GetBooleanProperty(SDL_GetGamepadProperties(controller), SDL_PROP_JOYSTICK_CAP_RGB_LED_BOOLEAN, false);
 			if (hasLED)
 			{
-				SDL_SetGamepadLED(controller, 0, 80, 0);	// green light
+				SDL_SetGamepadLED(controller, 0, 80, 0);  // green light
 			}
 
-#endif	// !NO_SDL_GYRO
+#endif  // !NO_SDL_GYRO
 
 			joystick_haptic = SDL_OpenHapticFromJoystick(SDL_GetGamepadJoystick(controller));
 

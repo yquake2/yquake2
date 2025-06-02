@@ -1016,8 +1016,7 @@ IN_Update(void)
 						Vector3 playerGyro = TransformToPlayerSpace(
 							event.csensor.data[1] - gyro_calibration_y->value,
 							event.csensor.data[0] - gyro_calibration_x->value,
-							event.csensor.data[2] - gyro_calibration_z->value,
-							GetGravityVector()
+							event.csensor.data[2] - gyro_calibration_z->value
 						);
 
 						gyro_yaw = playerGyro.x;
@@ -1031,8 +1030,7 @@ IN_Update(void)
 						Vector3 worldGyro = TransformToWorldSpace(
 							event.csensor.data[1] - gyro_calibration_y->value,
 							event.csensor.data[0] - gyro_calibration_x->value,
-							event.csensor.data[2] - gyro_calibration_z->value,
-							GetGravityVector()
+							event.csensor.data[2] - gyro_calibration_z->value
 						);
 
 						gyro_yaw = worldGyro.x;
@@ -1079,8 +1077,7 @@ IN_Update(void)
 							Vector3 playerGyro = TransformToPlayerSpace(
 								axis_value - gyro_calibration_y->value,
 								axis_value - gyro_calibration_x->value,
-								axis_value - gyro_calibration_z->value,
-								GetGravityVector()
+								axis_value - gyro_calibration_z->value
 							);
 
 							gyro_yaw = playerGyro.x;
@@ -1094,8 +1091,7 @@ IN_Update(void)
 							Vector3 worldGyro = TransformToWorldSpace(
 								axis_value - gyro_calibration_y->value,
 								axis_value - gyro_calibration_x->value,
-								axis_value - gyro_calibration_z->value,
-								GetGravityVector() 
+								axis_value - gyro_calibration_z->value
 							);
 
 							gyro_yaw = worldGyro.x;
@@ -2525,12 +2521,27 @@ IN_Controller_Init(qboolean notify_user)
 				Com_Printf("Gyro sensor not found.\n");
 			}
 
-			if (SDL_GameControllerHasLED(controller))
+			if (SDL_GameControllerHasSensor(controller, SDL_SENSOR_ACCEL)
+				&& !SDL_GameControllerSetSensorEnabled(controller, SDL_SENSOR_ACCEL, SDL_TRUE))
 			{
-				SDL_GameControllerSetLED(controller, 0, 80, 0);	// green light
+#if SDL_VERSION_ATLEAST(2, 0, 16)
+				Com_Printf("Accel sensor enabled at %.2f Hz\n",
+					SDL_GameControllerGetSensorDataRate(controller, SDL_SENSOR_ACCEL));
+#else
+				Com_Printf("Accel sensor enabled.\n");
+#endif  // SDL_VERSION_ATLEAST(2, 0, 16)
+			}
+			else
+			{
+				Com_Printf("Accel sensor not found.\n");
 			}
 
-#endif	// !NO_SDL_GYRO
+			if (SDL_GameControllerHasLED(controller))
+			{
+				SDL_GameControllerSetLED(controller, 0, 80, 0);  // green light
+			}
+
+#endif  // !NO_SDL_GYRO
 
 			joystick_haptic = SDL_HapticOpenFromJoystick(SDL_GameControllerGetJoystick(controller));
 
