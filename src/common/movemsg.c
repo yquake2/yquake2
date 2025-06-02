@@ -191,265 +191,18 @@ vec3_t bytedirs[NUMVERTEXNORMALS] = {
 	{-0.688191, -0.587785, -0.425325}
 };
 
-void
-MSG_WriteChar(sizebuf_t *sb, int c)
+size_t
+MSG_ConfigString_Size(const char *s)
 {
-	byte *buf;
-
-	buf = SZ_GetSpace(sb, 1);
-	buf[0] = c;
+	return strlen(s) + 4; /* string length + null char + message type + index */
 }
 
-void
-MSG_WriteByte(sizebuf_t *sb, int c)
-{
-	byte *buf;
-
-	buf = SZ_GetSpace(sb, 1);
-	buf[0] = c;
-}
-
-void
-MSG_WriteShort(sizebuf_t *sb, int c)
-{
-	byte *buf;
-
-	buf = SZ_GetSpace(sb, 2);
-	buf[0] = c & 0xff;
-	buf[1] = c >> 8;
-}
-
-void
-MSG_WriteLong(sizebuf_t *sb, int c)
-{
-	byte *buf;
-
-	buf = SZ_GetSpace(sb, 4);
-	buf[0] = c & 0xff;
-	buf[1] = (c >> 8) & 0xff;
-	buf[2] = (c >> 16) & 0xff;
-	buf[3] = c >> 24;
-}
-
-void
-MSG_WriteFloat(sizebuf_t *sb, float f)
-{
-	union
-	{
-		float f;
-		int l;
-	} dat;
-
-	dat.f = f;
-	dat.l = LittleLong(dat.l);
-
-	SZ_Write(sb, &dat.l, 4);
-}
-
-void
-MSG_WriteString(sizebuf_t *sb, char *s)
-{
-	if (!s)
-	{
-		SZ_Write(sb, "", 1);
-	}
-
-	else
-	{
-		SZ_Write(sb, s, (int)strlen(s) + 1);
-	}
-}
-
-void
-MSG_WriteCoord(sizebuf_t *sb, float f)
-{
-	MSG_WriteShort(sb, (int)(f * 8));
-}
-
-void
-MSG_WritePos(sizebuf_t *sb, vec3_t pos)
-{
-	MSG_WriteShort(sb, (int)(pos[0] * 8));
-	MSG_WriteShort(sb, (int)(pos[1] * 8));
-	MSG_WriteShort(sb, (int)(pos[2] * 8));
-}
-
-void
-MSG_WriteAngle(sizebuf_t *sb, float f)
-{
-	MSG_WriteByte(sb, (int)(f * 256 / 360) & 255);
-}
-
-void
-MSG_WriteAngle16(sizebuf_t *sb, float f)
-{
-	MSG_WriteShort(sb, ANGLE2SHORT(f));
-}
-
-void
-MSG_WriteDeltaUsercmd(sizebuf_t *buf, usercmd_t *from, usercmd_t *cmd)
-{
-	int bits;
-
-	/* Movement messages */
-	bits = 0;
-
-	if (cmd->angles[0] != from->angles[0])
-	{
-		bits |= CM_ANGLE1;
-	}
-
-	if (cmd->angles[1] != from->angles[1])
-	{
-		bits |= CM_ANGLE2;
-	}
-
-	if (cmd->angles[2] != from->angles[2])
-	{
-		bits |= CM_ANGLE3;
-	}
-
-	if (cmd->forwardmove != from->forwardmove)
-	{
-		bits |= CM_FORWARD;
-	}
-
-	if (cmd->sidemove != from->sidemove)
-	{
-		bits |= CM_SIDE;
-	}
-
-	if (cmd->upmove != from->upmove)
-	{
-		bits |= CM_UP;
-	}
-
-	if (cmd->buttons != from->buttons)
-	{
-		bits |= CM_BUTTONS;
-	}
-
-	if (cmd->impulse != from->impulse)
-	{
-		bits |= CM_IMPULSE;
-	}
-
-	MSG_WriteByte(buf, bits);
-
-	if (bits & CM_ANGLE1)
-	{
-		MSG_WriteShort(buf, cmd->angles[0]);
-	}
-
-	if (bits & CM_ANGLE2)
-	{
-		MSG_WriteShort(buf, cmd->angles[1]);
-	}
-
-	if (bits & CM_ANGLE3)
-	{
-		MSG_WriteShort(buf, cmd->angles[2]);
-	}
-
-	if (bits & CM_FORWARD)
-	{
-		MSG_WriteShort(buf, cmd->forwardmove);
-	}
-
-	if (bits & CM_SIDE)
-	{
-		MSG_WriteShort(buf, cmd->sidemove);
-	}
-
-	if (bits & CM_UP)
-	{
-		MSG_WriteShort(buf, cmd->upmove);
-	}
-
-	if (bits & CM_BUTTONS)
-	{
-		MSG_WriteByte(buf, cmd->buttons);
-	}
-
-	if (bits & CM_IMPULSE)
-	{
-		MSG_WriteByte(buf, cmd->impulse);
-	}
-
-	MSG_WriteByte(buf, cmd->msec);
-	MSG_WriteByte(buf, cmd->lightlevel);
-}
-
-void
-MSG_WriteDir(sizebuf_t *sb, vec3_t dir)
-{
-	int i, best;
-	float d, bestd;
-
-	if (!dir)
-	{
-		MSG_WriteByte(sb, 0);
-		return;
-	}
-
-	bestd = 0;
-	best = 0;
-
-	for (i = 0; i < NUMVERTEXNORMALS; i++)
-	{
-		d = DotProduct(dir, bytedirs[i]);
-
-		if (d > bestd)
-		{
-			bestd = d;
-			best = i;
-		}
-	}
-
-	MSG_WriteByte(sb, best);
-}
-
-void
-MSG_ReadDir(sizebuf_t *sb, vec3_t dir)
-{
-	int b;
-
-	b = MSG_ReadByte(sb);
-
-	if (b >= NUMVERTEXNORMALS)
-	{
-		Com_Error(ERR_DROP, "MSF_ReadDir: out of range");
-	}
-
-	VectorCopy(bytedirs[b], dir);
-}
-
-/*
- * Writes part of a packetentities message.
- * Can delta from either a baseline or a previous packet_entity
- */
-void
-MSG_WriteDeltaEntity(entity_state_t *from,
-		entity_state_t *to,
-		sizebuf_t *msg,
-		qboolean force,
+static int
+DeltaEntityBits(const entity_state_t *from,
+		const entity_state_t *to,
 		qboolean newentity)
 {
-	int bits;
-
-	if (!to->number)
-	{
-		Com_Error(ERR_FATAL, "Unset entity number");
-	}
-
-	if (to->number >= MAX_EDICTS)
-	{
-		Com_Error(ERR_DROP, "%s: bad entity %d >= %d\n",
-			__func__, to->number, MAX_EDICTS);
-	}
-
-	/* send an update */
-	bits = 0;
+	int bits = 0;
 
 	if (to->number >= 256)
 	{
@@ -594,12 +347,6 @@ MSG_WriteDeltaEntity(entity_state_t *from,
 		bits |= U_OLDORIGIN;
 	}
 
-	/* write the message */
-	if (!bits && !force)
-	{
-		return; /* nothing to send! */
-	}
-
 	if (bits & 0xff000000)
 	{
 		bits |= U_MOREBITS3 | U_MOREBITS2 | U_MOREBITS1;
@@ -613,6 +360,439 @@ MSG_WriteDeltaEntity(entity_state_t *from,
 	else if (bits & 0x0000ff00)
 	{
 		bits |= U_MOREBITS1;
+	}
+
+	return bits;
+}
+
+size_t
+MSG_DeltaEntity_Size(const entity_state_t *from, const entity_state_t *to,
+	qboolean force, qboolean newentity)
+{
+	size_t sz;
+	int bits = DeltaEntityBits(from, to, newentity);
+
+	if (!bits && !force)
+	{
+		return 0;
+	}
+
+	sz = 1;
+
+	if (bits & 0xff000000)
+	{
+		sz += 3;
+	}
+	else if (bits & 0x00ff0000)
+	{
+		sz += 2;
+	}
+	else if (bits & 0x0000ff00)
+	{
+		sz++;
+	}
+
+	if (bits & U_NUMBER16)
+	{
+		sz += 2;
+	}
+	else
+	{
+		sz++;
+	}
+
+	if (bits & U_MODEL)
+	{
+		sz++;
+	}
+
+	if (bits & U_MODEL2)
+	{
+		sz++;
+	}
+
+	if (bits & U_MODEL3)
+	{
+		sz++;
+	}
+
+	if (bits & U_MODEL4)
+	{
+		sz++;
+	}
+
+	if (bits & U_FRAME8)
+	{
+		sz++;
+	}
+
+	if (bits & U_FRAME16)
+	{
+		sz += 2;
+	}
+
+	if ((bits & U_SKIN8) && (bits & U_SKIN16)) /*used for laser colors */
+	{
+		sz += 4;
+	}
+	else if (bits & U_SKIN8)
+	{
+		sz++;
+	}
+	else if (bits & U_SKIN16)
+	{
+		sz += 2;
+	}
+
+	if ((bits & (U_EFFECTS8 | U_EFFECTS16)) == (U_EFFECTS8 | U_EFFECTS16))
+	{
+		sz += 4;
+	}
+	else if (bits & U_EFFECTS8)
+	{
+		sz++;
+	}
+	else if (bits & U_EFFECTS16)
+	{
+		sz += 2;
+	}
+
+	if ((bits & (U_RENDERFX8 | U_RENDERFX16)) == (U_RENDERFX8 | U_RENDERFX16))
+	{
+		sz += 4;
+	}
+	else if (bits & U_RENDERFX8)
+	{
+		sz++;
+	}
+	else if (bits & U_RENDERFX16)
+	{
+		sz += 2;
+	}
+
+	if (bits & U_ORIGIN1)
+	{
+		sz += 2;
+	}
+
+	if (bits & U_ORIGIN2)
+	{
+		sz += 2;
+	}
+
+	if (bits & U_ORIGIN3)
+	{
+		sz += 2;
+	}
+
+	if (bits & U_ANGLE1)
+	{
+		sz++;
+	}
+
+	if (bits & U_ANGLE2)
+	{
+		sz++;
+	}
+
+	if (bits & U_ANGLE3)
+	{
+		sz++;
+	}
+
+	if (bits & U_OLDORIGIN)
+	{
+		sz += 6;
+	}
+
+	if (bits & U_SOUND)
+	{
+		sz++;
+	}
+
+	if (bits & U_EVENT)
+	{
+		sz++;
+	}
+
+	if (bits & U_SOLID)
+	{
+		sz += 2;
+	}
+
+	return sz;
+}
+
+void
+MSG_WriteChar(sizebuf_t *sb, int c)
+{
+	byte *buf;
+
+	buf = SZ_GetSpace(sb, 1);
+	buf[0] = c;
+}
+
+void
+MSG_WriteByte(sizebuf_t *sb, int c)
+{
+	byte *buf;
+
+	buf = SZ_GetSpace(sb, 1);
+	buf[0] = c;
+}
+
+void
+MSG_WriteShort(sizebuf_t *sb, int c)
+{
+	byte *buf;
+
+	buf = SZ_GetSpace(sb, 2);
+	buf[0] = c & 0xff;
+	buf[1] = c >> 8;
+}
+
+void
+MSG_WriteLong(sizebuf_t *sb, int c)
+{
+	byte *buf;
+
+	buf = SZ_GetSpace(sb, 4);
+	buf[0] = c & 0xff;
+	buf[1] = (c >> 8) & 0xff;
+	buf[2] = (c >> 16) & 0xff;
+	buf[3] = c >> 24;
+}
+
+void
+MSG_WriteFloat(sizebuf_t *sb, float f)
+{
+	union
+	{
+		float f;
+		int l;
+	} dat;
+
+	dat.f = f;
+	dat.l = LittleLong(dat.l);
+
+	SZ_Write(sb, &dat.l, 4);
+}
+
+void
+MSG_WriteString(sizebuf_t *sb, const char *s)
+{
+	if (!s)
+	{
+		SZ_Write(sb, "", 1);
+	}
+
+	else
+	{
+		SZ_Write(sb, s, (int)strlen(s) + 1);
+	}
+}
+
+void
+MSG_WriteCoord(sizebuf_t *sb, float f)
+{
+	MSG_WriteShort(sb, (int)(f * 8));
+}
+
+void
+MSG_WritePos(sizebuf_t *sb, vec3_t pos)
+{
+	MSG_WriteShort(sb, (int)(pos[0] * 8));
+	MSG_WriteShort(sb, (int)(pos[1] * 8));
+	MSG_WriteShort(sb, (int)(pos[2] * 8));
+}
+
+void
+MSG_WriteAngle(sizebuf_t *sb, float f)
+{
+	MSG_WriteByte(sb, (int)(f * 256 / 360) & 255);
+}
+
+void
+MSG_WriteAngle16(sizebuf_t *sb, float f)
+{
+	MSG_WriteShort(sb, ANGLE2SHORT(f));
+}
+
+void
+MSG_WriteConfigString(sizebuf_t *buf, short index, const char *s)
+{
+	MSG_WriteShort(buf, index);
+	MSG_WriteString(buf, s);
+}
+
+void
+MSG_WriteDeltaUsercmd(sizebuf_t *buf, const usercmd_t *from, const usercmd_t *cmd)
+{
+	int bits;
+
+	/* Movement messages */
+	bits = 0;
+
+	if (cmd->angles[0] != from->angles[0])
+	{
+		bits |= CM_ANGLE1;
+	}
+
+	if (cmd->angles[1] != from->angles[1])
+	{
+		bits |= CM_ANGLE2;
+	}
+
+	if (cmd->angles[2] != from->angles[2])
+	{
+		bits |= CM_ANGLE3;
+	}
+
+	if (cmd->forwardmove != from->forwardmove)
+	{
+		bits |= CM_FORWARD;
+	}
+
+	if (cmd->sidemove != from->sidemove)
+	{
+		bits |= CM_SIDE;
+	}
+
+	if (cmd->upmove != from->upmove)
+	{
+		bits |= CM_UP;
+	}
+
+	if (cmd->buttons != from->buttons)
+	{
+		bits |= CM_BUTTONS;
+	}
+
+	if (cmd->impulse != from->impulse)
+	{
+		bits |= CM_IMPULSE;
+	}
+
+	MSG_WriteByte(buf, bits);
+
+	if (bits & CM_ANGLE1)
+	{
+		MSG_WriteShort(buf, cmd->angles[0]);
+	}
+
+	if (bits & CM_ANGLE2)
+	{
+		MSG_WriteShort(buf, cmd->angles[1]);
+	}
+
+	if (bits & CM_ANGLE3)
+	{
+		MSG_WriteShort(buf, cmd->angles[2]);
+	}
+
+	if (bits & CM_FORWARD)
+	{
+		MSG_WriteShort(buf, cmd->forwardmove);
+	}
+
+	if (bits & CM_SIDE)
+	{
+		MSG_WriteShort(buf, cmd->sidemove);
+	}
+
+	if (bits & CM_UP)
+	{
+		MSG_WriteShort(buf, cmd->upmove);
+	}
+
+	if (bits & CM_BUTTONS)
+	{
+		MSG_WriteByte(buf, cmd->buttons);
+	}
+
+	if (bits & CM_IMPULSE)
+	{
+		MSG_WriteByte(buf, cmd->impulse);
+	}
+
+	MSG_WriteByte(buf, cmd->msec);
+	MSG_WriteByte(buf, cmd->lightlevel);
+}
+
+void
+MSG_WriteDir(sizebuf_t *sb, const vec3_t dir)
+{
+	int i, best;
+	float d, bestd;
+
+	if (!dir)
+	{
+		MSG_WriteByte(sb, 0);
+		return;
+	}
+
+	bestd = 0;
+	best = 0;
+
+	for (i = 0; i < NUMVERTEXNORMALS; i++)
+	{
+		d = DotProduct(dir, bytedirs[i]);
+
+		if (d > bestd)
+		{
+			bestd = d;
+			best = i;
+		}
+	}
+
+	MSG_WriteByte(sb, best);
+}
+
+void
+MSG_ReadDir(sizebuf_t *sb, vec3_t dir)
+{
+	int b;
+
+	b = MSG_ReadByte(sb);
+
+	if (b >= NUMVERTEXNORMALS)
+	{
+		Com_Error(ERR_DROP, "MSF_ReadDir: out of range");
+	}
+
+	VectorCopy(bytedirs[b], dir);
+}
+
+/*
+ * Writes part of a packetentities message.
+ * Can delta from either a baseline or a previous packet_entity
+ */
+void
+MSG_WriteDeltaEntity(const entity_state_t *from,
+		const entity_state_t *to,
+		sizebuf_t *msg,
+		qboolean force,
+		qboolean newentity)
+{
+	int bits;
+
+	if (!to->number)
+	{
+		Com_Error(ERR_FATAL, "Unset entity number");
+	}
+
+	if (to->number >= MAX_EDICTS)
+	{
+		Com_Error(ERR_DROP, "%s: bad entity %d >= %d\n",
+			__func__, to->number, MAX_EDICTS);
+	}
+
+	/* send an update */
+	bits = DeltaEntityBits(from, to, newentity);
+
+	if (!bits && !force)
+	{
+		return;
 	}
 
 	MSG_WriteByte(msg, bits & 255);

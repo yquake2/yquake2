@@ -277,6 +277,7 @@ enum QKEYS {
 
 extern char		*keybindings[K_LAST];
 extern int		key_repeats[K_LAST];
+extern qboolean	keydown[K_LAST];
 extern int		anykeydown;
 extern char		chat_buffer[];
 extern int		chat_bufferlen;

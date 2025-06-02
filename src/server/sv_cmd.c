@@ -31,7 +31,7 @@
 /*
  * Specify a list of master servers
  */
-void
+static void
 SV_SetMaster_f(void)
 {
 	int i, slot;
@@ -86,7 +86,7 @@ SV_SetMaster_f(void)
 /*
  * Sets sv_client and sv_player to the player with idnum Cmd_Argv(1)
  */
-qboolean
+static qboolean
 SV_SetPlayer(void)
 {
 	client_t *cl;
@@ -147,7 +147,7 @@ SV_SetPlayer(void)
 /*
  * Puts the server in demo mode on a specific map/cinematic
  */
-void
+static void
 SV_DemoMap_f(void)
 {
 	if (Cmd_Argc() != 2)
@@ -172,7 +172,7 @@ SV_DemoMap_f(void)
  * Clears the archived maps, plays the inter.cin cinematic, then
  * goes to map jail.bsp.
  */
-void
+static void
 SV_GameMap_f(void)
 {
 	char *map;
@@ -278,7 +278,7 @@ SV_GameMap_f(void)
  * Goes directly to a given map without any savegame archiving.
  * For development work
  */
-void
+static void
 SV_Map_f(void)
 {
 	char *map;
@@ -312,7 +312,8 @@ SV_Map_f(void)
 /*
  * Lists available maps for user to load.
  */
-void SV_ListMaps_f(void)
+static void
+SV_ListMaps_f(void)
 {
 	char **userMapNames;
 	int nUserMaps = 0;
@@ -346,7 +347,7 @@ void SV_ListMaps_f(void)
 /*
  * Kick a user off of the server
  */
-void
+static void
 SV_Kick_f(void)
 {
 	if (!svs.initialized)
@@ -378,7 +379,7 @@ SV_Kick_f(void)
 	sv_client->lastmessage = svs.realtime; /* min case there is a funny zombie */
 }
 
-void
+static void
 SV_Status_f(void)
 {
 	int i, j;
@@ -449,7 +450,7 @@ SV_Status_f(void)
 	Com_Printf("\n");
 }
 
-void
+static void
 SV_ConSay_f(void)
 {
 	client_t *client;
@@ -490,7 +491,7 @@ SV_ConSay_f(void)
 	}
 }
 
-void
+static void
 SV_Heartbeat_f(void)
 {
 	svs.last_heartbeat = -9999999;
@@ -499,7 +500,7 @@ SV_Heartbeat_f(void)
 /*
  * Examine or change the serverinfo string
  */
-void
+static void
 SV_Serverinfo_f(void)
 {
 	Com_Printf("Server info settings:\n");
@@ -509,7 +510,7 @@ SV_Serverinfo_f(void)
 /*
  * Examine all a users info strings
  */
-void
+static void
 SV_DumpUser_f(void)
 {
 	if (!svs.initialized)
@@ -538,7 +539,7 @@ SV_DumpUser_f(void)
  * Begins server demo recording.  Every entity and every message will be
  * recorded, but no playerinfo will be stored.  Primarily for demo merging.
  */
-void
+static void
 SV_ServerRecord_f(void)
 {
 	char name[MAX_OSPATH];
@@ -612,8 +613,7 @@ SV_ServerRecord_f(void)
 		if (sv.configstrings[i][0])
 		{
 			MSG_WriteByte(&buf, svc_configstring);
-			MSG_WriteShort(&buf, i);
-			MSG_WriteString(&buf, sv.configstrings[i]);
+			MSG_WriteConfigString(&buf, i, sv.configstrings[i]);
 
 			if (buf.cursize + 67 >= buf.maxsize)
 			{
@@ -635,7 +635,7 @@ SV_ServerRecord_f(void)
 /*
  * Ends server demo recording
  */
-void
+static void
 SV_ServerStop_f(void)
 {
 	if (!svs.demofile)
@@ -652,7 +652,7 @@ SV_ServerStop_f(void)
 /*
  * Kick everyone off, possibly in preparation for a new game
  */
-void
+static void
 SV_KillServer_f(void)
 {
 	if (!svs.initialized)
@@ -667,7 +667,7 @@ SV_KillServer_f(void)
 /*
  * Let the game dll handle a command
  */
-void
+static void
 SV_ServerCommand_f(void)
 {
 	if (!ge)
@@ -679,7 +679,7 @@ SV_ServerCommand_f(void)
 	ge->ServerCommand();
 }
 
-void
+static void
 SV_Gamemode_f(void)
 {
 	int none;

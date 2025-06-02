@@ -25,17 +25,17 @@
  */
 
 #include "header/server.h"
- 
+
 #ifndef DEDICATED_ONLY
 void SCR_DebugGraph(float value, int color);
 #endif
- 
+
 game_export_t *ge;
 
 /*
  * Sends the contents of the mutlicast buffer to a single client
  */
-void
+static void
 PF_Unicast(edict_t *ent, qboolean reliable)
 {
 	int p;
@@ -71,7 +71,7 @@ PF_Unicast(edict_t *ent, qboolean reliable)
 /*
  * Debug print to server console
  */
-void
+static void
 PF_dprintf(const char *fmt, ...)
 {
 	char msg[1024];
@@ -87,7 +87,7 @@ PF_dprintf(const char *fmt, ...)
 /*
  * Print to a single client
  */
-void
+static void
 PF_cprintf(edict_t *ent, int level, const char *fmt, ...)
 {
 	char msg[1024];
@@ -123,7 +123,7 @@ PF_cprintf(edict_t *ent, int level, const char *fmt, ...)
 /*
  * centerprint to a single client
  */
-void
+static void
 PF_centerprintf(edict_t *ent, const char *fmt, ...)
 {
 	char msg[1024];
@@ -149,7 +149,7 @@ PF_centerprintf(edict_t *ent, const char *fmt, ...)
 /*
  * Abort the server with a game error
  */
-YQ2_ATTR_NORETURN_FUNCPTR void
+YQ2_ATTR_NORETURN_FUNCPTR static void
 PF_error(const char *fmt, ...)
 {
 	char msg[1024];
@@ -165,11 +165,10 @@ PF_error(const char *fmt, ...)
 /*
  * Also sets mins and maxs for inline bmodels
  */
-void
+static void
 PF_setmodel(edict_t *ent, char *name)
 {
 	int i;
-	cmodel_t *mod;
 
 	if (!name)
 	{
@@ -184,6 +183,8 @@ PF_setmodel(edict_t *ent, char *name)
 	   the size information for it */
 	if (name[0] == '*')
 	{
+		cmodel_t *mod;
+
 		mod = CM_InlineModel(name);
 		VectorCopy(mod->mins, ent->mins);
 		VectorCopy(mod->maxs, ent->maxs);
@@ -191,7 +192,7 @@ PF_setmodel(edict_t *ent, char *name)
 	}
 }
 
-void
+static void
 PF_Configstring(int index, char *val)
 {
 	if ((index < 0) || (index >= MAX_CONFIGSTRINGS))
@@ -212,71 +213,70 @@ PF_Configstring(int index, char *val)
 		/* send the update to everyone */
 		SZ_Clear(&sv.multicast);
 		MSG_WriteChar(&sv.multicast, svc_configstring);
-		MSG_WriteShort(&sv.multicast, index);
-		MSG_WriteString(&sv.multicast, val);
+		MSG_WriteConfigString(&sv.multicast, index, val);
 
 		SV_Multicast(vec3_origin, MULTICAST_ALL_R);
 	}
 }
 
-void
+static void
 PF_WriteChar(int c)
 {
-	MSG_WriteChar(&sv.multicast, c); 
+	MSG_WriteChar(&sv.multicast, c);
 }
 
-void
+static void
 PF_WriteByte(int c)
 {
-	MSG_WriteByte(&sv.multicast, c); 
+	MSG_WriteByte(&sv.multicast, c);
 }
 
-void
+static void
 PF_WriteShort(int c)
 {
-	MSG_WriteShort(&sv.multicast, c); 
+	MSG_WriteShort(&sv.multicast, c);
 }
 
-void
+static void
 PF_WriteLong(int c)
 {
-	MSG_WriteLong(&sv.multicast, c); 
+	MSG_WriteLong(&sv.multicast, c);
 }
 
-void
+static void
 PF_WriteFloat(float f)
 {
-	MSG_WriteFloat(&sv.multicast, f); 
+	MSG_WriteFloat(&sv.multicast, f);
 }
 
-void
+static void
 PF_WriteString(char *s)
 {
-	MSG_WriteString(&sv.multicast, s); 
+	MSG_WriteString(&sv.multicast, s);
 }
 
-void
+static void
 PF_WritePos(vec3_t pos)
 {
-	MSG_WritePos(&sv.multicast, pos); 
+	MSG_WritePos(&sv.multicast, pos);
 }
 
-void
+static void
 PF_WriteDir(vec3_t dir)
 {
-	MSG_WriteDir(&sv.multicast, dir); 
+	MSG_WriteDir(&sv.multicast, dir);
 }
 
-void
+static void
 PF_WriteAngle(float f)
 {
-	MSG_WriteAngle(&sv.multicast, f); 
+	MSG_WriteAngle(&sv.multicast, f);
 }
 
 /*
  * Also checks portalareas so that doors block sight
  */
-qboolean
+static qboolean
 PF_inPVS(vec3_t p1, vec3_t p2)
 {
 	int leafnum;
@@ -312,7 +312,7 @@ PF_inPVS(vec3_t p1, vec3_t p2)
 /*
  * Also checks portalareas so that doors block sound
  */
-qboolean
+static qboolean
 PF_inPHS(vec3_t p1, vec3_t p2)
 {
 	int leafnum;
@@ -345,7 +345,7 @@ PF_inPHS(vec3_t p1, vec3_t p2)
 	return true;
 }
 
-void
+static void
 PF_StartSound(edict_t *entity, int channel, int sound_num,
 		float volume, float attenuation, float timeofs)
 {

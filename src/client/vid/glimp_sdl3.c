@@ -54,6 +54,7 @@ static int last_position_x = SDL_WINDOWPOS_UNDEFINED;
 static int last_position_y = SDL_WINDOWPOS_UNDEFINED;
 static SDL_Window* window = NULL;
 static qboolean initSuccessful = false;
+static SDL_DisplayID *displays;
 static char **displayindices = NULL;
 static int num_displays = 0;
 
@@ -64,6 +65,23 @@ enum
 	FULLSCREEN_EXCLUSIVE = 1,
 	FULLSCREEN_DESKTOP = 2
 };
+
+/*
+ * Returns the index in displays[] for a given display ID.
+ */
+static int
+GetDisplayIndex(SDL_DisplayID displayid)
+{
+	for (int i = 0; i < num_displays; i++)
+	{
+		if (displays[i] == displayid)
+		{
+			return i;
+		}
+	}
+
+	return 0;
+}
 
 /*
  * Resets the display index Cvar if out of bounds
@@ -96,6 +114,8 @@ ClearDisplayIndices(void)
 		free( displayindices );
 		displayindices = NULL;
 	}
+
+	SDL_free(displays);
 }
 
 static qboolean
@@ -103,7 +123,7 @@ CreateSDLWindow(SDL_WindowFlags flags, int fullscreen, int w, int h)
 {
 	if (SDL_WINDOWPOS_ISUNDEFINED(last_position_x) || SDL_WINDOWPOS_ISUNDEFINED(last_position_y) || last_position_x < 0 ||last_position_y < 24)
 	{
-		last_position_x = last_position_y = SDL_WINDOWPOS_UNDEFINED_DISPLAY((int)vid_displayindex->value);
+		last_position_x = last_position_y = SDL_WINDOWPOS_UNDEFINED_DISPLAY(displays[(int)vid_displayindex->value]);
 	}
 
 	/* Force the window to minimize when focus is lost. This was the
@@ -132,13 +152,19 @@ CreateSDLWindow(SDL_WindowFlags flags, int fullscreen, int w, int h)
 		SDL_StartTextInput(window);
 
 		/* save current display as default */
-		if ((last_display = SDL_GetDisplayForWindow(window)) == 0)
+		SDL_DisplayID current = SDL_GetDisplayForWindow(window);
+
+		if (current == 0)
 		{
 			/* There are some obscure setups were SDL is
 			   unable to get the current display,one X11
 			   server with several screen is one of these,
 			   so add a fallback to the first display. */
-			last_display = 1;
+			last_display = 0;
+		}
+		else
+		{
+			last_display = GetDisplayIndex(current);
 		}
 
 		/* Set requested fullscreen mode. */
@@ -158,7 +184,7 @@ CreateSDLWindow(SDL_WindowFlags flags, int fullscreen, int w, int h)
 			   switch to it in exclusive fullscreen mode. */
 			SDL_DisplayMode closestMode;
 
-			if (SDL_GetClosestFullscreenDisplayMode(last_display, w, h, vid_rate->value, false, &closestMode) != true)
+			if (SDL_GetClosestFullscreenDisplayMode(displays[last_display], w, h, vid_rate->value, false, &closestMode) != true)
 			{
 				Com_Printf("SDL was unable to find a mode close to %ix%i@%f\n", w, h, vid_rate->value);
 
@@ -166,7 +192,7 @@ CreateSDLWindow(SDL_WindowFlags flags, int fullscreen, int w, int h)
 				{
 					Com_Printf("Retrying with desktop refresh rate\n");
 
-					if (SDL_GetClosestFullscreenDisplayMode(last_display, w, h, vid_rate->value, false, &closestMode) == true)
+					if (SDL_GetClosestFullscreenDisplayMode(displays[last_display], w, h, vid_rate->value, false, &closestMode) == true)
 					{
 						Cvar_SetValue("vid_rate", 0);
 					}
@@ -250,24 +276,6 @@ GetWindowSize(int* w, int* h)
 	return true;
 }
 
-static void
-InitDisplayIndices()
-{
-	displayindices = malloc((num_displays + 1) * sizeof(char *));
-
-	for ( int i = 0; i < num_displays; i++ )
-	{
-		/* There are a maximum of 10 digits in 32 bit int + 1 for the NULL terminator. */
-		displayindices[ i ] = malloc(11 * sizeof( char ));
-		YQ2_COM_CHECK_OOM(displayindices[i], "malloc()", 11 * sizeof( char ))
-
-		snprintf( displayindices[ i ], 11, "%d", i );
-	}
-
-	/* The last entry is NULL to indicate the list of strings ends. */
-	displayindices[ num_displays ] = 0;
-}
-
 /*
  * Lists all available display modes.
  */
@@ -286,7 +294,7 @@ PrintDisplayModes(void)
 	}
 	else
 	{
-		/* Otherwise use the window were the window
+		/* Otherwise use the display were the window
 		   is displayed. There are some obscure
 		   setups were this can fail - one X11 server
 		   with several screen is one of these - so
@@ -361,16 +369,28 @@ ShutdownGraphics(void)
 	if (window)
 	{
 		/* save current display as default */
-		last_display = SDL_GetDisplayForWindow(window);
+		SDL_DisplayID current = SDL_GetDisplayForWindow(window);
+
+		if (current == 0)
+		{
+			/* There are some obscure setups were SDL is
+			   unable to get the current display,one X11
+			   server with several screen is one of these,
+			   so add a fallback to the first display. */
+			last_display = 0;
+		}
+		else
+		{
+			last_display = GetDisplayIndex(current);
+		}
 
 		/* or if current display isn't the desired default */
-		if (last_display != vid_displayindex->value) {
+		if (last_display != displays[(int)vid_displayindex->value]) {
 			last_position_x = last_position_y = SDL_WINDOWPOS_UNDEFINED;
-			last_display = vid_displayindex->value;
+			last_display = displays[(int)vid_displayindex->value];
 		}
 		else {
-			SDL_GetWindowPosition(window,
-				      &last_position_x, &last_position_y);
+			SDL_GetWindowPosition(window, &last_position_x, &last_position_y);
 		}
 
 		/* cleanly ungrab input (needs window) */
@@ -414,17 +434,31 @@ GLimp_Init(void)
 		Com_Printf("SDL version is: %i.%i.%i\n", SDL_VERSIONNUM_MAJOR(version), SDL_VERSIONNUM_MINOR(version), SDL_VERSIONNUM_MICRO(version));
 		Com_Printf("SDL video driver is \"%s\".\n", SDL_GetCurrentVideoDriver());
 
-		SDL_DisplayID *displays;
 		if ((displays = SDL_GetDisplays(&num_displays)) == NULL)
 		{
 			Com_Printf("Couldn't get number of displays: %s\n", SDL_GetError());
+			num_displays = 1;
 		}
 		else
 		{
-			SDL_free(displays);
+			Com_Printf("SDL displays:\n");
+			displayindices = malloc((num_displays + 1) * sizeof(char *));
+
+			// Generate display ID strings for the menu.
+			for ( int i = 0; i < num_displays; i++ )
+			{
+				// There are a maximum of 10 digits in 32 bit int + 1 for the NULL terminator.
+				displayindices[ i ] = malloc(11 * sizeof( char ));
+				YQ2_COM_CHECK_OOM(displayindices[i], "malloc()", 11 * sizeof( char ))
+				snprintf( displayindices[ i ], 11, "%d", i );
+
+				Com_Printf(" - %d\n", displays[i]);
+			}
+
+			/* The last entry is NULL to indicate the list of strings ends. */
+			displayindices[ num_displays ] = 0;
 		}
 
-		InitDisplayIndices();
 		ClampDisplayIndexCvar();
 		Com_Printf("SDL display modes:\n");
 
@@ -501,12 +535,13 @@ GLimp_InitGraphics(int fullscreen, int *pwidth, int *pheight)
 	{
 		SDL_DisplayMode closestMode;
 
+
 		/* If we want fullscreen, but aren't */
 		if (GetFullscreenType())
 		{
 			if (fullscreen == FULLSCREEN_EXCLUSIVE)
 			{
-				if (SDL_GetClosestFullscreenDisplayMode(last_display, width, height, vid_rate->value, false, &closestMode) != true)
+				if (SDL_GetClosestFullscreenDisplayMode(displays[last_display], width, height, vid_rate->value, false, &closestMode) != true)
 				{
 					Com_Printf("SDL was unable to find a mode close to %ix%i@%f\n", width, height, vid_rate->value);
 
@@ -514,7 +549,7 @@ GLimp_InitGraphics(int fullscreen, int *pwidth, int *pheight)
 					{
 						Com_Printf("Retrying with desktop refresh rate\n");
 
-						if (SDL_GetClosestFullscreenDisplayMode(last_display, width, height, 0, false, &closestMode) == true)
+						if (SDL_GetClosestFullscreenDisplayMode(displays[last_display], width, height, 0, false, &closestMode) == true)
 						{
 							Cvar_SetValue("vid_rate", 0);
 						}
@@ -835,18 +870,33 @@ GLimp_GetDesktopMode(int *pwidth, int *pheight)
 		   by passing the mode and not the geometry from
 		   the renderer to GLimp_InitGraphics(), however
 		   that would break the renderer API. */
-		last_display = SDL_GetPrimaryDisplay();
+		SDL_DisplayID current = SDL_GetPrimaryDisplay();
+
+		if (current == 0)
+		{
+			last_display = 0;
+		}
+		else
+		{
+			last_display = GetDisplayIndex(current);
+		}
 	}
 	else
 	{
 		/* save current display as default */
-		if ((last_display = SDL_GetDisplayForWindow(window)) == 0)
+		SDL_DisplayID current = SDL_GetDisplayForWindow(window);
+
+		if (current == 0)
 		{
 			/* There are some obscure setups were SDL is
 			   unable to get the current display,one X11
 			   server with several screen is one of these,
 			   so add a fallback to the first display. */
-			last_display = SDL_GetPrimaryDisplay();
+			last_display = 0;
+		}
+		else
+		{
+			last_display = GetDisplayIndex(current);
 		}
 
 		SDL_GetWindowPosition(window, &last_position_x, &last_position_y);
@@ -854,7 +904,7 @@ GLimp_GetDesktopMode(int *pwidth, int *pheight)
 
 	const SDL_DisplayMode *mode;
 
-	if ((mode = SDL_GetCurrentDisplayMode(last_display)) == NULL)
+	if ((mode = SDL_GetCurrentDisplayMode(displays[last_display])) == NULL)
 	{
 		Com_Printf("Couldn't detect default desktop mode: %s\n", SDL_GetError());
 		return false;

@@ -1,3 +1,14 @@
+Quake II 8.50 to 8.51:
+- Fix savegame and mod incompatibilities when Yamagi Quake II is
+  complied in C23 mode. With this fix applied savegames written by
+  unfixed binaries will crash the client. It is advised to complete
+  the current run before upgrading. The official Windows binaries
+  were not affected by this problem. Other platforms mostly if
+  they build the binaries with GCC 15 which enables C23 mode by
+  default.
+- Fix memory leaks in the mod selection menu. (by David Carlier)
+- General code cleanup around `bool` handling. (by 0lvin)
+
 Quake II 8.41 to 8.50:
 - Consistent bindings between multiple gamepad types. (by protocultor)
 - Improved menu navigation with gamepads. (by protocultor)
@@ -9,7 +20,7 @@ Quake II 8.41 to 8.50:
 - Better navigation in input fields in the menu. Support left and right
   navigation, add support for the ctrl-l,c,x,v shortcuts. (by
   BjossiAlfreds)
-- Performance optimizations for the OpenGL 1.4  renderer, especially on
+- Performance optimizations for the OpenGL 1.4 renderer, especially on
   embedded and mobile GPUs. Includes an alternative GL ES 1.0 renderer.
   (by protocultor)
 - Several fixes to `gl1_stereo`. (by protocultor)

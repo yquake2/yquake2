@@ -36,14 +36,12 @@ static YQ2_ALIGNAS_TYPE(int32_t) byte fatpvs[65536 / 8];
 /*
  * Writes a delta update of an entity_state_t list to the message.
  */
-void
+static void
 SV_EmitPacketEntities(client_frame_t *from, client_frame_t *to, sizebuf_t *msg)
 {
 	entity_state_t *oldent, *newent;
 	int oldindex, newindex;
-	int oldnum, newnum;
 	int from_num_entities;
-	int bits;
 
 	MSG_WriteByte(msg, svc_packetentities);
 
@@ -63,6 +61,9 @@ SV_EmitPacketEntities(client_frame_t *from, client_frame_t *to, sizebuf_t *msg)
 
 	while (newindex < to->num_entities || oldindex < from_num_entities)
 	{
+		int oldnum, newnum;
+		int bits;
+
 		if (msg->cursize > MAX_MSGLEN - 150)
 		{
 			break;
@@ -146,7 +147,7 @@ SV_EmitPacketEntities(client_frame_t *from, client_frame_t *to, sizebuf_t *msg)
 	MSG_WriteShort(msg, 0);
 }
 
-void
+static void
 SV_WritePlayerstateToClient(client_frame_t *from, client_frame_t *to,
 		sizebuf_t *msg)
 {
@@ -439,7 +440,7 @@ SV_WriteFrameToClient(client_t *client, sizebuf_t *msg)
  * The client will interpolate the view position,
  * so we can't use a single PVS point
  */
-void
+static void
 SV_FatPVS(vec3_t org)
 {
 	int leafs[64];
@@ -563,7 +564,7 @@ SV_BuildClientFrame(client_t *client)
 		}
 
 		/* ignore ents without visible models unless they have an effect */
-		if (!ent->s.modelindex && !ent->s.effects && 
+		if (!ent->s.modelindex && !ent->s.effects &&
 			!ent->s.sound && !ent->s.event)
 		{
 			continue;
@@ -627,7 +628,7 @@ SV_BuildClientFrame(client_t *client)
 
 				if (!ent->s.modelindex)
 				{
-					/* don't send sounds if they 
+					/* don't send sounds if they
 					   will be attenuated away */
 					vec3_t delta;
 					float len;

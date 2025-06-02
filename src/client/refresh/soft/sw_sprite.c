@@ -24,8 +24,6 @@ extern polydesc_t r_polydesc;
 
 extern vec5_t	r_clip_verts[2][MAXWORKINGVERTS+2];
 
-extern void R_ClipAndDrawPoly(float alpha, qboolean isturbulent, qboolean textured);
-
 /*
 ** R_DrawSprite
 **

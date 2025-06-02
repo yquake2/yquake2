@@ -614,8 +614,8 @@ void ClientCommand(edict_t *ent);
 void PrecacheItem(gitem_t *it);
 void InitItems(void);
 void SetItemNames(void);
-gitem_t *FindItem(char *pickup_name);
-gitem_t *FindItemByClassname(char *classname);
+gitem_t *FindItem(const char *pickup_name);
+gitem_t *FindItemByClassname(const char *classname);
 
 #define ITEM_INDEX(x) ((x) - itemlist)
 
@@ -634,7 +634,7 @@ void Touch_Item(edict_t *ent, edict_t *other, cplane_t *plane, csurface_t *surf)
 qboolean KillBox(edict_t *ent);
 void G_ProjectSource(vec3_t point, vec3_t distance, vec3_t forward,
 		vec3_t right, vec3_t result);
-edict_t *G_Find(edict_t *from, int fieldofs, char *match);
+edict_t *G_Find(edict_t *from, int fieldofs, const char *match);
 edict_t *findradius(edict_t *from, vec3_t org, float rad);
 edict_t *G_PickTarget(char *targetname);
 void G_UseTargets(edict_t *ent, edict_t *activator);
@@ -655,9 +655,6 @@ char *vtos(vec3_t v);
 
 float vectoyaw(vec3_t vec);
 void vectoangles(vec3_t vec, vec3_t angles);
-
-/* g_spawn.c */
-void ED_CallSpawn(edict_t *ent);
 
 /* g_combat.c */
 qboolean OnSameTeam(edict_t *ent1, edict_t *ent2);
@@ -713,6 +710,9 @@ void M_CatagorizePosition(edict_t *ent);
 qboolean M_CheckAttack(edict_t *self);
 void M_FlyCheck(edict_t *self);
 void M_CheckGround(edict_t *ent);
+void M_FliesOff(edict_t *self);
+void M_FliesOn(edict_t *self);
+void M_SetEffects(edict_t *ent);
 
 /* g_misc.c */
 void ThrowHead(edict_t *self, char *gibname, int damage, int type);
@@ -732,9 +732,11 @@ void ai_charge(edict_t *self, float dist);
 int range(edict_t *self, edict_t *other);
 
 void FoundTarget(edict_t *self);
+qboolean FindTarget(edict_t *self);
 qboolean infront(edict_t *self, edict_t *other);
 qboolean visible(edict_t *self, edict_t *other);
 qboolean FacingIdeal(edict_t *self);
+qboolean ai_checkattack(edict_t *self);
 
 /* g_weapon.c */
 void ThrowDebris(edict_t *self, char *modelname, float speed, vec3_t origin);
@@ -808,7 +810,6 @@ void G_RunEntity(edict_t *ent);
 
 /* g_main.c */
 void SaveClientData(void);
-void FetchClientEntData(edict_t *ent);
 
 /* g_chase.c */
 void UpdateChaseCam(edict_t *ent);
@@ -823,6 +824,10 @@ void WriteLevel(const char *filename);
 void ReadGame(const char *filename);
 void WriteGame(const char *filename, qboolean autosave);
 void SpawnEntities(const char *mapname, char *entities, const char *spawnpoint);
+
+/* g_spawn.c */
+void ED_CallSpawn(edict_t *ent);
+void spawngrow_think(edict_t *self);
 
 /* ============================================================================ */
 

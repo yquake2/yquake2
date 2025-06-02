@@ -13,6 +13,7 @@ have been renamed. The prefixes are:
 * `ogg_`: Ogg/Vorbis music playback.
 * `r_`: Common to all renderers.
 * `s_`: Sound system.
+* `sv_`: Server 
 * `sw_`: Software renderer.
 * `vid_`: Video backend.
 
@@ -56,6 +57,40 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
   sleep and tells the operating system to send a wakeup signal when it's
   time for the next frame. The latter is more CPU friendly but can be
   rather inaccurate, especially on Windows. Use with care.
+
+* **sv_optimize_sp_loadtime**<br />
+  **sv_optimize_mp_loadtime**: These cvars enable/disable optimizations
+  that speed up level load times (or more accurately, client connection).
+
+  sp stands for singleplayer and mp for multiplayer, respectively.
+  The sp version is enabled by default (value 7) while multiplayer is 0.
+
+  The cvar value is a bitmask for 3 optimization features:
+  * **1: Message utilization**<br />
+    When the server sends the client configstrings and other data
+    during the connection process, the message buffer is only used
+    around 50-60%. When this flag is enabled, the message is used
+    much better, dramatically reducing the amount of messages needed
+    to deliver all the data to the client.
+
+  * **2: Server send rate**<br />
+    By default, the server sends messages to clients once every
+    0.1 seconds, roughly. This slows down sending data to clients,
+    especially in singleplayer. This is normal for active clients,
+    but for connecting/inactive clients, this delay is unnecessary.
+    When this flag is set, the server will send messages to
+    inactive clients ~8x more frequently.
+
+  * **4: Reconnection**<br />
+    When the server changes maps, like on level transitions,
+    the server first sends a "changing" command to all clients,
+    and then a "reconnect" command. The delay between these commands
+    can be quite long, ~1 second. This flag will avoid this delay when
+    set, by sending the two commands within the same message.
+
+  Simply add these flag values together to get the cvar value you want.
+  For example, sendrate + reconnect = 2 + 4 = 6.
+  Set to 7 for all optimizations, or 0 to disable them entirely.
 
 * **cl_maxfps**: The approximate framerate for client/server ("packet")
   frames if *cl_async* is `1`. If set to `-1` (the default), the engine

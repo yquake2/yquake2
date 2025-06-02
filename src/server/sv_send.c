@@ -136,15 +136,64 @@ SV_BroadcastCommand(const char *fmt, ...)
  * MULTICAST_PVS	send to clients potentially visible from org
  * MULTICAST_PHS	send to clients potentially hearable from org
  */
+static qboolean
+SV_WereConnected(const vec3_t origin, const byte *mask, int area1)
+{
+	vec3_t origin2;
+	int leafnum;
+	int cluster;
+
+	VectorCopy(origin, origin2);
+
+	leafnum = CM_PointLeafnum(origin2);
+	cluster = CM_LeafCluster(leafnum);
+
+	// cluster can be -1 if we're in the void (or sometimes just at a wall)
+	// and using a negative index into mask[] would be invalid
+	if (cluster >= 0 && (mask[cluster >> 3] & (1 << (cluster & 7))))
+	{
+		if (CM_AreasConnected(area1, CM_LeafArea(leafnum)))
+		{
+			return true;
+		}
+	}
+
+	// if the client is currently in water, do a second check
+	if (CM_PointContents(origin2, 0) & MASK_WATER)
+	{
+		// if the client is half-submerged in opaque water so its origin
+		// is below the water, but the head/camera is still above the water
+		// and thus should be able to see/hear explosions or similar
+		// that are above the water.
+		// so try again at a slightly higher position
+		// FIXME: OTOH, we have a similar problem if we're over water and shoot under water (near water level) => can't see explosion
+
+		origin2[2] += 32.0f;
+
+		leafnum = CM_PointLeafnum(origin2);
+		cluster = CM_LeafCluster(leafnum);
+
+		if (cluster >= 0 && (mask[cluster >> 3] & (1 << (cluster & 7))))
+		{
+			if (CM_AreasConnected(area1, CM_LeafArea(leafnum)))
+			{
+				return true;
+			}
+		}
+	}
+
+	return false;
+}
+
 void
 SV_Multicast(vec3_t origin, multicast_t to)
 {
 	client_t *client;
 	byte *mask;
-	int leafnum = 0, cluster;
+	int leafnum, cluster;
 	int j;
 	qboolean reliable;
-	int area1, area2;
+	int area1;
 
 	reliable = false;
 
@@ -155,6 +204,7 @@ SV_Multicast(vec3_t origin, multicast_t to)
 	}
 	else
 	{
+		leafnum = 0;
 		area1 = 0;
 	}
 
@@ -190,7 +240,7 @@ SV_Multicast(vec3_t origin, multicast_t to)
 
 		default:
 			mask = NULL;
-			Com_Error(ERR_FATAL, "SV_Multicast: bad to:%i", to);
+			Com_Error(ERR_FATAL, "%s: bad to:%i", __func__, to);
 	}
 
 	/* send the data to all relevent clients */
@@ -208,53 +258,14 @@ SV_Multicast(vec3_t origin, multicast_t to)
 
 		if (mask)
 		{
-			vec3_t origin;
-			VectorCopy(client->edict->s.origin, origin);
-
-			qboolean wereConnected = false;
-			for(int i=0; i<2; ++i)
+			if (!SV_WereConnected(client->edict->s.origin, mask, area1))
 			{
-				leafnum = CM_PointLeafnum(origin);
-				cluster = CM_LeafCluster(leafnum);
-				area2 = CM_LeafArea(leafnum);
-
-				// cluster can be -1 if we're in the void (or sometimes just at a wall)
-				// and using a negative index into mask[] would be invalid
-				if (cluster >= 0 && CM_AreasConnected(area1, area2) && (mask[cluster >> 3] & (1 << (cluster & 7))))
-				{
-					wereConnected = true;
-					break;
-				}
-
-				// if the client is currently *not* in water, do *not* do a second check
-				if((CM_PointContents(origin, 0) & MASK_WATER) == 0)
-				{
-					break; // wereConnected remains false
-				}
-
-				// if the client is half-submerged in opaque water so its origin
-				// is below the water, but the head/camera is still above the water
-				// and thus should be able to see/hear explosions or similar
-				// that are above the water.
-				// so try again at a slightly higher position
-				origin[2] += 32.0f;
-				// FIXME: OTOH, we have a similar problem if we're over water and shoot under water (near water level) => can't see explosion
-			}
-			if (!wereConnected)
-			{
-				continue; // don't send message to this client, continue with next client
+				continue;
 			}
 		}
 
-		if (reliable)
-		{
-			SZ_Write(&client->netchan.message, sv.multicast.data,
-					sv.multicast.cursize);
-		}
-		else
-		{
-			SZ_Write(&client->datagram, sv.multicast.data, sv.multicast.cursize);
-		}
+		SZ_Write(reliable ? &client->netchan.message : &client->datagram,
+				sv.multicast.data, sv.multicast.cursize);
 	}
 
 	SZ_Clear(&sv.multicast);
@@ -292,17 +303,17 @@ SV_StartSound(vec3_t origin, edict_t *entity, int channel, int soundindex,
 
 	if ((volume < 0) || (volume > 1.0))
 	{
-		Com_Error(ERR_FATAL, "SV_StartSound: volume = %f", volume);
+		Com_Error(ERR_FATAL, "%s: volume = %f", __func__, volume);
 	}
 
 	if ((attenuation < 0) || (attenuation > 4))
 	{
-		Com_Error(ERR_FATAL, "SV_StartSound: attenuation = %f", attenuation);
+		Com_Error(ERR_FATAL, "%s: attenuation = %f", __func__, attenuation);
 	}
 
 	if ((timeofs < 0) || (timeofs > 0.255))
 	{
-		Com_Error(ERR_FATAL, "SV_StartSound: timeofs = %f", timeofs);
+		Com_Error(ERR_FATAL, "%s: timeofs = %f", __func__, timeofs);
 	}
 
 	ent = NUM_FOR_EDICT(entity);
@@ -331,8 +342,8 @@ SV_StartSound(vec3_t origin, edict_t *entity, int channel, int soundindex,
 		flags |= SND_ATTENUATION;
 	}
 
-	/* the client doesn't know that bmodels have 
-	   weird origins the origin can also be 
+	/* the client doesn't know that bmodels have
+	   weird origins the origin can also be
 	   explicitly set */
 	if ((entity->svflags & SVF_NOCLIENT) ||
 		(entity->solid == SOLID_BSP) ||
@@ -428,7 +439,7 @@ SV_StartSound(vec3_t origin, edict_t *entity, int channel, int soundindex,
 	}
 }
 
-qboolean
+static qboolean
 SV_SendClientDatagram(client_t *client)
 {
 	byte msg_buf[MAX_MSGLEN];
@@ -474,7 +485,7 @@ SV_SendClientDatagram(client_t *client)
 	return true;
 }
 
-void
+static void
 SV_DemoCompleted(void)
 {
 	if (sv.demofile)
@@ -490,7 +501,7 @@ SV_DemoCompleted(void)
  * Returns true if the client is over its current
  * bandwidth estimation and should not be sent another packet
  */
-qboolean
+static qboolean
 SV_RateDrop(client_t *c)
 {
 	int total;
@@ -519,6 +530,57 @@ SV_RateDrop(client_t *c)
 	return false;
 }
 
+static int
+SV_NextDemoChunk(byte *msgbuf)
+{
+	size_t r;
+	int n;
+
+	if (sv_paused->value)
+	{
+		return 0;
+	}
+
+	r = FS_FRead(&n, 4, 1, sv.demofile);
+
+	if (r != 4)
+	{
+		return -1;
+	}
+
+	n = LittleLong(n);
+
+	if (n == -1)
+	{
+		return -1;
+	}
+
+	if (n > MAX_MSGLEN)
+	{
+		Com_Error(ERR_DROP,
+				"SV_SendClientMessages: msglen > MAX_MSGLEN");
+	}
+
+	r = FS_FRead(msgbuf, n, 1, sv.demofile);
+
+	return (r == n) ? n : -1;
+}
+
+/* if the reliable message
+   overflowed, drop the
+   client */
+static void
+SV_SendDisconnect(client_t *c)
+{
+	SZ_Clear(&c->netchan.message);
+	SZ_Clear(&c->datagram);
+
+	SV_BroadcastPrintf(PRINT_HIGH, "%s overflowed\n", c->name);
+	SV_DropClient(c);
+
+	Netchan_Transmit(&c->netchan, 0, NULL);
+}
+
 void
 SV_SendClientMessages(void)
 {
@@ -526,69 +588,35 @@ SV_SendClientMessages(void)
 	client_t *c;
 	int msglen;
 	byte msgbuf[MAX_MSGLEN];
-	size_t r;
-
-	msglen = 0;
 
 	/* read the next demo message if needed */
 	if (sv.demofile && (sv.state == ss_demo))
 	{
-		if (sv_paused->value)
+		msglen = SV_NextDemoChunk(msgbuf);
+
+		if (msglen < 0)
 		{
-			msglen = 0;
-		}
-		else
-		{
-			/* get the next message */
-			r = FS_FRead(&msglen, 4, 1, sv.demofile);
-
-			if (r != 4)
-			{
-				SV_DemoCompleted();
-				return;
-			}
-
-			msglen = LittleLong(msglen);
-
-			if (msglen == -1)
-			{
-				SV_DemoCompleted();
-				return;
-			}
-
-			if (msglen > MAX_MSGLEN)
-			{
-				Com_Error(ERR_DROP,
-						"SV_SendClientMessages: msglen > MAX_MSGLEN");
-			}
-
-			r = FS_FRead(msgbuf, msglen, 1, sv.demofile);
-
-			if (r != msglen)
-			{
-				SV_DemoCompleted();
-				return;
-			}
+			SV_DemoCompleted();
+			return;
 		}
 	}
+	else
+	{
+		msglen = 0;
+	}
 
-	/* send a message to each connected client */
+	/* send a message to each spawned client */
 	for (i = 0, c = svs.clients; i < maxclients->value; i++, c++)
 	{
-		if (!c->state)
+		if (c->state == cs_free)
 		{
 			continue;
 		}
 
-		/* if the reliable message 
-		   overflowed, drop the 
-		   client */
 		if (c->netchan.message.overflowed)
 		{
-			SZ_Clear(&c->netchan.message);
-			SZ_Clear(&c->datagram);
-			SV_BroadcastPrintf(PRINT_HIGH, "%s overflowed\n", c->name);
-			SV_DropClient(c);
+			SV_SendDisconnect(c);
+			continue;
 		}
 
 		if ((sv.state == ss_cinematic) ||
@@ -607,15 +635,43 @@ SV_SendClientMessages(void)
 
 			SV_SendClientDatagram(c);
 		}
-		else
-		{
-			/* just update reliable	if needed */
-			if (c->netchan.message.cursize ||
-				(curtime - c->netchan.last_sent > 1000))
-			{
-				Netchan_Transmit(&c->netchan, 0, NULL);
-			}
-		}
+
+		/* messages to non-spawned clients are sent by SendPrepClientMessages */
 	}
 }
 
+void
+SV_SendPrepClientMessages(void)
+{
+	client_t *c;
+	int i;
+
+	if ((sv.state == ss_cinematic) ||
+		(sv.state == ss_demo) ||
+		(sv.state == ss_pic))
+	{
+		return;
+	}
+
+	/* send a message to each inactive client if needed */
+	for (i = 0, c = svs.clients; i < maxclients->value; i++, c++)
+	{
+		if ((c->state == cs_free) || (c->state == cs_spawned))
+		{
+			continue;
+		}
+
+		if (c->netchan.message.overflowed)
+		{
+			SV_SendDisconnect(c);
+			continue;
+		}
+
+		/* just update reliable	if needed */
+		if (c->netchan.message.cursize ||
+			(curtime - c->netchan.last_sent > 1000))
+		{
+			Netchan_Transmit(&c->netchan, 0, NULL);
+		}
+	}
+}

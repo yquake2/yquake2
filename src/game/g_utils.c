@@ -48,7 +48,7 @@ G_ProjectSource(vec3_t point, vec3_t distance, vec3_t forward,
  * if the end of the list is reached.
  */
 edict_t *
-G_Find(edict_t *from, int fieldofs, char *match)
+G_Find(edict_t *from, int fieldofs, const char *match)
 {
 	char *s;
 
