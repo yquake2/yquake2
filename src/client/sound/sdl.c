@@ -667,7 +667,7 @@ SDL_Spatialize(channel_t *ch)
 	}
 	else
 	{
-		CL_GetEntitySoundOrigin(ch->entnum, origin);
+		GetEntitySoundOrigin(ch->entnum, listener_origin, origin);
 	}
 
 	SDL_SpatializeOrigin(origin, (float)ch->master_vol, ch->dist_mult, &ch->leftvol, &ch->rightvol);
@@ -701,6 +701,7 @@ SDL_AddLoopSounds(void)
 		sfxcache_t *sc;
 		int num;
 		entity_state_t *ent;
+		vec3_t org;
 		int j;
 
 		if (!sounds[i])
@@ -725,8 +726,13 @@ SDL_AddLoopSounds(void)
 		num = (cl.frame.parse_entities + i) & (MAX_PARSE_ENTITIES - 1);
 		ent = &cl_parse_entities[num];
 
+		if (!GetBSPEntitySoundOrigin(ent->number, listener_origin, org))
+		{
+			VectorCopy(ent->origin, org);
+		}
+
 		/* find the total contribution of all sounds of this type */
-		SDL_SpatializeOrigin(ent->origin, 255.0f, SDL_LOOPATTENUATE, &left_total, &right_total);
+		SDL_SpatializeOrigin(org, 255.0f, SDL_LOOPATTENUATE, &left_total, &right_total);
 
 		for (j = i + 1; j < cl.frame.num_entities; j++)
 		{
@@ -739,7 +745,12 @@ SDL_AddLoopSounds(void)
 			num = (cl.frame.parse_entities + j) & (MAX_PARSE_ENTITIES - 1);
 			ent = &cl_parse_entities[num];
 
-			SDL_SpatializeOrigin(ent->origin, 255.0f, SDL_LOOPATTENUATE, &left, &right);
+			if (!GetBSPEntitySoundOrigin(ent->number, listener_origin, org))
+			{
+				VectorCopy(ent->origin, org);
+			}
+
+			SDL_SpatializeOrigin(org, 255.0f, SDL_LOOPATTENUATE, &left, &right);
 
 			left_total += left;
 			right_total += right;

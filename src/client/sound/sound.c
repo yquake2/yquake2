@@ -1103,7 +1103,11 @@ S_StartSound(vec3_t origin, int entnum, int entchannel, sfx_t *sfx,
 
 	if (origin)
 	{
-		VectorCopy(origin, ps->origin);
+		if (!GetBSPEntitySoundOrigin(entnum, listener_origin, ps->origin))
+		{
+			VectorCopy(origin, ps->origin);
+		}
+
 		ps->fixed_origin = true;
 	}
 	else
@@ -1729,5 +1733,89 @@ S_Shutdown(void)
 	Cmd_RemoveCommand("soundinfo");
 	Cmd_RemoveCommand("play");
 	Cmd_RemoveCommand("stopsound");
+}
+
+/*
+ * Called to get the sound spatialization origin
+ */
+
+/* BSP model entities (doors, elevators...)
+	use origin as an offset added to mins/maxs
+*/
+qboolean
+GetBSPEntitySoundOrigin(int ent, const vec3_t listener_org, vec3_t org)
+{
+	static const cvar_t	*soundpos = NULL;
+	centity_t *old;
+	cmodel_t *cm;
+	vec3_t amin, amax;
+	int mi;
+
+	if ((ent < 0) || (ent >= MAX_EDICTS))
+	{
+		return false;
+	}
+
+	old = &cl_entities[ent];
+
+	mi = old->current.modelindex;
+	cm = (mi > 0 && mi < MAX_MODELS) ? cl.model_clip[mi] : NULL;
+
+	if (!cm)
+	{
+		return false;
+	}
+
+	if (!soundpos)
+	{
+		soundpos = Cvar_Get("s_bsp_soundpos", "1", CVAR_ARCHIVE);
+
+		if (!soundpos)
+		{
+			return false;
+		}
+	}
+
+	if (!soundpos->value)
+	{
+		return false;
+	}
+
+	if (!listener_org || soundpos->value < 2.0f)
+	{
+		VectorAdd(cm->mins, cm->maxs, org);
+		VectorScale(org, 0.5f, org);
+		VectorAdd(org, old->lerp_origin, org);
+	}
+	else
+	{
+		VectorCopy(cm->mins, amin);
+		VectorAdd(amin, old->lerp_origin, amin);
+
+		VectorCopy(cm->maxs, amax);
+		VectorAdd(amax, old->lerp_origin, amax);
+
+		ClosestPointOnBounds(listener_org, amin, amax, org);
+	}
+
+	return true;
+}
+
+void
+GetEntitySoundOrigin(int ent, const vec3_t listener_org, vec3_t org)
+{
+	centity_t *old;
+
+	if ((ent < 0) || (ent >= MAX_EDICTS))
+	{
+		Com_Error(ERR_DROP, "%s: bad entity %d >= %d\n",
+			__func__, ent, MAX_EDICTS);
+	}
+
+	if (!GetBSPEntitySoundOrigin(ent, listener_org, org))
+	{
+		old = &cl_entities[ent];
+		VectorCopy(old->lerp_origin, org);
+	}
 }
 

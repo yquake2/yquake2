@@ -492,6 +492,28 @@ AddPointToBounds(vec3_t v, vec3_t mins, vec3_t maxs)
 	}
 }
 
+void
+ClosestPointOnBounds(const vec3_t p, const vec3_t amin, const vec3_t amax, vec3_t out)
+{
+	int i;
+
+	for (i = 0; i < 3; i++)
+	{
+		if (amin[i] > p[i])
+		{
+			out[i] = amin[i];
+		}
+		else if (amax[i] < p[i])
+		{
+			out[i] = amax[i];
+		}
+		else
+		{
+			out[i] = p[i];
+		}
+	}
+}
+
 int
 VectorCompare(vec3_t v1, vec3_t v2)
 {

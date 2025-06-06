@@ -364,6 +364,32 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
   `-1`: Disable reverb effect,
   `>=0`: select predefined effect.
 
+* **s_bsp_soundpos**: Controls the positioning of sounds played by
+  BSP entities (doors, elevators, ...). Internally the game treats
+  the positioning of BSP entities differently.
+
+  There are 3 modes to choose from. Values 0, 1 and 2.
+  * **Mode 0: Original behavior**<br />
+    Sound events play at the center of the bbox,
+    loop sound plays at origin (0, 0, 0).
+    This is how you are used to it functioning
+    from before this cvar was added.
+    This is considered a bug/code oversight,
+    hence why the default value is 1.
+
+  * **Mode 1: Bbox center**<br />
+    Both sound events and loop sounds play at bbox center.
+    While this works better than mode 0, very long/large bboxes,
+    like the elevator at the start of jail4, will play the sound
+    too far away for you to hear it.
+
+  * **Mode 2: Bbox edge**<br />
+    Sound events and loop sounds play at the edge of the bbox,
+    closest to the player. Now you hear the bbox itself, rather
+    than the point at its center.
+
+  Default mode is 1.
+
 * **cl_audiopaused**: If set to `1` the sounds pause when the game does.
 
 

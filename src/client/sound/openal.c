@@ -616,7 +616,7 @@ AL_Spatialize(channel_t *ch)
 		qboolean source_occluded = false;
 		qboolean reverb_enabled = false;
 
-		CL_GetEntitySoundOrigin(ch->entnum, origin);
+		GetEntitySoundOrigin(ch->entnum, listener_origin, origin);
 		qalSource3f(ch->srcnum, AL_POSITION, AL_UnpackVector(origin));
 
 		if (s_doppler->value) {
