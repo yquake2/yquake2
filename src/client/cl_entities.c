@@ -861,6 +861,8 @@ void
 CL_GetEntitySoundOrigin(int ent, vec3_t org)
 {
 	centity_t *old;
+	cmodel_t *cm;
+	int mi;
 
 	if ((ent < 0) || (ent >= MAX_EDICTS))
 	{
@@ -869,7 +871,23 @@ CL_GetEntitySoundOrigin(int ent, vec3_t org)
 	}
 
 	old = &cl_entities[ent];
-	VectorCopy(old->lerp_origin, org);
+
+	mi = old->baseline.modelindex;
+	cm = (mi > 0 && mi < MAX_MODELS) ? cl.model_clip[mi] : NULL;
+
+	/* BSP model entities (doors, elevators...)
+		use origin as an offset added to mins/maxs
+	*/
+	if (cm)
+	{
+		VectorAdd(cm->mins, cm->maxs, org);
+		VectorScale(org, 0.5f, org);
+		VectorAdd(org, old->lerp_origin, org);
+	}
+	else
+	{
+		VectorCopy(old->lerp_origin, org);
+	}
 }
 
 /*
