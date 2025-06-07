@@ -754,10 +754,14 @@ MSG_ReadDir(sizebuf_t *sb, vec3_t dir)
 	int b;
 
 	b = MSG_ReadByte(sb);
+	if (b < 0)
+	{
+		Com_Error(ERR_DROP, "%s: unexpected message end", __func__);
+	}
 
 	if (b >= NUMVERTEXNORMALS)
 	{
-		Com_Error(ERR_DROP, "MSF_ReadDir: out of range");
+		Com_Error(ERR_DROP, "%s: out of range", __func__);
 	}
 
 	VectorCopy(bytedirs[b], dir);

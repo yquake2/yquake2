@@ -5550,74 +5550,69 @@ dircmp_func(const void* _a, const void* _b)
 static void
 PlayerModelFree()
 {
-    char* s = NULL;
+	char* s = NULL;
 
-    // there should be no valid skin names if there is no valid model
-    if (s_modelname.num != 0)
-    {
-        while (s_modelname.num-- > 0)
-        {
-            // skins
-            while (s_skinnames[s_modelname.num].num-- > 0)
-            {
-                s = s_skinnames[s_modelname.num].data[s_skinnames[s_modelname.num].num];
-                if (s != NULL)
-                {
-                    free(s);
-                    s = NULL;
-                }
-            }
+	// there should be no valid skin names if there is no valid model
+	if (s_modelname.num != 0)
+	{
+		while (s_modelname.num-- > 0)
+		{
+			// skins
+			while (s_skinnames[s_modelname.num].num-- > 0)
+			{
+				s = s_skinnames[s_modelname.num].data[s_skinnames[s_modelname.num].num];
+				if (s != NULL)
+				{
+					free(s);
+				}
+			}
 
-            s = (char*)s_skinnames[s_modelname.num].data;
+			s = (char*)s_skinnames[s_modelname.num].data;
 
-            if (s != NULL)
-            {
-                free(s);
-                s = NULL;
-            }
+			if (s != NULL)
+			{
+				free(s);
+			}
 
-            s_skinnames[s_modelname.num].data = 0;
-            s_skinnames[s_modelname.num].num = 0;
+			s_skinnames[s_modelname.num].data = 0;
+			s_skinnames[s_modelname.num].num = 0;
 
-            // models
-            s = s_modelname.data[s_modelname.num];
-            if (s != NULL)
-            {
-                free(s);
-                s = NULL;
-            }
-        }
-    }
+			// models
+			s = s_modelname.data[s_modelname.num];
+			if (s != NULL)
+			{
+				free(s);
+			}
+		}
+	}
 
-    s = (char*)s_modelname.data;
-    if (s != NULL)
-    {
-        free(s);
-        s = NULL;
-    }
+	s = (char*)s_modelname.data;
+	if (s != NULL)
+	{
+		free(s);
+	}
 
-    s_modelname.data = 0;
-    s_modelname.num = 0;
+	s_modelname.data = 0;
+	s_modelname.num = 0;
 
-    // directories
-    while (s_directory.num-- > 0)
-    {
-        s = s_directory.data[s_directory.num];
-        if (s != NULL)
-        {
-            free(s);
-            s = NULL;
-        }
-    }
+	// directories
+	while (s_directory.num-- > 0)
+	{
+		s = s_directory.data[s_directory.num];
+		if (s != NULL)
+		{
+			free(s);
+		}
+	}
 
-    s = (char*)s_directory.data;
-    if (s != NULL)
-    {
-        free(s);
-    }
+	s = (char*)s_directory.data;
+	if (s != NULL)
+	{
+		free(s);
+	}
 
-    s_directory.data = 0;
-    s_directory.num = 0;
+	s_directory.data = 0;
+	s_directory.num = 0;
 }
 
 // list all player model directories.
@@ -5679,7 +5674,7 @@ PlayerDirectoryList(void)
 		}
 		else
 		{
-			strcpy(dirname, list[i]);
+			Q_strlcpy(dirname, list[i], sizeof(dirname));
 		}
 
 		for (j = 0; j < dirnum; j++)
@@ -5708,7 +5703,7 @@ PlayerDirectoryList(void)
 	FS_FreeList(list, num);
 
 	// sort them male, female, alphabetical
-	qsort(s_directory.data, s_directory.num - 1, sizeof(char**), dircmp_func);
+	qsort(s_directory.data, s_directory.num - 1, sizeof(char*), dircmp_func);
 
 	return true;
 }
@@ -5930,7 +5925,7 @@ PlayerModelList(void)
 		}
 
 		/* sort skin names alphabetically */
-		qsort(s_skinnames[mdl].data, s_skinnames[mdl].num, sizeof(char**), Q_sort_stricmp);
+		qsort(s_skinnames[mdl].data, s_skinnames[mdl].num, sizeof(char*), Q_sort_stricmp);
 
 		/* at this point we have a valid player model */
 		t = strrchr(s_directory.data[i], '/');

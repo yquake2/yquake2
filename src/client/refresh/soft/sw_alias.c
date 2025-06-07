@@ -97,7 +97,7 @@ R_AliasCheckFrameBBox( daliasframe_t *frame, float worldxf[3][4] )
 	for (i=0 ; i<3 ; i++)
 	{
 		mins[i] = frame->translate[i];
-		maxs[i] = mins[i] + frame->scale[i]*255;
+		maxs[i] = mins[i] + frame->scale[i] * 255;
 	}
 
 	/*
@@ -107,9 +107,14 @@ R_AliasCheckFrameBBox( daliasframe_t *frame, float worldxf[3][4] )
 	R_AliasTransformVector( maxs, transformed_max, aliastransform );
 
 	if ( transformed_min[2] >= ALIAS_Z_CLIP_PLANE )
+	{
 		zfullyclipped = false;
+	}
+
 	if ( transformed_max[2] >= ALIAS_Z_CLIP_PLANE )
+	{
 		zfullyclipped = false;
+	}
 
 	if ( zfullyclipped )
 	{
@@ -126,19 +131,31 @@ R_AliasCheckFrameBBox( daliasframe_t *frame, float worldxf[3][4] )
 		unsigned long clipcode = 0;
 
 		if ( i & 1 )
+		{
 			tmp[0] = mins[0];
+		}
 		else
+		{
 			tmp[0] = maxs[0];
+		}
 
 		if ( i & 2 )
+		{
 			tmp[1] = mins[1];
+		}
 		else
+		{
 			tmp[1] = maxs[1];
+		}
 
 		if ( i & 4 )
+		{
 			tmp[2] = mins[2];
+		}
 		else
+		{
 			tmp[2] = maxs[2];
+		}
 
 		R_AliasTransformVector( tmp, transformed, worldxf );
 
@@ -147,7 +164,9 @@ R_AliasCheckFrameBBox( daliasframe_t *frame, float worldxf[3][4] )
 			float dp = DotProduct( transformed, view_clipplanes[j].normal );
 
 			if ( ( dp - view_clipplanes[j].dist ) < 0.0F )
+			{
 				clipcode |= 1 << j;
+			}
 		}
 
 		aggregate_and_clipcode &= clipcode;
@@ -337,8 +356,8 @@ R_AliasSetUpTransform(const entity_t *currententity)
 	for (i=0 ; i<3 ; i++)
 	{
 		aliasoldworldtransform[i][0] = aliasworldtransform[i][0] =  s_alias_forward[i];
-		aliasoldworldtransform[i][0] = aliasworldtransform[i][1] = -s_alias_right[i];
-		aliasoldworldtransform[i][0] = aliasworldtransform[i][2] =  s_alias_up[i];
+		aliasoldworldtransform[i][1] = aliasworldtransform[i][1] = -s_alias_right[i];
+		aliasoldworldtransform[i][2] = aliasworldtransform[i][2] =  s_alias_up[i];
 	}
 
 	aliasworldtransform[0][3] = currententity->origin[0]-r_origin[0];
