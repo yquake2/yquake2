@@ -17,8 +17,9 @@ have been renamed. The prefixes are:
 * `sw_`: Software renderer.
 * `vid_`: Video backend.
 
-All cvars may be given at command line through `+set cvar value` or typed
-into the console. The console can be opended with *Left Shift + Esc*.
+All cvars may be given at command line through `+set cvar value` or
+typed into the console. The console can be opended with *Left Shift +
+Esc*.
 
 Keep in mind that some cvars need quotation marks around the arguments.
 When giving such cvars at the command line the argument string must be
@@ -58,35 +59,30 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
   time for the next frame. The latter is more CPU friendly but can be
   rather inaccurate, especially on Windows. Use with care.
 
-* **sv_optimize_sp_loadtime**<br />
-  **sv_optimize_mp_loadtime**: These cvars enable/disable optimizations
-  that speed up level load times (or more accurately, client connection).
-
-  sp stands for singleplayer and mp for multiplayer, respectively.
-  The sp version is enabled by default (value 7) while multiplayer is 0.
-
+* **sv_optimize_sp_loadtime** / **sv_optimize_mp_loadtime**: These cvars
+  enable/disable optimizations that speed up level load times (or more
+  accurately, client connection).  
+  sp stands for singleplayer and mp for multiplayer, respectively.  
+  The sp version is enabled by default (value 7) while multiplayer
+  is 0.  
   The cvar value is a bitmask for 3 optimization features:
-  * **1: Message utilization**<br />
-    When the server sends the client configstrings and other data
-    during the connection process, the message buffer is only used
-    around 50-60%. When this flag is enabled, the message is used
-    much better, dramatically reducing the amount of messages needed
-    to deliver all the data to the client.
 
-  * **2: Server send rate**<br />
-    By default, the server sends messages to clients once every
-    0.1 seconds, roughly. This slows down sending data to clients,
-    especially in singleplayer. This is normal for active clients,
-    but for connecting/inactive clients, this delay is unnecessary.
-    When this flag is set, the server will send messages to
+  - **1: Message utilization**: When the server sends the client
+    configstrings and other data during the connection process, the
+    message buffer is only used around 50-60%. When this flag is
+    enabled, the message is used much better, dramatically reducing the
+    amount of messages needed to deliver all the data to the client.
+  - **2: Server send rate**: By default, the server sends messages to
+    clients once every 0.1 seconds, roughly. This slows down sending
+    data to clients, especially in singleplayer. This is normal for
+    active clients, but for connecting/inactive clients, this delay is
+    unnecessary. When this flag is set, the server will send messages to
     inactive clients ~8x more frequently.
-
-  * **4: Reconnection**<br />
-    When the server changes maps, like on level transitions,
-    the server first sends a "changing" command to all clients,
-    and then a "reconnect" command. The delay between these commands
-    can be quite long, ~1 second. This flag will avoid this delay when
-    set, by sending the two commands within the same message.
+  - **4: Reconnection**: When the server changes maps, like on level
+    transitions, the server first sends a "changing" command to all
+    clients, and then a "reconnect" command. The delay between these
+    commands can be quite long, ~1 second. This flag will avoid this
+    delay when set, by sending the two commands within the same message.
 
   Simply add these flag values together to get the cvar value you want.
   For example, sendrate + reconnect = 2 + 4 = 6.
@@ -110,8 +106,8 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
   If *cl_async* is set to `1` (the default) the client is asynchronous,
   which means that there can be multiple render frames between client-
   and server-frames. This makes it possible to renderer as many frames
-  as desired without physics and movement problems. 
-  The client framerate is controlled by *cl_maxfps*,
+  as desired without physics and movement problems.  
+  The client framerate is controlled by *cl_maxfps*,  
   the renderer framerate is controlled by *vid_maxfps*.  
   
   As client/server frames ("packet frames") are only run together with
@@ -153,7 +149,7 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
 
 * **cl_http_bw_limit_tmout**: Seconds before the download is aborted
   when the speed transfer is below the var set by
-  `cl_http_bw_limit_rate`.  Set `0` by default.
+  `cl_http_bw_limit_rate`. Set `0` by default.
 
 * **cl_kickangles**: If set to `0` angle kicks (weapon recoil, damage
   hits and the like) are ignored. Cheat-protected. Defaults to `1`.
@@ -200,10 +196,10 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
 * **cl_showfps**: Shows the framecounter. Set to `2` for more and to
   `3` for even more informations.
   
-* **cl_showspeed**:  Shows the players speed.  Set to `1` to display both
-  overall speed and (horizontal speed) in Quake Units (QU) respectfully at
-  the top right corner of the screen.  Set to `2` to show only the horizontal 
-  speed under the crosshair.
+* **cl_showspeed**:  Shows the players speed. Set to `1` to display both
+  overall speed and (horizontal speed) in Quake Units (QU) respectfully
+  at the top right corner of the screen. Set to `2` to show only the
+  horizontal speed under the crosshair.
   
 * **cl_unpaused_scvis**: If set to `1` (the default) the client unpause
   when the screen becomes visible.
@@ -221,7 +217,7 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
   both `coop` and `deathmatch` are forced to `0` and `maxclients` is
   forced to `1`. This can be used to run a dedicated server with an old
   single player mod, where the source code isn't available, inside a
-  Windows 98 or XP VM and connect over network from an non Windows
+  Windows 98 or XP VM and connect over network from a non Windows
   system.
 
 * **coop_pickup_weapons**: In coop a weapon can be picked up only once.
@@ -278,7 +274,7 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
 * **g_machinegun_norecoil**: Disable machine gun recoil in single player. 
   By default this is set to `0`, this keeps the original machine gun 
   recoil in single player. When set to `1` the recoil is disabled in
-  single player, the same way as in multiplayer.
+  single player, the same way as in multiplayer.  
   This cvar only works if the game.dll implements this behaviour.
 
 * **g_quick_weap**: If set to `1`, both *weapprev* and *weapnext*
@@ -330,13 +326,13 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
   playing.
 
 * **ogg_shuffle**: Ogg/Vorbis playback mode. Supported modes are:
-  `0`: Loop the current track (the default).
-  `1`: Play the current track once, then stop.
-  `2`: Play all available tracks in a linear sequence.
-  `3`: Shuffle through the available tracks, never play the same track
-       twice in a row.
-  `4`: Shuffle through the available tracks, may play the same track
-       multiple times in a row.
+  - `0`: Loop the current track (the default).
+  - `1`: Play the current track once, then stop.
+  - `2`: Play all available tracks in a linear sequence.
+  - `3`: Shuffle through the available tracks, never play the same track
+         twice in a row.
+  - `4`: Shuffle through the available tracks, may play the same track
+         multiple times in a row.
 
 * **s_doppler**: If set to `1` doppler effects are enabled. This is only
   supported by the OpenAL sound backend.
@@ -345,10 +341,10 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
   default. OpenAL gives a huge quality boost over the classic sound
   system and supports surround speakers and HRTF for headphones. OpenAL
   is much more reliable than the classic sound system, especially on
-  modern systems like Windows 10 or Linux with PulseAudio.
+  modern systems like Windows 10 or Linux with PulseAudio or Pipewire.
 
 * **s_sdldriver**: Can be set to the name of a SDL audio driver. If set
-  to `auto` (the defailt), SDL chooses the driver. If set to anything
+  to `auto` (the default), SDL chooses the driver. If set to anything
   else the given driver is forced, regardless if supported by SDL or the
   platform or not.
 
@@ -358,35 +354,28 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
   are enabled. This is only supported by the OpenAL sound backend. By
   default this cvar is disabled (set to 0).
 
-* **s_reverb_preset**: Enable reverb effect. By default this cvar is disabled
-  (set to `-1`). Possible values:
-  `-2`: Auto reverb effect select,
-  `-1`: Disable reverb effect,
-  `>=0`: select predefined effect.
+* **s_reverb_preset**: Enable reverb effect. By default this cvar is
+  disabled (set to `-1`). Possible values:
+  - `-2`: Auto reverb effect select,
+  - `-1`: Disable reverb effect,
+  - `>=0`: select predefined effect.
 
-* **s_bsp_soundpos**: Controls the positioning of sounds played by
-  BSP entities (doors, elevators, ...). Internally the game treats
-  the positioning of BSP entities differently.
+* **s_bsp_soundpos**: Controls the positioning of sounds played by BSP
+  entities (doors, elevators, ...). Internally the game treats the
+  positioning of BSP entities differently. There are 3 modes to choose
+  from. Values 0, 1 and 2.
 
-  There are 3 modes to choose from. Values 0, 1 and 2.
-  * **Mode 0: Original behavior**<br />
-    Sound events play at the center of the bbox,
-    loop sound plays at origin (0, 0, 0).
-    This is how you are used to it functioning
-    from before this cvar was added.
-    This is considered a bug/code oversight,
-    hence why the default value is 1.
-
-  * **Mode 1: Bbox center**<br />
-    Both sound events and loop sounds play at bbox center.
-    While this works better than mode 0, very long/large bboxes,
-    like the elevator at the start of jail4, will play the sound
+  - **Mode 0: Original behavior**: Sound events play at the center of
+    the bbox, loop sound plays at origin (0, 0, 0). This is how you are
+    used to it functioning from before this cvar was added. This is
+    considered a bug/code oversight, hence why the default value is 1.
+  - **Mode 1: Bbox center**: Both sound events and loop sounds play at
+    bbox center. While this works better than mode 0, very long/large
+    bboxes, like the elevator at the start of jail4, will play the sound
     too far away for you to hear it.
-
-  * **Mode 2: Bbox edge**<br />
-    Sound events and loop sounds play at the edge of the bbox,
-    closest to the player. Now you hear the bbox itself, rather
-    than the point at its center.
+  - **Mode 2: Bbox edge**: Sound events and loop sounds play at the edge
+    of the bbox, closest to the player. Now you hear the bbox itself,
+    rather than the point at its center.
 
   Default mode is 1.
 
@@ -409,7 +398,7 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
 
 * **r_gunfov**: The weapons are rendered with a custom field of view,
   independently of the global **fov**, so they are not distorted at high
-  FOVs.  A value of `75` should look identical to the old code at `fov
+  FOVs. A value of `75` should look identical to the old code at `fov
   90`, it defaults to `80` because that looks a bit better. Set to `-1`
   for the same value as `fov`.
 
@@ -541,12 +530,14 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
   also used for looking underwater. Default is `1` (enabled).
 
 * **gl_texturemode**: How textures are filtered.
+
   - `GL_NEAREST`: No filtering (using value of *nearest* source pixel),
     mipmaps not used
   - `GL_LINEAR`: Bilinear filtering, mipmaps not used
   - `GL_LINEAR_MIPMAP_NEAREST`: The default - Bilinear filtering when
-    scaling up, using mipmaps with nearest/no filtering when scaling down
-  
+    scaling up, using mipmaps with nearest/no filtering when scaling
+    down
+
   Other supported values: `GL_NEAREST_MIPMAP_NEAREST`,
   `GL_NEAREST_MIPMAP_LINEAR`, `GL_LINEAR_MIPMAP_LINEAR`
 
@@ -610,7 +601,7 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
 * **gl3_overbrightbits**: Enables overbright bits, brightness scaling of
   lightmaps and models. Higher values make shadows less dark. Similar
   to OpenGL 1.4 `gl1_overbrightbits`, but allows any floating point
-  number.  Default is `1.3`. In the OpenGL 3.2 renderer, no lighting
+  number. Default is `1.3`. In the OpenGL 3.2 renderer, no lighting
   fixes for water are needed, so `1.0` has no special meaning.
 
 * **gl3_particle_size**: The size of particles - Default is `40`.
@@ -673,10 +664,10 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
   - `0`: *Default*, left stick moves, right aims
   - `1`: *Southpaw*, same as previous one with inverted sticks
   - `2`: *Legacy*, left moves forward/backward and turns, right strafes
-    and looks up/down
+         and looks up/down
   - `3`: *Legacy Southpaw*, inverted sticks version of previous one
   - `4`: *Flick Stick*, left stick moves, right checks your surroundings
-    in 360º, gyro required for looking up/down
+         in 360º, gyro required for looking up/down
   - `5`: *Flick Stick Southpaw*, swapped sticks version of last one
 
 * **joy_left_deadzone** / **joy_right_deadzone**: Inner, circular
@@ -729,19 +720,19 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
 * **joy_haptic_magnitude**: Haptic magnitude value, By default this cvar
   is `0.0` or disabled. Valid values are positive, e.g. 0..2.0.
 
-* **joy_haptic_filter**: List of sound file names produced haptic feedback
-  separated by space. `*` could be used for replace part of file name as
-  regular expression. `!` at the beginning of value could be used for skip
-  file name equal to value.
+* **joy_haptic_filter**: List of sound file names produced haptic
+  feedback separated by space. `*` could be used for replace part of
+  file name as regular expression. `!` at the beginning of value could
+  be used for skip file name equal to value.
 
-* **joy_haptic_distance**: Haptic maximum effect distance value, By default
-  this cvar is `100.0`. Any positive value is valid. E.g. effect of shoot
-  to a barrel has 58 points when player stay near the barrel.
+* **joy_haptic_distance**: Haptic maximum effect distance value, By
+  default this cvar is `100.0`. Any positive value is valid. E.g. effect
+  of shoot to a barrel has 58 points when player stay near the barrel.
 
-* **s_feedback_kind**: Select kind of controller feedback to use. By default
-  this cvar is `0`. Possible values:
-  `0`: Rumble feedback,
-  `1`: Haptic feedback.
+* **s_feedback_kind**: Select kind of controller feedback to use. By
+  default this cvar is `0`. Possible values:
+  - `0`: Rumble feedback,
+  - `1`: Haptic feedback.
 
 
 ## cvar operations
