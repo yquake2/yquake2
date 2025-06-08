@@ -433,6 +433,9 @@ HuntTarget(edict_t *self)
 void
 FoundTarget(edict_t *self)
 {
+	edict_t *combatpoint;
+	vec3_t v;
+
 	if (!self|| !self->enemy || !self->enemy->inuse)
 	{
 		return;
@@ -457,26 +460,30 @@ FoundTarget(edict_t *self)
 		return;
 	}
 
-	self->goalentity = self->movetarget = G_PickTarget(self->combattarget);
+	combatpoint = G_PickTarget(self->combattarget);
 
-	if (!self->movetarget)
+	if (!combatpoint)
 	{
-		self->goalentity = self->movetarget = self->enemy;
-		HuntTarget(self);
 		gi.dprintf("%s at %s, combattarget %s not found\n",
 				self->classname,
 				vtos(self->s.origin),
 				self->combattarget);
+
+		HuntTarget(self);
 		return;
 	}
+
+	VectorSubtract(combatpoint->s.origin, self->s.origin, v);
+	self->ideal_yaw = vectoyaw(v);
 
 	/* clear out our combattarget, these are a one shot deal */
 	self->combattarget = NULL;
 	self->monsterinfo.aiflags |= AI_COMBAT_POINT;
+	self->monsterinfo.pausetime = 0;
 
 	/* clear the targetname, that point is ours! */
-	self->movetarget->targetname = NULL;
-	self->monsterinfo.pausetime = 0;
+	combatpoint->targetname = NULL;
+	self->goalentity = self->movetarget = combatpoint;
 
 	/* run for it */
 	self->monsterinfo.run(self);
