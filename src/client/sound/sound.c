@@ -657,7 +657,7 @@ S_AliasName(char *aliasname, char *truename)
 
 	sfx = &known_sfx[i];
 	sfx->cache = NULL;
-	Q_strlcpy(sfx->name, aliasname, sizeof(sfx->cache));
+	Q_strlcpy(sfx->name, aliasname, sizeof(sfx->name));
 	sfx->registration_sequence = s_registration_sequence;
 	sfx->truename = s;
 
