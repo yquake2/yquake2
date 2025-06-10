@@ -1522,7 +1522,7 @@ S_SoundList(void)
 					sc->width * 8, size,
 					(sc->stereo + 1), sfx->name,
 					10 * log10((float)sc->volume / (2 << 15)),
-					(float)sc->length / 1000,
+					(float)sc->length / 1000 / (sc->stereo + 1),
 					(float)sc->begin / 1000,
 					(float)sc->attack / 1000,
 					(float)sc->fade / 1000,
