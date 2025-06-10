@@ -155,14 +155,14 @@ M_PopMenu(void)
  * 2. If the requested menu is already open, close it.
  *
  * 3. If the requested menu is already open but not
- *	  on top, close all menus above it and the menu
- *	  itself. This is necessary since an instance of
- *	  the reqeuested menu is in flight and will be
- *	  displayed.
+ *    on top, close all menus above it and the menu
+ *    itself. This is necessary since an instance of
+ *    the reqeuested menu is in flight and will be
+ *    displayed.
  *
  * 4. Save the previous menu on top (which was in flight)
- *	  to the stack and make the requested menu the menu in
- *	  flight.
+ *    to the stack and make the requested menu the menu in
+ *    flight.
  */
 void
 M_PushMenu(menuframework_s* menu)
@@ -259,7 +259,7 @@ Key_GetMenuKey(int key)
 			return K_DOWNARROW;
 
 		case K_KP_LEFTARROW:
-					if (IN_NumpadIsOn() == true) { break; }
+			if (IN_NumpadIsOn() == true) { break; }
 		case K_LEFTARROW:
 		case K_DPAD_LEFT:
 		case K_SHOULDER_LEFT:
@@ -318,10 +318,10 @@ Default_MenuKey(menuframework_s *m, int key)
 
 		if (item && item->type == MTYPE_FIELD)
 		{
-			   if (Field_Key((menufield_s *)item, key))
-			   {
-				   return NULL;
-			   }
+			if (Field_Key((menufield_s *)item, key))
+			{
+				return NULL;
+			}
 		}
 	}
 
@@ -785,7 +785,7 @@ M_Menu_Main_f(void)
 	}
 
 	s_main.draw = M_Main_Draw;
-	s_main.key	= M_Main_Key;
+	s_main.key  = M_Main_Key;
 
 	M_PushMenu(&s_main);
 }
@@ -890,7 +890,7 @@ M_Menu_Multiplayer_f(void)
 {
 	Multiplayer_MenuInit();
 	s_multiplayer_menu.draw = Multiplayer_MenuDraw;
-	s_multiplayer_menu.key	= Multiplayer_MenuKey;
+	s_multiplayer_menu.key  = Multiplayer_MenuKey;
 
 	M_PushMenu(&s_multiplayer_menu);
 }
@@ -943,14 +943,14 @@ M_UnbindCommand(char *command, int scope)
 	switch (scope)
 	{
 		case KEYS_KEYBOARD_MOUSE:
-			 end = K_JOY_FIRST_BTN;
-			 break;
+			end = K_JOY_FIRST_BTN;
+			break;
 		case KEYS_CONTROLLER:
-			 begin = K_JOY_FIRST_BTN;
-			 end = K_JOY_FIRST_BTN_ALT;
-			 break;
+			begin = K_JOY_FIRST_BTN;
+			end = K_JOY_FIRST_BTN_ALT;
+			break;
 		case KEYS_CONTROLLER_ALT:
-			 begin = K_JOY_FIRST_BTN_ALT;
+			begin = K_JOY_FIRST_BTN_ALT;
 	}
 
 	for (j = begin; j < end; j++)
@@ -979,14 +979,14 @@ M_FindKeysForCommand(char *command, int *twokeys, int scope)
 	switch (scope)
 	{
 		case KEYS_KEYBOARD_MOUSE:
-			 end = K_JOY_FIRST_BTN;
-			 break;
+			end = K_JOY_FIRST_BTN;
+			break;
 		case KEYS_CONTROLLER:
-			 begin = K_JOY_FIRST_BTN;
-			 end = K_JOY_FIRST_BTN_ALT;
-			 break;
+			begin = K_JOY_FIRST_BTN;
+			end = K_JOY_FIRST_BTN_ALT;
+			break;
 		case KEYS_CONTROLLER_ALT:
-			 begin = K_JOY_FIRST_BTN_ALT;
+			begin = K_JOY_FIRST_BTN_ALT;
 	}
 
 	twokeys[0] = twokeys[1] = -1;
@@ -2229,7 +2229,7 @@ M_Menu_Joy_f(void)
 {
 	Joy_MenuInit();
 	s_joy_menu.draw = Joy_MenuDraw;
-	s_joy_menu.key	= Joy_MenuKey;
+	s_joy_menu.key  = Joy_MenuKey;
 
 	M_PushMenu(&s_joy_menu);
 }
@@ -2625,7 +2625,7 @@ M_Menu_Options_f(void)
 {
 	Options_MenuInit();
 	s_options_menu.draw = Options_MenuDraw;
-	s_options_menu.key	= Options_MenuKey;
+	s_options_menu.key  = Options_MenuKey;
 
 	M_PushMenu(&s_options_menu);
 }
@@ -2693,7 +2693,7 @@ static const char *idcredits[] = {
 	"+SOUND EFFECTS AND MUSIC",
 	"Sound Design by Soundelux Media Labs.",
 	"Music Composed and Produced by",
-	"Soundelux Media Labs.	Special thanks",
+	"Soundelux Media Labs.  Special thanks",
 	"to Bill Brown, Tom Ozanich, Brian",
 	"Celano, Jeff Eisner, and The Soundelux",
 	"Players.",
@@ -3247,7 +3247,7 @@ Mods_MenuInit(void)
 	Mods_NamesInit();
 
 	// create array of bracketed display names from folder names - TG626
-	char **displaynames=malloc(sizeof(*displaynames) * (nummods+1));
+	char **displaynames = malloc(sizeof(*displaynames) * (nummods+1));
 
 	for (int i=0; i < nummods; i++)
 	{
@@ -3422,7 +3422,7 @@ ModsFunc(void *unused)
 	M_Menu_Mods_f();
 }
 
-void
+static void
 Game_MenuInit(void)
 {
 	Mods_NamesInit();
@@ -3802,7 +3802,7 @@ LoadGame_MenuKey(int key)
 	{
 		if (ExecDeleteSaveFunc(m, menu_key))
 		{
-			 LoadGame_MenuInit();
+			LoadGame_MenuInit();
 		}
 		return menu_move_sound;
 	}
@@ -4274,7 +4274,8 @@ StartServerActionFunc(void *self)
 	float maxclients;
 	char *spot;
 
-	strcpy(startmap, strchr(mapnames[s_startmap_list.curvalue], '\n') + 1);
+	Q_strlcpy(startmap, strchr(mapnames[s_startmap_list.curvalue], '\n') + 1,
+		sizeof(startmap));
 
 	maxclients = (float)strtod(s_maxclients_field.buffer, (char **)NULL);
 	timelimit = (float)strtod(s_timelimit_field.buffer, (char **)NULL);
@@ -4436,9 +4437,9 @@ StartServer_MenuInit(void)
 			char shortname[MAX_TOKEN_CHARS];
 			char longname[MAX_TOKEN_CHARS];
 			char scratch[200];
-			int j, l;
+			size_t j, l;
 
-			strcpy(shortname, COM_Parse(&s));
+			Q_strlcpy(shortname, COM_Parse(&s), sizeof(shortname));
 			l = strlen(shortname);
 
 			for (j = 0; j < l; j++)
@@ -4446,7 +4447,7 @@ StartServer_MenuInit(void)
 				shortname[j] = toupper((unsigned char)shortname[j]);
 			}
 
-			strcpy(longname, COM_Parse(&s));
+			Q_strlcpy(longname, COM_Parse(&s), sizeof(longname));
 			Com_sprintf(scratch, sizeof(scratch), "%s\n%s", longname, shortname);
 
 			mapnames[i] = strdup(scratch);
@@ -4482,7 +4483,8 @@ StartServer_MenuInit(void)
 		s_capturelimit_field.generic.statusbar = "0 = no limit";
 		s_capturelimit_field.length = 3;
 		s_capturelimit_field.visible_length = 3;
-		strcpy(s_capturelimit_field.buffer, Cvar_VariableString("capturelimit"));
+		Q_strlcpy(s_capturelimit_field.buffer, Cvar_VariableString("capturelimit"),
+			sizeof(s_capturelimit_field.buffer));
 	}
 	else
 	{
@@ -4521,7 +4523,8 @@ StartServer_MenuInit(void)
 	s_timelimit_field.generic.statusbar = "0 = no limit";
 	s_timelimit_field.length = 3;
 	s_timelimit_field.visible_length = 3;
-	strcpy(s_timelimit_field.buffer, Cvar_VariableString("timelimit"));
+	Q_strlcpy(s_timelimit_field.buffer, Cvar_VariableString("timelimit"),
+		sizeof(s_timelimit_field.buffer));
 
 	s_fraglimit_field.generic.type = MTYPE_FIELD;
 	s_fraglimit_field.generic.name = "frag limit";
@@ -4531,7 +4534,8 @@ StartServer_MenuInit(void)
 	s_fraglimit_field.generic.statusbar = "0 = no limit";
 	s_fraglimit_field.length = 3;
 	s_fraglimit_field.visible_length = 3;
-	strcpy(s_fraglimit_field.buffer, Cvar_VariableString("fraglimit"));
+	Q_strlcpy(s_fraglimit_field.buffer, Cvar_VariableString("fraglimit"),
+		sizeof(s_fraglimit_field.buffer));
 
 	/* maxclients determines the maximum number of players that can join
 	   the game. If maxclients is only "1" then we should default the menu
@@ -4552,7 +4556,8 @@ StartServer_MenuInit(void)
 	}
 	else
 	{
-		strcpy(s_maxclients_field.buffer, Cvar_VariableString("maxclients"));
+		Q_strlcpy(s_maxclients_field.buffer, Cvar_VariableString("maxclients"),
+			sizeof(s_maxclients_field.buffer));
 	}
 
 	s_hostname_field.generic.type = MTYPE_FIELD;
@@ -4563,7 +4568,8 @@ StartServer_MenuInit(void)
 	s_hostname_field.generic.statusbar = NULL;
 	s_hostname_field.length = 12;
 	s_hostname_field.visible_length = 12;
-	strcpy(s_hostname_field.buffer, Cvar_VariableString("hostname"));
+	Q_strlcpy(s_hostname_field.buffer, Cvar_VariableString("hostname"),
+		sizeof(s_hostname_field.buffer));
 	s_hostname_field.cursor = strlen(s_hostname_field.buffer);
 
 	s_startserver_dmoptions_action.generic.type = MTYPE_ACTION;
@@ -4584,9 +4590,13 @@ StartServer_MenuInit(void)
 	Menu_AddItem(&s_startserver_menu, &s_startmap_list);
 
 	if (M_IsGame("ctf"))
+	{
 		Menu_AddItem(&s_startserver_menu, &s_capturelimit_field);
+	}
 	else
+	{
 		Menu_AddItem(&s_startserver_menu, &s_rules_box);
+	}
 
 	Menu_AddItem(&s_startserver_menu, &s_timelimit_field);
 	Menu_AddItem(&s_startserver_menu, &s_fraglimit_field);
@@ -4618,7 +4628,7 @@ M_Menu_StartServer_f(void)
 {
 	StartServer_MenuInit();
 	s_startserver_menu.draw = StartServer_MenuDraw;
-	s_startserver_menu.key	= StartServer_MenuKey;
+	s_startserver_menu.key  = StartServer_MenuKey;
 
 	M_PushMenu(&s_startserver_menu);
 }
@@ -5054,7 +5064,9 @@ DMOptions_MenuInit(void)
 	Menu_AddItem(&s_dmoptions_menu, &s_force_respawn_box);
 
 	if (!M_IsGame("ctf"))
+	{
 		Menu_AddItem(&s_dmoptions_menu, &s_teamplay_box);
+	}
 
 	Menu_AddItem(&s_dmoptions_menu, &s_allow_exit_box);
 	Menu_AddItem(&s_dmoptions_menu, &s_infinite_ammo_box);
@@ -5062,7 +5074,9 @@ DMOptions_MenuInit(void)
 	Menu_AddItem(&s_dmoptions_menu, &s_quad_drop_box);
 
 	if (!M_IsGame("ctf"))
+	{
 		Menu_AddItem(&s_dmoptions_menu, &s_friendlyfire_box);
+	}
 
 	if (M_IsGame("rogue"))
 	{
@@ -5091,7 +5105,7 @@ DMOptions_MenuDraw(void)
 	Menu_Draw(&s_dmoptions_menu);
 }
 
-const char *
+static const char *
 DMOptions_MenuKey(int key)
 {
 	return Default_MenuKey(&s_dmoptions_menu, key);
@@ -5270,7 +5284,7 @@ M_Menu_DownloadOptions_f(void)
 {
 	DownloadOptions_MenuInit();
 	s_downloadoptions_menu.draw = DownloadOptions_MenuDraw;
-	s_downloadoptions_menu.key	= DownloadOptions_MenuKey;
+	s_downloadoptions_menu.key  = DownloadOptions_MenuKey;
 
 	M_PushMenu(&s_downloadoptions_menu);
 }
@@ -5353,7 +5367,7 @@ M_Menu_AddressBook_f(void)
 {
 	AddressBook_MenuInit();
 	s_addressbook_menu.draw = AddressBook_MenuDraw;
-	s_addressbook_menu.key	= AddressBook_MenuKey;
+	s_addressbook_menu.key  = AddressBook_MenuKey;
 
 	M_PushMenu(&s_addressbook_menu);
 }
@@ -5428,7 +5442,7 @@ IconOfSkinExists(const char* skin, char** pcxfiles, int npcxfiles,
 	int i;
 	char scratch[1024];
 
-	strcpy(scratch, skin);
+	Q_strlcpy(scratch, skin, sizeof(scratch));
 	*strrchr(scratch, '.') = 0;
 	strcat(scratch, "_i.");
 	strcat(scratch, ext);
@@ -5448,7 +5462,7 @@ IconOfSkinExists(const char* skin, char** pcxfiles, int npcxfiles,
 static void
 StripExtension(char* path)
 {
-	int length;
+	size_t length;
 
 	length = strlen(path) - 1;
 
@@ -5458,7 +5472,7 @@ StripExtension(char* path)
 
 		if (path[length] == '/')
 		{
-			return;			// no extension
+			return;         // no extension
 		}
 	}
 
@@ -5713,9 +5727,7 @@ HasSkinInDir(const char *dirname, const char *ext, int *num)
 {
 	char findname[MAX_QPATH];
 
-	strcpy(findname, dirname);
-	strcat(findname, "/*.");
-	strcat(findname, ext);
+	snprintf(findname, sizeof(findname), "%s/*.%s", dirname, ext);
 
 	return FS_ListFiles2(findname, num, 0, 0);
 }
@@ -6060,7 +6072,8 @@ PlayerConfig_MenuInit(void)
 	s_player_name_field.generic.y = 0;
 	s_player_name_field.length = 20;
 	s_player_name_field.visible_length = 20;
-	strcpy(s_player_name_field.buffer, name->string);
+	Q_strlcpy(s_player_name_field.buffer, name->string,
+		sizeof(s_player_name_field.buffer));
 	s_player_name_field.cursor = strlen(name->string);
 
 	s_player_icon_bitmap.generic.type = MTYPE_BITMAP;
@@ -6313,7 +6326,7 @@ PlayerConfig_MenuKey(int key)
 		Cvar_Set("name", name);
 		Cvar_Set("skin", skin);
 
-		PlayerModelFree();			// free player skins, models and directories
+		PlayerModelFree();          // free player skins, models and directories
 	}
 
 	return Default_MenuKey(&s_player_config_menu, key);
