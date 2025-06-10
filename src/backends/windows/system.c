@@ -113,7 +113,7 @@ Sys_Quit(void)
 void
 Sys_Init(void)
 {
-	OSVERSIONINFO vinfo;
+	OSVERSIONINFO vinfo = {0};
 
 	timeBeginPeriod(1);
 	vinfo.dwOSVersionInfoSize = sizeof(vinfo);
@@ -234,9 +234,6 @@ Sys_ConsoleInput(void)
 void
 Sys_ConsoleOutput(char *string)
 {
-	char text[256];
-	DWORD dummy;
-
 	if ((string[0] == 0x01) || (string[0] == 0x02))
 	{
 		// remove color marker
@@ -249,8 +246,12 @@ Sys_ConsoleOutput(char *string)
 	}
 	else
 	{
+		DWORD dummy;
+
 		if (console_textlen)
 		{
+			char text[256] = {0};
+
 			text[0] = '\r';
 			memset(&text[1], ' ', console_textlen);
 			text[console_textlen + 1] = '\r';
@@ -275,7 +276,7 @@ Sys_Microseconds(void)
 	static LARGE_INTEGER freq = { 0 };
 	static LARGE_INTEGER base = { 0 };
 
-    if (!freq.QuadPart)
+	if (!freq.QuadPart)
 	{
 		QueryPerformanceFrequency(&freq);
 	}
@@ -302,7 +303,7 @@ void
 Sys_Nanosleep(int nanosec)
 {
 	HANDLE timer;
-	LARGE_INTEGER li;
+	LARGE_INTEGER li = {0};
 
 	timer = CreateWaitableTimer(NULL, TRUE, NULL);
 
@@ -406,7 +407,7 @@ Sys_GetGameAPI(void *parms)
 	void *(*GetGameAPI)(void *);
 	char name[MAX_OSPATH];
 	WCHAR wname[MAX_OSPATH];
-	char *path = NULL;
+	const char *path = NULL;
 
 	if (game_library)
 	{
