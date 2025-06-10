@@ -884,7 +884,7 @@ CM_TestInLeaf(int leafnum)
 }
 
 static void
-CM_RecursiveHullCheck(int num, float p1f, float p2f, vec3_t p1, vec3_t p2)
+CM_RecursiveHullCheck(int num, float p1f, float p2f, const vec3_t p1, const vec3_t p2)
 {
 	cnode_t *node;
 	cplane_t *plane;
@@ -1017,7 +1017,7 @@ CM_RecursiveHullCheck(int num, float p1f, float p2f, vec3_t p1, vec3_t p2)
 }
 
 trace_t
-CM_BoxTrace(vec3_t start, vec3_t end, vec3_t mins, vec3_t maxs,
+CM_BoxTrace(const vec3_t start, const vec3_t end, const vec3_t mins, const vec3_t maxs,
 		int headnode, int brushmask)
 {
 	checkcount++; /* for multi-check avoidance */
@@ -1119,8 +1119,9 @@ CM_BoxTrace(vec3_t start, vec3_t end, vec3_t mins, vec3_t maxs,
  * rotating entities
  */
 trace_t
-CM_TransformedBoxTrace(vec3_t start, vec3_t end, vec3_t mins, vec3_t maxs,
-		int headnode, int brushmask, vec3_t origin, vec3_t angles)
+CM_TransformedBoxTrace(const vec3_t start, const vec3_t end,
+		const vec3_t mins, const vec3_t maxs, int headnode, int brushmask,
+		const vec3_t origin, const vec3_t angles)
 {
 	vec3_t forward, right, up;
 	vec3_t start_l, end_l;

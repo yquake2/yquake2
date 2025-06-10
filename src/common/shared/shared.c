@@ -97,7 +97,7 @@ RotatePointAroundVector(vec3_t dst, const vec3_t dir,
 }
 
 void
-AngleVectors(vec3_t angles, vec3_t forward, vec3_t right, vec3_t up)
+AngleVectors(const vec3_t angles, vec3_t forward, vec3_t right, vec3_t up)
 {
 	float angle;
 	static float sr, sp, sy, cr, cp, cy;
@@ -135,9 +135,8 @@ AngleVectors(vec3_t angles, vec3_t forward, vec3_t right, vec3_t up)
 }
 
 void
-AngleVectors2(vec3_t value1, vec3_t angles)
+AngleVectors2(const vec3_t value1, vec3_t angles)
 {
-	float forward;
 	float yaw, pitch;
 
 	if ((value1[1] == 0) && (value1[0] == 0))
@@ -156,6 +155,8 @@ AngleVectors2(vec3_t value1, vec3_t angles)
 	}
 	else
 	{
+		float forward;
+
 		if (value1[0])
 		{
 			yaw = ((float)atan2(value1[1], value1[0]) * 180 / M_PI);
