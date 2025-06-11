@@ -499,6 +499,7 @@ float CL_KeyState (kbutton_t *key);
 char *Key_KeynumToString (int keynum);
 char *Key_KeynumToString_Joy (int key);
 
+int CL_MaxClients(void);
 void CL_WriteDemoMessage (void);
 void CL_Stop_f (void);
 

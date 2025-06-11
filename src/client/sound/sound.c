@@ -752,11 +752,25 @@ S_RegisterSexedSound(const entity_state_t *ent, const char *base)
 	sfx_t *sfx;
 	char model[MAX_QPATH];
 	char sexedFilename[MAX_QPATH];
+	char *cs;
+	int n;
 
 	/* determine what model the client is using */
-	GetModelName(
-		cl.configstrings[CS_PLAYERSKINS + ent->number - 1],
-		model, sizeof(model));
+	n = ent->number;
+
+	if (n > 0 && n <= CL_MaxClients())
+	{
+		cs = cl.configstrings[CS_PLAYERSKINS + n - 1];
+	}
+	else
+	{
+		Com_Printf("%s: non-player entity %i playing sexed sound: %s\n",
+			__func__, n, base);
+
+		cs = NULL;
+	}
+
+	GetModelName(cs, model, sizeof(model));
 
 	/* if we can't figure it out, they're male */
 	if (!model[0])

@@ -108,6 +108,25 @@ extern cvar_t *allow_download_sounds;
 extern cvar_t *allow_download_maps;
 
 /*
+ * Returns max clients in the current session
+ * Returns 1 if the value is bad (<= 0) or the configstring is blank
+ */
+int
+CL_MaxClients(void)
+{
+	int i = 0;
+
+	sscanf(cl.configstrings[CS_MAXCLIENTS], " %i ", &i);
+
+	if (i > MAX_CLIENTS)
+	{
+		return MAX_CLIENTS;
+	}
+
+	return i <= 0 ? 1 : i;
+}
+
+/*
  * Dumps the current net message, prefixed by the length
  */
 void
