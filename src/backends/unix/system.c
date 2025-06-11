@@ -563,7 +563,7 @@ Sys_GetHomeDir(void)
 void
 Sys_Remove(const char *path)
 {
-	if (remove(path) == -1)
+	if (remove(path) == -1 && errno != ENOENT)
 	{
 		Com_Printf("%s: remove %s: %s\n",
 			__func__, path, strerror(errno));
