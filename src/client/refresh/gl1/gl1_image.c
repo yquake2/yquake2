@@ -31,7 +31,7 @@ int numgltextures;
 static int image_max = 0;
 int base_textureid; /* gltextures[i] = base_textureid+i */
 extern qboolean scrap_dirty;
-extern byte *scrap_texels[MAX_SCRAPS];
+extern byte scrap_texels[MAX_SCRAPS][SCRAP_WIDTH * SCRAP_HEIGHT];
 
 static byte intensitytable[256];
 static unsigned char gammatable[256];
@@ -1028,17 +1028,17 @@ R_LoadPic(const char *name, byte *pic, int width, int realwidth,
 
 			for (j = 0; j < image->width; j++, k++)
 			{
-				scrap_texels[texnum][(y + i) * gl_state.scrap_width + x + j] = pic[k];
+				scrap_texels[texnum][(y + i) * SCRAP_WIDTH + x + j] = pic[k];
 			}
 		}
 
 		image->texnum = TEXNUM_SCRAPS + texnum;
 		image->scrap = true;
 		image->has_alpha = true;
-		image->sl = (float)x / gl_state.scrap_width;
-		image->sh = (float)(x + image->width) / gl_state.scrap_width;
-		image->tl = (float)y / gl_state.scrap_height;
-		image->th = (float)(y + image->height) / gl_state.scrap_height;
+		image->sl = (float)x / SCRAP_WIDTH;
+		image->sh = (float)(x + image->width) / SCRAP_WIDTH;
+		image->tl = (float)y / SCRAP_HEIGHT;
+		image->th = (float)(y + image->height) / SCRAP_HEIGHT;
 	}
 	else
 	{

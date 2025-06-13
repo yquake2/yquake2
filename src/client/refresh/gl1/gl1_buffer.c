@@ -183,7 +183,7 @@ R_ApplyGLBuffer(void)
 			if (gl_config.lightmapcopies)
 			{
 				// Bind appropiate lightmap copy for this frame
-				lmtexture += gl_state.max_lightmaps * cur_lm_copy;
+				lmtexture += MAX_LIGHTMAPS * cur_lm_copy;
 			}
 			R_MBind(GL_TEXTURE1, lmtexture);
 

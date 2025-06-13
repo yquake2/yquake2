@@ -52,8 +52,10 @@
 #define TEXNUM_SCRAPS (TEXNUM_LIGHTMAPS + MAX_LIGHTMAPS * MAX_LIGHTMAP_COPIES)
 #define TEXNUM_IMAGES (TEXNUM_SCRAPS + MAX_SCRAPS)
 #define MAX_GLTEXTURES 1024
-#define BLOCK_WIDTH 128		// default values; now defined in glstate_t
+#define BLOCK_WIDTH 128
 #define BLOCK_HEIGHT 128
+#define SCRAP_WIDTH (BLOCK_WIDTH * 2)
+#define SCRAP_HEIGHT (BLOCK_HEIGHT * 2)
 #define BACKFACE_EPSILON 0.01
 #define LIGHTMAP_BYTES 4
 #define MAX_TEXTURE_UNITS 2
@@ -450,12 +452,6 @@ typedef struct
 	enum stereo_modes stereo_mode;
 
 	qboolean stencil;
-
-	int	block_width,	// replaces BLOCK_WIDTH
-		block_height,	// replaces BLOCK_HEIGHT
-		max_lightmaps,	// the larger the lightmaps, the fewer the max lightmaps
-		scrap_width,	// size for scrap (atlas of 2D elements)
-		scrap_height;
 } glstate_t;
 
 typedef struct
@@ -464,7 +460,7 @@ typedef struct
 
 	msurface_t *lightmap_surfaces[MAX_LIGHTMAPS];
 
-	int *allocated;		// formerly allocated[BLOCK_WIDTH];
+	int allocated[BLOCK_WIDTH];
 
 	/* the lightmap texture data needs to be kept in
 	   main memory so texsubimage can update properly */

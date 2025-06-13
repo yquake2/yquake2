@@ -148,7 +148,6 @@ static cvar_t *gl1_waterwarp;
 refimport_t ri;
 
 void LM_FreeLightmapBuffers(void);
-void Scrap_Free(void);
 void Scrap_Init(void);
 
 extern void R_SetDefaultState(void);
@@ -1759,20 +1758,6 @@ RI_Init(void)
 
 	// ----
 
-	/* Big lightmaps: this used to be fast, but after the implementation of the "GL Buffer", it
-	 * became too evident that the bigger the texture, the slower the call to glTexSubImage2D() is.
-	 * Original logic remains, but it's preferable not to make it visible to the user.
-	 * Let's see if something changes in the future.
-	 */
-
-	gl_state.block_width = BLOCK_WIDTH;
-	gl_state.block_height = BLOCK_HEIGHT;
-	gl_state.max_lightmaps = MAX_LIGHTMAPS;
-	gl_state.scrap_width = BLOCK_WIDTH * 2;
-	gl_state.scrap_height = BLOCK_HEIGHT * 2;
-
-	// ----
-
 	R_ResetClearColor();
 	R_SetDefaultState();
 
@@ -1795,7 +1780,6 @@ RI_Shutdown(void)
 	ri.Cmd_RemoveCommand("gl_strings");
 
 	LM_FreeLightmapBuffers();
-	Scrap_Free();
 	Mod_FreeAll();
 
 	R_ShutdownImages();

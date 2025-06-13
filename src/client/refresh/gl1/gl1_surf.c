@@ -95,7 +95,7 @@ R_DrawTriangleOutlines(void)
 	glDisable(GL_DEPTH_TEST);
 	glColor4f(1, 1, 1, 1);
 
-	for (i = 0; i < gl_state.max_lightmaps; i++)
+	for (i = 0; i < MAX_LIGHTMAPS; i++)
 	{
 		msurface_t *surf;
 
@@ -247,7 +247,7 @@ R_BlendLightmaps(const model_t *currentmodel)
 	}
 
 	/* render static lightmaps first */
-	for (i = 1; i < gl_state.max_lightmaps; i++)
+	for (i = 1; i < MAX_LIGHTMAPS; i++)
 	{
 		if (gl_lms.lightmap_surfaces[i])
 		{
@@ -304,10 +304,10 @@ R_BlendLightmaps(const model_t *currentmodel)
 			if (LM_AllocBlock(smax, tmax, &surf->dlight_s, &surf->dlight_t))
 			{
 				base = gl_lms.lightmap_buffer[0];
-				base += (surf->dlight_t * gl_state.block_width +
+				base += (surf->dlight_t * BLOCK_WIDTH +
 						surf->dlight_s) * LIGHTMAP_BYTES;
 
-				R_BuildLightMap(surf, base, gl_state.block_width * LIGHTMAP_BYTES);
+				R_BuildLightMap(surf, base, BLOCK_WIDTH * LIGHTMAP_BYTES);
 			}
 			else
 			{
@@ -331,8 +331,8 @@ R_BlendLightmaps(const model_t *currentmodel)
 						}
 
 						R_DrawGLPolyChain(drawsurf->polys,
-								(drawsurf->light_s - drawsurf->dlight_s) * (1.0 / (float)gl_state.block_width),
-								(drawsurf->light_t - drawsurf->dlight_t) * (1.0 / (float)gl_state.block_height));
+								(drawsurf->light_s - drawsurf->dlight_s) * (float)(1.0 / BLOCK_WIDTH),
+								(drawsurf->light_t - drawsurf->dlight_t) * (float)(1.0 / BLOCK_HEIGHT));
 					}
 				}
 
@@ -350,10 +350,10 @@ R_BlendLightmaps(const model_t *currentmodel)
 				}
 
 				base = gl_lms.lightmap_buffer[0];
-				base += (surf->dlight_t * gl_state.block_width +
+				base += (surf->dlight_t * BLOCK_WIDTH +
 						surf->dlight_s) * LIGHTMAP_BYTES;
 
-				R_BuildLightMap(surf, base, gl_state.block_width * LIGHTMAP_BYTES);
+				R_BuildLightMap(surf, base, BLOCK_WIDTH * LIGHTMAP_BYTES);
 			}
 		}
 
@@ -375,8 +375,8 @@ R_BlendLightmaps(const model_t *currentmodel)
 				}
 
 				R_DrawGLPolyChain(surf->polys,
-						(surf->light_s - surf->dlight_s) * (1.0 / (float)gl_state.block_width),
-						(surf->light_t - surf->dlight_t) * (1.0 / (float)gl_state.block_height));
+						(surf->light_s - surf->dlight_s) * (float)(1.0 / BLOCK_WIDTH),
+						(surf->light_t - surf->dlight_t) * (float)(1.0 / BLOCK_HEIGHT));
 			}
 		}
 	}
@@ -605,14 +605,14 @@ R_RegenAllLightmaps()
 	if (gl_config.lightmapcopies)
 	{
 		cur_lm_copy = (cur_lm_copy + 1) % MAX_LIGHTMAP_COPIES;	// select the next lightmap copy
-		lmtex = gl_state.max_lightmaps * cur_lm_copy;	// ...and its corresponding texture
+		lmtex = MAX_LIGHTMAPS * cur_lm_copy;	// ...and its corresponding texture
 	}
 	else
 	{
 		lmtex = 0;
 	}
 
-	for (i = 1; i < gl_state.max_lightmaps; i++)
+	for (i = 1; i < MAX_LIGHTMAPS; i++)
 	{
 		if (!gl_lms.lightmap_surfaces[i] || !gl_lms.lightmap_buffer[i])
 		{
@@ -620,8 +620,8 @@ R_RegenAllLightmaps()
 		}
 
 		affected_lightmap = false;
-		best.top = gl_state.block_height;
-		best.left = gl_state.block_width;
+		best.top = BLOCK_HEIGHT;
+		best.left = BLOCK_WIDTH;
 		best.bottom = best.right = 0;
 
 		for (surf = gl_lms.lightmap_surfaces[i];
@@ -661,9 +661,9 @@ dynamic_surf:
 			current.bottom = surf->light_t + tmax;
 
 			base = gl_lms.lightmap_buffer[i];
-			base += (current.top * gl_state.block_width + current.left) * LIGHTMAP_BYTES;
+			base += (current.top * BLOCK_WIDTH + current.left) * LIGHTMAP_BYTES;
 
-			R_BuildLightMap(surf, base, gl_state.block_width * LIGHTMAP_BYTES);
+			R_BuildLightMap(surf, base, BLOCK_WIDTH * LIGHTMAP_BYTES);
 
 			if ( ((surf->styles[map] >= 32) || (surf->styles[map] == 0))
 				&& (surf->dlightframe != r_framecount) )
@@ -711,7 +711,7 @@ dynamic_surf:
 #ifndef YQ2_GL1_GLES
 		if (!pixelstore_set)
 		{
-			glPixelStorei(GL_UNPACK_ROW_LENGTH, gl_state.block_width);
+			glPixelStorei(GL_UNPACK_ROW_LENGTH, BLOCK_WIDTH);
 			pixelstore_set = true;
 		}
 #endif
@@ -720,15 +720,15 @@ dynamic_surf:
 		base = gl_lms.lightmap_buffer[i];
 
 #ifdef YQ2_GL1_GLES
-		base += (best.top * gl_state.block_width) * LIGHTMAP_BYTES;
+		base += (best.top * BLOCK_WIDTH) * LIGHTMAP_BYTES;
 
 		R_Bind(gl_state.lightmap_textures + i + lmtex);
 
 		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, best.top,
-			gl_state.block_width, best.bottom - best.top,
+			BLOCK_WIDTH, best.bottom - best.top,
 			GL_LIGHTMAP_FORMAT, GL_UNSIGNED_BYTE, base);
 #else
-		base += (best.top * gl_state.block_width + best.left) * LIGHTMAP_BYTES;
+		base += (best.top * BLOCK_WIDTH + best.left) * LIGHTMAP_BYTES;
 
 		R_Bind(gl_state.lightmap_textures + i + lmtex);
 
