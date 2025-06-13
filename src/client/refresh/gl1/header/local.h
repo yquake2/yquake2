@@ -246,10 +246,6 @@ extern cvar_t *gl_msaa_samples;
 extern cvar_t *vid_fullscreen;
 extern cvar_t *vid_gamma;
 
-extern cvar_t *intensity;
-
-extern int gl_solid_format;
-extern int gl_alpha_format;
 extern int gl_tex_solid_format;
 extern int gl_tex_alpha_format;
 
@@ -258,7 +254,6 @@ extern int c_visible_textures;
 
 extern float r_world_matrix[16];
 
-void R_TranslatePlayerSkin(int playernum);
 qboolean R_Bind(int texnum);
 
 void R_TexEnv(GLenum value);
@@ -299,8 +294,6 @@ void R_MarkSurfaceLights(dlight_t *light, int bit, mnode_t *node,
 	int lightframecount);
 
 void COM_StripExtension(char *in, char *out);
-
-void R_SwapBuffers(int);
 
 image_t *R_LoadPic(const char *name, byte *pic, int width, int realwidth,
 		int height, int realheight, size_t data_size, imagetype_t type, int bits);
