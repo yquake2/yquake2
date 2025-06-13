@@ -730,7 +730,7 @@ void
 R_SetPerspective(GLdouble fovy)
 {
 	// gluPerspective style parameters
-	static const GLdouble zNear = 4;
+	static const GLdouble zNear = 2;
 	const GLdouble zFar = (r_farsee->value) ? 8192.0f : 4096.0f;
 	const GLdouble aspectratio = (GLdouble)r_newrefdef.width / r_newrefdef.height;
 
