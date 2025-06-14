@@ -1843,10 +1843,9 @@ Weapon_Railgun(edict_t *ent)
 void
 weapon_bfg_fire(edict_t *ent)
 {
-	vec3_t offset, start;
-	vec3_t forward, right;
-	int damage;
+	vec3_t offset, start, forward, right;
 	float damage_radius = 1000;
+	int damage;
 
 	if (!ent)
 	{
@@ -1864,6 +1863,11 @@ weapon_bfg_fire(edict_t *ent)
 
 	if (ent->client->ps.gunframe == 9)
 	{
+		AngleVectors(ent->client->v_angle, forward, right, NULL);
+
+		VectorSet(offset, 8, 8, ent->viewheight - 8);
+		P_ProjectSource(ent, offset, forward, right, start);
+
 		/* send muzzle flash */
 		gi.WriteByte(svc_muzzleflash);
 		gi.WriteShort(ent - g_edicts);

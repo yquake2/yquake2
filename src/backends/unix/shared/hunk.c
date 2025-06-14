@@ -102,7 +102,8 @@ Hunk_Alloc(int size)
 
 	if (curhunksize + size > maxhunksize)
 	{
-		Sys_Error("Hunk_Alloc overflow");
+		Sys_Error("%s: overflow %d > %d",
+			__func__, curhunksize + size, maxhunksize);
 	}
 
 	buf = membase + sizeof(size_t) + curhunksize;

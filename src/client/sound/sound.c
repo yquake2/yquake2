@@ -657,7 +657,7 @@ S_AliasName(char *aliasname, char *truename)
 
 	sfx = &known_sfx[i];
 	sfx->cache = NULL;
-	Q_strlcpy(sfx->name, aliasname, sizeof(sfx->cache));
+	Q_strlcpy(sfx->name, aliasname, sizeof(sfx->name));
 	sfx->registration_sequence = s_registration_sequence;
 	sfx->truename = s;
 
@@ -1522,7 +1522,7 @@ S_SoundList(void)
 					sc->width * 8, size,
 					(sc->stereo + 1), sfx->name,
 					10 * log10((float)sc->volume / (2 << 15)),
-					(float)sc->length / 1000,
+					(float)sc->length / 1000 / (sc->stereo + 1),
 					(float)sc->begin / 1000,
 					(float)sc->attack / 1000,
 					(float)sc->fade / 1000,

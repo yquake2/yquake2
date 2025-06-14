@@ -100,8 +100,8 @@ extern void R_ConcatTransforms ( float in1 [ 3 ] [ 4 ] , float in2 [ 3 ] [ 4 ] ,
 extern void R_ConcatRotations ( float in1 [ 3 ] [ 3 ] , float in2 [ 3 ] [ 3 ] , float out [ 3 ] [ 3 ] ) ;
 extern void PerpendicularVector ( vec3_t dst , const vec3_t src ) ;
 extern void ProjectPointOnPlane ( vec3_t dst , const vec3_t p , const vec3_t normal ) ;
-extern void AngleVectors2 ( vec3_t value1 , vec3_t angles ) ;
-extern void AngleVectors ( vec3_t angles , vec3_t forward , vec3_t right , vec3_t up ) ;
+extern void AngleVectors2 ( const vec3_t value1 , vec3_t angles ) ;
+extern void AngleVectors ( const vec3_t angles , vec3_t forward , vec3_t right , vec3_t up ) ;
 extern void RotatePointAroundVector ( vec3_t dst , const vec3_t dir , const vec3_t point , float degrees ) ;
 extern void Weapon_BFG ( edict_t * ent ) ;
 extern void weapon_bfg_fire ( edict_t * ent ) ;

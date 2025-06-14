@@ -33,7 +33,7 @@
 #if defined(HAVE_EXECINFO)
 #include <execinfo.h>
 
-void
+static void
 printBacktrace(int sig)
 {
 	void *array[15];
@@ -62,7 +62,7 @@ printBacktrace(int sig)
 
 #else
 
-void
+static void
 printBacktrace(int sig)
 {
 	printf("Product:      Yamagi Quake II\n");
@@ -77,7 +77,7 @@ printBacktrace(int sig)
 
 #endif
 
-void
+static void
 signalhandler(int sig)
 {
 	printf("\n=======================================================\n");
@@ -117,7 +117,7 @@ signalhandler(int sig)
 
 extern qboolean quitnextframe;
 
-void
+static void
 terminate(int sig)
 {
 	quitnextframe = true;
