@@ -27,8 +27,8 @@
 
 #include "header/local.h"
 
-int *scrap_allocated[MAX_SCRAPS];
-byte *scrap_texels[MAX_SCRAPS];
+static int scrap_allocated[MAX_SCRAPS][SCRAP_WIDTH];
+byte scrap_texels[MAX_SCRAPS][SCRAP_WIDTH * SCRAP_HEIGHT];
 qboolean scrap_dirty;
 
 qboolean R_Upload8(byte *data,
@@ -49,9 +49,9 @@ Scrap_AllocBlock(int w, int h, int *x, int *y)
 
 	for (texnum = 0; texnum < MAX_SCRAPS; texnum++)
 	{
-		best = gl_state.scrap_height;
+		best = SCRAP_HEIGHT;
 
-		for (i = 0; i < gl_state.scrap_width - w; i++)
+		for (i = 0; i < SCRAP_WIDTH - w; i++)
 		{
 			best2 = 0;
 
@@ -75,7 +75,7 @@ Scrap_AllocBlock(int w, int h, int *x, int *y)
 			}
 		}
 
-		if (best + h > gl_state.scrap_height)
+		if (best + h > SCRAP_HEIGHT)
 		{
 			continue;
 		}
@@ -97,57 +97,14 @@ void
 Scrap_Upload(void)
 {
 	R_Bind(TEXNUM_SCRAPS);
-	R_Upload8(scrap_texels[0], gl_state.scrap_width,
-			gl_state.scrap_height, false, false);
+	R_Upload8(scrap_texels[0], SCRAP_WIDTH, SCRAP_HEIGHT, false, false);
 	scrap_dirty = false;
-}
-
-void
-Scrap_Free(void)
-{
-	for (int i = 0; i < MAX_SCRAPS; i++)
-	{
-		if (scrap_allocated[i])
-		{
-			free(scrap_allocated[i]);
-		}
-		scrap_allocated[i] = NULL;
-
-		if (scrap_texels[i])
-		{
-			free(scrap_texels[i]);
-		}
-		scrap_texels[i] = NULL;
-	}
 }
 
 void
 Scrap_Init(void)
 {
-	const unsigned int allocd_size = gl_state.scrap_width * sizeof(int);
-	const unsigned int texels_size = gl_state.scrap_width
-			* gl_state.scrap_height * sizeof(byte);
-	int i;
-
-	Scrap_Free();
-
-	for (i = 0; i < MAX_SCRAPS; i++)
-	{
-		if (!scrap_allocated[i])
-		{
-			scrap_allocated[i] = malloc (allocd_size) ;
-		}
-		if (!scrap_texels[i])
-		{
-			scrap_texels[i] = malloc (texels_size) ;
-		}
-
-		if (!scrap_allocated[i] || !scrap_texels[i])
-		{
-			ri.Sys_Error(ERR_FATAL, "Could not allocate scrap memory.\n");
-		}
-		memset (scrap_allocated[i], 0, allocd_size);	// empty
-		memset (scrap_texels[i], 255, texels_size);	// transparent
-	}
+	memset (scrap_allocated, 0, sizeof(scrap_allocated));	// empty
+	memset (scrap_texels, 255, sizeof(scrap_texels));	// transparent
 }
 

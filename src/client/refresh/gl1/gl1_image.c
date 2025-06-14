@@ -29,14 +29,13 @@
 image_t gltextures[MAX_GLTEXTURES];
 int numgltextures;
 static int image_max = 0;
-int base_textureid; /* gltextures[i] = base_textureid+i */
 extern qboolean scrap_dirty;
-extern byte *scrap_texels[MAX_SCRAPS];
+extern byte scrap_texels[MAX_SCRAPS][SCRAP_WIDTH * SCRAP_HEIGHT];
 
 static byte intensitytable[256];
 static unsigned char gammatable[256];
 
-cvar_t *intensity;
+static cvar_t *intensity;
 
 unsigned d_8to24table[256];
 
@@ -44,8 +43,8 @@ qboolean R_Upload8(byte *data, int width, int height,
 		qboolean mipmap, qboolean is_sky);
 qboolean R_Upload32(unsigned *data, int width, int height, qboolean mipmap);
 
-int gl_solid_format = GL_RGB;
-int gl_alpha_format = GL_RGBA;
+#define Q2_GL_SOLID_FORMAT GL_RGB
+#define Q2_GL_ALPHA_FORMAT GL_RGBA
 
 #ifdef YQ2_GL1_GLES
 #define DEFAULT_SOLID_FORMAT GL_RGBA
@@ -144,8 +143,8 @@ typedef struct
 		} \
 	}
 
-int upload_width, upload_height;
-qboolean uploaded_paletted;
+static int upload_width, upload_height;
+static qboolean uploaded_paletted;
 
 void
 R_SetTexturePalette(const unsigned palette[256])
@@ -635,7 +634,7 @@ R_Upload32Native(unsigned *data, int width, int height, qboolean mipmap)
 
 	c = width * height;
 	scan = ((byte *)data) + 3;
-	samples = gl_solid_format;
+	samples = Q2_GL_SOLID_FORMAT;
 	comp = gl_tex_solid_format;
 	upload_width = width;
 	upload_height = height;
@@ -646,7 +645,7 @@ R_Upload32Native(unsigned *data, int width, int height, qboolean mipmap)
 	{
 		if (*scan != 255)
 		{
-			samples = gl_alpha_format;
+			samples = Q2_GL_ALPHA_FORMAT;
 			comp = gl_tex_alpha_format;
 			break;
 		}
@@ -656,7 +655,7 @@ R_Upload32Native(unsigned *data, int width, int height, qboolean mipmap)
 			height, 0, GL_RGBA, GL_UNSIGNED_BYTE,
 			data);
 	glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, false);
-	return samples == gl_alpha_format;
+	return samples == Q2_GL_ALPHA_FORMAT;
 }
 
 
@@ -725,20 +724,20 @@ R_Upload32Soft(unsigned *data, int width, int height, qboolean mipmap)
 	if (scaled_width * scaled_height > sizeof(scaled) / 4)
 	{
 		// this can't really happen (because they're clamped to 256 above), but whatever
-		ri.Sys_Error(ERR_DROP, "R_Upload32: too big");
+		ri.Sys_Error(ERR_DROP, "%s: too big", __func__);
 	}
 
 	/* scan the texture for any non-255 alpha */
 	c = width * height;
 	scan = ((byte *)data) + 3;
-	samples = gl_solid_format;
+	samples = Q2_GL_SOLID_FORMAT;
 	comp = gl_tex_solid_format;
 
 	for (i = 0; i < c; i++, scan += 4)
 	{
 		if (*scan != 255)
 		{
-			samples = gl_alpha_format;
+			samples = Q2_GL_ALPHA_FORMAT;
 			comp = gl_tex_alpha_format;
 			break;
 		}
@@ -749,7 +748,7 @@ R_Upload32Soft(unsigned *data, int width, int height, qboolean mipmap)
 		if (!mipmap)
 		{
 			if (qglColorTableEXT && gl1_palettedtexture->value &&
-				(samples == gl_solid_format))
+				(samples == Q2_GL_SOLID_FORMAT))
 			{
 				uploaded_paletted = true;
 				R_BuildPalettedTexture(paletted_texture, (unsigned char *)data,
@@ -779,7 +778,7 @@ R_Upload32Soft(unsigned *data, int width, int height, qboolean mipmap)
 	R_LightScaleTexture(scaled, scaled_width, scaled_height, !mipmap);
 
 	if (qglColorTableEXT && gl1_palettedtexture->value &&
-		(samples == gl_solid_format))
+		(samples == Q2_GL_SOLID_FORMAT))
 	{
 		uploaded_paletted = true;
 		R_BuildPalettedTexture(paletted_texture, (unsigned char *)scaled,
@@ -820,7 +819,7 @@ R_Upload32Soft(unsigned *data, int width, int height, qboolean mipmap)
 			miplevel++;
 
 			if (qglColorTableEXT && gl1_palettedtexture->value &&
-				(samples == gl_solid_format))
+				(samples == Q2_GL_SOLID_FORMAT))
 			{
 				uploaded_paletted = true;
 				R_BuildPalettedTexture(paletted_texture, (unsigned char *)scaled,
@@ -839,7 +838,7 @@ R_Upload32Soft(unsigned *data, int width, int height, qboolean mipmap)
 
 done:
 
-	return samples == gl_alpha_format;
+	return samples == Q2_GL_ALPHA_FORMAT;
 }
 
 qboolean
@@ -977,7 +976,7 @@ R_LoadPic(const char *name, byte *pic, int width, int realwidth,
 	{
 		if (numgltextures == MAX_GLTEXTURES)
 		{
-			ri.Sys_Error(ERR_DROP, "MAX_GLTEXTURES");
+			ri.Sys_Error(ERR_DROP, "%s: MAX_GLTEXTURES", __func__);
 		}
 
 		numgltextures++;
@@ -1028,17 +1027,17 @@ R_LoadPic(const char *name, byte *pic, int width, int realwidth,
 
 			for (j = 0; j < image->width; j++, k++)
 			{
-				scrap_texels[texnum][(y + i) * gl_state.scrap_width + x + j] = pic[k];
+				scrap_texels[texnum][(y + i) * SCRAP_WIDTH + x + j] = pic[k];
 			}
 		}
 
 		image->texnum = TEXNUM_SCRAPS + texnum;
 		image->scrap = true;
 		image->has_alpha = true;
-		image->sl = (float)x / gl_state.scrap_width;
-		image->sh = (float)(x + image->width) / gl_state.scrap_width;
-		image->tl = (float)y / gl_state.scrap_height;
-		image->th = (float)(y + image->height) / gl_state.scrap_height;
+		image->sl = (float)x / SCRAP_WIDTH;
+		image->sh = (float)(x + image->width) / SCRAP_WIDTH;
+		image->tl = (float)y / SCRAP_HEIGHT;
+		image->th = (float)(y + image->height) / SCRAP_HEIGHT;
 	}
 	else
 	{
