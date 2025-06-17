@@ -701,17 +701,44 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
   `+gyroaction` bind to enable, `2` = on with `+gyroaction` to
   disable (default), `3` = always on.
 
-* **gyro_turning_axis**: Sets which gyro axis will be used for turning.
-  The default `0` is "yaw" (turn), for people who prefer to hold their
-  controller flat, like using a pointing device. `1` is "roll" (lean),
-  for people who hold the controller upright, or use a device with the
-  controller attached to the screen, e.g. Steam Deck.
+* **gyro_space**: How motion input is converted into yaw and pitch
+  rotations. `0` = local space, `1` = player space (default),
+  `2` = world space.
 
-* **gyro_tightening**: Threshold of rotation in degrees per second,
-  where gyro inputs below it will be dampened. Meant to counter a
-  noisy gyro and involuntary hand movements. Default `3.5`.
+* **gyro_local_roll**: How gyro roll contributes to turning when using
+  local space. `0` = off, `1` = on (default), `2` = inverted.
 
-* **gyro_calibration_(x/y/z)**: Offset values on each axis of the gyro
+* **gyro_yawsensitivity**: How quickly the view turns left or right. A
+  value of 1.0 means one full rotation of the controller rotates the
+  in-game view by 360 degrees. Default `2.5`.
+
+* **gyro_pitchsensitivity**: How quickly the view looks up or down.
+  Default `2.5`.
+
+* **gyro_tightening**: Threshold of rotation, in degrees per second,
+  below which gyro input is reduced to stabilize aiming. Default `3.0`.
+
+* **gyro_smoothing**: Threshold of rotation, in degrees per second,
+  below which gyro input is averaged to reduce jitter. Default `2.0`.
+
+* **gyro_smoothing_window**: The smoothing window size, in seconds.
+  Default `0.125`.
+
+* **gyro_acceleration**: Toggles the use of gyro acceleration.
+  `0` = off (default), `1` = on.
+
+* **gyro_accel_multiplier**: Multiplier that increases gyro sensitivity
+  when rotating the controller quickly. Applied linearly, ramping up
+  from the lower to upper threshold. Default `2.0`.
+
+* **gyro_accel_lower_thresh**: The lower input threshold, in degrees per
+  second, from which acceleration starts ramping up towards the upper
+  threshold. Default `0`.
+
+* **gyro_accel_upper_thresh**: The upper input threshold, in degrees per
+  second, at which full acceleration is applied. Default `75`.
+
+* **gyro_calibration_(a/x/y/z)**: Offset values on each axis of the gyro
   which helps it reach true "zero movement", complete stillness. These
   values are wrong if you see your in-game view "drift" when leaving
   the controller alone. As these vary by device, it's better to use
