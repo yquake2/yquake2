@@ -925,6 +925,7 @@ CLIENT_OBJS_ := \
 	src/client/cl_view.o \
 	src/client/curl/download.o \
 	src/client/curl/qcurl.o \
+	src/client/input/gyro.o \
 	src/client/menu/menu.o \
 	src/client/menu/qmenu.o \
 	src/client/menu/videomenu.o \
