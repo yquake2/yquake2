@@ -515,6 +515,12 @@ ClosestPointOnBounds(const vec3_t p, const vec3_t amin, const vec3_t amax, vec3_
 	}
 }
 
+qboolean
+IsZeroVector(vec3_t v)
+{
+	return (v[0] == 0.0f && v[1] == 0.0f && v[2] == 0.0f);
+}
+
 int
 VectorCompare(vec3_t v1, vec3_t v2)
 {
@@ -599,6 +605,12 @@ CrossProduct(vec3_t v1, vec3_t v2, vec3_t cross)
 	cross[2] = v1[0] * v2[1] - v1[1] * v2[0];
 }
 
+vec_t
+VectorLengthSquared(vec3_t v)
+{
+	return (v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
+}
+
 double sqrt(double x);
 
 vec_t
@@ -618,11 +630,89 @@ VectorInverse(vec3_t v)
 }
 
 void
+VectorInverse2(vec3_t v, vec3_t out)
+{
+	VectorCopy(v, out);
+	VectorInverse(out);
+}
+
+void
 VectorScale(vec3_t in, vec_t scale, vec3_t out)
 {
 	out[0] = in[0] * scale;
 	out[1] = in[1] * scale;
 	out[2] = in[2] * scale;
+}
+
+void
+VectorLerp(vec3_t v1, vec3_t v2, vec_t factor, vec3_t out)
+{
+	VectorSubtract(v2, v1, out);
+	VectorScale(out, factor, out);
+	VectorAdd(out, v1, out);
+}
+
+void
+VectorToQuat(vec3_t v, quat_t out)
+{
+	out[0] = v[0];
+	out[1] = v[1];
+	out[2] = v[2];
+	out[3] = 0.0f;
+}
+
+void
+QuatInverse(quat_t q, quat_t out)
+{
+	out[0] = -q[0];
+	out[1] = -q[1];
+	out[2] = -q[2];
+	out[3] = q[3];
+}
+
+void
+QuatMultiply(quat_t q1, quat_t q2, quat_t out)
+{
+	out[0] = q1[3] * q2[0] + q1[0] * q2[3] + q1[1] * q2[2] - q1[2] * q2[1];
+	out[1] = q1[3] * q2[1] - q1[0] * q2[2] + q1[1] * q2[3] + q1[2] * q2[0];
+	out[2] = q1[3] * q2[2] + q1[0] * q2[1] - q1[1] * q2[0] + q1[2] * q2[3];
+	out[3] = q1[3] * q2[3] - q1[0] * q2[0] - q1[1] * q2[1] - q1[2] * q2[2];
+}
+
+void
+QuatAngleAxis(vec3_t v, float angle, quat_t out)
+{
+	const vec_t scale = sinf(angle * 0.5f);
+	vec3_t v_out;
+
+	VectorNormalize2(v, v_out);
+	VectorScale(v_out, scale, v_out);
+
+	out[0] = v_out[0];
+	out[1] = v_out[1];
+	out[2] = v_out[2];
+	out[3] = cosf(angle * 0.5f);
+}
+
+void
+RotateVectorByUnitQuat(vec3_t v, quat_t q_unit)
+{
+	quat_t q_vec, q_inv, q_out;
+
+	VectorToQuat(v, q_vec);
+	QuatInverse(q_unit, q_inv);
+	QuatMultiply(q_unit, q_vec, q_out);
+	QuatMultiply(q_out, q_inv, q_out);
+
+	v[0] = q_out[0];
+	v[1] = q_out[1];
+	v[2] = q_out[2];
+}
+
+float
+Q_magnitude(float x, float y)
+{
+	return sqrtf(x * x + y * y);
 }
 
 int
