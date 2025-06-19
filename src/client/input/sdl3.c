@@ -1624,13 +1624,13 @@ IN_Move(usercmd_t *cmd)
 	if (joystick_yaw)
 	{
 		cl.viewangles[YAW] -= (0.022f * joy_yawsensitivity->value
-					* cl_yawspeed->value * joystick_yaw) * joyViewFactor;
+					* 140.0f * joystick_yaw) * joyViewFactor;
 	}
 
 	if(joystick_pitch)
 	{
 		cl.viewangles[PITCH] += (0.022f * joy_pitchsensitivity->value
-					* cl_pitchspeed->value * joystick_pitch) * joyViewFactor;
+					* 140.0f * joystick_pitch) * joyViewFactor;
 	}
 
 	if (joystick_forwardmove)
