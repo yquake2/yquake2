@@ -1615,22 +1615,20 @@ IN_Move(usercmd_t *cmd)
 			joystick_pitch = right_stick.y;
 	}
 
-	// To make the the viewangles changes independent of framerate we need to scale
-	// with frametime (assuming the configured values are for 60hz)
-	//
-	// For movement this is not needed, as those are absolute values independent of framerate
-	float joyViewFactor = cls.rframetime/0.01666f;
+	// Analog stick deflection [-1, 1] is converted to view angles using a
+	// baseline sensitivity of 184.8 degrees/second (0.022 * 140 * 60).
+	const float joyViewFactor = cls.rframetime * 184.8f;
 
 	if (joystick_yaw)
 	{
-		cl.viewangles[YAW] -= (0.022f * joy_yawsensitivity->value
-					* 140.0f * joystick_yaw) * joyViewFactor;
+		cl.viewangles[YAW] -=
+			joystick_yaw * joy_yawsensitivity->value * joyViewFactor;
 	}
 
-	if(joystick_pitch)
+	if (joystick_pitch)
 	{
-		cl.viewangles[PITCH] += (0.022f * joy_pitchsensitivity->value
-					* 140.0f * joystick_pitch) * joyViewFactor;
+		cl.viewangles[PITCH] +=
+			joystick_pitch * joy_pitchsensitivity->value * joyViewFactor;
 	}
 
 	if (joystick_forwardmove)
