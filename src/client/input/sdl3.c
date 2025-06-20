@@ -151,8 +151,8 @@ static cvar_t *joy_labels;
 static cvar_t *joy_confirm;
 
 // Joystick sensitivity
-static cvar_t *joy_yawsensitivity;
-static cvar_t *joy_pitchsensitivity;
+static cvar_t *joy_yawspeed;
+static cvar_t *joy_pitchspeed;
 static cvar_t *joy_forwardsensitivity;
 static cvar_t *joy_sidesensitivity;
 
@@ -1615,20 +1615,16 @@ IN_Move(usercmd_t *cmd)
 			joystick_pitch = right_stick.y;
 	}
 
-	// Analog stick deflection [-1, 1] is converted to view angles using a
-	// baseline sensitivity of 184.8 degrees/second (0.022 * 140 * 60).
-	const float joyViewFactor = cls.rframetime * 184.8f;
-
 	if (joystick_yaw)
 	{
 		cl.viewangles[YAW] -=
-			joystick_yaw * joy_yawsensitivity->value * joyViewFactor;
+			joystick_yaw * joy_yawspeed->value * cls.rframetime;
 	}
 
 	if (joystick_pitch)
 	{
 		cl.viewangles[PITCH] +=
-			joystick_pitch * joy_pitchsensitivity->value * joyViewFactor;
+			joystick_pitch * joy_pitchspeed->value * cls.rframetime;
 	}
 
 	if (joystick_forwardmove)
@@ -2614,8 +2610,8 @@ IN_Init(void)
 	joy_haptic_distance = Cvar_Get("joy_haptic_distance", "100.0", CVAR_ARCHIVE);
 	haptic_feedback_filter = Cvar_Get("joy_haptic_filter", default_haptic_filter, CVAR_ARCHIVE);
 
-	joy_yawsensitivity = Cvar_Get("joy_yawsensitivity", "2.5", CVAR_ARCHIVE);
-	joy_pitchsensitivity = Cvar_Get("joy_pitchsensitivity", "2.5", CVAR_ARCHIVE);
+	joy_yawspeed = Cvar_Get("joy_yawspeed", "460", CVAR_ARCHIVE);
+	joy_pitchspeed = Cvar_Get("joy_pitchspeed", "460", CVAR_ARCHIVE);
 	joy_forwardsensitivity = Cvar_Get("joy_forwardsensitivity", "1.0", CVAR_ARCHIVE);
 	joy_sidesensitivity = Cvar_Get("joy_sidesensitivity", "1.0", CVAR_ARCHIVE);
 

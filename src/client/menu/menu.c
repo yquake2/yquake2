@@ -2190,8 +2190,8 @@ M_Menu_Gyro_f(void)
  * JOY MENU
  */
 static menulist_s s_joy_invertpitch_box;
-static menuslider_s s_joy_yawsensitivity_slider;
-static menuslider_s s_joy_pitchsensitivity_slider;
+static menuslider_s s_joy_yawspeed_slider;
+static menuslider_s s_joy_pitchspeed_slider;
 static menuslider_s s_joy_forwardsensitivity_slider;
 static menuslider_s s_joy_sidesensitivity_slider;
 static menuslider_s s_joy_haptic_slider;
@@ -2227,7 +2227,7 @@ ConfigGyroFunc(void *unused)
 static void
 InvertJoyPitchFunc(void *unused)
 {
-	Cvar_SetValue("joy_pitchsensitivity", -Cvar_VariableValue("joy_pitchsensitivity"));
+	Cvar_SetValue("joy_pitchspeed", -Cvar_VariableValue("joy_pitchspeed"));
 }
 
 static void
@@ -2246,24 +2246,28 @@ Joy_MenuInit(void)
 	s_joy_menu.x = (int)(viddef.width * 0.50f);
 	s_joy_menu.nitems = 0;
 
-	s_joy_yawsensitivity_slider.generic.type = MTYPE_SLIDER;
-	s_joy_yawsensitivity_slider.generic.x = 0;
-	s_joy_yawsensitivity_slider.generic.y = y;
-	s_joy_yawsensitivity_slider.generic.name = "yaw sensitivity";
-	s_joy_yawsensitivity_slider.cvar = "joy_yawsensitivity";
-	s_joy_yawsensitivity_slider.minvalue = 0.0f;
-	s_joy_yawsensitivity_slider.maxvalue = 7.0f;
-	Menu_AddItem(&s_joy_menu, (void *)&s_joy_yawsensitivity_slider);
+	s_joy_yawspeed_slider.generic.type = MTYPE_SLIDER;
+	s_joy_yawspeed_slider.generic.x = 0;
+	s_joy_yawspeed_slider.generic.y = y;
+	s_joy_yawspeed_slider.generic.name = "yaw speed";
+	s_joy_yawspeed_slider.cvar = "joy_yawspeed";
+	s_joy_yawspeed_slider.minvalue = 0.0f;
+	s_joy_yawspeed_slider.maxvalue = 720.0f;
+	s_joy_yawspeed_slider.slidestep = 5.0f;
+	s_joy_yawspeed_slider.printformat = "%.0f";
+	Menu_AddItem(&s_joy_menu, (void *)&s_joy_yawspeed_slider);
 
-	s_joy_pitchsensitivity_slider.generic.type = MTYPE_SLIDER;
-	s_joy_pitchsensitivity_slider.generic.x = 0;
-	s_joy_pitchsensitivity_slider.generic.y = (y += 10);
-	s_joy_pitchsensitivity_slider.generic.name = "pitch sensitivity";
-	s_joy_pitchsensitivity_slider.cvar = "joy_pitchsensitivity";
-	s_joy_pitchsensitivity_slider.minvalue = 0.0f;
-	s_joy_pitchsensitivity_slider.maxvalue = 7.0f;
-	s_joy_pitchsensitivity_slider.abs = true;
-	Menu_AddItem(&s_joy_menu, (void *)&s_joy_pitchsensitivity_slider);
+	s_joy_pitchspeed_slider.generic.type = MTYPE_SLIDER;
+	s_joy_pitchspeed_slider.generic.x = 0;
+	s_joy_pitchspeed_slider.generic.y = (y += 10);
+	s_joy_pitchspeed_slider.generic.name = "pitch speed";
+	s_joy_pitchspeed_slider.cvar = "joy_pitchspeed";
+	s_joy_pitchspeed_slider.minvalue = 0.0f;
+	s_joy_pitchspeed_slider.maxvalue = 720.0f;
+	s_joy_pitchspeed_slider.slidestep = 5.0f;
+	s_joy_pitchspeed_slider.printformat = "%.0f";
+	s_joy_pitchspeed_slider.abs = true;
+	Menu_AddItem(&s_joy_menu, (void *)&s_joy_pitchspeed_slider);
 
 	s_joy_invertpitch_box.generic.type = MTYPE_SPINCONTROL;
 	s_joy_invertpitch_box.generic.x = 0;
@@ -2271,7 +2275,7 @@ Joy_MenuInit(void)
 	s_joy_invertpitch_box.generic.name = "invert pitch";
 	s_joy_invertpitch_box.generic.callback = InvertJoyPitchFunc;
 	s_joy_invertpitch_box.itemnames = yesno_names;
-	s_joy_invertpitch_box.curvalue = (Cvar_VariableValue("joy_pitchsensitivity") < 0);
+	s_joy_invertpitch_box.curvalue = (Cvar_VariableValue("joy_pitchspeed") < 0);
 	Menu_AddItem(&s_joy_menu, (void *)&s_joy_invertpitch_box);
 
 	s_joy_forwardsensitivity_slider.generic.type = MTYPE_SLIDER;
