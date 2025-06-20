@@ -1722,9 +1722,10 @@ M_Menu_ControllerAltButtons_f(void)
 static menuframework_s s_sticks_config_menu;
 
 static menulist_s s_stk_layout_box;
-static menuseparator_s s_stk_title_text[2];
+static menuseparator_s s_stk_title_text[3];
 static menuslider_s s_stk_expo_slider[2];
 static menuslider_s s_stk_deadzone_slider[4];
+static menuslider_s s_stk_threshold_slider;
 
 extern qboolean show_gyro;
 
@@ -1830,6 +1831,20 @@ Stick_MenuInit(void)
 		s_stk_deadzone_slider[i].printformat = "%.2f";
 	}
 
+	s_stk_title_text[2].generic.type = MTYPE_SEPARATOR;
+	s_stk_title_text[2].generic.x = 48 * scale;
+	s_stk_title_text[2].generic.y = (y += 22);
+	s_stk_title_text[2].generic.name = "both sticks";
+
+	s_stk_threshold_slider.generic.name = "outer thresh";
+	s_stk_threshold_slider.generic.x = 0;
+	s_stk_threshold_slider.generic.y = (y += 14);
+	s_stk_threshold_slider.cvar = "joy_outer_threshold";
+	s_stk_threshold_slider.minvalue = 0.0f;
+	s_stk_threshold_slider.maxvalue = 0.30f;
+	s_stk_threshold_slider.slidestep = 0.01f;
+	s_stk_threshold_slider.printformat = "%.2f";
+
 	Menu_AddItem(&s_sticks_config_menu, (void *)&s_stk_layout_box);
 	Menu_AddItem(&s_sticks_config_menu, (void *)&s_stk_title_text[0]);
 	Menu_AddItem(&s_sticks_config_menu, (void *)&s_stk_expo_slider[0]);
@@ -1839,6 +1854,8 @@ Stick_MenuInit(void)
 	Menu_AddItem(&s_sticks_config_menu, (void *)&s_stk_expo_slider[1]);
 	Menu_AddItem(&s_sticks_config_menu, (void *)&s_stk_deadzone_slider[2]);
 	Menu_AddItem(&s_sticks_config_menu, (void *)&s_stk_deadzone_slider[3]);
+	Menu_AddItem(&s_sticks_config_menu, (void *)&s_stk_title_text[2]);
+	Menu_AddItem(&s_sticks_config_menu, (void *)&s_stk_threshold_slider);
 
 	Menu_Center(&s_sticks_config_menu);
 }

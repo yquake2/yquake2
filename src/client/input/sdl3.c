@@ -153,6 +153,7 @@ static cvar_t *joy_confirm;
 // Joystick sensitivity
 static cvar_t *joy_yawspeed;
 static cvar_t *joy_pitchspeed;
+static cvar_t *joy_outer_threshold;
 static cvar_t *joy_forwardsensitivity;
 static cvar_t *joy_sidesensitivity;
 
@@ -1285,15 +1286,22 @@ IN_MapRange(float v, float deadzone, float sign)
  * Radial deadzone based on github.com/jeremiah-sypult/Quakespasm-Rift
  */
 static thumbstick_t
-IN_RadialDeadzone(thumbstick_t stick, float deadzone)
+IN_RadialDeadzone(thumbstick_t stick, float deadzone, float threshold)
 {
 	thumbstick_t result = {0};
 	float magnitude = Q_min(IN_StickMagnitude(stick), 1.0f);
-	deadzone = Q_min( Q_max(deadzone, 0.0f), 0.9f);		// clamp to [0.0, 0.9]
+	deadzone = Q_clamp(deadzone, 0.0f, 0.5f);
+	threshold = Q_clamp(threshold, 0.7f, 1.0f);
 
-	if ( magnitude > deadzone )
+	if (magnitude >= threshold)
 	{
-		const float scale = ((magnitude - deadzone) / (1.0 - deadzone)) / magnitude;
+		result.x = stick.x / magnitude;
+		result.y = stick.y / magnitude;
+	}
+	else if (magnitude > deadzone)
+	{
+		const float scale =
+			((magnitude - deadzone) / (threshold - deadzone)) / magnitude;
 		result.x = stick.x * scale;
 		result.y = stick.y * scale;
 	}
@@ -1554,7 +1562,8 @@ IN_Move(usercmd_t *cmd)
 
 	if (left_stick.x || left_stick.y)
 	{
-		left_stick = IN_RadialDeadzone(left_stick, joy_left_deadzone->value);
+		left_stick = IN_RadialDeadzone(left_stick, joy_left_deadzone->value,
+									   1.0f - joy_outer_threshold->value);
 		if ((int)joy_layout->value == LAYOUT_FLICK_STICK_SOUTHPAW)
 		{
 			cl.viewangles[YAW] += IN_FlickStick(left_stick, joy_left_snapaxis->value);
@@ -1568,7 +1577,8 @@ IN_Move(usercmd_t *cmd)
 
 	if (right_stick.x || right_stick.y)
 	{
-		right_stick = IN_RadialDeadzone(right_stick, joy_right_deadzone->value);
+		right_stick = IN_RadialDeadzone(right_stick, joy_right_deadzone->value,
+										1.0f - joy_outer_threshold->value);
 		if ((int)joy_layout->value == LAYOUT_FLICK_STICK)
 		{
 			cl.viewangles[YAW] += IN_FlickStick(right_stick, joy_right_snapaxis->value);
@@ -2612,6 +2622,7 @@ IN_Init(void)
 
 	joy_yawspeed = Cvar_Get("joy_yawspeed", "460", CVAR_ARCHIVE);
 	joy_pitchspeed = Cvar_Get("joy_pitchspeed", "460", CVAR_ARCHIVE);
+	joy_outer_threshold = Cvar_Get("joy_outer_threshold", "0.02", CVAR_ARCHIVE);
 	joy_forwardsensitivity = Cvar_Get("joy_forwardsensitivity", "1.0", CVAR_ARCHIVE);
 	joy_sidesensitivity = Cvar_Get("joy_sidesensitivity", "1.0", CVAR_ARCHIVE);
 
