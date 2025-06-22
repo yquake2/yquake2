@@ -80,6 +80,8 @@ typedef struct
 	float *sidemove;
 	float *yaw;
 	float *pitch;
+	float extra_scale;
+	qboolean extra_active;
 } joystate_t;
 
 typedef enum
@@ -165,6 +167,9 @@ static cvar_t *joy_confirm;
 // Joystick sensitivity
 static cvar_t *joy_yawspeed;
 static cvar_t *joy_pitchspeed;
+static cvar_t *joy_extra_yawspeed;
+static cvar_t *joy_extra_pitchspeed;
+static cvar_t *joy_ramp_time;
 static cvar_t *joy_outer_threshold;
 static cvar_t *joy_forwardsensitivity;
 static cvar_t *joy_sidesensitivity;
@@ -1553,6 +1558,59 @@ IN_UpdateStickLayout(joystate_t *joy)
 	}
 }
 
+static qboolean
+IN_CrossedThreshold(joystate_t *joy, float outer_threshold)
+{
+	const float magnitude = Q_magnitude(*joy->yaw, *joy->pitch);
+	return (magnitude >= outer_threshold);
+}
+
+static void
+IN_UpdateExtraSpeed(float delta_time, float outer_threshold, joystate_t *joy)
+{
+	if ((joy_extra_yawspeed->value > 0.0f || joy_extra_pitchspeed->value > 0.0f)
+		&& joy_active_layout < LAYOUT_FLICK_STICK
+		&& IN_CrossedThreshold(joy, outer_threshold))
+	{
+		const float ramp_time = Q_clamp(joy_ramp_time->value, 0.0f, 1.0f);
+
+		if (ramp_time > 1.0e-6f)
+		{
+			static float elapsed_time;
+
+			if (joy->extra_active)
+			{
+				if (elapsed_time < ramp_time)
+				{
+					// Continue ramp
+					elapsed_time += delta_time;
+					joy->extra_scale = elapsed_time / ramp_time;
+					joy->extra_scale = Q_min(joy->extra_scale, 1.0f);
+				}
+			}
+			else
+			{
+				// Start ramp
+				elapsed_time = 0.0f;
+				joy->extra_scale = 0.0f;
+				joy->extra_active = true;
+			}
+		}
+		else
+		{
+			// Instant ramp
+			joy->extra_scale = 1.0f;
+			joy->extra_active = true;
+		}
+	}
+	else
+	{
+		// Reset ramp
+		joy->extra_scale = 0.0f;
+		joy->extra_active = false;
+	}
+}
+
 static void
 IN_GamepadMove(usercmd_t *cmd)
 {
@@ -1592,6 +1650,8 @@ IN_GamepadMove(usercmd_t *cmd)
 	joy.right.x = joystick_right_x * normalize_sdl_axis;
 	joy.right.y = joystick_right_y * normalize_sdl_axis;
 
+	IN_UpdateExtraSpeed(cls.rframetime, outer_threshold, &joy);
+
 	if (joy.left.x || joy.left.y)
 	{
 		joy.left = IN_RadialDeadzone(joy.left, left_deadzone, outer_threshold);
@@ -1629,14 +1689,17 @@ IN_GamepadMove(usercmd_t *cmd)
 
 	if (*joy.yaw)
 	{
-		const float yaw_rate = (*joy.yaw) * joy_yawspeed->value;
-		cl.viewangles[YAW] -= yaw_rate * cls.rframetime;
+		const float speed =
+			joy_yawspeed->value + joy.extra_scale * joy_extra_yawspeed->value;
+		cl.viewangles[YAW] -= (*joy.yaw) * speed * cls.rframetime;
 	}
 
 	if (*joy.pitch)
 	{
-		const float pitch_rate = (*joy.pitch) * joy_pitchspeed->value;
-		cl.viewangles[PITCH] += pitch_rate * cls.rframetime;
+		const float speed = joy_pitchspeed->value
+							+ joy.extra_scale * joy_extra_pitchspeed->value
+								  * Q_signf(joy_pitchspeed->value);
+		cl.viewangles[PITCH] += (*joy.pitch) * speed * cls.rframetime;
 	}
 
 	if (*joy.forwardmove)
@@ -2692,6 +2755,9 @@ IN_Init(void)
 
 	joy_yawspeed = Cvar_Get("joy_yawspeed", "460", CVAR_ARCHIVE);
 	joy_pitchspeed = Cvar_Get("joy_pitchspeed", "460", CVAR_ARCHIVE);
+	joy_extra_yawspeed = Cvar_Get("joy_extra_yawspeed", "0", CVAR_ARCHIVE);
+	joy_extra_pitchspeed = Cvar_Get("joy_extra_pitchspeed", "0", CVAR_ARCHIVE);
+	joy_ramp_time = Cvar_Get("joy_ramp_time", "0.35", CVAR_ARCHIVE);
 	joy_outer_threshold = Cvar_Get("joy_outer_threshold", "0.02", CVAR_ARCHIVE);
 	joy_forwardsensitivity = Cvar_Get("joy_forwardsensitivity", "1.0", CVAR_ARCHIVE);
 	joy_sidesensitivity = Cvar_Get("joy_sidesensitivity", "1.0", CVAR_ARCHIVE);
