@@ -2776,9 +2776,9 @@ IN_Init(void)
 	joy_haptic_distance = Cvar_Get("joy_haptic_distance", "100.0", CVAR_ARCHIVE);
 	haptic_feedback_filter = Cvar_Get("joy_haptic_filter", default_haptic_filter, CVAR_ARCHIVE);
 
-	joy_yawspeed = Cvar_Get("joy_yawspeed", "460", CVAR_ARCHIVE);
-	joy_pitchspeed = Cvar_Get("joy_pitchspeed", "460", CVAR_ARCHIVE);
-	joy_extra_yawspeed = Cvar_Get("joy_extra_yawspeed", "0", CVAR_ARCHIVE);
+	joy_yawspeed = Cvar_Get("joy_yawspeed", "160", CVAR_ARCHIVE);
+	joy_pitchspeed = Cvar_Get("joy_pitchspeed", "120", CVAR_ARCHIVE);
+	joy_extra_yawspeed = Cvar_Get("joy_extra_yawspeed", "220", CVAR_ARCHIVE);
 	joy_extra_pitchspeed = Cvar_Get("joy_extra_pitchspeed", "0", CVAR_ARCHIVE);
 	joy_ramp_time = Cvar_Get("joy_ramp_time", "0.35", CVAR_ARCHIVE);
 	joy_outer_threshold = Cvar_Get("joy_outer_threshold", "0.02", CVAR_ARCHIVE);
