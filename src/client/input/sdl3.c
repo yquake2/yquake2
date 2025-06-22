@@ -165,6 +165,8 @@ static cvar_t *joy_labels;
 static cvar_t *joy_confirm;
 
 // Joystick sensitivity
+static cvar_t *joy_sensitivity;
+static cvar_t *joy_advanced;
 static cvar_t *joy_yawspeed;
 static cvar_t *joy_pitchspeed;
 static cvar_t *joy_extra_yawspeed;
@@ -173,6 +175,7 @@ static cvar_t *joy_ramp_time;
 static cvar_t *joy_outer_threshold;
 static cvar_t *joy_forwardsensitivity;
 static cvar_t *joy_sidesensitivity;
+void IN_ApplyJoyPreset(void);
 
 // Joystick's analog sticks configuration
 static sticklayout_t joy_active_layout;
@@ -1269,6 +1272,10 @@ IN_Update(void)
 		}
 	}
 
+	if (joy_sensitivity->modified)
+	{
+		IN_ApplyJoyPreset();
+	}
 	// Gamepad labels' type and "confirm & cancel style" change handling
 	if (joy_labels->modified)
 	{
@@ -2724,6 +2731,67 @@ IN_Controller_Init(qboolean notify_user)
 	IN_InitGyro();
 }
 
+typedef struct
+{
+	float yawspeed;
+	float pitchspeed;
+	float extra_yawspeed;
+	float extra_pitchspeed;
+	float ramp_time;
+} joy_preset_t;
+
+static const joy_preset_t joy_presets[] = {
+	[0] = {   0.0f,   0.0f,   0.0f,   0.0f, 0.00f },
+	[1] = {  50.0f,  50.0f,  60.0f,   0.0f, 0.50f },
+	[2] = {  80.0f,  50.0f, 150.0f, 120.0f, 0.30f },
+	[3] = { 160.0f, 120.0f, 220.0f,   0.0f, 0.35f }, // Default
+	[4] = { 240.0f, 200.0f, 220.0f,   0.0f, 0.30f },
+	[5] = { 380.0f, 240.0f,   0.0f,   0.0f, 0.00f },
+	[6] = { 450.0f, 300.0f,   0.0f,   0.0f, 0.00f },
+	[7] = { 500.0f, 500.0f,   0.0f,   0.0f, 0.00f },
+	[8] = { 720.0f, 720.0f,   0.0f,   0.0f, 0.00f },
+};
+
+void
+IN_ApplyJoyPreset(void)
+{
+	const int final_preset = sizeof(joy_presets) / sizeof(*joy_presets) - 1;
+	const int i = lroundf(Q_clamp(joy_sensitivity->value, 0, final_preset));
+
+	Cvar_SetValue("joy_yawspeed", joy_presets[i].yawspeed);
+	Cvar_SetValue("joy_pitchspeed",
+				  joy_presets[i].pitchspeed * Q_signf(joy_pitchspeed->value));
+	Cvar_SetValue("joy_extra_yawspeed", joy_presets[i].extra_yawspeed);
+	Cvar_SetValue("joy_extra_pitchspeed", joy_presets[i].extra_pitchspeed);
+	Cvar_SetValue("joy_ramp_time", joy_presets[i].ramp_time);
+
+	joy_sensitivity->modified = false;
+}
+
+#define EQF(a, b) (fabsf((a) - (b)) < 1.0e-6f)
+qboolean
+IN_MatchJoyPreset(void)
+{
+	const int num_presets = sizeof(joy_presets) / sizeof(*joy_presets);
+
+	for (int i = 0; i < num_presets; i++)
+	{
+		if (EQF(joy_presets[i].yawspeed, joy_yawspeed->value)
+			&& EQF(joy_presets[i].pitchspeed, fabsf(joy_pitchspeed->value))
+			&& EQF(joy_presets[i].extra_yawspeed, joy_extra_yawspeed->value)
+			&& EQF(joy_presets[i].extra_pitchspeed, joy_extra_pitchspeed->value)
+			&& EQF(joy_presets[i].ramp_time, joy_ramp_time->value))
+		{
+			Cvar_SetValue("joy_sensitivity", i);
+			joy_sensitivity->modified = false;
+			return true;
+		}
+	}
+
+	return false;
+}
+#undef EQF
+
 /*
  * Initializes the backend
  */
@@ -2753,6 +2821,8 @@ IN_Init(void)
 	joy_haptic_distance = Cvar_Get("joy_haptic_distance", "100.0", CVAR_ARCHIVE);
 	haptic_feedback_filter = Cvar_Get("joy_haptic_filter", default_haptic_filter, CVAR_ARCHIVE);
 
+	joy_sensitivity = Cvar_Get("joy_sensitivity", "3", CVAR_ARCHIVE);
+	joy_advanced = Cvar_Get("joy_advanced", "0", CVAR_ARCHIVE);
 	joy_yawspeed = Cvar_Get("joy_yawspeed", "160", CVAR_ARCHIVE);
 	joy_pitchspeed = Cvar_Get("joy_pitchspeed", "120", CVAR_ARCHIVE);
 	joy_extra_yawspeed = Cvar_Get("joy_extra_yawspeed", "220", CVAR_ARCHIVE);
