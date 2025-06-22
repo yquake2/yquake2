@@ -660,6 +660,23 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
   - `0`: SOUTH to confirm, EAST to cancel (standard style)
   - `1`: EAST to confirm, SOUTH to cancel (Japanese style)
 
+* **joy_sensitivity**: Simple sensitivity adjustment for yaw and pitch.
+  Changing this applies a preset that adjusts the advanced cvars listed
+  below. Default `3`.
+
+* **joy_advanced**: Show or hide the following advanced sensitivity
+  cvars in the menu:
+  - **joy_yawspeed**: How quickly the view turns left or right in
+    degrees per second. Default `160`.
+  - **joy_pitchspeed**: How quickly the view looks up or down in
+    degrees per second. Default `120`.
+  - **joy_extra_yawspeed**: Additional yaw speed that is applied when
+    the stick is fully deflected. Default `220`.
+  - **joy_extra_pitchspeed**: Additional pitch speed that is applied
+    when the stick is fully deflected. Default `0`.
+  - **joy_ramp_time**: Ramp-up time required for any extra yaw or pitch
+    speed to be fully applied. Default `0.35` (350 milliseconds).
+
 * **joy_layout**: Allows to select the stick layout of the gamepad.
   - `0`: *Default*, left stick moves, right aims
   - `1`: *Southpaw*, same as previous one with inverted sticks
@@ -686,6 +703,12 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
   curve on each stick. Increasing this will make small movements to
   represent much smaller inputs, which helps precision with the sticks.
   `1.0` is linear. Default `2.0` (quadratic curve).
+
+* **joy_outer_threshold**: Defines the outer boundary where stick input
+  is considered to be at maximum. A small amount may be needed for some
+  controllers. Additionally, this cvar defines the boundary where any
+  extra yaw or pitch speed is applied. Default `0.02`(outer 2% of stick
+  range).
 
 * **joy_flick_threshold**: Used only with Flick Stick, specifies the
   distance from the center of the stick that will make the player flick
