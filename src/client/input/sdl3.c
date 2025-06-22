@@ -1622,13 +1622,13 @@ IN_GamepadMove(usercmd_t *cmd)
 
 	// Left thumbstick settings
 	const float left_expo = Q_clamp(joy_left_expo->value, 1.0f, 5.0f);
-	const float left_snapaxis = Q_clamp(joy_left_snapaxis->value, 0.0f, 0.3f);
-	const float left_deadzone = Q_clamp(joy_left_deadzone->value, 0.0f, 0.3f);
+	const float left_snapaxis = Q_clamp(joy_left_snapaxis->value, 0.0f, 0.5f);
+	const float left_deadzone = Q_clamp(joy_left_deadzone->value, 0.0f, 0.5f);
 
 	// Right thumbstick settings
 	const float right_expo = Q_clamp(joy_right_expo->value, 1.0f, 5.0f);
-	const float right_snapaxis = Q_clamp(joy_right_snapaxis->value, 0.0f, 0.3f);
-	const float right_deadzone = Q_clamp(joy_right_deadzone->value, 0.0f, 0.3f);
+	const float right_snapaxis = Q_clamp(joy_right_snapaxis->value, 0.0f, 0.5f);
+	const float right_deadzone = Q_clamp(joy_right_deadzone->value, 0.0f, 0.5f);
 
 	// Shared settings
 	const float outer_threshold =

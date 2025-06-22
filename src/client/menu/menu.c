@@ -1826,7 +1826,7 @@ Stick_MenuInit(void)
 		s_stk_deadzone_slider[i].generic.type = MTYPE_SLIDER;
 		s_stk_deadzone_slider[i].generic.x = 0;
 		s_stk_deadzone_slider[i].minvalue = 0.0f;
-		s_stk_deadzone_slider[i].maxvalue = 0.30f;
+		s_stk_deadzone_slider[i].maxvalue = 0.50f;
 		s_stk_deadzone_slider[i].slidestep = 0.01f;
 		s_stk_deadzone_slider[i].printformat = "%.2f";
 	}
