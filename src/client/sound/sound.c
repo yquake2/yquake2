@@ -556,31 +556,13 @@ S_LoadSound(sfx_t *s)
 }
 
 /*
- * Returns the name of a sound
+ * Returns the sfx with the specified name, NULL if none exists
  */
 static sfx_t *
-S_FindName(char *name, qboolean create)
+S_GetSfxByName(const char *name)
 {
 	int i;
-	sfx_t *sfx;
 
-	if (!name)
-	{
-		Com_Error(ERR_FATAL, "%s: NULL\n", __func__);
-	}
-
-	if (!name[0])
-	{
-		Com_Error(ERR_FATAL, "%s: empty name\n", __func__);
-	}
-
-	if (strlen(name) >= MAX_QPATH)
-	{
-		Com_Error(ERR_FATAL, "%s :Sound name too long: %s",
-			__func__, name);
-	}
-
-	/* see if already loaded */
 	for (i = 0; i < num_sfx; i++)
 	{
 		if (!strcmp(known_sfx[i].name, name))
@@ -589,31 +571,63 @@ S_FindName(char *name, qboolean create)
 		}
 	}
 
-	if (!create)
-	{
-		return NULL;
-	}
+	return NULL;
+}
 
-	/* find a free sfx */
+static sfx_t *
+S_NextFreeSfx(void)
+{
+	int i;
+
 	for (i = 0; i < num_sfx; i++)
 	{
 		if (!known_sfx[i].name[0])
 		{
-			break;
+			return &known_sfx[i];
 		}
 	}
 
-	if (i == num_sfx)
+	if (num_sfx >= MAX_SFX)
 	{
-		if (num_sfx == MAX_SFX)
-		{
-			Com_Error(ERR_FATAL, "%s: out of sfx_t", __func__);
-		}
-
-		num_sfx++;
+		return NULL;
 	}
 
-	sfx = &known_sfx[i];
+	return &known_sfx[num_sfx++];
+}
+
+static sfx_t *
+S_FindOrCreateSfx(const char *name)
+{
+	sfx_t *sfx;
+
+	if (!name || !name[0])
+	{
+		Com_Printf("%s: blank name\n", __func__);
+		return NULL;
+	}
+
+	/* see if already loaded */
+	sfx = S_GetSfxByName(name);
+
+	if (sfx)
+	{
+		return sfx;
+	}
+
+	if (strlen(name) >= MAX_QPATH)
+	{
+		Com_Printf("%s: name is too long: %s\n", __func__, name);
+		return NULL;
+	}
+
+	sfx = S_NextFreeSfx();
+
+	if (!sfx)
+	{
+		Com_Printf("%s: out of sfx for: %s\n", __func__, name);
+		return NULL;
+	}
+
 	sfx->truename = NULL;
 	strcpy(sfx->name, name);
 	sfx->registration_sequence = s_registration_sequence;
@@ -627,39 +641,29 @@ S_FindName(char *name, qboolean create)
  * for a sound
  */
 static sfx_t *
-S_AliasName(char *aliasname, char *truename)
+S_AliasName(const char *aliasname, const char *truename)
 {
 	sfx_t *sfx;
-	char *s;
-	int i;
 
-	s = Z_Malloc(MAX_QPATH);
-	strcpy(s, truename);
-
-	/* find a free sfx */
-	for (i = 0; i < num_sfx; i++)
+	if (strlen(aliasname) >= MAX_QPATH)
 	{
-		if (!known_sfx[i].name[0])
-		{
-			break;
-		}
+		Com_Printf("%s: name is too long: %s\n", __func__, aliasname);
+		return NULL;
 	}
 
-	if (i == num_sfx)
-	{
-		if (num_sfx == MAX_SFX)
-		{
-			Com_Error(ERR_FATAL, "%s: out of sfx_t", __func__);
-		}
+	sfx = S_NextFreeSfx();
 
-		num_sfx++;
+	if (!sfx)
+	{
+		Com_Printf("%s: out of sfx for: %s\n", __func__, aliasname);
+		return NULL;
 	}
 
-	sfx = &known_sfx[i];
 	sfx->cache = NULL;
 	Q_strlcpy(sfx->name, aliasname, sizeof(sfx->name));
 	sfx->registration_sequence = s_registration_sequence;
-	sfx->truename = s;
+	sfx->truename = Z_Malloc(strlen(truename) + 1);
+	strcpy(sfx->truename, truename);
 
 	return sfx;
 }
@@ -678,8 +682,8 @@ S_BeginRegistration(void)
 /*
  * Registers a sound
  */
-sfx_t *
-S_RegisterSound(char *name)
+struct sfx_s *
+S_RegisterSound(const char *name)
 {
 	sfx_t *sfx;
 
@@ -688,7 +692,13 @@ S_RegisterSound(char *name)
 		return NULL;
 	}
 
-	sfx = S_FindName(name, true);
+	sfx = S_FindOrCreateSfx(name);
+
+	if (!sfx)
+	{
+		return NULL;
+	}
+
 	sfx->registration_sequence = s_registration_sequence;
 
 	if (!s_registering)
@@ -699,35 +709,68 @@ S_RegisterSound(char *name)
 	return sfx;
 }
 
-static struct sfx_s *
-S_RegisterSexedSound(entity_state_t *ent, char *base)
+static void
+GetModelName(const char *cs, char *model, size_t n)
 {
-	int n;
-	struct sfx_s *sfx;
+	const char *p;
+	char *end;
+
+	*model = '\0';
+
+	if (!cs)
+	{
+		return;
+	}
+
+	p = strchr(cs, '\\');
+
+	if (!p)
+	{
+		return;
+	}
+
+	p++;
+
+	if (strlen(p) >= n)
+	{
+		return;
+	}
+
+	Q_strlcpy(model, p, n);
+
+	end = strchr(model, '/');
+
+	if (end)
+	{
+		*end = '\0';
+	}
+}
+
+static sfx_t *
+S_RegisterSexedSound(const entity_state_t *ent, const char *base)
+{
+	sfx_t *sfx;
 	char model[MAX_QPATH];
 	char sexedFilename[MAX_QPATH];
+	char *cs;
+	int n;
 
 	/* determine what model the client is using */
-	model[0] = 0;
-	n = CS_PLAYERSKINS + ent->number - 1;
+	n = ent->number;
 
-	if (cl.configstrings[n][0])
+	if (n > 0 && n <= CL_MaxClients())
 	{
-		char *p;
-		p = strchr(cl.configstrings[n], '\\');
-
-		if (p)
-		{
-			p += 1;
-			Q_strlcpy(model, p, sizeof(model));
-			p = strchr(model, '/');
-
-			if (p)
-			{
-				p[0] = 0;
-			}
-		}
+		cs = cl.configstrings[CS_PLAYERSKINS + n - 1];
 	}
+	else
+	{
+		Com_Printf("%s: non-player entity %i playing sexed sound: %s\n",
+			__func__, n, base);
+
+		cs = NULL;
+	}
+
+	GetModelName(cs, model, sizeof(model));
 
 	/* if we can't figure it out, they're male */
 	if (!model[0])
@@ -738,7 +781,8 @@ S_RegisterSexedSound(entity_state_t *ent, char *base)
 	/* see if we already know of the model specific sound */
 	Com_sprintf(sexedFilename, sizeof(sexedFilename),
 			"#players/%s/%s", model, base + 1);
-	sfx = S_FindName(sexedFilename, false);
+
+	sfx = S_GetSfxByName(sexedFilename);
 
 	if (!sfx)
 	{
@@ -759,6 +803,7 @@ S_RegisterSexedSound(entity_state_t *ent, char *base)
 			/* no, revert to the male sound in the pak0.pak */
 			Com_sprintf(maleFilename, sizeof(maleFilename),
 					"player/male/%s", base + 1);
+
 			sfx = S_AliasName(sexedFilename, maleFilename);
 		}
 	}
