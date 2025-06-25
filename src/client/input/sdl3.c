@@ -41,6 +41,7 @@
 #include "SDL3/SDL_properties.h"
 #include "SDL3/SDL_stdinc.h"
 #include "header/input.h"
+#include "header/gyro.h"
 #include "../header/keyboard.h"
 #include "../header/client.h"
 
@@ -84,7 +85,6 @@ typedef enum
 static float mouse_x, mouse_y;
 static unsigned char joy_escbutton = SDL_GAMEPAD_BUTTON_START;
 static int joystick_left_x, joystick_left_y, joystick_right_x, joystick_right_y;
-static float gyro_yaw, gyro_pitch;
 static qboolean mlooking;
 
 // The last time input events were processed.
@@ -173,31 +173,60 @@ static cvar_t *joy_haptic_distance;
 
 // Gyro mode (0=off, 3=on, 1-2=uses button to enable/disable)
 cvar_t *gyro_mode;
-cvar_t *gyro_turning_axis;	// yaw or roll
+
+// Gyro space
+static cvar_t *gyro_space;
+static cvar_t *gyro_local_roll;
 
 // Gyro sensitivity
 static cvar_t *gyro_yawsensitivity;
 static cvar_t *gyro_pitchsensitivity;
+
+// Gyro tightening
 static cvar_t *gyro_tightening;
+
+// Gyro smoothing
+static cvar_t *gyro_smoothing;
+static cvar_t *gyro_smoothing_window;
+
+// Gyro acceleration
+static cvar_t *gyro_acceleration;
+static cvar_t *gyro_accel_multiplier;
+static cvar_t *gyro_accel_lower_thresh;
+static cvar_t *gyro_accel_upper_thresh;
 
 // Gyro is being used in this very moment
 static qboolean gyro_active = false;
 
+// Controller is connected and supports gyro, gyro is not disabled, game is not
+// paused, game is receiving inputs, controller is initialized and is not
+// calibrating gyro.
+static qboolean gyro_enabled;
+
 // Gyro calibration
-static float gyro_accum[3];
+static cvar_t *gyro_calibration_a;
 static cvar_t *gyro_calibration_x;
 static cvar_t *gyro_calibration_y;
 static cvar_t *gyro_calibration_z;
 
 // If "SDL gyro" is not explicitly disabled, use SDL_EVENT_GAMEPAD_SENSOR_UPDATE to read gyro
-#ifndef NO_SDL_GYRO
-static unsigned int num_samples;
-#else // otherwise, gyro can be read as a "secondary joystick" exposed by dkms-hid-nintendo
-static unsigned int num_samples[3];
+
+#ifdef NO_SDL_GYRO // gyro can be read as a "secondary joystick" exposed by dkms-hid-nintendo
+static float accel_accum[3];
+static float gyro_accum[3];
+static unsigned int num_accel[3];
+static unsigned int num_gyro[3];
 static SDL_Joystick *imu_joystick = NULL;	// gyro "joystick"
-#define IMU_JOY_AXIS_GYRO_ROLL 3
+// Accelerometer values reported as 4096 digits per g.
+#define IMU_JOY_ACCEL_SCALE (1.0f / 4096.0f)
+#define IMU_JOY_AXIS_ACCEL_Y 1
+#define IMU_JOY_AXIS_ACCEL_X 2
+#define IMU_JOY_AXIS_ACCEL_Z 0
+// Gyro values reported as 14247 digits per 1000 degrees/second.
+#define IMU_JOY_GYRO_SCALE (float)(M_PI / (180.0 * 14.247))
 #define IMU_JOY_AXIS_GYRO_PITCH 4
 #define IMU_JOY_AXIS_GYRO_YAW 5
+#define IMU_JOY_AXIS_GYRO_ROLL 3
 #endif
 
 // To ignore SDL_EVENT_JOYSTICK_ADDED at game init. Allows for hot plugging of gamepad afterwards.
@@ -585,18 +614,155 @@ IN_GamepadConfirm_Changed(void)
 	}
 }
 
+#ifdef NO_SDL_GYRO
 static void
-IN_GyroMode_Changed(void)
+ImuJoy_AverageAccelSamples(vec3_t accel_avg)
 {
-	if (gyro_mode->value < 2)
+	accel_avg[0] = accel_accum[0] / num_accel[0];
+	accel_avg[1] = accel_accum[1] / num_accel[1];
+	accel_avg[2] = accel_accum[2] / num_accel[2];
+}
+
+static void
+ImuJoy_AverageGyroSamples(vec3_t gyro_avg)
+{
+	gyro_avg[0] = gyro_accum[0] / num_gyro[0];
+	gyro_avg[1] = gyro_accum[1] / num_gyro[1];
+	gyro_avg[2] = gyro_accum[2] / num_gyro[2];
+}
+
+static void
+ImuJoy_ResetAccelSamples(void)
+{
+	memset(accel_accum, 0, sizeof(accel_accum));
+	memset(num_accel, 0, sizeof(num_accel));
+}
+
+static void
+ImuJoy_ResetGyroSamples(void)
+{
+	memset(gyro_accum, 0, sizeof(gyro_accum));
+	memset(num_gyro, 0, sizeof(num_gyro));
+}
+
+static void
+ImuJoy_ResetSamples(void)
+{
+	ImuJoy_ResetAccelSamples();
+	ImuJoy_ResetGyroSamples();
+}
+
+static void
+ImuJoy_PrepareSamples(void)
+{
+	if (num_accel[0] && num_accel[1] && num_accel[2])
 	{
-		gyro_active = false;
+		vec3_t accel_data;
+		ImuJoy_AverageAccelSamples(accel_data);
+		ImuJoy_ResetAccelSamples();
+		VectorScale(accel_data, IMU_JOY_ACCEL_SCALE, accel_data);
+
+		// Now the data can be handled like SDL_EVENT_GAMEPAD_SENSOR_UPDATE.
+		IN_GYRO_AccumulateAccelSamples(accel_data);
 	}
-	else
+
+	if (num_gyro[0] && num_gyro[1] && num_gyro[2])
 	{
-		gyro_active = true;
+		vec3_t gyro_data;
+		ImuJoy_AverageGyroSamples(gyro_data);
+		ImuJoy_ResetGyroSamples();
+		VectorScale(gyro_data, IMU_JOY_GYRO_SCALE, gyro_data);
+
+		// Now the data can be handled like SDL_EVENT_GAMEPAD_SENSOR_UPDATE.
+		IN_GYRO_AccumulateGyroSamples(gyro_data);
 	}
-	gyro_mode->modified = false;
+}
+#endif // NO_SDL_GYRO
+
+static void
+IN_UpdateGyroEnabled(void)
+{
+	gyro_enabled =
+		(show_gyro && gyro_mode->value > 0.0f && !cl_paused->value
+		 && cls.key_dest == key_game && countdown_reason == REASON_NONE);
+}
+
+static void
+IN_CheckGyroModified(void)
+{
+	qboolean reset_needed = false;
+
+	if (gyro_mode->modified)
+	{
+		gyro_active = (gyro_mode->value == 2 || gyro_mode->value == 3);
+		gyro_mode->modified = false;
+	}
+
+	if (gyro_space->modified)
+	{
+		IN_GYRO_UpdateGyroSpace(gyro_space->value);
+		gyro_space->modified = false;
+		reset_needed = true;
+	}
+
+	if (gyro_local_roll->modified)
+	{
+		IN_GYRO_UpdateLocalRoll(gyro_local_roll->value);
+		gyro_local_roll->modified = false;
+	}
+
+	if (gyro_tightening->modified)
+	{
+		IN_GYRO_UpdateTightening(gyro_tightening->value);
+		gyro_tightening->modified = false;
+	}
+
+	if (gyro_smoothing->modified)
+	{
+		IN_GYRO_UpdateSmoothing(gyro_smoothing->value);
+		gyro_smoothing->modified = false;
+		reset_needed = true;
+	}
+
+	if (gyro_smoothing_window->modified)
+	{
+		IN_GYRO_UpdateSmoothingWindow(gyro_smoothing_window->value);
+		gyro_smoothing_window->modified = false;
+		reset_needed = true;
+	}
+
+	if (gyro_acceleration->modified)
+	{
+		IN_GYRO_UpdateAcceleration(gyro_acceleration->value);
+		gyro_acceleration->modified = false;
+	}
+
+	if (gyro_accel_multiplier->modified)
+	{
+		IN_GYRO_UpdateAccelMult(gyro_accel_multiplier->value);
+		gyro_accel_multiplier->modified = false;
+	}
+
+	if (gyro_accel_lower_thresh->modified || gyro_accel_upper_thresh->modified)
+	{
+		IN_GYRO_UpdateAccelThresh(gyro_accel_lower_thresh->value,
+								  gyro_accel_upper_thresh->value);
+		gyro_accel_lower_thresh->modified = false;
+		gyro_accel_upper_thresh->modified = false;
+	}
+
+	if (gyro_pitchsensitivity->modified || gyro_yawsensitivity->modified)
+	{
+		IN_GYRO_UpdateSensitivity(gyro_pitchsensitivity->value,
+								  gyro_yawsensitivity->value);
+		gyro_pitchsensitivity->modified = false;
+		gyro_yawsensitivity->modified = false;
+	}
+
+	if (reset_needed)
+	{
+		IN_GYRO_ResetState();
+	}
 }
 
 static void
@@ -900,86 +1066,66 @@ IN_Update(void)
 			}
 
 #ifndef NO_SDL_GYRO	// gamepad sensors' reading is supported (gyro, accelerometer)
-			case SDL_EVENT_GAMEPAD_SENSOR_UPDATE :
-				if (event.gsensor.sensor != SDL_SENSOR_GYRO)
+			case SDL_EVENT_GAMEPAD_SENSOR_UPDATE:
+				switch (event.gsensor.sensor)
 				{
-					break;
-				}
-				if (countdown_reason == REASON_GYROCALIBRATION && updates_countdown)
-				{
-					gyro_accum[0] += event.gsensor.data[0];
-					gyro_accum[1] += event.gsensor.data[1];
-					gyro_accum[2] += event.gsensor.data[2];
-					num_samples++;
-					break;
-				}
+					case SDL_SENSOR_ACCEL:
+					{
+						// SDL accelerometer data is in SI units (m/s^2).
+						// Convert the data to units of gravity (g).
+						vec3_t accel_data;
+						accel_data[0] = event.gsensor.data[0] / SDL_STANDARD_GRAVITY;
+						accel_data[1] = event.gsensor.data[1] / SDL_STANDARD_GRAVITY;
+						accel_data[2] = event.gsensor.data[2] / SDL_STANDARD_GRAVITY;
+						IN_GYRO_AccumulateAccelSamples(accel_data);
+						break;
+					}
 
+					case SDL_SENSOR_GYRO:
+						// SDL gyro data is already in radians/second.
+						IN_GYRO_AccumulateGyroSamples(event.gsensor.data);
+						break;
+
+					default:
+						// All other sensors are unhandled.
+						break;
+				}
+				break;
 #else	// gyro read from a "secondary joystick" (usually with name ending in "IMU")
-			case SDL_EVENT_JOYSTICK_AXIS_MOTION :
-				if ( !imu_joystick || event.gdevice.which != SDL_GetJoystickID(imu_joystick) )
+			case SDL_EVENT_JOYSTICK_AXIS_MOTION:
+				if (imu_joystick && event.cdevice.which == SDL_GetJoystickID(imu_joystick))
 				{
-					break;	// gamepad axes handled by SDL_EVENT_GAMEPAD_AXIS_MOTION
-				}
-
-				int axis_value = event.gaxis.value;
-				if (countdown_reason == REASON_GYROCALIBRATION && updates_countdown)
-				{
+					const int axis_value = event.gaxis.value;
 					switch (event.gaxis.axis)
 					{
+						case IMU_JOY_AXIS_ACCEL_Y:
+							accel_accum[0] -= axis_value;
+							num_accel[0]++;
+							break;
+						case IMU_JOY_AXIS_ACCEL_X:
+							accel_accum[1] += axis_value;
+							num_accel[1]++;
+							break;
+						case IMU_JOY_AXIS_ACCEL_Z:
+							accel_accum[2] -= axis_value;
+							num_accel[2]++;
+							break;
 						case IMU_JOY_AXIS_GYRO_PITCH:
-							gyro_accum[0] += axis_value;
-							num_samples[0]++;
+							gyro_accum[0] -= axis_value;
+							num_gyro[0]++;
 							break;
 						case IMU_JOY_AXIS_GYRO_YAW:
 							gyro_accum[1] += axis_value;
-							num_samples[1]++;
+							num_gyro[1]++;
 							break;
 						case IMU_JOY_AXIS_GYRO_ROLL:
-							gyro_accum[2] += axis_value;
-							num_samples[2]++;
-					}
-					break;
-				}
-
-#endif	// !NO_SDL_GYRO
-
-				if (gyro_active && !cl_paused->value && cls.key_dest == key_game)
-				{
-#ifndef NO_SDL_GYRO
-					if (!gyro_turning_axis->value)
-					{
-						gyro_yaw = event.gsensor.data[1] - gyro_calibration_y->value;		// yaw
-					}
-					else
-					{
-						gyro_yaw = -(event.gsensor.data[2] - gyro_calibration_z->value);	// roll
-					}
-					gyro_pitch = event.gsensor.data[0] - gyro_calibration_x->value;
-#else	// old "joystick" gyro
-					switch (event.gaxis.axis)	// inside "case SDL_EVENT_JOYSTICK_AXIS_MOTION" here
-					{
-						case IMU_JOY_AXIS_GYRO_PITCH:
-							gyro_pitch = -(axis_value - gyro_calibration_x->value);
+							gyro_accum[2] -= axis_value;
+							num_gyro[2]++;
 							break;
-						case IMU_JOY_AXIS_GYRO_YAW:
-							if (!gyro_turning_axis->value)
-							{
-								gyro_yaw = axis_value - gyro_calibration_y->value;
-							}
-							break;
-						case IMU_JOY_AXIS_GYRO_ROLL:
-							if (gyro_turning_axis->value)
-							{
-								gyro_yaw = axis_value - gyro_calibration_z->value;
-							}
 					}
-#endif	// !NO_SDL_GYRO
-				}
-				else
-				{
-					gyro_yaw = gyro_pitch = 0;
 				}
 				break;
+#endif	// !NO_SDL_GYRO
 
 			case SDL_EVENT_GAMEPAD_REMOVED :
 				if (controller && event.gdevice.which == SDL_GetJoystickID(SDL_GetGamepadJoystick(controller))) {
@@ -1063,25 +1209,36 @@ IN_Update(void)
 
 				case REASON_GYROCALIBRATION:	// finish and save calibration
 					{
+						float accel_cal = 0.0f;
+						vec3_t gyro_cal = {0.0f, 0.0f, 0.0f};
 #ifndef NO_SDL_GYRO
-						const float inverseSamples = 1.f / num_samples;
-						Cvar_SetValue("gyro_calibration_x", gyro_accum[0] * inverseSamples);
-						Cvar_SetValue("gyro_calibration_y", gyro_accum[1] * inverseSamples);
-						Cvar_SetValue("gyro_calibration_z", gyro_accum[2] * inverseSamples);
+						accel_cal = IN_GYRO_AverageAccelSamples() - GYRO_DEFAULT_ACCEL;
+						IN_GYRO_AverageGyroSamples(gyro_cal);
 #else
-						if (!num_samples[0] || !num_samples[1] || !num_samples[2])
+						if (num_accel[0] && num_accel[1] && num_accel[2])
 						{
-							Com_Printf("Calibration failed, please retry inside a level after having moved your gamepad a little.\n");
+							vec3_t accel_avg;
+							ImuJoy_AverageAccelSamples(accel_avg);
+							VectorScale(accel_avg, IMU_JOY_ACCEL_SCALE, accel_avg);
+							accel_cal = VectorLength(accel_avg) - GYRO_DEFAULT_ACCEL;
 						}
-						else
+						if (num_gyro[0] && num_gyro[1] && num_gyro[2])
 						{
-							Cvar_SetValue("gyro_calibration_x", gyro_accum[0] / num_samples[0]);
-							Cvar_SetValue("gyro_calibration_y", gyro_accum[1] / num_samples[1]);
-							Cvar_SetValue("gyro_calibration_z", gyro_accum[2] / num_samples[2]);
+							ImuJoy_AverageGyroSamples(gyro_cal);
+							VectorScale(gyro_cal, IMU_JOY_GYRO_SCALE, gyro_cal);
 						}
+						ImuJoy_ResetSamples();
 #endif
-						Com_Printf("Calibration results:\n X=%f Y=%f Z=%f\n",
-							gyro_calibration_x->value, gyro_calibration_y->value, gyro_calibration_z->value);
+						IN_GYRO_ResetSamples();
+						IN_GYRO_UpdateCalibration(
+							accel_cal + GYRO_DEFAULT_ACCEL, gyro_cal);
+						Cvar_SetValue("gyro_calibration_a", accel_cal);
+						Cvar_SetValue("gyro_calibration_x", gyro_cal[0]);
+						Cvar_SetValue("gyro_calibration_y", gyro_cal[1]);
+						Cvar_SetValue("gyro_calibration_z", gyro_cal[2]);
+						Com_Printf("Calibration results:\n A=%f X=%f Y=%f Z=%f\n",
+							gyro_calibration_a->value, gyro_calibration_x->value,
+							gyro_calibration_y->value, gyro_calibration_z->value);
 						CalibrationFinishedCallback();
 						break;
 					}
@@ -1102,10 +1259,8 @@ IN_Update(void)
 	{
 		IN_GamepadConfirm_Changed();
 	}
-	if (gyro_mode->modified)
-	{
-		IN_GyroMode_Changed();
-	}
+	IN_CheckGyroModified();
+	IN_UpdateGyroEnabled();
 }
 
 /*
@@ -1191,30 +1346,6 @@ IN_ApplyExpo(thumbstick_t stick, float exponent)
 	result.x = stick.x * eased;
 	result.y = stick.y * eased;
 	return result;
-}
-
-/*
- * Minimize gyro movement when under a small threshold.
- * http://gyrowiki.jibbsmart.com/blog:good-gyro-controls-part-1:the-gyro-is-a-mouse#toc9
- */
-static thumbstick_t
-IN_TightenInput(float yaw, float pitch)
-{
-	thumbstick_t input = { yaw, pitch };
-	const float magnitude = IN_StickMagnitude(input);
-#ifndef NO_SDL_GYRO
-	const float threshold = (M_PI / 180.0f) * gyro_tightening->value;
-#else
-	const float threshold = (2560.0f / 180.0f) * gyro_tightening->value;
-#endif
-
-	if (magnitude < threshold)
-	{
-		const float scale = magnitude / threshold;
-		input.x *= scale;
-		input.y *= scale;
-	}
-	return input;
 }
 
 /*
@@ -1341,7 +1472,6 @@ IN_Move(usercmd_t *cmd)
 	static float joystick_yaw, joystick_pitch;
 	static float joystick_forwardmove, joystick_sidemove;
 	static thumbstick_t left_stick = {0}, right_stick = {0};
-	thumbstick_t gyro_in = {0};
 
 	if (m_filter->value)
 	{
@@ -1490,11 +1620,6 @@ IN_Move(usercmd_t *cmd)
 	//
 	// For movement this is not needed, as those are absolute values independent of framerate
 	float joyViewFactor = cls.rframetime/0.01666f;
-#ifndef NO_SDL_GYRO
-	float gyroViewFactor = (1.0f / M_PI) * joyViewFactor;
-#else
-	float gyroViewFactor = (1.0f / 2560.0f) * joyViewFactor;	// normalized for Switch gyro
-#endif
 
 	if (joystick_yaw)
 	{
@@ -1522,21 +1647,31 @@ IN_Move(usercmd_t *cmd)
 					* cl_sidespeed->value * 2.0f * joystick_sidemove;
 	}
 
-	if (gyro_yaw || gyro_pitch)
+	if (gyro_enabled)
 	{
-		gyro_in = IN_TightenInput(gyro_yaw, gyro_pitch);
-	}
+#ifdef NO_SDL_GYRO
+		// IMU "joystick" data was accumulated in separate axes through
+		// SDL_EVENT_JOYSTICK_AXIS_MOTION, so combine the data now.
+		ImuJoy_PrepareSamples();
+#endif
+		// Always process gyro to keep the state current.
+		thumbstick_t gyro_in = {0.0f, 0.0f};
+		IN_GYRO_Process(cls.rframetime, &gyro_in.y, &gyro_in.x);
 
-	if (gyro_in.x)
-	{
-		cl.viewangles[YAW] += m_yaw->value * gyro_yawsensitivity->value
-					* cl_yawspeed->value * gyro_in.x * gyroViewFactor;
-	}
+		if (gyro_active && (gyro_in.x || gyro_in.y))
+		{
+			const float factor = cls.rframetime * (float)(180.0 / M_PI);
 
-	if (gyro_in.y)
-	{
-		cl.viewangles[PITCH] -= m_pitch->value * gyro_pitchsensitivity->value
-					* cl_pitchspeed->value * gyro_in.y * gyroViewFactor;
+			if (gyro_in.x)
+			{
+				cl.viewangles[YAW] += gyro_in.x * factor;
+			}
+
+			if (gyro_in.y)
+			{
+				cl.viewangles[PITCH] -= gyro_in.y * factor;
+			}
+		}
 	}
 
 	// Flick Stick: flick in progress, changing the yaw angle to the target progressively
@@ -2161,14 +2296,10 @@ Controller_Rumble(const char *name, vec3_t source, qboolean from_player,
 void
 StartCalibration(void)
 {
-#ifndef NO_SDL_GYRO
-	num_samples = 0;
-#else
-	num_samples[0] = num_samples[1] = num_samples[2] = 0;
+#ifdef NO_SDL_GYRO
+	ImuJoy_ResetSamples();
 #endif
-	gyro_accum[0] = 0.0;
-	gyro_accum[1] = 0.0;
-	gyro_accum[2] = 0.0;
+	IN_GYRO_ResetSamples();
 	updates_countdown = 300;
 	countdown_reason = REASON_GYROCALIBRATION;
 }
@@ -2177,6 +2308,31 @@ qboolean
 IsCalibrationZero(void)
 {
 	return (!gyro_calibration_x->value && !gyro_calibration_y->value && !gyro_calibration_z->value);
+}
+
+static void
+IN_InitGyro(void)
+{
+#ifdef NO_SDL_GYRO
+	ImuJoy_ResetSamples();
+#endif
+	IN_GYRO_ResetState();
+	gyro_active = (gyro_mode->value == 2 || gyro_mode->value == 3);
+	IN_GYRO_UpdateGyroSpace(gyro_space->value);
+	IN_GYRO_UpdateLocalRoll(gyro_local_roll->value);
+	IN_GYRO_UpdateTightening(gyro_tightening->value);
+	IN_GYRO_UpdateSmoothing(gyro_smoothing->value);
+	IN_GYRO_UpdateSmoothingWindow(gyro_smoothing_window->value);
+	IN_GYRO_UpdateAcceleration(gyro_acceleration->value);
+	IN_GYRO_UpdateAccelMult(gyro_accel_multiplier->value);
+	IN_GYRO_UpdateAccelThresh(gyro_accel_lower_thresh->value,
+							  gyro_accel_upper_thresh->value);
+	IN_GYRO_UpdateSensitivity(gyro_pitchsensitivity->value,
+							  gyro_yawsensitivity->value);
+	float accel_magnitude = gyro_calibration_a->value + GYRO_DEFAULT_ACCEL;
+	vec3_t gyro_offset = {gyro_calibration_x->value, gyro_calibration_y->value,
+						  gyro_calibration_z->value};
+	IN_GYRO_UpdateCalibration(accel_magnitude, gyro_offset);
 }
 
 /*
@@ -2351,16 +2507,38 @@ IN_Controller_Init(qboolean notify_user)
 
 #ifndef NO_SDL_GYRO
 
-			if (SDL_GamepadHasSensor(controller, SDL_SENSOR_GYRO)
-				&& SDL_SetGamepadSensorEnabled(controller, SDL_SENSOR_GYRO, true) )
+			const qboolean found_gyro =
+				SDL_GamepadHasSensor(controller, SDL_SENSOR_GYRO)
+				&& SDL_SetGamepadSensorEnabled(
+					controller, SDL_SENSOR_GYRO, true);
+
+			const qboolean found_accel =
+				SDL_GamepadHasSensor(controller, SDL_SENSOR_ACCEL)
+				&& SDL_SetGamepadSensorEnabled(
+					controller, SDL_SENSOR_ACCEL, true);
+
+			if (found_gyro && found_accel)
 			{
 				show_gyro = true;
-				Com_Printf( "Gyro sensor enabled at %.2f Hz\n",
-					SDL_GetGamepadSensorDataRate(controller, SDL_SENSOR_GYRO) );
+				Com_Printf("Sensors enabled: Gyro at %.2f Hz, Accelerometer at %.2f Hz\n",
+					SDL_GetGamepadSensorDataRate(controller, SDL_SENSOR_GYRO),
+					SDL_GetGamepadSensorDataRate(controller, SDL_SENSOR_ACCEL));
 			}
 			else
 			{
-				Com_Printf("Gyro sensor not found.\n");
+				if (!found_gyro)
+				{
+					Com_Printf("Gyro sensor not found.\n");
+				}
+
+				if (!found_accel)
+				{
+					Com_Printf("Accelerometer sensor not found.\n");
+				}
+
+				// Both were required for gyro support, so disable them completely.
+				SDL_SetGamepadSensorEnabled(controller, SDL_SENSOR_GYRO, false);
+				SDL_SetGamepadSensorEnabled(controller, SDL_SENSOR_ACCEL, false);
 			}
 
 			bool hasLED = SDL_GetBooleanProperty(SDL_GetGamepadProperties(controller), SDL_PROP_JOYSTICK_CAP_RGB_LED_BOOLEAN, false);
@@ -2407,7 +2585,7 @@ IN_Controller_Init(qboolean notify_user)
 	SDL_free((void *)joysticks);
 	IN_GamepadLabels_Changed();
 	IN_GamepadConfirm_Changed();
-	IN_GyroMode_Changed();
+	IN_InitGyro();
 }
 
 /*
@@ -2420,7 +2598,7 @@ IN_Init(void)
 
 	mouse_x = mouse_y = 0;
 	joystick_left_x = joystick_left_y = joystick_right_x = joystick_right_y = 0;
-	gyro_yaw = gyro_pitch = 0;
+	gyro_enabled = false;
 
 	exponential_speedup = Cvar_Get("exponential_speedup", "0", CVAR_ARCHIVE);
 	freelook = Cvar_Get("freelook", "1", CVAR_ARCHIVE);
@@ -2455,15 +2633,22 @@ IN_Init(void)
 	joy_flick_threshold = Cvar_Get("joy_flick_threshold", "0.65", CVAR_ARCHIVE);
 	joy_flick_smoothed = Cvar_Get("joy_flick_smoothed", "8.0", CVAR_ARCHIVE);
 
+	gyro_mode = Cvar_Get("gyro_mode", "2", CVAR_ARCHIVE);
+	gyro_space = Cvar_Get("gyro_space", "1", CVAR_ARCHIVE);
+	gyro_local_roll = Cvar_Get("gyro_local_roll", "1", CVAR_ARCHIVE);
+	gyro_yawsensitivity = Cvar_Get("gyro_yawsensitivity", "2.5", CVAR_ARCHIVE);
+	gyro_pitchsensitivity = Cvar_Get("gyro_pitchsensitivity", "2.5", CVAR_ARCHIVE);
+	gyro_tightening = Cvar_Get("gyro_tightening", "3.0", CVAR_ARCHIVE);
+	gyro_smoothing = Cvar_Get("gyro_smoothing", "2.0", CVAR_ARCHIVE);
+	gyro_smoothing_window = Cvar_Get("gyro_smoothing_window", "0.125", CVAR_ARCHIVE);
+	gyro_acceleration = Cvar_Get("gyro_acceleration", "0", CVAR_ARCHIVE);
+	gyro_accel_multiplier = Cvar_Get("gyro_accel_multiplier", "2.0", CVAR_ARCHIVE);
+	gyro_accel_lower_thresh = Cvar_Get("gyro_accel_lower_thresh", "0.0", CVAR_ARCHIVE);
+	gyro_accel_upper_thresh = Cvar_Get("gyro_accel_upper_thresh", "75.0", CVAR_ARCHIVE);
+	gyro_calibration_a = Cvar_Get("gyro_calibration_a", "0.0", CVAR_ARCHIVE);
 	gyro_calibration_x = Cvar_Get("gyro_calibration_x", "0.0", CVAR_ARCHIVE);
 	gyro_calibration_y = Cvar_Get("gyro_calibration_y", "0.0", CVAR_ARCHIVE);
 	gyro_calibration_z = Cvar_Get("gyro_calibration_z", "0.0", CVAR_ARCHIVE);
-
-	gyro_yawsensitivity = Cvar_Get("gyro_yawsensitivity", "2.5", CVAR_ARCHIVE);
-	gyro_pitchsensitivity = Cvar_Get("gyro_pitchsensitivity", "2.5", CVAR_ARCHIVE);
-	gyro_tightening = Cvar_Get("gyro_tightening", "3.5", CVAR_ARCHIVE);
-	gyro_turning_axis = Cvar_Get("gyro_turning_axis", "0", CVAR_ARCHIVE);
-	gyro_mode = Cvar_Get("gyro_mode", "2", CVAR_ARCHIVE);
 
 	windowed_pauseonfocuslost = Cvar_Get("vid_pauseonfocuslost", "0", CVAR_USERINFO | CVAR_ARCHIVE);
 	windowed_mouse = Cvar_Get("windowed_mouse", "1", CVAR_USERINFO | CVAR_ARCHIVE);
@@ -2521,7 +2706,7 @@ IN_Controller_Shutdown(qboolean notify_user)
 	}
 	show_gamepad = show_gyro = show_haptic = false;
 	joystick_left_x = joystick_left_y = joystick_right_x = joystick_right_y = 0;
-	gyro_yaw = gyro_pitch = 0;
+	gyro_enabled = false;
 
 #ifdef NO_SDL_GYRO
 	if (imu_joystick)

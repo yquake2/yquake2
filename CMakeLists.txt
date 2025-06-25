@@ -444,6 +444,7 @@ set(Client-Source
 	${CLIENT_SRC_DIR}/cl_view.c
 	${CLIENT_SRC_DIR}/curl/download.c
 	${CLIENT_SRC_DIR}/curl/qcurl.c
+	${CLIENT_SRC_DIR}/input/gyro.c
 	${CLIENT_SRC_DIR}/menu/menu.c
 	${CLIENT_SRC_DIR}/menu/qmenu.c
 	${CLIENT_SRC_DIR}/menu/videomenu.c
@@ -508,6 +509,7 @@ set(Client-Header
 	${CLIENT_SRC_DIR}/header/screen.h
 	${CLIENT_SRC_DIR}/curl/header/download.h
 	${CLIENT_SRC_DIR}/curl/header/qcurl.h
+	${CLIENT_SRC_DIR}/input/header/gyro.h
 	${CLIENT_SRC_DIR}/input/header/input.h
 	${CLIENT_SRC_DIR}/menu/header/qmenu.h
 	${CLIENT_SRC_DIR}/sound/header/local.h
