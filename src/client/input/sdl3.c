@@ -55,20 +55,34 @@
 
 // ----
 
-enum {
-	LAYOUT_DEFAULT			= 0,
+typedef enum
+{
+	LAYOUT_NONE = -1,
+	LAYOUT_DEFAULT,
 	LAYOUT_SOUTHPAW,
 	LAYOUT_LEGACY,
 	LAYOUT_LEGACY_SOUTHPAW,
 	LAYOUT_FLICK_STICK,
 	LAYOUT_FLICK_STICK_SOUTHPAW
-};
+} sticklayout_t;
 
 typedef struct
 {
 	float x;
 	float y;
 } thumbstick_t;
+
+typedef struct
+{
+	thumbstick_t left;
+	thumbstick_t right;
+	float *forwardmove;
+	float *sidemove;
+	float *yaw;
+	float *pitch;
+	float extra_scale;
+	qboolean extra_active;
+} joystate_t;
 
 typedef enum
 {
@@ -151,12 +165,20 @@ static cvar_t *joy_labels;
 static cvar_t *joy_confirm;
 
 // Joystick sensitivity
-static cvar_t *joy_yawsensitivity;
-static cvar_t *joy_pitchsensitivity;
+static cvar_t *joy_sensitivity;
+static cvar_t *joy_advanced;
+static cvar_t *joy_yawspeed;
+static cvar_t *joy_pitchspeed;
+static cvar_t *joy_extra_yawspeed;
+static cvar_t *joy_extra_pitchspeed;
+static cvar_t *joy_ramp_time;
+static cvar_t *joy_outer_threshold;
 static cvar_t *joy_forwardsensitivity;
 static cvar_t *joy_sidesensitivity;
+void IN_ApplyJoyPreset(void);
 
 // Joystick's analog sticks configuration
+static sticklayout_t joy_active_layout;
 cvar_t *joy_layout;
 static cvar_t *joy_left_expo;
 static cvar_t *joy_left_snapaxis;
@@ -1250,6 +1272,10 @@ IN_Update(void)
 		}
 	}
 
+	if (joy_sensitivity->modified)
+	{
+		IN_ApplyJoyPreset();
+	}
 	// Gamepad labels' type and "confirm & cancel style" change handling
 	if (joy_labels->modified)
 	{
@@ -1285,15 +1311,20 @@ IN_MapRange(float v, float deadzone, float sign)
  * Radial deadzone based on github.com/jeremiah-sypult/Quakespasm-Rift
  */
 static thumbstick_t
-IN_RadialDeadzone(thumbstick_t stick, float deadzone)
+IN_RadialDeadzone(thumbstick_t stick, float deadzone, float threshold)
 {
 	thumbstick_t result = {0};
 	float magnitude = Q_min(IN_StickMagnitude(stick), 1.0f);
-	deadzone = Q_min( Q_max(deadzone, 0.0f), 0.9f);		// clamp to [0.0, 0.9]
 
-	if ( magnitude > deadzone )
+	if (magnitude >= threshold)
 	{
-		const float scale = ((magnitude - deadzone) / (1.0 - deadzone)) / magnitude;
+		result.x = stick.x / magnitude;
+		result.y = stick.y / magnitude;
+	}
+	else if (magnitude > deadzone)
+	{
+		const float scale =
+			((magnitude - deadzone) / (threshold - deadzone)) / magnitude;
 		result.x = stick.x * scale;
 		result.y = stick.y * scale;
 	}
@@ -1313,7 +1344,6 @@ IN_SlopedAxialDeadzone(thumbstick_t stick, float deadzone)
 	float abs_y = fabsf(stick.y);
 	float sign_x = copysignf(1.0f, stick.x);
 	float sign_y = copysignf(1.0f, stick.y);
-	deadzone = Q_min(deadzone, 0.5f);
 	float deadzone_x = deadzone * abs_y;	// deadzone of one axis depends...
 	float deadzone_y = deadzone * abs_x;	// ...on the value of the other axis
 
@@ -1458,20 +1488,251 @@ IN_FlickStick(thumbstick_t stick, float axial_deadzone)
 	return angle_change;
 }
 
+static void
+IN_AdvanceFlickStick(void)
+{
+	// Flick Stick: flick in progress, changing the yaw angle to the target
+	// progressively
+	if (flick_progress < 1.0f)
+	{
+		float cur_progress =
+			(float)(sys_frame_time - started_flick) / FLICK_TIME;
+
+		if (cur_progress > 1.0f)
+		{
+			cur_progress = 1.0f;
+		}
+		else
+		{
+			// "Ease out" warp processing: f(x)=1-(1-x)^2 , 0 <= x <= 1
+			// http://gyrowiki.jibbsmart.com/blog:good-gyro-controls-part-2:the-flick-stick#toc0
+			cur_progress = 1.0f - cur_progress;
+			cur_progress *= cur_progress;
+			cur_progress = 1.0f - cur_progress;
+		}
+
+		cl.viewangles[YAW] += (cur_progress - flick_progress) * target_angle;
+		flick_progress = cur_progress;
+	}
+}
+
+static void
+IN_UpdateStickLayout(joystate_t *joy)
+{
+	switch (joy_active_layout)
+	{
+		case LAYOUT_SOUTHPAW:
+			joy->forwardmove = &joy->right.y;
+			joy->sidemove = &joy->right.x;
+			joy->yaw = &joy->left.x;
+			joy->pitch = &joy->left.y;
+			break;
+
+		case LAYOUT_LEGACY:
+			joy->forwardmove = &joy->left.y;
+			joy->sidemove = &joy->right.x;
+			joy->yaw = &joy->left.x;
+			joy->pitch = &joy->right.y;
+			break;
+
+		case LAYOUT_LEGACY_SOUTHPAW:
+			joy->forwardmove = &joy->right.y;
+			joy->sidemove = &joy->left.x;
+			joy->yaw = &joy->right.x;
+			joy->pitch = &joy->left.y;
+			break;
+
+		case LAYOUT_FLICK_STICK:
+			joy->forwardmove = &joy->left.y;
+			joy->sidemove = &joy->left.x;
+			joy->yaw = &joy->right.x;			// Unused, must be zero
+			joy->pitch = &joy->right.y;			// Unused, must be zero
+			break;
+
+		case LAYOUT_FLICK_STICK_SOUTHPAW:
+			joy->forwardmove = &joy->right.y;
+			joy->sidemove = &joy->right.x;
+			joy->yaw = &joy->left.x;			// Unused, must be zero
+			joy->pitch = &joy->left.y;			// Unused, must be zero
+			break;
+
+		default: // LAYOUT_DEFAULT or LAYOUT_NONE
+			joy->forwardmove = &joy->left.y;
+			joy->sidemove = &joy->left.x;
+			joy->yaw = &joy->right.x;
+			joy->pitch = &joy->right.y;
+			break;
+	}
+}
+
+static qboolean
+IN_CrossedThreshold(joystate_t *joy, float outer_threshold)
+{
+	const float magnitude = Q_magnitude(*joy->yaw, *joy->pitch);
+	return (magnitude >= outer_threshold);
+}
+
+static void
+IN_UpdateExtraSpeed(float delta_time, float outer_threshold, joystate_t *joy)
+{
+	if ((joy_extra_yawspeed->value > 0.0f || joy_extra_pitchspeed->value > 0.0f)
+		&& joy_active_layout < LAYOUT_FLICK_STICK
+		&& IN_CrossedThreshold(joy, outer_threshold))
+	{
+		const float ramp_time = Q_clamp(joy_ramp_time->value, 0.0f, 1.0f);
+
+		if (ramp_time > 1.0e-6f)
+		{
+			static float elapsed_time;
+
+			if (joy->extra_active)
+			{
+				if (elapsed_time < ramp_time)
+				{
+					// Continue ramp
+					elapsed_time += delta_time;
+					joy->extra_scale = elapsed_time / ramp_time;
+					joy->extra_scale = Q_min(joy->extra_scale, 1.0f);
+				}
+			}
+			else
+			{
+				// Start ramp
+				elapsed_time = 0.0f;
+				joy->extra_scale = 0.0f;
+				joy->extra_active = true;
+			}
+		}
+		else
+		{
+			// Instant ramp
+			joy->extra_scale = 1.0f;
+			joy->extra_active = true;
+		}
+	}
+	else
+	{
+		// Reset ramp
+		joy->extra_scale = 0.0f;
+		joy->extra_active = false;
+	}
+}
+
+static void
+IN_GamepadMove(usercmd_t *cmd)
+{
+	static joystate_t joy;
+
+	// Factor used to transform from SDL joystick input ([-32768, 32767]) to
+	// [-1, 1] range
+	static const float normalize_sdl_axis = 1.0f / 32768.0f;
+
+	// Left thumbstick settings
+	const float left_expo = Q_clamp(joy_left_expo->value, 1.0f, 5.0f);
+	const float left_snapaxis = Q_clamp(joy_left_snapaxis->value, 0.0f, 0.5f);
+	const float left_deadzone = Q_clamp(joy_left_deadzone->value, 0.0f, 0.5f);
+
+	// Right thumbstick settings
+	const float right_expo = Q_clamp(joy_right_expo->value, 1.0f, 5.0f);
+	const float right_snapaxis = Q_clamp(joy_right_snapaxis->value, 0.0f, 0.5f);
+	const float right_deadzone = Q_clamp(joy_right_deadzone->value, 0.0f, 0.5f);
+
+	// Shared settings
+	const float outer_threshold =
+		1.0f - Q_clamp(joy_outer_threshold->value, 0.0f, 0.3f);
+
+	// Update stick layout
+	const int layout = lroundf(Q_clamp(joy_layout->value, LAYOUT_DEFAULT,
+									   LAYOUT_FLICK_STICK_SOUTHPAW));
+	if (joy_active_layout != layout)
+	{
+		joy_active_layout = layout;
+		memset(&joy, 0, sizeof(joy));
+		IN_UpdateStickLayout(&joy);
+	}
+
+	// Joystick reading and processing
+	joy.left.x = joystick_left_x * normalize_sdl_axis;
+	joy.left.y = joystick_left_y * normalize_sdl_axis;
+	joy.right.x = joystick_right_x * normalize_sdl_axis;
+	joy.right.y = joystick_right_y * normalize_sdl_axis;
+
+	IN_UpdateExtraSpeed(cls.rframetime, outer_threshold, &joy);
+
+	if (joy.left.x || joy.left.y)
+	{
+		joy.left = IN_RadialDeadzone(joy.left, left_deadzone, outer_threshold);
+
+		if (joy_active_layout == LAYOUT_FLICK_STICK_SOUTHPAW)
+		{
+			cl.viewangles[YAW] += IN_FlickStick(joy.left, left_snapaxis);
+			IN_AdvanceFlickStick();
+			joy.left.x = joy.left.y = 0.0f;
+		}
+		else
+		{
+			joy.left = IN_SlopedAxialDeadzone(joy.left, left_snapaxis);
+			joy.left = IN_ApplyExpo(joy.left, left_expo);
+		}
+	}
+
+	if (joy.right.x || joy.right.y)
+	{
+		joy.right =
+			IN_RadialDeadzone(joy.right, right_deadzone, outer_threshold);
+
+		if (joy_active_layout == LAYOUT_FLICK_STICK)
+		{
+			cl.viewangles[YAW] += IN_FlickStick(joy.right, right_snapaxis);
+			IN_AdvanceFlickStick();
+			joy.right.x = joy.right.y = 0.0f;
+		}
+		else
+		{
+			joy.right = IN_SlopedAxialDeadzone(joy.right, right_snapaxis);
+			joy.right = IN_ApplyExpo(joy.right, right_expo);
+		}
+	}
+
+	if (*joy.yaw)
+	{
+		const float speed =
+			joy_yawspeed->value + joy.extra_scale * joy_extra_yawspeed->value;
+		cl.viewangles[YAW] -= (*joy.yaw) * speed * cls.rframetime;
+	}
+
+	if (*joy.pitch)
+	{
+		const float speed = joy_pitchspeed->value
+							+ joy.extra_scale * joy_extra_pitchspeed->value
+								  * Q_signf(joy_pitchspeed->value);
+		cl.viewangles[PITCH] += (*joy.pitch) * speed * cls.rframetime;
+	}
+
+	if (*joy.forwardmove)
+	{
+		// We need to be twice as fast because with joystick we run...
+		cmd->forwardmove -= m_forward->value * joy_forwardsensitivity->value
+							* cl_forwardspeed->value * 2.0f
+							* (*joy.forwardmove);
+	}
+
+	if (*joy.sidemove)
+	{
+		// We need to be twice as fast because with joystick we run...
+		cmd->sidemove += m_side->value * joy_sidesensitivity->value
+						 * cl_sidespeed->value * 2.0f * (*joy.sidemove);
+	}
+}
+
 /*
  * Move handling
  */
 void
 IN_Move(usercmd_t *cmd)
 {
-	// Factor used to transform from SDL joystick input ([-32768, 32767])  to [-1, 1] range
-	static const float normalize_sdl_axis = 1.0f / 32768.0f;
-
 	static float old_mouse_x;
 	static float old_mouse_y;
-	static float joystick_yaw, joystick_pitch;
-	static float joystick_forwardmove, joystick_sidemove;
-	static thumbstick_t left_stick = {0}, right_stick = {0};
 
 	if (m_filter->value)
 	{
@@ -1546,105 +1807,9 @@ IN_Move(usercmd_t *cmd)
 		mouse_x = mouse_y = 0;
 	}
 
-	// Joystick reading and processing
-	left_stick.x = joystick_left_x * normalize_sdl_axis;
-	left_stick.y = joystick_left_y * normalize_sdl_axis;
-	right_stick.x = joystick_right_x * normalize_sdl_axis;
-	right_stick.y = joystick_right_y * normalize_sdl_axis;
-
-	if (left_stick.x || left_stick.y)
+	if (controller)
 	{
-		left_stick = IN_RadialDeadzone(left_stick, joy_left_deadzone->value);
-		if ((int)joy_layout->value == LAYOUT_FLICK_STICK_SOUTHPAW)
-		{
-			cl.viewangles[YAW] += IN_FlickStick(left_stick, joy_left_snapaxis->value);
-		}
-		else
-		{
-			left_stick = IN_SlopedAxialDeadzone(left_stick, joy_left_snapaxis->value);
-			left_stick = IN_ApplyExpo(left_stick, joy_left_expo->value);
-		}
-	}
-
-	if (right_stick.x || right_stick.y)
-	{
-		right_stick = IN_RadialDeadzone(right_stick, joy_right_deadzone->value);
-		if ((int)joy_layout->value == LAYOUT_FLICK_STICK)
-		{
-			cl.viewangles[YAW] += IN_FlickStick(right_stick, joy_right_snapaxis->value);
-		}
-		else
-		{
-			right_stick = IN_SlopedAxialDeadzone(right_stick, joy_right_snapaxis->value);
-			right_stick = IN_ApplyExpo(right_stick, joy_right_expo->value);
-		}
-	}
-
-	switch((int)joy_layout->value)
-	{
-		case LAYOUT_SOUTHPAW:
-			joystick_forwardmove = right_stick.y;
-			joystick_sidemove = right_stick.x;
-			joystick_yaw = left_stick.x;
-			joystick_pitch = left_stick.y;
-			break;
-		case LAYOUT_LEGACY:
-			joystick_forwardmove = left_stick.y;
-			joystick_sidemove = right_stick.x;
-			joystick_yaw = left_stick.x;
-			joystick_pitch = right_stick.y;
-			break;
-		case LAYOUT_LEGACY_SOUTHPAW:
-			joystick_forwardmove = right_stick.y;
-			joystick_sidemove = left_stick.x;
-			joystick_yaw = right_stick.x;
-			joystick_pitch = left_stick.y;
-			break;
-		case LAYOUT_FLICK_STICK:	// yaw already set by now
-			joystick_forwardmove = left_stick.y;
-			joystick_sidemove = left_stick.x;
-			break;
-		case LAYOUT_FLICK_STICK_SOUTHPAW:
-			joystick_forwardmove = right_stick.y;
-			joystick_sidemove = right_stick.x;
-			break;
-		default:	// LAYOUT_DEFAULT
-			joystick_forwardmove = left_stick.y;
-			joystick_sidemove = left_stick.x;
-			joystick_yaw = right_stick.x;
-			joystick_pitch = right_stick.y;
-	}
-
-	// To make the the viewangles changes independent of framerate we need to scale
-	// with frametime (assuming the configured values are for 60hz)
-	//
-	// For movement this is not needed, as those are absolute values independent of framerate
-	float joyViewFactor = cls.rframetime/0.01666f;
-
-	if (joystick_yaw)
-	{
-		cl.viewangles[YAW] -= (m_yaw->value * joy_yawsensitivity->value
-					* cl_yawspeed->value * joystick_yaw) * joyViewFactor;
-	}
-
-	if(joystick_pitch)
-	{
-		cl.viewangles[PITCH] += (m_pitch->value * joy_pitchsensitivity->value
-					* cl_pitchspeed->value * joystick_pitch) * joyViewFactor;
-	}
-
-	if (joystick_forwardmove)
-	{
-		// We need to be twice as fast because with joystick we run...
-		cmd->forwardmove -= m_forward->value * joy_forwardsensitivity->value
-					* cl_forwardspeed->value * 2.0f * joystick_forwardmove;
-	}
-
-	if (joystick_sidemove)
-	{
-		// We need to be twice as fast because with joystick we run...
-		cmd->sidemove += m_side->value * joy_sidesensitivity->value
-					* cl_sidespeed->value * 2.0f * joystick_sidemove;
+		IN_GamepadMove(cmd);
 	}
 
 	if (gyro_enabled)
@@ -1672,28 +1837,6 @@ IN_Move(usercmd_t *cmd)
 				cl.viewangles[PITCH] -= gyro_in.y * factor;
 			}
 		}
-	}
-
-	// Flick Stick: flick in progress, changing the yaw angle to the target progressively
-	if (flick_progress < 1.0f)
-	{
-		float cur_progress = (float)(sys_frame_time - started_flick) / FLICK_TIME;
-
-		if (cur_progress > 1.0f)
-		{
-			cur_progress = 1.0f;
-		}
-		else
-		{
-			// "Ease out" warp processing: f(x)=1-(1-x)^2 , 0 <= x <= 1
-			// http://gyrowiki.jibbsmart.com/blog:good-gyro-controls-part-2:the-flick-stick#toc0
-			cur_progress = 1.0f - cur_progress;
-			cur_progress *= cur_progress;
-			cur_progress = 1.0f - cur_progress;
-		}
-
-		cl.viewangles[YAW] += (cur_progress - flick_progress) * target_angle;
-		flick_progress = cur_progress;
 	}
 }
 
@@ -2588,6 +2731,67 @@ IN_Controller_Init(qboolean notify_user)
 	IN_InitGyro();
 }
 
+typedef struct
+{
+	float yawspeed;
+	float pitchspeed;
+	float extra_yawspeed;
+	float extra_pitchspeed;
+	float ramp_time;
+} joy_preset_t;
+
+static const joy_preset_t joy_presets[] = {
+	[0] = {   0.0f,   0.0f,   0.0f,   0.0f, 0.00f },
+	[1] = {  50.0f,  50.0f,  60.0f,   0.0f, 0.50f },
+	[2] = {  80.0f,  50.0f, 150.0f, 120.0f, 0.30f },
+	[3] = { 160.0f, 120.0f, 220.0f,   0.0f, 0.35f }, // Default
+	[4] = { 240.0f, 200.0f, 220.0f,   0.0f, 0.30f },
+	[5] = { 380.0f, 240.0f,   0.0f,   0.0f, 0.00f },
+	[6] = { 450.0f, 300.0f,   0.0f,   0.0f, 0.00f },
+	[7] = { 500.0f, 500.0f,   0.0f,   0.0f, 0.00f },
+	[8] = { 720.0f, 720.0f,   0.0f,   0.0f, 0.00f },
+};
+
+void
+IN_ApplyJoyPreset(void)
+{
+	const int final_preset = sizeof(joy_presets) / sizeof(*joy_presets) - 1;
+	const int i = lroundf(Q_clamp(joy_sensitivity->value, 0, final_preset));
+
+	Cvar_SetValue("joy_yawspeed", joy_presets[i].yawspeed);
+	Cvar_SetValue("joy_pitchspeed",
+				  joy_presets[i].pitchspeed * Q_signf(joy_pitchspeed->value));
+	Cvar_SetValue("joy_extra_yawspeed", joy_presets[i].extra_yawspeed);
+	Cvar_SetValue("joy_extra_pitchspeed", joy_presets[i].extra_pitchspeed);
+	Cvar_SetValue("joy_ramp_time", joy_presets[i].ramp_time);
+
+	joy_sensitivity->modified = false;
+}
+
+#define EQF(a, b) (fabsf((a) - (b)) < 1.0e-6f)
+qboolean
+IN_MatchJoyPreset(void)
+{
+	const int num_presets = sizeof(joy_presets) / sizeof(*joy_presets);
+
+	for (int i = 0; i < num_presets; i++)
+	{
+		if (EQF(joy_presets[i].yawspeed, joy_yawspeed->value)
+			&& EQF(joy_presets[i].pitchspeed, fabsf(joy_pitchspeed->value))
+			&& EQF(joy_presets[i].extra_yawspeed, joy_extra_yawspeed->value)
+			&& EQF(joy_presets[i].extra_pitchspeed, joy_extra_pitchspeed->value)
+			&& EQF(joy_presets[i].ramp_time, joy_ramp_time->value))
+		{
+			Cvar_SetValue("joy_sensitivity", i);
+			joy_sensitivity->modified = false;
+			return true;
+		}
+	}
+
+	return false;
+}
+#undef EQF
+
 /*
  * Initializes the backend
  */
@@ -2598,6 +2802,7 @@ IN_Init(void)
 
 	mouse_x = mouse_y = 0;
 	joystick_left_x = joystick_left_y = joystick_right_x = joystick_right_y = 0;
+	joy_active_layout = LAYOUT_NONE;
 	gyro_enabled = false;
 
 	exponential_speedup = Cvar_Get("exponential_speedup", "0", CVAR_ARCHIVE);
@@ -2616,8 +2821,14 @@ IN_Init(void)
 	joy_haptic_distance = Cvar_Get("joy_haptic_distance", "100.0", CVAR_ARCHIVE);
 	haptic_feedback_filter = Cvar_Get("joy_haptic_filter", default_haptic_filter, CVAR_ARCHIVE);
 
-	joy_yawsensitivity = Cvar_Get("joy_yawsensitivity", "2.5", CVAR_ARCHIVE);
-	joy_pitchsensitivity = Cvar_Get("joy_pitchsensitivity", "2.5", CVAR_ARCHIVE);
+	joy_sensitivity = Cvar_Get("joy_sensitivity", "3", CVAR_ARCHIVE);
+	joy_advanced = Cvar_Get("joy_advanced", "0", CVAR_ARCHIVE);
+	joy_yawspeed = Cvar_Get("joy_yawspeed", "160", CVAR_ARCHIVE);
+	joy_pitchspeed = Cvar_Get("joy_pitchspeed", "120", CVAR_ARCHIVE);
+	joy_extra_yawspeed = Cvar_Get("joy_extra_yawspeed", "220", CVAR_ARCHIVE);
+	joy_extra_pitchspeed = Cvar_Get("joy_extra_pitchspeed", "0", CVAR_ARCHIVE);
+	joy_ramp_time = Cvar_Get("joy_ramp_time", "0.35", CVAR_ARCHIVE);
+	joy_outer_threshold = Cvar_Get("joy_outer_threshold", "0.02", CVAR_ARCHIVE);
 	joy_forwardsensitivity = Cvar_Get("joy_forwardsensitivity", "1.0", CVAR_ARCHIVE);
 	joy_sidesensitivity = Cvar_Get("joy_sidesensitivity", "1.0", CVAR_ARCHIVE);
 
@@ -2706,6 +2917,7 @@ IN_Controller_Shutdown(qboolean notify_user)
 	}
 	show_gamepad = show_gyro = show_haptic = false;
 	joystick_left_x = joystick_left_y = joystick_right_x = joystick_right_y = 0;
+	joy_active_layout = LAYOUT_NONE;
 	gyro_enabled = false;
 
 #ifdef NO_SDL_GYRO

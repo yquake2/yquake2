@@ -1722,9 +1722,10 @@ M_Menu_ControllerAltButtons_f(void)
 static menuframework_s s_sticks_config_menu;
 
 static menulist_s s_stk_layout_box;
-static menuseparator_s s_stk_title_text[2];
+static menuseparator_s s_stk_title_text[3];
 static menuslider_s s_stk_expo_slider[2];
 static menuslider_s s_stk_deadzone_slider[4];
+static menuslider_s s_stk_threshold_slider;
 
 extern qboolean show_gyro;
 
@@ -1825,10 +1826,24 @@ Stick_MenuInit(void)
 		s_stk_deadzone_slider[i].generic.type = MTYPE_SLIDER;
 		s_stk_deadzone_slider[i].generic.x = 0;
 		s_stk_deadzone_slider[i].minvalue = 0.0f;
-		s_stk_deadzone_slider[i].maxvalue = 0.30f;
+		s_stk_deadzone_slider[i].maxvalue = 0.50f;
 		s_stk_deadzone_slider[i].slidestep = 0.01f;
 		s_stk_deadzone_slider[i].printformat = "%.2f";
 	}
+
+	s_stk_title_text[2].generic.type = MTYPE_SEPARATOR;
+	s_stk_title_text[2].generic.x = 48 * scale;
+	s_stk_title_text[2].generic.y = (y += 22);
+	s_stk_title_text[2].generic.name = "both sticks";
+
+	s_stk_threshold_slider.generic.name = "outer thresh";
+	s_stk_threshold_slider.generic.x = 0;
+	s_stk_threshold_slider.generic.y = (y += 14);
+	s_stk_threshold_slider.cvar = "joy_outer_threshold";
+	s_stk_threshold_slider.minvalue = 0.0f;
+	s_stk_threshold_slider.maxvalue = 0.30f;
+	s_stk_threshold_slider.slidestep = 0.01f;
+	s_stk_threshold_slider.printformat = "%.2f";
 
 	Menu_AddItem(&s_sticks_config_menu, (void *)&s_stk_layout_box);
 	Menu_AddItem(&s_sticks_config_menu, (void *)&s_stk_title_text[0]);
@@ -1839,6 +1854,8 @@ Stick_MenuInit(void)
 	Menu_AddItem(&s_sticks_config_menu, (void *)&s_stk_expo_slider[1]);
 	Menu_AddItem(&s_sticks_config_menu, (void *)&s_stk_deadzone_slider[2]);
 	Menu_AddItem(&s_sticks_config_menu, (void *)&s_stk_deadzone_slider[3]);
+	Menu_AddItem(&s_sticks_config_menu, (void *)&s_stk_title_text[2]);
+	Menu_AddItem(&s_sticks_config_menu, (void *)&s_stk_threshold_slider);
 
 	Menu_Center(&s_sticks_config_menu);
 }
@@ -2189,9 +2206,15 @@ M_Menu_Gyro_f(void)
 /*
  * JOY MENU
  */
+static menuslider_s s_joy_preset_slider;
+static menulist_s s_joy_preset_box;
+static menulist_s s_joy_advanced_box;
 static menulist_s s_joy_invertpitch_box;
-static menuslider_s s_joy_yawsensitivity_slider;
-static menuslider_s s_joy_pitchsensitivity_slider;
+static menuslider_s s_joy_yawspeed_slider;
+static menuslider_s s_joy_pitchspeed_slider;
+static menuslider_s s_joy_extra_yawspeed_slider;
+static menuslider_s s_joy_extra_pitchspeed_slider;
+static menuslider_s s_joy_ramp_time_slider;
 static menuslider_s s_joy_forwardsensitivity_slider;
 static menuslider_s s_joy_sidesensitivity_slider;
 static menuslider_s s_joy_haptic_slider;
@@ -2199,6 +2222,30 @@ static menuaction_s s_joy_stickcfg_action;
 static menuaction_s s_joy_gyro_action;
 static menuaction_s s_joy_customize_buttons_action;
 static menuaction_s s_joy_customize_alt_buttons_action;
+
+extern void IN_ApplyJoyPreset(void);
+extern qboolean IN_MatchJoyPreset(void);
+
+static void
+RefreshJoyMenuFunc(void *unused)
+{
+	M_PopMenuSilent();
+	M_Menu_Joy_f();
+}
+
+static void
+JoyPresetFunc(void *unused)
+{
+	IN_ApplyJoyPreset();
+	RefreshJoyMenuFunc(NULL);
+}
+
+static void
+JoyAdvancedFunc(void *unused)
+{
+	Cvar_SetValue("joy_advanced", s_joy_advanced_box.curvalue);
+	RefreshJoyMenuFunc(NULL);
+}
 
 static void
 CustomizeControllerButtonsFunc(void *unused)
@@ -2227,7 +2274,7 @@ ConfigGyroFunc(void *unused)
 static void
 InvertJoyPitchFunc(void *unused)
 {
-	Cvar_SetValue("joy_pitchsensitivity", -Cvar_VariableValue("joy_pitchsensitivity"));
+	Cvar_SetValue("joy_pitchspeed", -Cvar_VariableValue("joy_pitchspeed"));
 }
 
 static void
@@ -2240,30 +2287,118 @@ Joy_MenuInit(void)
 		0
 	};
 
+	static const char *custom_names[] =
+	{
+		"",
+		"custom",
+		"",
+		0,
+	};
+
 	extern qboolean show_haptic;
 	unsigned short int y = 0;
 
 	s_joy_menu.x = (int)(viddef.width * 0.50f);
 	s_joy_menu.nitems = 0;
 
-	s_joy_yawsensitivity_slider.generic.type = MTYPE_SLIDER;
-	s_joy_yawsensitivity_slider.generic.x = 0;
-	s_joy_yawsensitivity_slider.generic.y = y;
-	s_joy_yawsensitivity_slider.generic.name = "yaw sensitivity";
-	s_joy_yawsensitivity_slider.cvar = "joy_yawsensitivity";
-	s_joy_yawsensitivity_slider.minvalue = 0.0f;
-	s_joy_yawsensitivity_slider.maxvalue = 7.0f;
-	Menu_AddItem(&s_joy_menu, (void *)&s_joy_yawsensitivity_slider);
+	if (IN_MatchJoyPreset())
+	{
+		s_joy_preset_slider.generic.type = MTYPE_SLIDER;
+		s_joy_preset_slider.generic.x = 0;
+		s_joy_preset_slider.generic.y = y;
+		s_joy_preset_slider.generic.name = "look sensitivity";
+		s_joy_preset_slider.generic.callback = JoyPresetFunc;
+		s_joy_preset_slider.cvar = "joy_sensitivity";
+		s_joy_preset_slider.minvalue = 0.0f;
+		s_joy_preset_slider.maxvalue = 8.0f;
+		s_joy_preset_slider.slidestep = 1.0f;
+		s_joy_preset_slider.printformat = "%.0f";
+		Menu_AddItem(&s_joy_menu, (void *)&s_joy_preset_slider);
+	}
+	else // Display "custom"
+	{
+		s_joy_preset_box.generic.type = MTYPE_SPINCONTROL;
+		s_joy_preset_box.generic.x = 0;
+		s_joy_preset_box.generic.y = y;
+		s_joy_preset_box.generic.name = "look sensitivity";
+		s_joy_preset_box.generic.callback = JoyPresetFunc;
+		s_joy_preset_box.itemnames = custom_names;
+		s_joy_preset_box.curvalue = 1;
+		Menu_AddItem(&s_joy_menu, (void *)&s_joy_preset_box);
+	}
 
-	s_joy_pitchsensitivity_slider.generic.type = MTYPE_SLIDER;
-	s_joy_pitchsensitivity_slider.generic.x = 0;
-	s_joy_pitchsensitivity_slider.generic.y = (y += 10);
-	s_joy_pitchsensitivity_slider.generic.name = "pitch sensitivity";
-	s_joy_pitchsensitivity_slider.cvar = "joy_pitchsensitivity";
-	s_joy_pitchsensitivity_slider.minvalue = 0.0f;
-	s_joy_pitchsensitivity_slider.maxvalue = 7.0f;
-	s_joy_pitchsensitivity_slider.abs = true;
-	Menu_AddItem(&s_joy_menu, (void *)&s_joy_pitchsensitivity_slider);
+	s_joy_advanced_box.generic.type = MTYPE_SPINCONTROL;
+	s_joy_advanced_box.generic.x = 0;
+	s_joy_advanced_box.generic.y = (y += 10);
+	s_joy_advanced_box.generic.name = "show advanced";
+	s_joy_advanced_box.generic.callback = JoyAdvancedFunc;
+	s_joy_advanced_box.itemnames = yesno_names;
+	s_joy_advanced_box.curvalue = (Cvar_VariableValue("joy_advanced") > 0);
+	Menu_AddItem(&s_joy_menu, (void *)&s_joy_advanced_box);
+
+	if (s_joy_advanced_box.curvalue)
+	{
+		s_joy_yawspeed_slider.generic.type = MTYPE_SLIDER;
+		s_joy_yawspeed_slider.generic.x = 0;
+		s_joy_yawspeed_slider.generic.y = (y += 10);
+		s_joy_yawspeed_slider.generic.name = "yaw speed";
+		s_joy_yawspeed_slider.generic.callback = RefreshJoyMenuFunc;
+		s_joy_yawspeed_slider.cvar = "joy_yawspeed";
+		s_joy_yawspeed_slider.minvalue = 0.0f;
+		s_joy_yawspeed_slider.maxvalue = 720.0f;
+		s_joy_yawspeed_slider.slidestep = 10.0f;
+		s_joy_yawspeed_slider.printformat = "%.0f";
+		Menu_AddItem(&s_joy_menu, (void *)&s_joy_yawspeed_slider);
+
+		s_joy_pitchspeed_slider.generic.type = MTYPE_SLIDER;
+		s_joy_pitchspeed_slider.generic.x = 0;
+		s_joy_pitchspeed_slider.generic.y = (y += 10);
+		s_joy_pitchspeed_slider.generic.name = "pitch speed";
+		s_joy_pitchspeed_slider.generic.callback = RefreshJoyMenuFunc;
+		s_joy_pitchspeed_slider.cvar = "joy_pitchspeed";
+		s_joy_pitchspeed_slider.minvalue = 0.0f;
+		s_joy_pitchspeed_slider.maxvalue = 720.0f;
+		s_joy_pitchspeed_slider.slidestep = 10.0f;
+		s_joy_pitchspeed_slider.printformat = "%.0f";
+		s_joy_pitchspeed_slider.abs = true;
+		Menu_AddItem(&s_joy_menu, (void *)&s_joy_pitchspeed_slider);
+
+		s_joy_extra_yawspeed_slider.generic.type = MTYPE_SLIDER;
+		s_joy_extra_yawspeed_slider.generic.x = 0;
+		s_joy_extra_yawspeed_slider.generic.y = (y += 10);
+		s_joy_extra_yawspeed_slider.generic.name = "extra yaw speed";
+		s_joy_extra_yawspeed_slider.cvar = "joy_extra_yawspeed";
+		s_joy_extra_yawspeed_slider.generic.callback = RefreshJoyMenuFunc;
+		s_joy_extra_yawspeed_slider.minvalue = 0.0f;
+		s_joy_extra_yawspeed_slider.maxvalue = 720.0f;
+		s_joy_extra_yawspeed_slider.slidestep = 10.0f;
+		s_joy_extra_yawspeed_slider.printformat = "%.0f";
+		Menu_AddItem(&s_joy_menu, (void *)&s_joy_extra_yawspeed_slider);
+
+		s_joy_extra_pitchspeed_slider.generic.type = MTYPE_SLIDER;
+		s_joy_extra_pitchspeed_slider.generic.x = 0;
+		s_joy_extra_pitchspeed_slider.generic.y = (y += 10);
+		s_joy_extra_pitchspeed_slider.generic.name = "extra pitch speed";
+		s_joy_extra_pitchspeed_slider.cvar = "joy_extra_pitchspeed";
+		s_joy_extra_pitchspeed_slider.generic.callback = RefreshJoyMenuFunc;
+		s_joy_extra_pitchspeed_slider.minvalue = 0.0f;
+		s_joy_extra_pitchspeed_slider.maxvalue = 720.0f;
+		s_joy_extra_pitchspeed_slider.slidestep = 10.0f;
+		s_joy_extra_pitchspeed_slider.printformat = "%.0f";
+		Menu_AddItem(&s_joy_menu, (void *)&s_joy_extra_pitchspeed_slider);
+
+		s_joy_ramp_time_slider.generic.type = MTYPE_SLIDER;
+		s_joy_ramp_time_slider.generic.x = 0;
+		s_joy_ramp_time_slider.generic.y = (y += 10);
+		s_joy_ramp_time_slider.generic.name = "ramp time";
+		s_joy_ramp_time_slider.cvar = "joy_ramp_time";
+		s_joy_ramp_time_slider.generic.callback = RefreshJoyMenuFunc;
+		s_joy_ramp_time_slider.minvalue = 0.0f;
+		s_joy_ramp_time_slider.maxvalue = 1.0f;
+		s_joy_ramp_time_slider.slidestep = 0.05f;
+		s_joy_ramp_time_slider.printformat = "%.2f";
+		Menu_AddItem(&s_joy_menu, (void *)&s_joy_ramp_time_slider);
+	}
 
 	s_joy_invertpitch_box.generic.type = MTYPE_SPINCONTROL;
 	s_joy_invertpitch_box.generic.x = 0;
@@ -2271,7 +2406,7 @@ Joy_MenuInit(void)
 	s_joy_invertpitch_box.generic.name = "invert pitch";
 	s_joy_invertpitch_box.generic.callback = InvertJoyPitchFunc;
 	s_joy_invertpitch_box.itemnames = yesno_names;
-	s_joy_invertpitch_box.curvalue = (Cvar_VariableValue("joy_pitchsensitivity") < 0);
+	s_joy_invertpitch_box.curvalue = (Cvar_VariableValue("joy_pitchspeed") < 0);
 	Menu_AddItem(&s_joy_menu, (void *)&s_joy_invertpitch_box);
 
 	s_joy_forwardsensitivity_slider.generic.type = MTYPE_SLIDER;
