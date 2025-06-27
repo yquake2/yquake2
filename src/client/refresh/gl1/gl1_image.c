@@ -33,7 +33,7 @@ extern qboolean scrap_dirty;
 extern byte scrap_texels[MAX_SCRAPS][SCRAP_WIDTH * SCRAP_HEIGHT];
 
 static byte intensitytable[256];
-static unsigned char gammatable[256];
+unsigned char gammatable[256];
 
 static cvar_t *intensity;
 
@@ -1262,6 +1262,13 @@ R_InitImages(void)
 	byte *colormap;
 	int i;
 
+#ifdef GL1_GAMMATABLE
+	float	g = vid_gamma->value;
+#else
+	float	g = 1;
+#endif
+	g = Q_max(g, 0.1f);
+
 	registration_sequence = 1;
 	image_max = 0;
 
@@ -1273,7 +1280,8 @@ R_InitImages(void)
 		ri.Cvar_Set("gl1_intensity", "1");
 	}
 
-	gl_state.inverse_intensity = 1 / intensity->value;
+	gl_state.sw_gamma = g;
+	gl_state.inverse_intensity = g / intensity->value;
 
 	// FIXME: I think this is redundant - RI_Init() already calls that!
 	GetPCXPalette (&colormap, d_8to24table);
@@ -1290,9 +1298,26 @@ R_InitImages(void)
 		}
 	}
 
-	for (i = 0; i < 256; i++)
+	if (g == 1)
 	{
-		gammatable[i] = i;
+		for (i = 0; i < 256; i++)
+		{
+			gammatable[i] = i;
+		}
+	}
+	else
+	{
+		g = 1.0f / g;
+
+		for (i = 0; i < 256; i++)
+		{
+			float inf;
+
+			inf = pow ( (float)(i + 0.5f) / 255.5f , g ) * 255.0f + 0.5f;
+			inf = Q_clamp(inf, 0, 255);
+
+			gammatable[i] = inf;
+		}
 	}
 
 	for (i = 0; i < 256; i++)
@@ -1300,11 +1325,7 @@ R_InitImages(void)
 		int j;
 
 		j = i * intensity->value;
-
-		if (j > 255)
-		{
-			j = 255;
-		}
+		j = Q_min(j, 255);
 
 		intensitytable[i] = j;
 	}
