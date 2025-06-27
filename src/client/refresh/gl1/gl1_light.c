@@ -638,9 +638,9 @@ store:
 				a = a * t;
 			}
 
-			dest[0] = r;
-			dest[1] = g;
-			dest[2] = b;
+			dest[0] = gammatable[r];
+			dest[1] = gammatable[g];
+			dest[2] = gammatable[b];
 			dest[3] = a;
 
 			bl += 3;

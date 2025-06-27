@@ -1970,9 +1970,9 @@ RI_SetPalette(const unsigned char *palette)
 	{
 		for (i = 0; i < 256; i++)
 		{
-			rp[i * 4 + 0] = palette[i * 3 + 0];
-			rp[i * 4 + 1] = palette[i * 3 + 1];
-			rp[i * 4 + 2] = palette[i * 3 + 2];
+			rp[i * 4 + 0] = gammatable[palette[i * 3 + 0]];
+			rp[i * 4 + 1] = gammatable[palette[i * 3 + 1]];
+			rp[i * 4 + 2] = gammatable[palette[i * 3 + 2]];
 			rp[i * 4 + 3] = 0xff;
 		}
 	}
