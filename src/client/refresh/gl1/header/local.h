@@ -141,8 +141,9 @@ typedef struct	//	832k aprox.
 
 	GLfloat
 		vtx[MAX_VERTICES * 3],	// vertexes
-		tex[MAX_TEXTURE_UNITS][MAX_VERTICES * 2],	// texture coords
-		clr[MAX_VERTICES * 4];	// color components
+		tex[MAX_TEXTURE_UNITS][MAX_VERTICES * 2];	// texture coords
+
+	GLubyte	clr[MAX_VERTICES * 4];	// color components
 
 	GLushort idx[MAX_INDICES];	// indices for the draw call
 

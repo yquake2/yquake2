@@ -428,7 +428,7 @@ R_DrawParticles2(int num_particles, const particle_t particles[],
 
 	YQ2_VLA(GLfloat, vtx, 3 * num_particles * 3);
 	YQ2_VLA(GLfloat, tex, 2 * num_particles * 3);
-	YQ2_VLA(GLfloat, clr, 4 * num_particles * 3);
+	YQ2_VLA(GLubyte, clr, 4 * num_particles * 3);
 
 	unsigned int index_vtx = 0;
 	unsigned int index_tex = 0;
@@ -463,10 +463,10 @@ R_DrawParticles2(int num_particles, const particle_t particles[],
 
 		for (j=0; j<3; j++) // Copy the color for each point
 		{
-			clr[index_clr++] = color[0]/255.0f;
-			clr[index_clr++] = color[1]/255.0f;
-			clr[index_clr++] = color[2]/255.0f;
-			clr[index_clr++] = p->alpha;
+			clr[index_clr++] = gammatable[color[0]];
+			clr[index_clr++] = gammatable[color[1]];
+			clr[index_clr++] = gammatable[color[2]];
+			clr[index_clr++] = p->alpha * 255;
 		}
 
 		// point 0
@@ -500,7 +500,7 @@ R_DrawParticles2(int num_particles, const particle_t particles[],
 
 	glVertexPointer( 3, GL_FLOAT, 0, vtx );
 	glTexCoordPointer( 2, GL_FLOAT, 0, tex );
-	glColorPointer( 4, GL_FLOAT, 0, clr );
+	glColorPointer( 4, GL_UNSIGNED_BYTE, 0, clr );
 	glDrawArrays( GL_TRIANGLES, 0, num_particles*3 );
 
 	glDisableClientState( GL_VERTEX_ARRAY );
@@ -535,7 +535,7 @@ R_DrawParticles(void)
 		const particle_t *p;
 
 		YQ2_VLA(GLfloat, vtx, 3 * r_newrefdef.num_particles);
-		YQ2_VLA(GLfloat, clr, 4 * r_newrefdef.num_particles);
+		YQ2_VLA(GLubyte, clr, 4 * r_newrefdef.num_particles);
 
 		unsigned int index_vtx = 0;
 		unsigned int index_clr = 0;
@@ -550,10 +550,10 @@ R_DrawParticles(void)
 		for ( i = 0, p = r_newrefdef.particles; i < r_newrefdef.num_particles; i++, p++ )
 		{
 			*(int *) color = d_8to24table [ p->color & 0xFF ];
-			clr[index_clr++] = color[0]/255.0f;
-			clr[index_clr++] = color[1]/255.0f;
-			clr[index_clr++] = color[2]/255.0f;
-			clr[index_clr++] = p->alpha;
+			clr[index_clr++] = gammatable[color[0]];
+			clr[index_clr++] = gammatable[color[1]];
+			clr[index_clr++] = gammatable[color[2]];
+			clr[index_clr++] = p->alpha * 255;
 
 			vtx[index_vtx++] = p->origin[0];
 			vtx[index_vtx++] = p->origin[1];
@@ -564,7 +564,7 @@ R_DrawParticles(void)
 		glEnableClientState( GL_COLOR_ARRAY );
 
 		glVertexPointer( 3, GL_FLOAT, 0, vtx );
-		glColorPointer( 4, GL_FLOAT, 0, clr );
+		glColorPointer( 4, GL_UNSIGNED_BYTE, 0, clr );
 		glDrawArrays( GL_POINTS, 0, r_newrefdef.num_particles );
 
 		glDisableClientState( GL_VERTEX_ARRAY );
@@ -1998,8 +1998,7 @@ RI_SetPalette(const unsigned char *palette)
 void
 R_DrawBeam(entity_t *e)
 {
-	int i;
-	float r, g, b;
+	int i, clr[4];
 
 	vec3_t perpvec;
 	vec3_t direction, normalized_direction;
@@ -2043,15 +2042,13 @@ R_DrawBeam(entity_t *e)
 	glEnable(GL_BLEND);
 	glDepthMask(GL_FALSE);
 
-	r = (LittleLong(d_8to24table[e->skinnum & 0xFF])) & 0xFF;
-	g = (LittleLong(d_8to24table[e->skinnum & 0xFF]) >> 8) & 0xFF;
-	b = (LittleLong(d_8to24table[e->skinnum & 0xFF]) >> 16) & 0xFF;
+	clr[0] = (LittleLong(d_8to24table[e->skinnum & 0xFF])) & 0xFF;
+	clr[1] = (LittleLong(d_8to24table[e->skinnum & 0xFF]) >> 8) & 0xFF;
+	clr[2] = (LittleLong(d_8to24table[e->skinnum & 0xFF]) >> 16) & 0xFF;
+	clr[3] = e->alpha * 255;
 
-	r *= 1 / 255.0F;
-	g *= 1 / 255.0F;
-	b *= 1 / 255.0F;
-
-	glColor4f(r, g, b, e->alpha);
+	glColor4ub(gammatable[clr[0]], gammatable[clr[1]],
+		gammatable[clr[2]], clr[3]);
 
 	for ( i = 0; i < NUM_BEAM_SEGS; i++ )
 	{
