@@ -143,6 +143,8 @@ R_DrawAliasFrameLerp(entity_t *currententity, dmdl_t *paliashdr, float backlerp)
 
 	while (1)
 	{
+		int idx[3];
+
 		/* get the vertex count and primitive type */
 		count = *order++;
 
@@ -172,8 +174,15 @@ R_DrawAliasFrameLerp(entity_t *currententity, dmdl_t *paliashdr, float backlerp)
 				GLBUFFER_VERTEX(s_lerped[index_xyz][0],
 					s_lerped[index_xyz][1], s_lerped[index_xyz][2])
 
-				GLBUFFER_COLOR(shadelight[0], shadelight[1],
-					shadelight[2], alpha)
+				for (i = 0; i < 3; i++)
+				{
+					idx[i] = shadelight[i] * 255;
+					idx[i] = Q_clamp(idx[i], 0, 255);
+				}
+
+				GLBUFFER_COLOR(gammatable[idx[0]],
+					gammatable[idx[1]],
+					gammatable[idx[2]], alpha * 255)
 			}
 			while (--count);
 		}
@@ -196,8 +205,15 @@ R_DrawAliasFrameLerp(entity_t *currententity, dmdl_t *paliashdr, float backlerp)
 
 				GLBUFFER_SINGLETEX(tex[0], tex[1])
 
-				GLBUFFER_COLOR(l * shadelight[0], l * shadelight[1],
-					l * shadelight[2], alpha)
+				for (i = 0; i < 3; i++)
+				{
+					idx[i] = l * shadelight[i] * 255;
+					idx[i] = Q_clamp(idx[i], 0, 255);
+				}
+
+				GLBUFFER_COLOR(gammatable[idx[0]],
+					gammatable[idx[1]],
+					gammatable[idx[2]], alpha * 255)
 			}
 			while (--count);
 		}

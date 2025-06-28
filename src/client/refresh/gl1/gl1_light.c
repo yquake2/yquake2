@@ -47,8 +47,8 @@ R_RenderDlight(dlight_t *light)
 	}
 
 	GLBUFFER_VERTEX( vtx[0], vtx[1], vtx[2] )
-	GLBUFFER_COLOR( light->color[0] * 0.2, light->color[1] * 0.2,
-		light->color[2] * 0.2, 1 )
+	GLBUFFER_COLOR( light->color[0] * 51, light->color[1] * 51,
+		light->color[2] * 51, 255 )	// 255 * 0.2 = 51
 
 	for ( i = 16; i >= 0; i-- )
 	{
@@ -61,7 +61,7 @@ R_RenderDlight(dlight_t *light)
 		}
 
 		GLBUFFER_VERTEX( vtx[0], vtx[1], vtx[2] )
-		GLBUFFER_COLOR( 0, 0, 0, 1 )
+		GLBUFFER_COLOR( 0, 0, 0, 255 )
 	}
 }
 
@@ -638,9 +638,9 @@ store:
 				a = a * t;
 			}
 
-			dest[0] = r;
-			dest[1] = g;
-			dest[2] = b;
+			dest[0] = gammatable[r];
+			dest[1] = gammatable[g];
+			dest[2] = gammatable[b];
 			dest[3] = a;
 
 			bl += 3;

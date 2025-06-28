@@ -211,7 +211,7 @@ R_ApplyGLBuffer(void)
 	if (color)
 	{
 		glEnableClientState(GL_COLOR_ARRAY);
-		glColorPointer(4, GL_FLOAT, 0, gl_buf.clr);
+		glColorPointer(4, GL_UNSIGNED_BYTE, 0, gl_buf.clr);
 	}
 
 	// All set, we can finally draw
