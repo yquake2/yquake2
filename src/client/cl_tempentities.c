@@ -116,7 +116,6 @@ static struct model_s *cl_mod_plasmaexplo;
 
 static struct model_s *cl_mod_lightning;
 static struct model_s *cl_mod_heatbeam;
-static struct model_s *cl_mod_monster_heatbeam;
 static struct model_s *cl_mod_explo4_big;
 
 /*
@@ -292,7 +291,6 @@ CL_RegisterTEntModels(void)
 	cl_mod_explo4_big = R_RegisterModel("models/objects/r_explode2/tris.md2");
 	cl_mod_lightning = R_RegisterModel("models/proj/lightning/tris.md2");
 	cl_mod_heatbeam = R_RegisterModel("models/proj/beam/tris.md2");
-	cl_mod_monster_heatbeam = R_RegisterModel("models/proj/widowbeam/tris.md2");
 }
 
 /*
@@ -340,7 +338,6 @@ CL_ClearTEntModelVars(void)
 
 	cl_mod_lightning = NULL;
 	cl_mod_heatbeam = NULL;
-	cl_mod_monster_heatbeam = NULL;
 	cl_mod_explo4_big = NULL;
 }
 
@@ -458,10 +455,12 @@ CL_ParseBeam(struct model_s *model, qboolean with_offset)
  * adds to the cl_playerbeam array instead of the cl_beams array
  */
 static void
-CL_ParsePlayerBeam(struct model_s *model)
+CL_ParseHeatBeam(qboolean is_monster)
 {
+	static const vec3_t plofs = {2, 7, -3};
+	const vec_t *ofs;
 	int ent;
-	vec3_t start, end, offset;
+	vec3_t start, end;
 	beam_t *b;
 	int tm;
 
@@ -470,26 +469,13 @@ CL_ParsePlayerBeam(struct model_s *model)
 	MSG_ReadPos(&net_message, start);
 	MSG_ReadPos(&net_message, end);
 
-	/* network optimization */
-	if (model == cl_mod_heatbeam)
-	{
-		VectorSet(offset, 2, 7, -3);
-	}
-
-	else if (model == cl_mod_monster_heatbeam)
-	{
-		model = cl_mod_heatbeam;
-		VectorSet(offset, 0, 0, 0);
-	}
-	else
-	{
-		MSG_ReadPos(&net_message, offset);
-	}
-
-	if (!model)
+	if (!cl_mod_heatbeam)
 	{
 		return;
 	}
+
+	ofs = (!is_monster) ?
+		plofs : vec3_origin;
 
 	tm = 200;
 
@@ -514,8 +500,8 @@ CL_ParsePlayerBeam(struct model_s *model)
 		tm = 100;
 	}
 
-	CL_Beams_Set(b, ent, 0, model,
-		start, end, offset, tm);
+	CL_Beams_Set(b, ent, 0, cl_mod_heatbeam,
+		start, end, ofs, tm);
 }
 
 static int
@@ -1204,11 +1190,11 @@ CL_ParseTEnt(void)
 			break;
 
 		case TE_HEATBEAM:
-			CL_ParsePlayerBeam(cl_mod_heatbeam);
+			CL_ParseHeatBeam(false);
 			break;
 
 		case TE_MONSTER_HEATBEAM:
-			CL_ParsePlayerBeam(cl_mod_monster_heatbeam);
+			CL_ParseHeatBeam(true);
 			break;
 
 		case TE_HEATBEAM_SPARKS:
