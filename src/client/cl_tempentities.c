@@ -82,7 +82,9 @@ void CL_Explosion_Particle(vec3_t org, float size,
 		qboolean large, qboolean rocket);
 
 #define EXPLOSION_PARTICLES(x) CL_ExplosionParticles((x));
+#define NUM_FOOTSTEP_SFX 4
 
+/* sounds */
 struct sfx_s *cl_sfx_ric1;
 struct sfx_s *cl_sfx_ric2;
 struct sfx_s *cl_sfx_ric3;
@@ -95,8 +97,12 @@ struct sfx_s *cl_sfx_rockexp;
 struct sfx_s *cl_sfx_grenexp;
 struct sfx_s *cl_sfx_watrexp;
 struct sfx_s *cl_sfx_plasexp;
-struct sfx_s *cl_sfx_footsteps[4];
+struct sfx_s *cl_sfx_footsteps[NUM_FOOTSTEP_SFX];
 
+struct sfx_s *cl_sfx_lightning;
+struct sfx_s *cl_sfx_disrexp;
+
+/* models */
 struct model_s *cl_mod_explode;
 struct model_s *cl_mod_smoke;
 struct model_s *cl_mod_flash;
@@ -108,13 +114,122 @@ struct model_s *cl_mod_bfg_explo;
 struct model_s *cl_mod_powerscreen;
 struct model_s *cl_mod_plasmaexplo;
 
-struct sfx_s *cl_sfx_lightning;
-struct sfx_s *cl_sfx_disrexp;
 struct model_s *cl_mod_lightning;
 struct model_s *cl_mod_heatbeam;
 struct model_s *cl_mod_monster_heatbeam;
 struct model_s *cl_mod_explo4_big;
 
+/*
+ * Utility functions
+ */
+static beam_t *
+CL_Beams_NextFree(const beam_t *list)
+{
+	const beam_t *b;
+
+	for (b = list; b < &list[MAX_BEAMS]; b++)
+	{
+		if (!b->model || (b->endtime < cl.time))
+			return (beam_t *)b;
+	}
+
+	return NULL;
+}
+
+static beam_t *
+CL_Beams_SameEnt(const beam_t *list, int src, int dest)
+{
+	const beam_t *b;
+
+	for (b = list; b < &list[MAX_BEAMS]; b++)
+	{
+		if ((src < 0 || b->entity == src) &&
+			(dest < 0 || b->dest_entity == dest))
+		{
+			return (beam_t *)b;
+		}
+	}
+
+	return NULL;
+}
+
+static void
+CL_Beams_Set(beam_t *b,
+	int src, int dest, struct model_s *model,
+	const vec3_t start, const vec3_t end, const vec3_t ofs,
+	int tm)
+{
+	b->entity = src;
+	b->dest_entity = dest;
+	b->model = model;
+
+	VectorCopy(start, b->start);
+	VectorCopy(end, b->end);
+
+	if (ofs)
+	{
+		VectorCopy(ofs, b->offset);
+	}
+	else
+	{
+		VectorClear(b->offset);
+	}
+
+	b->endtime = cl.time + tm;
+}
+
+static cl_sustain_t *
+CL_NextFreeSustain(void)
+{
+	cl_sustain_t *s;
+
+	for (s = cl_sustains; s < &cl_sustains[MAX_SUSTAINS]; s++)
+	{
+		if (s->id == 0)
+		{
+			return s;
+		}
+	}
+
+	return NULL;
+}
+
+static explosion_t *
+CL_AllocExplosion(void)
+{
+	int i;
+	float time;
+	int index;
+
+	for (i = 0; i < MAX_EXPLOSIONS; i++)
+	{
+		if (cl_explosions[i].type == ex_free)
+		{
+			memset(&cl_explosions[i], 0, sizeof(cl_explosions[i]));
+			return &cl_explosions[i];
+		}
+	}
+
+	/* find the oldest explosion */
+	time = (float)cl.time;
+	index = 0;
+
+	for (i = 0; i < MAX_EXPLOSIONS; i++)
+	{
+		if (cl_explosions[i].start < time)
+		{
+			time = cl_explosions[i].start;
+			index = i;
+		}
+	}
+
+	memset(&cl_explosions[index], 0, sizeof(cl_explosions[index]));
+	return &cl_explosions[index];
+}
+
+/*
+ * Resource registration
+ */
 void
 CL_RegisterTEntSounds(void)
 {
@@ -137,7 +252,7 @@ CL_RegisterTEntSounds(void)
 	S_RegisterSound("player/fall2.wav");
 	S_RegisterSound("player/fall1.wav");
 
-	for (i = 0; i < 4; i++)
+	for (i = 0; i < NUM_FOOTSTEP_SFX; i++)
 	{
 		Com_sprintf(name, sizeof(name), "player/step%i.wav", i + 1);
 		cl_sfx_footsteps[i] = S_RegisterSound(name);
@@ -180,6 +295,55 @@ CL_RegisterTEntModels(void)
 	cl_mod_monster_heatbeam = R_RegisterModel("models/proj/widowbeam/tris.md2");
 }
 
+/*
+ * Clear temp entity state
+ */
+static void
+CL_ClearTEntSoundVars(void)
+{
+	int i;
+
+	cl_sfx_ric1 = NULL;
+	cl_sfx_ric2 = NULL;
+	cl_sfx_ric3 = NULL;
+	cl_sfx_lashit = NULL;
+	cl_sfx_spark5 = NULL;
+	cl_sfx_spark6 = NULL;
+	cl_sfx_spark7 = NULL;
+	cl_sfx_railg = NULL;
+	cl_sfx_rockexp = NULL;
+	cl_sfx_grenexp = NULL;
+	cl_sfx_watrexp = NULL;
+
+	for (i = 0; i < NUM_FOOTSTEP_SFX; i++)
+	{
+		cl_sfx_footsteps[i] = NULL;
+	}
+
+	cl_sfx_lightning = NULL;
+	cl_sfx_disrexp = NULL;
+}
+
+static void
+CL_ClearTEntModelVars(void)
+{
+	cl_mod_explode = NULL;
+	cl_mod_smoke = NULL;
+	cl_mod_flash = NULL;
+	cl_mod_parasite_segment = NULL;
+	cl_mod_grapple_cable = NULL;
+	cl_mod_parasite_tip = NULL;
+	cl_mod_explo4 = NULL;
+	cl_mod_bfg_explo = NULL;
+	cl_mod_powerscreen = NULL;
+	cl_mod_plasmaexplo = NULL;
+
+	cl_mod_lightning = NULL;
+	cl_mod_heatbeam = NULL;
+	cl_mod_monster_heatbeam = NULL;
+	cl_mod_explo4_big = NULL;
+}
+
 void
 CL_ClearTEnts(void)
 {
@@ -189,41 +353,25 @@ CL_ClearTEnts(void)
 
 	memset(cl_playerbeams, 0, sizeof(cl_playerbeams));
 	memset(cl_sustains, 0, sizeof(cl_sustains));
+
+	CL_ClearTEntModelVars();
+	CL_ClearTEntSoundVars();
 }
 
-explosion_t *
-CL_AllocExplosion(void)
+void
+CL_ClearTEntModels(void)
 {
-	int i;
-	float time;
-	int index;
+	memset(cl_explosions, 0, sizeof(cl_explosions));
 
-	for (i = 0; i < MAX_EXPLOSIONS; i++)
-	{
-		if (cl_explosions[i].type == ex_free)
-		{
-			memset(&cl_explosions[i], 0, sizeof(cl_explosions[i]));
-			return &cl_explosions[i];
-		}
-	}
+	memset(cl_beams, 0, sizeof(cl_beams));
+	memset(cl_playerbeams, 0, sizeof(cl_playerbeams));
 
-	/* find the oldest explosion */
-	time = (float)cl.time;
-	index = 0;
-
-	for (i = 0; i < MAX_EXPLOSIONS; i++)
-	{
-		if (cl_explosions[i].start < time)
-		{
-			time = cl_explosions[i].start;
-			index = i;
-		}
-	}
-
-	memset(&cl_explosions[index], 0, sizeof(cl_explosions[index]));
-	return &cl_explosions[index];
+	CL_ClearTEntModelVars();
 }
 
+/*
+ * Parse temp ent messages
+ */
 void
 CL_SmokeAndFlash(vec3_t origin)
 {
@@ -262,111 +410,60 @@ CL_ParseParticles(void)
 	CL_ParticleEffect(pos, dir, color, count);
 }
 
-void
-CL_ParseBeam(struct model_s *model)
+static void
+CL_ParseBeam(struct model_s *model, qboolean with_offset)
 {
 	int ent;
-	vec3_t start, end;
+	vec3_t start, end, ofs;
 	beam_t *b;
-	int i;
 
 	ent = MSG_ReadShort(&net_message);
 
 	MSG_ReadPos(&net_message, start);
 	MSG_ReadPos(&net_message, end);
 
-	/* override any beam with the same entity */
-	for (i = 0, b = cl_beams; i < MAX_BEAMS; i++, b++)
+	if (with_offset)
 	{
-		if (b->entity == ent)
-		{
-			b->entity = ent;
-			b->model = model;
-			b->endtime = cl.time + 200;
-			VectorCopy(start, b->start);
-			VectorCopy(end, b->end);
-			VectorClear(b->offset);
-			return;
-		}
+		MSG_ReadPos(&net_message, ofs);
+	}
+	else
+	{
+		VectorClear(ofs);
 	}
 
-	/* find a free beam */
-	for (i = 0, b = cl_beams; i < MAX_BEAMS; i++, b++)
+	if (!model)
 	{
-		if (!b->model || (b->endtime < cl.time))
-		{
-			b->entity = ent;
-			b->model = model;
-			b->endtime = cl.time + 200;
-			VectorCopy(start, b->start);
-			VectorCopy(end, b->end);
-			VectorClear(b->offset);
-			return;
-		}
+		return;
 	}
-
-	Com_Printf("beam list overflow!\n");
-	return;
-}
-
-void
-CL_ParseBeam2(struct model_s *model)
-{
-	int ent;
-	vec3_t start, end, offset;
-	beam_t *b;
-	int i;
-
-	ent = MSG_ReadShort(&net_message);
-
-	MSG_ReadPos(&net_message, start);
-	MSG_ReadPos(&net_message, end);
-	MSG_ReadPos(&net_message, offset);
 
 	/* override any beam with the same entity */
-	for (i = 0, b = cl_beams; i < MAX_BEAMS; i++, b++)
+	b = CL_Beams_SameEnt(cl_beams, ent, -1);
+
+	if (!b)
 	{
-		if (b->entity == ent)
+		b = CL_Beams_NextFree(cl_beams);
+
+		if (!b)
 		{
-			b->entity = ent;
-			b->model = model;
-			b->endtime = cl.time + 200;
-			VectorCopy(start, b->start);
-			VectorCopy(end, b->end);
-			VectorCopy(offset, b->offset);
+			Com_Printf("beam list overflow!\n");
 			return;
 		}
 	}
 
-	/* find a free beam */
-	for (i = 0, b = cl_beams; i < MAX_BEAMS; i++, b++)
-	{
-		if (!b->model || (b->endtime < cl.time))
-		{
-			b->entity = ent;
-			b->model = model;
-			b->endtime = cl.time + 200;
-			VectorCopy(start, b->start);
-			VectorCopy(end, b->end);
-			VectorCopy(offset, b->offset);
-			return;
-		}
-	}
-
-	Com_Printf("beam list overflow!\n");
-	return;
+	CL_Beams_Set(b, ent, 0, model,
+		start, end, ofs, 200);
 }
 
 /*
  * adds to the cl_playerbeam array instead of the cl_beams array
  */
-void
+static void
 CL_ParsePlayerBeam(struct model_s *model)
 {
 	int ent;
 	vec3_t start, end, offset;
 	beam_t *b;
-	int i;
+	int tm;
 
 	ent = MSG_ReadShort(&net_message);
 
@@ -389,50 +486,44 @@ CL_ParsePlayerBeam(struct model_s *model)
 		MSG_ReadPos(&net_message, offset);
 	}
 
+	if (!model)
+	{
+		return;
+	}
+
+	tm = 200;
+
 	/* Override any beam with the same entity
 	   For player beams, we only want one per
 	   player (entity) so... */
-	for (i = 0, b = cl_playerbeams; i < MAX_BEAMS; i++, b++)
+	b = CL_Beams_SameEnt(cl_playerbeams, ent, -1);
+
+	if (!b)
 	{
-		if (b->entity == ent)
+		b = CL_Beams_NextFree(cl_playerbeams);
+
+		if (!b)
 		{
-			b->entity = ent;
-			b->model = model;
-			b->endtime = cl.time + 200;
-			VectorCopy(start, b->start);
-			VectorCopy(end, b->end);
-			VectorCopy(offset, b->offset);
+			Com_Printf("beam list overflow!\n");
 			return;
 		}
+
+		/* this needs to be 100 to
+		   prevent multiple heatbeams
+		*/
+		tm = 100;
 	}
 
-	/* find a free beam */
-	for (i = 0, b = cl_playerbeams; i < MAX_BEAMS; i++, b++)
-	{
-		if (!b->model || (b->endtime < cl.time))
-		{
-			b->entity = ent;
-			b->model = model;
-			b->endtime = cl.time + 100; /* this needs to be 100 to
-										   prevent multiple heatbeams */
-			VectorCopy(start, b->start);
-			VectorCopy(end, b->end);
-			VectorCopy(offset, b->offset);
-			return;
-		}
-	}
-
-	Com_Printf("beam list overflow!\n");
-	return;
+	CL_Beams_Set(b, ent, 0, model,
+		start, end, offset, tm);
 }
 
-int
+static int
 CL_ParseLightning(struct model_s *model)
 {
 	int srcEnt, destEnt;
 	vec3_t start, end;
 	beam_t *b;
-	int i;
 
 	srcEnt = MSG_ReadShort(&net_message);
 	destEnt = MSG_ReadShort(&net_message);
@@ -440,44 +531,33 @@ CL_ParseLightning(struct model_s *model)
 	MSG_ReadPos(&net_message, start);
 	MSG_ReadPos(&net_message, end);
 
+	if (!model)
+	{
+		return srcEnt;
+	}
+
 	/* override any beam with the same
 	   source AND destination entities */
-	for (i = 0, b = cl_beams; i < MAX_BEAMS; i++, b++)
+	b = CL_Beams_SameEnt(cl_beams, srcEnt, destEnt);
+
+	if (!b)
 	{
-		if ((b->entity == srcEnt) && (b->dest_entity == destEnt))
+		b = CL_Beams_NextFree(cl_beams);
+
+		if (!b)
 		{
-			b->entity = srcEnt;
-			b->dest_entity = destEnt;
-			b->model = model;
-			b->endtime = cl.time + 200;
-			VectorCopy(start, b->start);
-			VectorCopy(end, b->end);
-			VectorClear(b->offset);
+			Com_Printf("beam list overflow!\n");
 			return srcEnt;
 		}
 	}
 
-	/* find a free beam */
-	for (i = 0, b = cl_beams; i < MAX_BEAMS; i++, b++)
-	{
-		if (!b->model || (b->endtime < cl.time))
-		{
-			b->entity = srcEnt;
-			b->dest_entity = destEnt;
-			b->model = model;
-			b->endtime = cl.time + 200;
-			VectorCopy(start, b->start);
-			VectorCopy(end, b->end);
-			VectorClear(b->offset);
-			return srcEnt;
-		}
-	}
+	CL_Beams_Set(b, srcEnt, destEnt, model,
+		start, end, NULL, 200);
 
-	Com_Printf("beam list overflow!\n");
 	return srcEnt;
 }
 
-void
+static void
 CL_ParseLaser(int colors)
 {
 	vec3_t start;
@@ -515,57 +595,20 @@ CL_ParseLaser(int colors)
 	}
 }
 
-void
+static void
 CL_ParseSteam(void)
 {
 	vec3_t pos, dir;
-	int id, i;
+	int id;
 	int r;
 	int cnt;
 	int color;
 	int magnitude;
-	cl_sustain_t *s, *free_sustain;
+	cl_sustain_t *s, dummy;
 
 	id = MSG_ReadShort(&net_message); /* an id of -1 is an instant effect */
 
-	if (id != -1) /* sustains */
-	{
-		free_sustain = NULL;
-
-		for (i = 0, s = cl_sustains; i < MAX_SUSTAINS; i++, s++)
-		{
-			if (s->id == 0)
-			{
-				free_sustain = s;
-				break;
-			}
-		}
-
-		if (free_sustain)
-		{
-			s->id = id;
-			s->count = MSG_ReadByte(&net_message);
-			MSG_ReadPos(&net_message, s->org);
-			MSG_ReadDir(&net_message, s->dir);
-			r = MSG_ReadByte(&net_message);
-			s->color = r & 0xff;
-			s->magnitude = MSG_ReadShort(&net_message);
-			s->endtime = cl.time + MSG_ReadLong(&net_message);
-			s->think = CL_ParticleSteamEffect2;
-			s->thinkinterval = 100;
-			s->nextthink = cl.time;
-		}
-		else
-		{
-			MSG_ReadByte(&net_message);
-			MSG_ReadPos(&net_message, pos);
-			MSG_ReadDir(&net_message, dir);
-			MSG_ReadByte(&net_message);
-			MSG_ReadShort(&net_message);
-			MSG_ReadLong(&net_message); /* really interval */
-		}
-	}
-	else
+	if (id == -1) /* instant */
 	{
 		/* instant */
 		cnt = MSG_ReadByte(&net_message);
@@ -574,78 +617,73 @@ CL_ParseSteam(void)
 		r = MSG_ReadByte(&net_message);
 		magnitude = MSG_ReadShort(&net_message);
 		color = r & 0xff;
+
 		CL_ParticleSteamEffect(pos, dir, color, cnt, magnitude);
+
+		return;
 	}
+
+	s = CL_NextFreeSustain();
+
+	if (!s)
+	{
+		s = &dummy;
+	}
+
+	s->id = id;
+	s->count = MSG_ReadByte(&net_message);
+	MSG_ReadPos(&net_message, s->org);
+	MSG_ReadDir(&net_message, s->dir);
+	r = MSG_ReadByte(&net_message);
+	s->color = r & 0xff;
+	s->magnitude = MSG_ReadShort(&net_message);
+	s->endtime = cl.time + MSG_ReadLong(&net_message);
+	s->think = CL_ParticleSteamEffect2;
+	s->thinkinterval = 100;
+	s->nextthink = cl.time;
 }
 
-void
+static void
 CL_ParseWidow(void)
 {
-	vec3_t pos;
-	int id, i;
-	cl_sustain_t *s, *free_sustain;
+	int id;
+	cl_sustain_t *s, dummy;
 
 	id = MSG_ReadShort(&net_message);
 
-	free_sustain = NULL;
+	s = CL_NextFreeSustain();
 
-	for (i = 0, s = cl_sustains; i < MAX_SUSTAINS; i++, s++)
+	if (!s)
 	{
-		if (s->id == 0)
-		{
-			free_sustain = s;
-			break;
-		}
+		s = &dummy;
 	}
 
-	if (free_sustain)
-	{
-		s->id = id;
-		MSG_ReadPos(&net_message, s->org);
-		s->endtime = cl.time + 2100;
-		s->think = CL_Widowbeamout;
-		s->thinkinterval = 1;
-		s->nextthink = cl.time;
-	}
-	else
-	{
-		/* no free sustains */
-		MSG_ReadPos(&net_message, pos);
-	}
+	s->id = id;
+	MSG_ReadPos(&net_message, s->org);
+	s->endtime = cl.time + 2100;
+	s->think = CL_Widowbeamout;
+	s->thinkinterval = 1;
+	s->nextthink = cl.time;
 }
 
-void
+static void
 CL_ParseNuke(void)
 {
-	vec3_t pos;
-	int i;
-	cl_sustain_t *s, *free_sustain;
+	cl_sustain_t *s, dummy;
 
-	free_sustain = NULL;
+	s = CL_NextFreeSustain();
 
-	for (i = 0, s = cl_sustains; i < MAX_SUSTAINS; i++, s++)
+	if (!s)
 	{
-		if (s->id == 0)
-		{
-			free_sustain = s;
-			break;
-		}
+		s = &dummy;
 	}
 
-	if (free_sustain)
-	{
-		s->id = 21000;
-		MSG_ReadPos(&net_message, s->org);
-		s->endtime = cl.time + 1000;
-		s->think = CL_Nukeblast;
-		s->thinkinterval = 1;
-		s->nextthink = cl.time;
-	}
-	else
-	{
-		/* no free sustains */
-		MSG_ReadPos(&net_message, pos);
-	}
+	s->id = 21000;
+	MSG_ReadPos(&net_message, s->org);
+	s->endtime = cl.time + 1000;
+	s->think = CL_Nukeblast;
+	s->thinkinterval = 1;
+	s->nextthink = cl.time;
 }
 
 static byte splash_color[] = {0x00, 0xe0, 0xb0, 0x50, 0xd0, 0xe0, 0xe8};
@@ -771,7 +809,7 @@ CL_ParseTEnt(void)
 			MSG_ReadDir(&net_message, dir);
 			r = MSG_ReadByte(&net_message);
 
-			if (r > 6)
+			if (r > 6 || r < 0)
 			{
 				color = 0x00;
 			}
@@ -998,7 +1036,7 @@ CL_ParseTEnt(void)
 
 		case TE_PARASITE_ATTACK:
 		case TE_MEDIC_CABLE_ATTACK:
-			CL_ParseBeam(cl_mod_parasite_segment);
+			CL_ParseBeam(cl_mod_parasite_segment, false);
 			break;
 
 		case TE_BOSSTPORT: /* boss teleporting to station */
@@ -1009,7 +1047,7 @@ CL_ParseTEnt(void)
 			break;
 
 		case TE_GRAPPLE_CABLE:
-			CL_ParseBeam2(cl_mod_grapple_cable);
+			CL_ParseBeam(cl_mod_grapple_cable, true);
 			break;
 
 		case TE_WELDING_SPARKS:
@@ -1257,7 +1295,10 @@ CL_ParseTEnt(void)
 	}
 }
 
-void
+/*
+ * Add temp entities to rendering list
+ */
+static void
 CL_AddBeams(void)
 {
 	int i, j;
@@ -1403,7 +1444,7 @@ CL_AddBeams(void)
 
 extern cvar_t *hand;
 
-void
+static void
 CL_AddPlayerBeams(void)
 {
 	int i, j;
@@ -1688,7 +1729,7 @@ CL_AddPlayerBeams(void)
 	}
 }
 
-void
+static void
 CL_AddExplosions(void)
 {
 	entity_t *ent;
@@ -1818,7 +1859,7 @@ CL_AddExplosions(void)
 	}
 }
 
-void
+static void
 CL_AddLasers(void)
 {
 	laser_t *l;
