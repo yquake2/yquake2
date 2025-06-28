@@ -48,7 +48,7 @@ typedef struct
 #define MAX_BEAMS 64
 #define MAX_LASERS 64
 
-explosion_t cl_explosions[MAX_EXPLOSIONS];
+static explosion_t cl_explosions[MAX_EXPLOSIONS];
 
 typedef struct
 {
@@ -60,17 +60,18 @@ typedef struct
 	vec3_t start, end;
 } beam_t;
 
-beam_t cl_beams[MAX_BEAMS];
-beam_t cl_playerbeams[MAX_BEAMS];
+static beam_t cl_beams[MAX_BEAMS];
+static beam_t cl_playerbeams[MAX_BEAMS];
 
 typedef struct
 {
 	entity_t ent;
 	int endtime;
 } laser_t;
-laser_t cl_lasers[MAX_LASERS];
 
-cl_sustain_t cl_sustains[MAX_SUSTAINS];
+static laser_t cl_lasers[MAX_LASERS];
+
+static cl_sustain_t cl_sustains[MAX_SUSTAINS];
 
 extern void CL_TeleportParticles(vec3_t org);
 void CL_BlasterParticles(vec3_t org, vec3_t dir);
@@ -85,39 +86,38 @@ void CL_Explosion_Particle(vec3_t org, float size,
 #define NUM_FOOTSTEP_SFX 4
 
 /* sounds */
-struct sfx_s *cl_sfx_ric1;
-struct sfx_s *cl_sfx_ric2;
-struct sfx_s *cl_sfx_ric3;
-struct sfx_s *cl_sfx_lashit;
-struct sfx_s *cl_sfx_spark5;
-struct sfx_s *cl_sfx_spark6;
-struct sfx_s *cl_sfx_spark7;
-struct sfx_s *cl_sfx_railg;
-struct sfx_s *cl_sfx_rockexp;
-struct sfx_s *cl_sfx_grenexp;
-struct sfx_s *cl_sfx_watrexp;
-struct sfx_s *cl_sfx_plasexp;
-struct sfx_s *cl_sfx_footsteps[NUM_FOOTSTEP_SFX];
+static struct sfx_s *cl_sfx_ric1;
+static struct sfx_s *cl_sfx_ric2;
+static struct sfx_s *cl_sfx_ric3;
+static struct sfx_s *cl_sfx_lashit;
+static struct sfx_s *cl_sfx_spark5;
+static struct sfx_s *cl_sfx_spark6;
+static struct sfx_s *cl_sfx_spark7;
+static struct sfx_s *cl_sfx_railg;
+static struct sfx_s *cl_sfx_rockexp;
+static struct sfx_s *cl_sfx_grenexp;
+static struct sfx_s *cl_sfx_watrexp;
+static struct sfx_s *cl_sfx_footsteps[NUM_FOOTSTEP_SFX];
 
-struct sfx_s *cl_sfx_lightning;
-struct sfx_s *cl_sfx_disrexp;
+static struct sfx_s *cl_sfx_lightning;
+static struct sfx_s *cl_sfx_disrexp;
 
 /* models */
-struct model_s *cl_mod_explode;
-struct model_s *cl_mod_smoke;
-struct model_s *cl_mod_flash;
-struct model_s *cl_mod_parasite_segment;
-struct model_s *cl_mod_grapple_cable;
-struct model_s *cl_mod_parasite_tip;
-struct model_s *cl_mod_explo4;
-struct model_s *cl_mod_bfg_explo;
-struct model_s *cl_mod_powerscreen;
-struct model_s *cl_mod_plasmaexplo;
+static struct model_s *cl_mod_explode;
+static struct model_s *cl_mod_smoke;
+static struct model_s *cl_mod_flash;
+static struct model_s *cl_mod_parasite_segment;
+static struct model_s *cl_mod_grapple_cable;
+static struct model_s *cl_mod_parasite_tip;
+static struct model_s *cl_mod_explo4;
+static struct model_s *cl_mod_bfg_explo;
+static struct model_s *cl_mod_powerscreen;
+static struct model_s *cl_mod_plasmaexplo;
 
-struct model_s *cl_mod_lightning;
-struct model_s *cl_mod_heatbeam;
-struct model_s *cl_mod_monster_heatbeam;
-struct model_s *cl_mod_explo4_big;
+static struct model_s *cl_mod_lightning;
+static struct model_s *cl_mod_heatbeam;
+static struct model_s *cl_mod_monster_heatbeam;
+static struct model_s *cl_mod_explo4_big;
 
 /*
  * Utility functions
@@ -1904,5 +1904,17 @@ CL_AddTEnts(void)
 	CL_AddExplosions();
 	CL_AddLasers();
 	CL_ProcessSustain();
+}
+
+struct sfx_s *
+CL_RandomFootstepSfx(void)
+{
+	return cl_sfx_footsteps[randk() % NUM_FOOTSTEP_SFX];
+}
+
+struct model_s *
+CL_PowerScreenModel(void)
+{
+	return cl_mod_powerscreen;
 }
 
