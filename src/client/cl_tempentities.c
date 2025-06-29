@@ -61,7 +61,7 @@ typedef struct
 } beam_t;
 
 static beam_t cl_beams[MAX_BEAMS];
-static beam_t cl_playerbeams[MAX_BEAMS];
+static beam_t cl_heatbeams[MAX_BEAMS];
 
 typedef struct
 {
@@ -81,6 +81,8 @@ void CL_BlueBlasterParticles(vec3_t org, vec3_t dir);
 void CL_ExplosionParticles(vec3_t org);
 void CL_Explosion_Particle(vec3_t org, float size,
 		qboolean large, qboolean rocket);
+
+extern cvar_t *hand;
 
 #define EXPLOSION_PARTICLES(x) CL_ExplosionParticles((x));
 #define NUM_FOOTSTEP_SFX 4
@@ -348,7 +350,7 @@ CL_ClearTEnts(void)
 	memset(cl_explosions, 0, sizeof(cl_explosions));
 	memset(cl_lasers, 0, sizeof(cl_lasers));
 
-	memset(cl_playerbeams, 0, sizeof(cl_playerbeams));
+	memset(cl_heatbeams, 0, sizeof(cl_heatbeams));
 	memset(cl_sustains, 0, sizeof(cl_sustains));
 
 	CL_ClearTEntModelVars();
@@ -361,7 +363,7 @@ CL_ClearTEntModels(void)
 	memset(cl_explosions, 0, sizeof(cl_explosions));
 
 	memset(cl_beams, 0, sizeof(cl_beams));
-	memset(cl_playerbeams, 0, sizeof(cl_playerbeams));
+	memset(cl_heatbeams, 0, sizeof(cl_heatbeams));
 
 	CL_ClearTEntModelVars();
 }
@@ -482,11 +484,11 @@ CL_ParseHeatBeam(qboolean is_monster)
 	/* Override any beam with the same entity
 	   For player beams, we only want one per
 	   player (entity) so... */
-	b = CL_Beams_SameEnt(cl_playerbeams, ent, -1);
+	b = CL_Beams_SameEnt(cl_heatbeams, ent, -1);
 
 	if (!b)
 	{
-		b = CL_Beams_NextFree(cl_playerbeams);
+		b = CL_Beams_NextFree(cl_heatbeams);
 
 		if (!b)
 		{
@@ -1285,20 +1287,69 @@ CL_ParseTEnt(void)
  * Add temp entities to rendering list
  */
 static void
+CalculatePitchYaw(const vec3_t dir, float *pitch, float *yaw)
+{
+	float forward;
+	float p, y;
+
+	if ((dir[1] == 0) && (dir[0] == 0))
+	{
+		y = 0;
+
+		if (dir[2] > 0)
+		{
+			p = 90;
+		}
+		else
+		{
+			p = 270;
+		}
+	}
+	else
+	{
+		if (dir[0])
+		{
+			y = ((float)atan2(dir[1], dir[0]) * 180 / M_PI);
+		}
+		else if (dir[1] > 0)
+		{
+			y = 90;
+		}
+		else
+		{
+			y = 270;
+		}
+
+		if (y < 0)
+		{
+			y += 360;
+		}
+
+		forward = sqrt(dir[0] * dir[0] + dir[1] * dir[1]);
+		p = ((float)atan2(dir[2], forward) * -180.0 / M_PI);
+
+		if (p < 0)
+		{
+			p += 360;
+		}
+	}
+
+	*pitch = p;
+	*yaw = y;
+}
+
+static void
 CL_AddBeams(void)
 {
-	int i, j;
-	beam_t *b;
+	const beam_t *b;
 	vec3_t dist, org;
 	float d;
 	entity_t ent;
 	float yaw, pitch;
-	float forward;
 	float len, steps;
 	float model_length;
 
-	/* update beams */
-	for (i = 0, b = cl_beams; i < MAX_BEAMS; i++, b++)
+	for (b = cl_beams; b < &cl_beams[MAX_BEAMS]; b++)
 	{
 		if (!b->model || (b->endtime < cl.time))
 		{
@@ -1308,64 +1359,23 @@ CL_AddBeams(void)
 		/* if coming from the player, update the start position */
 		if (b->entity == cl.playernum + 1) /* entity 0 is the world */
 		{
-			VectorCopy(cl.refdef.vieworg, b->start);
-			b->start[2] -= 22; /* adjust for view height */
-		}
+			VectorCopy(cl.refdef.vieworg, org);
+			org[2] -= 22; /* adjust for view height */
 
-		VectorAdd(b->start, b->offset, org);
+			VectorAdd(org, b->offset, org);
+		}
+		else
+		{
+			VectorAdd(b->start, b->offset, org);
+		}
 
 		/* calculate pitch and yaw */
 		VectorSubtract(b->end, org, dist);
 
-		if ((dist[1] == 0) && (dist[0] == 0))
-		{
-			yaw = 0;
-
-			if (dist[2] > 0)
-			{
-				pitch = 90;
-			}
-
-			else
-			{
-				pitch = 270;
-			}
-		}
-		else
-		{
-			if (dist[0])
-			{
-				yaw = ((float)atan2(dist[1], dist[0]) * 180 / M_PI);
-			}
-
-			else if (dist[1] > 0)
-			{
-				yaw = 90;
-			}
-
-			else
-			{
-				yaw = 270;
-			}
-
-			if (yaw < 0)
-			{
-				yaw += 360;
-			}
-
-			forward = (float)sqrt(dist[0] * dist[0] + dist[1] * dist[1]);
-			pitch = ((float)atan2(dist[2], forward) * -180.0 / M_PI);
-
-			if (pitch < 0)
-			{
-				pitch += 360.0;
-			}
-		}
+		CalculatePitchYaw(dist, &pitch, &yaw);
 
 		/* add new entities for the beams */
 		d = VectorNormalize(dist);
-
-		memset(&ent, 0, sizeof(ent));
 
 		if (b->model == cl_mod_lightning)
 		{
@@ -1380,6 +1390,8 @@ CL_AddBeams(void)
 		steps = (float)ceil(d / model_length);
 		len = (d - model_length) / (steps - 1);
 
+		memset(&ent, 0, sizeof(ent));
+
 		/* special case for lightning model .. if the real length
 		   is shorter than the model, flip it around & draw it
 		   from the end to the start. This prevents the model from
@@ -1390,11 +1402,14 @@ CL_AddBeams(void)
 			VectorCopy(b->end, ent.origin);
 			ent.model = b->model;
 			ent.flags = RF_FULLBRIGHT;
+
 			ent.angles[0] = pitch;
 			ent.angles[1] = yaw;
 			ent.angles[2] = (float)(randk() % 360);
+
 			V_AddEntity(&ent);
-			return;
+
+			continue;
 		}
 
 		while (d > 0)
@@ -1404,312 +1419,170 @@ CL_AddBeams(void)
 
 			if (b->model == cl_mod_lightning)
 			{
-				ent.flags = RF_FULLBRIGHT;
 				ent.angles[0] = -pitch;
 				ent.angles[1] = yaw + 180.0f;
-				ent.angles[2] = (float)(randk() % 360);
 			}
 			else
 			{
 				ent.angles[0] = pitch;
 				ent.angles[1] = yaw;
-				ent.angles[2] = (float)(randk() % 360);
 			}
+
+			ent.angles[2] = (float)(randk() % 360);
 
 			V_AddEntity(&ent);
 
-			for (j = 0; j < 3; j++)
-			{
-				org[j] += dist[j] * len;
-			}
-
+			VectorMA(org, len, dist, org);
 			d -= model_length;
 		}
 	}
 }
 
-extern cvar_t *hand;
+static float
+HandMul(void)
+{
+	if (!hand)
+	{
+		return 1.0f;
+	}
+
+	switch ((int)hand->value)
+	{
+		case 1:
+			return -1.0f;
+		case 2:
+			return 0.0f;
+		default:
+			return 1.0f;
+	}
+}
 
 static void
-CL_AddPlayerBeams(void)
+ApplyBeamOffset(const vec3_t ofs, float hand_mul, vec3_t out)
 {
-	int i, j;
-	beam_t *b;
+	VectorMA(out, hand_mul * ofs[0], cl.v_right, out);
+	VectorMA(out, ofs[1], cl.v_forward, out);
+	VectorMA(out, ofs[2], cl.v_up, out);
+
+	if (hand_mul == 0.0f)
+	{
+		VectorMA(out, -1, cl.v_up, out);
+	}
+}
+
+static void
+AdjustToWeapon(const vec3_t ofs, float hand_mul, vec3_t out)
+{
+	int i;
+	frame_t *oldframe;
+	player_state_t *ps, *ops;
+
+	/* set up gun position */
+	ps = &cl.frame.playerstate;
+	i = (cl.frame.serverframe - 1) & UPDATE_MASK;
+	oldframe = &cl.frames[i];
+
+	if ((oldframe->serverframe != cl.frame.serverframe - 1) || !oldframe->valid)
+	{
+		oldframe = &cl.frame; /* previous frame was dropped or invalid */
+	}
+
+	ops = &oldframe->playerstate;
+
+	for (i = 0; i < 3; i++)
+	{
+		out[i] = cl.refdef.vieworg[i] + ops->gunoffset[i]
+				  + cl.lerpfrac * (ps->gunoffset[i] - ops->gunoffset[i]);
+	}
+
+	ApplyBeamOffset(ofs, hand_mul, out);
+}
+
+static void
+CL_AddHeatBeams(void)
+{
+	const beam_t *b;
 	vec3_t dist, org;
 	float d;
 	entity_t ent;
 	float yaw, pitch;
-	float forward;
 	float len, steps;
 	int framenum;
 	float model_length;
+	int by_us;
+	float hand_mul;
 
-	float hand_multiplier;
-	frame_t *oldframe;
-	player_state_t *ps, *ops;
+	hand_mul = HandMul();
 
-	framenum = 0;
-
-	if (hand)
+	for (b = cl_heatbeams; b < &cl_heatbeams[MAX_BEAMS]; b++)
 	{
-		if (hand->value == 2)
-		{
-			hand_multiplier = 0;
-		}
-
-		else if (hand->value == 1)
-		{
-			hand_multiplier = -1;
-		}
-
-		else
-		{
-			hand_multiplier = 1;
-		}
-	}
-	else
-	{
-		hand_multiplier = 1;
-	}
-
-	/* update beams */
-	for (i = 0, b = cl_playerbeams; i < MAX_BEAMS; i++, b++)
-	{
-		vec3_t f, r, u;
-
 		if (!b->model || (b->endtime < cl.time))
 		{
 			continue;
 		}
 
-		if (cl_mod_heatbeam && (b->model == cl_mod_heatbeam))
+		by_us = (b->entity == cl.playernum + 1);
+
+		if (by_us)
 		{
-			/* if coming from the player, update the start position */
-			if (b->entity == cl.playernum + 1)
-			{
-				/* set up gun position */
-				ps = &cl.frame.playerstate;
-				j = (cl.frame.serverframe - 1) & UPDATE_MASK;
-				oldframe = &cl.frames[j];
-
-				if ((oldframe->serverframe != cl.frame.serverframe - 1) || !oldframe->valid)
-				{
-					oldframe = &cl.frame; /* previous frame was dropped or invalid */
-				}
-
-				ops = &oldframe->playerstate;
-
-				for (j = 0; j < 3; j++)
-				{
-					b->start[j] = cl.refdef.vieworg[j] + ops->gunoffset[j]
-								  + cl.lerpfrac * (ps->gunoffset[j] - ops->gunoffset[j]);
-				}
-
-				VectorMA(b->start, (hand_multiplier * b->offset[0]),
-						cl.v_right, org);
-				VectorMA(org, b->offset[1], cl.v_forward, org);
-				VectorMA(org, b->offset[2], cl.v_up, org);
-
-				if ((hand) && (hand->value == 2))
-				{
-					VectorMA(org, -1, cl.v_up, org);
-				}
-
-				VectorCopy(cl.v_right, r);
-				VectorCopy(cl.v_forward, f);
-				VectorCopy(cl.v_up, u);
-			}
-			else
-			{
-				VectorCopy(b->start, org);
-			}
+			AdjustToWeapon(b->offset, hand_mul, org);
 		}
 		else
 		{
-			/* if coming from the player, update the start position */
-			if (b->entity == cl.playernum + 1) /* entity 0 is the world */
-			{
-				VectorCopy(cl.refdef.vieworg, b->start);
-				b->start[2] -= 22; /* adjust for view height */
-			}
-
-			VectorAdd(b->start, b->offset, org);
+			VectorCopy(b->start, org);
 		}
 
 		/* calculate pitch and yaw */
 		VectorSubtract(b->end, org, dist);
 
-		if (cl_mod_heatbeam && (b->model == cl_mod_heatbeam) &&
-			(b->entity == cl.playernum + 1))
+		if (by_us)
 		{
-			vec_t len;
-
 			len = VectorLength(dist);
-			VectorScale(f, len, dist);
-			VectorMA(dist, (hand_multiplier * b->offset[0]), r, dist);
-			VectorMA(dist, b->offset[1], f, dist);
-			VectorMA(dist, b->offset[2], u, dist);
+			VectorScale(cl.v_forward, len, dist);
 
-			if ((hand) && (hand->value == 2))
-			{
-				VectorMA(org, -1, cl.v_up, org);
-			}
+			ApplyBeamOffset(b->offset, hand_mul, dist);
 		}
 
-		if ((dist[1] == 0) && (dist[0] == 0))
+		CalculatePitchYaw(dist, &pitch, &yaw);
+
+		if (by_us)
 		{
-			yaw = 0;
+			framenum = 1;
 
-			if (dist[2] > 0)
-			{
-				pitch = 90;
-			}
-
-			else
-			{
-				pitch = 270;
-			}
+			/* add the rings */
+			CL_Heatbeam(org, dist);
 		}
 		else
 		{
-			if (dist[0])
-			{
-				yaw = ((float)atan2(dist[1], dist[0]) * 180 / M_PI);
-			}
+			framenum = 2;
 
-			else if (dist[1] > 0)
-			{
-				yaw = 90;
-			}
-
-			else
-			{
-				yaw = 270;
-			}
-
-			if (yaw < 0)
-			{
-				yaw += 360;
-			}
-
-			forward = sqrt(dist[0] * dist[0] + dist[1] * dist[1]);
-			pitch = ((float)atan2(dist[2], forward) * -180.0 / M_PI);
-
-			if (pitch < 0)
-			{
-				pitch += 360.0;
-			}
-		}
-
-		if (cl_mod_heatbeam && (b->model == cl_mod_heatbeam))
-		{
-			if (b->entity != cl.playernum + 1)
-			{
-				framenum = 2;
-				ent.angles[0] = -pitch;
-				ent.angles[1] = yaw + 180.0f;
-				ent.angles[2] = 0;
-				AngleVectors(ent.angles, f, r, u);
-
-				/* if it's a non-origin offset, it's a player, so use the hardcoded player offset */
-				if (!VectorCompare(b->offset, vec3_origin))
-				{
-					VectorMA(org, -(b->offset[0]) + 1, r, org);
-					VectorMA(org, -(b->offset[1]), f, org);
-					VectorMA(org, -(b->offset[2]) - 10, u, org);
-				}
-				else
-				{
-					/* if it's a monster, do the particle effect */
-					CL_MonsterPlasma_Shell(b->start);
-				}
-			}
-			else
-			{
-				framenum = 1;
-			}
-		}
-
-		/* if it's the heatbeam, draw the particle effect */
-		if ((cl_mod_heatbeam && (b->model == cl_mod_heatbeam) &&
-			 (b->entity == cl.playernum + 1)))
-		{
-			CL_Heatbeam(org, dist);
+			CL_MonsterPlasma_Shell(org);
 		}
 
 		/* add new entities for the beams */
 		d = VectorNormalize(dist);
 
-		memset(&ent, 0, sizeof(ent));
-
-		if (b->model == cl_mod_heatbeam)
-		{
-			model_length = 32.0;
-		}
-		else if (b->model == cl_mod_lightning)
-		{
-			model_length = 35.0;
-			d -= 20.0; /* correction so it doesn't end in middle of tesla */
-		}
-		else
-		{
-			model_length = 30.0;
-		}
-
+		model_length = 32.0;
 		steps = ceil(d / model_length);
 		len = (d - model_length) / (steps - 1);
 
-		/* special case for lightning model .. if the real
-		   length is shorter than the model, flip it around
-		   & draw it from the end to the start. This prevents
-		   the model from going through the tesla mine
-		   (instead it goes through the target) */
-		if ((b->model == cl_mod_lightning) && (d <= model_length))
-		{
-			VectorCopy(b->end, ent.origin);
-			ent.model = b->model;
-			ent.flags = RF_FULLBRIGHT;
-			ent.angles[0] = pitch;
-			ent.angles[1] = yaw;
-			ent.angles[2] = (float)(randk() % 360);
-			V_AddEntity(&ent);
-			return;
-		}
+		memset(&ent, 0, sizeof(ent));
+
+		ent.model = b->model;
+		ent.flags = RF_FULLBRIGHT|RF_WEAPONMODEL; // DG: fix rogue heatbeam high FOV rendering
+
+		ent.angles[0] = -pitch;
+		ent.angles[1] = yaw + 180.0f;
+		ent.angles[2] = (float)((cl.time) % 360);
+		ent.frame = framenum;
 
 		while (d > 0)
 		{
 			VectorCopy(org, ent.origin);
-			ent.model = b->model;
-
-			if (cl_mod_heatbeam && (b->model == cl_mod_heatbeam))
-			{
-				ent.flags = RF_FULLBRIGHT|RF_WEAPONMODEL; // DG: fix rogue heatbeam high FOV rendering
-				ent.angles[0] = -pitch;
-				ent.angles[1] = yaw + 180.0f;
-				ent.angles[2] = (float)((cl.time) % 360);
-				ent.frame = framenum;
-			}
-			else if (b->model == cl_mod_lightning)
-			{
-				ent.flags = RF_FULLBRIGHT;
-				ent.angles[0] = -pitch;
-				ent.angles[1] = yaw + 180.0f;
-				ent.angles[2] = (float)(randk() % 360);
-			}
-			else
-			{
-				ent.angles[0] = pitch;
-				ent.angles[1] = yaw;
-				ent.angles[2] = (float)(randk() % 360);
-			}
 
 			V_AddEntity(&ent);
 
-			for (j = 0; j < 3; j++)
-			{
-				org[j] += dist[j] * len;
-			}
-
+			VectorMA(org, len, dist, org);
 			d -= model_length;
 		}
 	}
@@ -1886,7 +1759,7 @@ void
 CL_AddTEnts(void)
 {
 	CL_AddBeams();
-	CL_AddPlayerBeams();
+	CL_AddHeatBeams();
 	CL_AddExplosions();
 	CL_AddLasers();
 	CL_ProcessSustain();
