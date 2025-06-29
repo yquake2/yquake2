@@ -1559,6 +1559,23 @@ CL_AddHeatBeams(void)
 			CL_MonsterPlasma_Shell(org);
 		}
 
+		/* hack for left-handed weapon
+		   RF_WEAPONMODEL will mirror the beam start pos
+		   so put the start pos to the right
+		   that way the renderer mirrors it to the left
+		*/
+		if (by_us && hand_mul == -1.0f)
+		{
+			AdjustToWeapon(b->offset, 1.0f, org);
+			VectorSubtract(b->end, org, dist);
+
+			len = VectorLength(dist);
+			VectorScale(cl.v_forward, len, dist);
+			ApplyBeamOffset(b->offset, 1.0f, dist);
+
+			CalculatePitchYaw(dist, &pitch, &yaw);
+		}
+
 		/* add new entities for the beams */
 		d = VectorNormalize(dist);
 
@@ -1569,7 +1586,13 @@ CL_AddHeatBeams(void)
 		memset(&ent, 0, sizeof(ent));
 
 		ent.model = b->model;
-		ent.flags = RF_FULLBRIGHT|RF_WEAPONMODEL; // DG: fix rogue heatbeam high FOV rendering
+		ent.flags = RF_FULLBRIGHT;
+
+		// DG: fix rogue heatbeam high FOV rendering
+		if (by_us && hand_mul != 0.0f)
+		{
+			ent.flags |= RF_WEAPONMODEL;
+		}
 
 		ent.angles[0] = -pitch;
 		ent.angles[1] = yaw + 180.0f;
