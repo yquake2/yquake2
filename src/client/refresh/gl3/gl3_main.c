@@ -134,6 +134,8 @@ cvar_t *r_palettedtexture;
 cvar_t *r_validation;
 cvar_t *gl3_usefbo;
 
+static cvar_t *gl_znear;
+
 // Yaw-Pitch-Roll
 // equivalent to R_z * R_y * R_x where R_x is the trans matrix for rotating around X axis for aroundXdeg
 static hmm_mat4 rotAroundAxisZYX(float aroundZdeg, float aroundYdeg, float aroundXdeg)
@@ -267,6 +269,7 @@ GL3_Register(void)
 	r_novis = ri.Cvar_Get("r_novis", "0", 0);
 	r_speeds = ri.Cvar_Get("r_speeds", "0", 0);
 	gl_finish = ri.Cvar_Get("gl_finish", "0", CVAR_ARCHIVE);
+	gl_znear = ri.Cvar_Get("gl_znear", "4", CVAR_ARCHIVE);
 
 	gl3_usefbo = ri.Cvar_Get("gl3_usefbo", "1", CVAR_ARCHIVE); // use framebuffer object for postprocess effects (water)
 
@@ -1328,10 +1331,15 @@ static hmm_mat4 rotAroundAxisXYZ(float aroundXdeg, float aroundYdeg, float aroun
 	return ret;
 }
 
-// equivalent to R_MYgluPerspective() but returning a matrix instead of setting internal OpenGL state
+// equivalent to R_SetPerspective() but returning a matrix instead of setting internal OpenGL state
 hmm_mat4
-GL3_MYgluPerspective(GLdouble fovy, GLdouble aspect, GLdouble zNear, GLdouble zFar)
+GL3_SetPerspective(GLdouble fovy)
 {
+	// gluPerspective() / R_MYgluPerspective() style parameters
+	const GLdouble zNear = Q_max(gl_znear->value, 0.1f);
+	const GLdouble zFar = (r_farsee->value) ? 8192.0f : 4096.0f;
+	const GLdouble aspect = (GLdouble)gl3_newrefdef.width / gl3_newrefdef.height;
+
 	// calculation of left, right, bottom, top is from R_MYgluPerspective() of old gl backend
 	// which seems to be slightly different from the real gluPerspective()
 	// and thus also from HMM_Perspective()
@@ -1339,10 +1347,10 @@ GL3_MYgluPerspective(GLdouble fovy, GLdouble aspect, GLdouble zNear, GLdouble zF
 	float A, B, C, D;
 
 	top = zNear * tan(fovy * M_PI / 360.0);
-	bottom = -top;
-
-	left = bottom * aspect;
 	right = top * aspect;
+
+	bottom = -top;
+	left = -right;
 
 	// TODO:  stereo stuff
 	// left += - gl1_stereo_convergence->value * (2 * gl_state.camera_separation) / zNear;
@@ -1461,11 +1469,7 @@ SetupGL(void)
 	}
 
 	/* set up projection matrix (eye coordinates -> clip coordinates) */
-	{
-		float screenaspect = (float)gl3_newrefdef.width / gl3_newrefdef.height;
-		float dist = (r_farsee->value == 0) ? 4096.0f : 8192.0f;
-		gl3state.projMat3D = GL3_MYgluPerspective(gl3_newrefdef.fov_y, screenaspect, 2, dist);
-	}
+	gl3state.projMat3D = GL3_SetPerspective(gl3_newrefdef.fov_y);
 
 	glCullFace(GL_FRONT);
 

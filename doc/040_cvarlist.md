@@ -529,6 +529,11 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
   "flash" you see when getting injured or picking up an item. In GL1 is
   also used for looking underwater. Default is `1` (enabled).
 
+* **gl_znear**: Sets the distance to the *near depth clipping plane* of
+  the player view. Reducing it may allow some weapon animations to not
+  get "clipped" by the player view (e.g. railgun firing), at the risk
+  of heavy glitches with some hardware configurations. Default is `4`.
+
 * **gl_texturemode**: How textures are filtered.
 
   - `GL_NEAREST`: No filtering (using value of *nearest* source pixel),
