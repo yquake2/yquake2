@@ -376,6 +376,8 @@ VID_ShutdownRenderer(void)
 		Sys_FreeLibrary(reflib_handle);
 		reflib_handle = NULL;
 		memset(&re, 0, sizeof(re));
+
+		CL_ClearTEntModels();
 	}
 
 	// Declare the refresher as inactive
