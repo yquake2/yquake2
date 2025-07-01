@@ -447,6 +447,19 @@ ApplyChanges(void *unused)
 	M_ForceMenuOff();
 }
 
+static void
+RestartNeededMsg(void *unused)
+{
+	if (
+#ifdef USE_SDL3
+		Q_stricmp(vid_renderer->string, "gl1") == 0 ||
+#endif
+		Q_stricmp(vid_renderer->string, "gles1") == 0 )
+	{
+		Menu_SetStatusBar(&s_opengl_menu, "apply required");
+	}
+}
+
 void
 VID_MenuInit(void)
 {
@@ -611,6 +624,7 @@ VID_MenuInit(void)
 	s_brightness_slider.generic.name = "brightness";
 	s_brightness_slider.generic.x = 0;
 	s_brightness_slider.generic.y = (y += 10);
+	s_brightness_slider.generic.callback = RestartNeededMsg;
 	s_brightness_slider.cvar = "vid_gamma";
 	s_brightness_slider.minvalue = 0.1f;
 	s_brightness_slider.maxvalue = 2.0f;
@@ -909,6 +923,7 @@ VID_MenuInit(void)
 	Menu_AddItem(&s_opengl_menu, (void *)&s_defaults_action);
 	Menu_AddItem(&s_opengl_menu, (void *)&s_apply_action);
 
+	Menu_SetStatusBar(&s_opengl_menu, NULL);
 	Menu_Center(&s_opengl_menu);
 	s_opengl_menu.x -= 8;
 }

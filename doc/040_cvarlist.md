@@ -475,12 +475,12 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
 * **vid_gamma**: The value used for gamma correction. Higher values look
   brighter. The OpenGL 3.2 OpenGL ES3 and Vulkan renderers apply this to
   the window in realtime via shaders (on all platforms). When the game
-  is build against SDL2, the OpenGL 1.4 renderer uses "hardware gamma"
-  when available, increasing the brightness of the whole screen. On
-  MacOS the gamma is applied only at renderer start, so a `vid_restart`
-  is required. When the game is build against SDL3, the OpenGL 1.4
-  renderer doesn't support gamma. Have a look at `gl1_overbrightbits`
-  instead. This is also set by the brightness slider in the video menu.
+  is built against SDL2, the OpenGL 1.4 renderer uses "hardware gamma"
+  when available, increasing the brightness of the whole screen. When
+  the game is built using SDL3, the OpenGL 1.4 renderer requires a
+  `vid_restart` since gamma values are precomputed at renderer start
+  only. On MacOS the situation is similar; `vid_restart` is required.
+  This cvar is also set by the brightness slider in the video menu.
 
 * **vid_fullscreen**: Sets the fullscreen mode. When set to `0` (the
   default) the game runs in window mode. When set to `1` the games
@@ -528,6 +528,11 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
 * **gl_polyblend**: Toggles the palette blending effect, a.k.a. the
   "flash" you see when getting injured or picking up an item. In GL1 is
   also used for looking underwater. Default is `1` (enabled).
+
+* **gl_znear**: Sets the distance to the *near depth clipping plane* of
+  the player view. Reducing it may allow some weapon animations to not
+  get "clipped" by the player view (e.g. railgun firing), at the risk
+  of heavy glitches with some hardware configurations. Default is `4`.
 
 * **gl_texturemode**: How textures are filtered.
 

@@ -74,6 +74,11 @@
 /* fall over */
 #define ROLL 2
 
+#if defined(USE_SDL3) || defined(YQ2_GL1_GLES)
+// Use internal lookup table instead of SDL2 hw gamma funcs for GL1/GLES1
+#define GL1_GAMMATABLE
+#endif
+
 extern viddef_t vid;
 
 
@@ -136,8 +141,9 @@ typedef struct	//	832k aprox.
 
 	GLfloat
 		vtx[MAX_VERTICES * 3],	// vertexes
-		tex[MAX_TEXTURE_UNITS][MAX_VERTICES * 2],	// texture coords
-		clr[MAX_VERTICES * 4];	// color components
+		tex[MAX_TEXTURE_UNITS][MAX_VERTICES * 2];	// texture coords
+
+	GLubyte	clr[MAX_VERTICES * 4];	// color components
 
 	GLushort idx[MAX_INDICES];	// indices for the draw call
 
@@ -253,6 +259,8 @@ extern int c_visible_lightmaps;
 extern int c_visible_textures;
 
 extern float r_world_matrix[16];
+
+extern unsigned char gammatable[256];
 
 qboolean R_Bind(int texnum);
 
@@ -429,6 +437,7 @@ typedef struct
 typedef struct
 {
 	float inverse_intensity;
+	float sw_gamma;	// always 1 if using SDL2 hw gamma
 	qboolean fullscreen;
 
 	int prev_mode;

@@ -143,6 +143,7 @@ cvar_t *gl1_stereo_separation;
 cvar_t *gl1_stereo_anaglyph_colors;
 cvar_t *gl1_stereo_convergence;
 
+static cvar_t *gl_znear;
 static cvar_t *gl1_waterwarp;
 
 refimport_t ri;
@@ -428,7 +429,7 @@ R_DrawParticles2(int num_particles, const particle_t particles[],
 
 	YQ2_VLA(GLfloat, vtx, 3 * num_particles * 3);
 	YQ2_VLA(GLfloat, tex, 2 * num_particles * 3);
-	YQ2_VLA(GLfloat, clr, 4 * num_particles * 3);
+	YQ2_VLA(GLubyte, clr, 4 * num_particles * 3);
 
 	unsigned int index_vtx = 0;
 	unsigned int index_tex = 0;
@@ -463,10 +464,10 @@ R_DrawParticles2(int num_particles, const particle_t particles[],
 
 		for (j=0; j<3; j++) // Copy the color for each point
 		{
-			clr[index_clr++] = color[0]/255.0f;
-			clr[index_clr++] = color[1]/255.0f;
-			clr[index_clr++] = color[2]/255.0f;
-			clr[index_clr++] = p->alpha;
+			clr[index_clr++] = gammatable[color[0]];
+			clr[index_clr++] = gammatable[color[1]];
+			clr[index_clr++] = gammatable[color[2]];
+			clr[index_clr++] = p->alpha * 255;
 		}
 
 		// point 0
@@ -500,7 +501,7 @@ R_DrawParticles2(int num_particles, const particle_t particles[],
 
 	glVertexPointer( 3, GL_FLOAT, 0, vtx );
 	glTexCoordPointer( 2, GL_FLOAT, 0, tex );
-	glColorPointer( 4, GL_FLOAT, 0, clr );
+	glColorPointer( 4, GL_UNSIGNED_BYTE, 0, clr );
 	glDrawArrays( GL_TRIANGLES, 0, num_particles*3 );
 
 	glDisableClientState( GL_VERTEX_ARRAY );
@@ -535,7 +536,7 @@ R_DrawParticles(void)
 		const particle_t *p;
 
 		YQ2_VLA(GLfloat, vtx, 3 * r_newrefdef.num_particles);
-		YQ2_VLA(GLfloat, clr, 4 * r_newrefdef.num_particles);
+		YQ2_VLA(GLubyte, clr, 4 * r_newrefdef.num_particles);
 
 		unsigned int index_vtx = 0;
 		unsigned int index_clr = 0;
@@ -550,10 +551,10 @@ R_DrawParticles(void)
 		for ( i = 0, p = r_newrefdef.particles; i < r_newrefdef.num_particles; i++, p++ )
 		{
 			*(int *) color = d_8to24table [ p->color & 0xFF ];
-			clr[index_clr++] = color[0]/255.0f;
-			clr[index_clr++] = color[1]/255.0f;
-			clr[index_clr++] = color[2]/255.0f;
-			clr[index_clr++] = p->alpha;
+			clr[index_clr++] = gammatable[color[0]];
+			clr[index_clr++] = gammatable[color[1]];
+			clr[index_clr++] = gammatable[color[2]];
+			clr[index_clr++] = p->alpha * 255;
 
 			vtx[index_vtx++] = p->origin[0];
 			vtx[index_vtx++] = p->origin[1];
@@ -564,7 +565,7 @@ R_DrawParticles(void)
 		glEnableClientState( GL_COLOR_ARRAY );
 
 		glVertexPointer( 3, GL_FLOAT, 0, vtx );
-		glColorPointer( 4, GL_FLOAT, 0, clr );
+		glColorPointer( 4, GL_UNSIGNED_BYTE, 0, clr );
 		glDrawArrays( GL_POINTS, 0, r_newrefdef.num_particles );
 
 		glDisableClientState( GL_VERTEX_ARRAY );
@@ -704,10 +705,11 @@ R_SetupFrame(void)
 		}
 	}
 
-	for (i = 0; i < 4; i++)
+	for (i = 0; i < 3; i++)
 	{
-		v_blend[i] = r_newrefdef.blend[i];
+		v_blend[i] = r_newrefdef.blend[i] * gl_state.sw_gamma;
 	}
+	v_blend[3] = r_newrefdef.blend[3];
 
 	c_brush_polys = 0;
 	c_alias_polys = 0;
@@ -730,7 +732,7 @@ void
 R_SetPerspective(GLdouble fovy)
 {
 	// gluPerspective style parameters
-	static const GLdouble zNear = 2;
+	const GLdouble zNear = Q_max(gl_znear->value, 0.1f);
 	const GLdouble zFar = (r_farsee->value) ? 8192.0f : 4096.0f;
 	const GLdouble aspectratio = (GLdouble)r_newrefdef.width / r_newrefdef.height;
 
@@ -1266,6 +1268,7 @@ R_Register(void)
 	gl_polyblend = ri.Cvar_Get("gl_polyblend", "1", 0);
 	gl1_flashblend = ri.Cvar_Get("gl1_flashblend", "0", 0);
 	r_fixsurfsky = ri.Cvar_Get("r_fixsurfsky", "0", CVAR_ARCHIVE);
+	gl_znear = ri.Cvar_Get("gl_znear", "4", CVAR_ARCHIVE);
 
 	gl_texturemode = ri.Cvar_Get("gl_texturemode", "GL_LINEAR_MIPMAP_NEAREST", CVAR_ARCHIVE);
 	gl1_texturealphamode = ri.Cvar_Get("gl1_texturealphamode", "default", CVAR_ARCHIVE);
@@ -1969,9 +1972,9 @@ RI_SetPalette(const unsigned char *palette)
 	{
 		for (i = 0; i < 256; i++)
 		{
-			rp[i * 4 + 0] = palette[i * 3 + 0];
-			rp[i * 4 + 1] = palette[i * 3 + 1];
-			rp[i * 4 + 2] = palette[i * 3 + 2];
+			rp[i * 4 + 0] = gammatable[palette[i * 3 + 0]];
+			rp[i * 4 + 1] = gammatable[palette[i * 3 + 1]];
+			rp[i * 4 + 2] = gammatable[palette[i * 3 + 2]];
 			rp[i * 4 + 3] = 0xff;
 		}
 	}
@@ -1997,8 +2000,7 @@ RI_SetPalette(const unsigned char *palette)
 void
 R_DrawBeam(entity_t *e)
 {
-	int i;
-	float r, g, b;
+	int i, clr[4];
 
 	vec3_t perpvec;
 	vec3_t direction, normalized_direction;
@@ -2042,15 +2044,13 @@ R_DrawBeam(entity_t *e)
 	glEnable(GL_BLEND);
 	glDepthMask(GL_FALSE);
 
-	r = (LittleLong(d_8to24table[e->skinnum & 0xFF])) & 0xFF;
-	g = (LittleLong(d_8to24table[e->skinnum & 0xFF]) >> 8) & 0xFF;
-	b = (LittleLong(d_8to24table[e->skinnum & 0xFF]) >> 16) & 0xFF;
+	clr[0] = (LittleLong(d_8to24table[e->skinnum & 0xFF])) & 0xFF;
+	clr[1] = (LittleLong(d_8to24table[e->skinnum & 0xFF]) >> 8) & 0xFF;
+	clr[2] = (LittleLong(d_8to24table[e->skinnum & 0xFF]) >> 16) & 0xFF;
+	clr[3] = e->alpha * 255;
 
-	r *= 1 / 255.0F;
-	g *= 1 / 255.0F;
-	b *= 1 / 255.0F;
-
-	glColor4f(r, g, b, e->alpha);
+	glColor4ub(gammatable[clr[0]], gammatable[clr[1]],
+		gammatable[clr[2]], clr[3]);
 
 	for ( i = 0; i < NUM_BEAM_SEGS; i++ )
 	{
