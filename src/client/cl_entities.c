@@ -27,8 +27,6 @@
 #include <math.h>
 #include "header/client.h"
 
-extern struct model_s *cl_mod_powerscreen;
-
 void
 CL_AddPacketEntities(frame_t *frame)
 {
@@ -440,7 +438,7 @@ CL_AddPacketEntities(frame_t *frame)
 
 		if (effects & EF_POWERSCREEN)
 		{
-			ent.model = cl_mod_powerscreen;
+			ent.model = CL_PowerScreenModel();
 			ent.oldframe = 0;
 			ent.frame = 0;
 			ent.flags |= (RF_TRANSLUCENT | RF_SHELL_GREEN);
