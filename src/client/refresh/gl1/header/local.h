@@ -438,6 +438,7 @@ typedef struct
 {
 	float inverse_intensity;
 	float sw_gamma;	// always 1 if using SDL2 hw gamma
+	qboolean minlight_set;	// is gl1_minlight > 0 ?
 	qboolean fullscreen;
 
 	int prev_mode;

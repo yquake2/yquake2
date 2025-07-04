@@ -32,6 +32,8 @@ cplane_t *lightplane; /* used as shadow plane */
 vec3_t lightspot;
 static float s_blocklights[34 * 34 * 3];
 
+unsigned char minlight[256];
+
 void
 R_RenderDlight(dlight_t *light)
 {
@@ -636,6 +638,13 @@ store:
 				g = g * t;
 				b = b * t;
 				a = a * t;
+			}
+
+			if (gl_state.minlight_set)
+			{
+				r = minlight[r];
+				g = minlight[g];
+				b = minlight[b];
 			}
 
 			dest[0] = gammatable[r];

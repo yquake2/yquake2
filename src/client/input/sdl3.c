@@ -2849,8 +2849,8 @@ IN_Init(void)
 	gyro_local_roll = Cvar_Get("gyro_local_roll", "1", CVAR_ARCHIVE);
 	gyro_yawsensitivity = Cvar_Get("gyro_yawsensitivity", "2.5", CVAR_ARCHIVE);
 	gyro_pitchsensitivity = Cvar_Get("gyro_pitchsensitivity", "2.5", CVAR_ARCHIVE);
-	gyro_tightening = Cvar_Get("gyro_tightening", "3.0", CVAR_ARCHIVE);
-	gyro_smoothing = Cvar_Get("gyro_smoothing", "2.0", CVAR_ARCHIVE);
+	gyro_tightening = Cvar_Get("gyro_tightening", "3.5", CVAR_ARCHIVE);
+	gyro_smoothing = Cvar_Get("gyro_smoothing", "2.5", CVAR_ARCHIVE);
 	gyro_smoothing_window = Cvar_Get("gyro_smoothing_window", "0.125", CVAR_ARCHIVE);
 	gyro_acceleration = Cvar_Get("gyro_acceleration", "0", CVAR_ARCHIVE);
 	gyro_accel_multiplier = Cvar_Get("gyro_accel_multiplier", "2.0", CVAR_ARCHIVE);
