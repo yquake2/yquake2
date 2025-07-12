@@ -698,6 +698,12 @@ Sys_LoadLibrary(const char *path, const char *sym, void **handle)
 	return entry;
 }
 
+void *
+Sys_LoadLibraryNoUnLoad(const char *path, const char *sym, void **handle)
+{
+	return Sys_LoadLibrary(path, sym, handle);
+}
+
 /* ======================================================================= */
 
 void

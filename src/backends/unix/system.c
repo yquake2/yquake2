@@ -690,6 +690,43 @@ Sys_LoadLibrary(const char *path, const char *sym, void **handle)
 	return entry;
 }
 
+void *
+Sys_LoadLibraryNoUnLoad(const char *path, const char *sym, void **handle)
+{
+	void *module, *entry;
+
+	*handle = NULL;
+	module = dlopen(path, RTLD_LAZY | RTLD_NODELETE);
+
+	if (!module)
+	{
+		Com_Printf("%s failed: %s\n", __func__, dlerror());
+		return NULL;
+	}
+
+	if (sym)
+	{
+		entry = dlsym(module, sym);
+
+		if (!entry)
+		{
+			Com_Printf("%s failed: %s\n", __func__, dlerror());
+			dlclose(module);
+			return NULL;
+		}
+	}
+	else
+	{
+		entry = NULL;
+	}
+
+	Com_DPrintf("%s succeeded: %s\n", __func__, path);
+
+	*handle = module;
+
+	return entry;
+}
+
 /* ================================================================ */
 
 void

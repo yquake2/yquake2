@@ -388,7 +388,10 @@ QAL_Shutdown()
 
 	if (handle)
 	{
-		/* Unload the shared lib */
+		/**
+		 * To avoid a double free with OpenAL already unloading its symbols via __cxa_finalize,
+		 * we don't unload the library here due to Sys_LoadLibraryNoUnLoad
+		 */
 		Sys_FreeLibrary(handle);
 		handle = NULL;
 	}
@@ -414,7 +417,7 @@ QAL_Init()
 
 	/* Load the library */
 	Com_Printf("Loading library: %s\n", al_driver->string);
-	Sys_LoadLibrary(al_driver->string, NULL, &handle);
+	Sys_LoadLibraryNoUnLoad(al_driver->string, NULL, &handle);
 
 	if (!handle)
 	{
