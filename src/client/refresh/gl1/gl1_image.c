@@ -39,6 +39,9 @@ static cvar_t *intensity;
 
 unsigned d_8to24table[256];
 
+extern cvar_t *gl1_minlight;
+extern unsigned char minlight[256];
+
 qboolean R_Upload8(byte *data, int width, int height,
 		qboolean mipmap, qboolean is_sky);
 qboolean R_Upload32(unsigned *data, int width, int height, qboolean mipmap);
@@ -1261,6 +1264,7 @@ R_InitImages(void)
 {
 	byte *colormap;
 	int i;
+	float m;
 
 #ifdef GL1_GAMMATABLE
 	float	g = vid_gamma->value;
@@ -1328,6 +1332,29 @@ R_InitImages(void)
 		j = Q_min(j, 255);
 
 		intensitytable[i] = j;
+	}
+
+	// I know, minimum light level's calculation is much simpler than gamma.
+	// But will still need a vid_restart to apply its values to currently loaded
+	// lightmaps. Also, memory is cheaper than CPU.
+	m = Q_clamp(gl1_minlight->value, 0, 255);
+	gl_state.minlight_set = (m != 0);
+
+	if (!gl_state.minlight_set)	// minlight == 0
+	{
+		for (i = 0; i < 256; i++)
+		{
+			minlight[i] = i;
+		}
+	}
+	else
+	{
+		for (i = 0; i < 256; i++)
+		{
+			float inf = (255.0f - m) * (float)i / 255.0f + m;
+			inf = Q_clamp(inf, 0, 255);
+			minlight[i] = inf;
+		}
 	}
 }
 

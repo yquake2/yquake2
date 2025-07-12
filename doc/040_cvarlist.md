@@ -553,6 +553,11 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
   value, at least `1.0` - default is `2.0`. Applied when textures are
   loaded, so it needs a `vid_restart`.
 
+* **gl1_minlight**: Sets the minimum light level on screen. Increasing
+  this illuminates darker scenes, at the expense of the atmosphere.
+  Posible values go from `0` (default, show the full spectrum of light
+  & dark) to `255` (equal to `r_fullbright 1`). Requires `vid_restart`.
+
 * **gl1_multitexture**: Enables (`1`, default) the blending of color and
   light textures on a single drawing pass; disabling this (`0`) does one
   pass for color and another for light. Requires a `vid_restart` when
@@ -744,10 +749,10 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
   Default `2.5`.
 
 * **gyro_tightening**: Threshold of rotation, in degrees per second,
-  below which gyro input is reduced to stabilize aiming. Default `3.0`.
+  below which gyro input is reduced to stabilize aiming. Default `3.5`.
 
 * **gyro_smoothing**: Threshold of rotation, in degrees per second,
-  below which gyro input is averaged to reduce jitter. Default `2.0`.
+  below which gyro input is averaged to reduce jitter. Default `2.5`.
 
 * **gyro_smoothing_window**: The smoothing window size, in seconds.
   Default `0.125`.

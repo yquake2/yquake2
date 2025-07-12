@@ -45,6 +45,8 @@ float shadelight[3];
 float *shadedots = r_avertexnormal_dots[0];
 extern vec3_t lightspot;
 
+extern unsigned char minlight[256];
+
 static void
 R_LerpVerts(entity_t *currententity, int nverts, dtrivertx_t *v, dtrivertx_t *ov,
 		dtrivertx_t *verts, float *lerp, float move[3],
@@ -180,6 +182,14 @@ R_DrawAliasFrameLerp(entity_t *currententity, dmdl_t *paliashdr, float backlerp)
 					idx[i] = Q_clamp(idx[i], 0, 255);
 				}
 
+				if (gl_state.minlight_set)
+				{
+					for (i = 0; i < 3; i++)
+					{
+						idx[i] = minlight[idx[i]];
+					}
+				}
+
 				GLBUFFER_COLOR(gammatable[idx[0]],
 					gammatable[idx[1]],
 					gammatable[idx[2]], alpha * 255)
@@ -209,6 +219,14 @@ R_DrawAliasFrameLerp(entity_t *currententity, dmdl_t *paliashdr, float backlerp)
 				{
 					idx[i] = l * shadelight[i] * 255;
 					idx[i] = Q_clamp(idx[i], 0, 255);
+				}
+
+				if (gl_state.minlight_set)
+				{
+					for (i = 0; i < 3; i++)
+					{
+						idx[i] = minlight[idx[i]];
+					}
 				}
 
 				GLBUFFER_COLOR(gammatable[idx[0]],

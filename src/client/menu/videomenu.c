@@ -62,6 +62,7 @@ static menuslider_s s_gl1_overbrightbits_slider;
 static menuslider_s s_gl3_overbrightbits_slider;
 static menuslider_s s_gl4_overbrightbits_slider;
 static menuslider_s s_vk_overbrightbits_slider;
+static menuslider_s s_gl1_minlight_slider;
 static menulist_s s_gl3_colorlight_list;
 static menulist_s s_gl4_colorlight_list;
 static menulist_s s_vk_dynamic_list;
@@ -448,7 +449,7 @@ ApplyChanges(void *unused)
 }
 
 static void
-RestartNeededMsg(void *unused)
+RestartNeededSDL3Msg(void *unused)
 {
 	if (
 #ifdef USE_SDL3
@@ -458,6 +459,12 @@ RestartNeededMsg(void *unused)
 	{
 		Menu_SetStatusBar(&s_opengl_menu, "apply required");
 	}
+}
+
+static void
+RestartNeededForAllMsg(void *unused)
+{
+	Menu_SetStatusBar(&s_opengl_menu, "apply required");
 }
 
 void
@@ -624,7 +631,7 @@ VID_MenuInit(void)
 	s_brightness_slider.generic.name = "brightness";
 	s_brightness_slider.generic.x = 0;
 	s_brightness_slider.generic.y = (y += 10);
-	s_brightness_slider.generic.callback = RestartNeededMsg;
+	s_brightness_slider.generic.callback = RestartNeededSDL3Msg;
 	s_brightness_slider.cvar = "vid_gamma";
 	s_brightness_slider.minvalue = 0.1f;
 	s_brightness_slider.maxvalue = 2.0f;
@@ -740,6 +747,17 @@ VID_MenuInit(void)
 			s_gl1_overbrightbits_slider.maxvalue = 2;
 			s_gl1_overbrightbits_slider.slidestep = 1;
 			s_gl1_overbrightbits_slider.printformat = "%.0f";
+
+			s_gl1_minlight_slider.generic.type = MTYPE_SLIDER;
+			s_gl1_minlight_slider.generic.name = "min. light level";
+			s_gl1_minlight_slider.generic.x = 0;
+			s_gl1_minlight_slider.generic.y = (y += 10);
+			s_gl1_minlight_slider.generic.callback = RestartNeededForAllMsg;
+			s_gl1_minlight_slider.cvar = "gl1_minlight";
+			s_gl1_minlight_slider.minvalue = 0;
+			s_gl1_minlight_slider.maxvalue = 32;
+			s_gl1_minlight_slider.slidestep = 4;
+			s_gl1_minlight_slider.printformat = "%.0f";
 			break;
 
 		default:
@@ -907,6 +925,7 @@ VID_MenuInit(void)
 		case ref_gl1:
 			Menu_AddItem(&s_opengl_menu, (void *)&s_gl1_intensity_slider);
 			Menu_AddItem(&s_opengl_menu, (void *)&s_gl1_overbrightbits_slider);
+			Menu_AddItem(&s_opengl_menu, (void *)&s_gl1_minlight_slider);
 			break;
 		default:
 			break;
