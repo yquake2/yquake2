@@ -200,6 +200,8 @@ ifeq ($(COMPILER), clang)
 	#  about totally valid 'vec3_t bla = {0}' constructs.
 	# -fno-common avoids linker warnings due
 	#  uninitialized global variables treated as "common".
+	#  On most platforms clang sets no-commom by default,
+	#  MacOS is a prominent exception.
 	override CFLAGS += -Wno-missing-braces -fno-common
 else ifeq ($(COMPILER), gcc)
 	# GCC 8.0 or higher.
