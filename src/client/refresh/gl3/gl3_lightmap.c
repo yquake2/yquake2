@@ -63,7 +63,7 @@ GL3_LM_UploadBlock(void)
 
 	if (++gl3_lms.current_lightmap_texture == MAX_LIGHTMAPS)
 	{
-		ri.Sys_Error(ERR_DROP, "LM_UploadBlock() - MAX_LIGHTMAPS exceeded\n");
+		Com_Error(ERR_DROP, "LM_UploadBlock() - MAX_LIGHTMAPS exceeded\n");
 	}
 }
 
@@ -219,7 +219,7 @@ GL3_LM_CreateSurfaceLightmap(msurface_t *surf)
 
 		if (!GL3_LM_AllocBlock(smax, tmax, &surf->light_s, &surf->light_t))
 		{
-			ri.Sys_Error(ERR_FATAL, "Consecutive calls to LM_AllocBlock(%d,%d) failed\n",
+			Com_Error(ERR_FATAL, "Consecutive calls to LM_AllocBlock(%d,%d) failed\n",
 					smax, tmax);
 		}
 	}

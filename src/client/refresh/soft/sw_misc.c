@@ -342,7 +342,7 @@ R_SetupFrame (void)
 
 		if (!r_worldmodel)
 		{
-			ri.Sys_Error(ERR_DROP, "%s: bad world model", __func__);
+			Com_Error(ERR_DROP, "%s: bad world model", __func__);
 			return;
 		}
 

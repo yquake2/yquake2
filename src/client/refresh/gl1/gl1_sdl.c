@@ -247,7 +247,7 @@ int RI_InitContext(void* win)
 	// Coders are stupid.
 	if (win == NULL)
 	{
-		ri.Sys_Error(ERR_FATAL, "%s must not be called with NULL argument!", __func__);
+		Com_Error(ERR_FATAL, "%s must not be called with NULL argument!", __func__);
 
 		return false;
 	}

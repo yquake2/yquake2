@@ -988,7 +988,7 @@ R_ClipAndDrawPoly ( float alpha, int isturbulent, qboolean textured )
 			return;
 		if (nump > MAXWORKINGVERTS)
 		{
-			ri.Sys_Error(ERR_DROP, "%s: too many points: %d", __func__, nump);
+			Com_Error(ERR_DROP, "%s: too many points: %d", __func__, nump);
 		}
 	}
 

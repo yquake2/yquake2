@@ -1325,7 +1325,7 @@ RE_RenderFrame(refdef_t *fd)
 
 	if (!r_worldmodel && !( r_newrefdef.rdflags & RDF_NOWORLDMODEL ) )
 	{
-		ri.Sys_Error(ERR_FATAL, "%s: NULL worldmodel", __func__);
+		Com_Error(ERR_FATAL, "%s: NULL worldmodel", __func__);
 	}
 
 	// Need to rerender whole frame
@@ -1906,7 +1906,7 @@ RE_InitContext(void *win)
 
 	if(win == NULL)
 	{
-		ri.Sys_Error(ERR_FATAL, "%s() must not be called with NULL argument!", __func__);
+		Com_Error(ERR_FATAL, "%s() must not be called with NULL argument!", __func__);
 		return false;
 	}
 
@@ -2466,7 +2466,7 @@ SWimp_CreateRender(int width, int height)
 	swap_buffers = malloc(height * width * sizeof(pixel_t) * 2);
 	if (!swap_buffers)
 	{
-		ri.Sys_Error(ERR_FATAL, "%s: Can't allocate swapbuffer.", __func__);
+		Com_Error(ERR_FATAL, "%s: Can't allocate swapbuffer.", __func__);
 		/* code never returns after ERR_FATAL */
 		return;
 	}

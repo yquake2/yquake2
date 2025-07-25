@@ -407,7 +407,7 @@ GL3_LoadPic(char *name, byte *pic, int width, int realwidth,
 	{
 		if (numgl3textures == MAX_GL3TEXTURES)
 		{
-			ri.Sys_Error(ERR_DROP, "MAX_GLTEXTURES");
+			Com_Error(ERR_DROP, "MAX_GLTEXTURES");
 		}
 
 		numgl3textures++;
@@ -417,7 +417,7 @@ GL3_LoadPic(char *name, byte *pic, int width, int realwidth,
 
 	if (strlen(name) >= sizeof(image->name))
 	{
-		ri.Sys_Error(ERR_DROP, "%s: \"%s\" is too long", __func__, name);
+		Com_Error(ERR_DROP, "%s: \"%s\" is too long", __func__, name);
 	}
 
 	strcpy(image->name, name);

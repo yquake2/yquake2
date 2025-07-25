@@ -40,7 +40,7 @@ Draw_InitLocal(void)
 	draw_chars = R_FindPic("conchars", (findimage_t)R_FindImage);
 	if (!draw_chars)
 	{
-		ri.Sys_Error(ERR_FATAL, "%s: Couldn't load pics/conchars.pcx",
+		Com_Error(ERR_FATAL, "%s: Couldn't load pics/conchars.pcx",
 			__func__);
 	}
 }
@@ -221,7 +221,7 @@ RDraw_Fill(int x, int y, int w, int h, int c)
 
 	if ((unsigned)c > 255)
 	{
-		ri.Sys_Error(ERR_FATAL, "%s: bad color", __func__);
+		Com_Error(ERR_FATAL, "%s: bad color", __func__);
 	}
 
 	glDisable(GL_TEXTURE_2D);

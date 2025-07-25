@@ -379,7 +379,7 @@ Mod_LoadNodes(const char *name, cplane_t *planes, int numplanes, mleaf_t *leafs,
 
 	if (l->filelen % sizeof(*in))
 	{
-		ri.Sys_Error(ERR_DROP, "%s: funny lump size in %s",
+		Com_Error(ERR_DROP, "%s: funny lump size in %s",
 				__func__, name);
 	}
 
@@ -402,7 +402,7 @@ Mod_LoadNodes(const char *name, cplane_t *planes, int numplanes, mleaf_t *leafs,
 		planenum = LittleLong(in->planenum);
 		if (planenum  < 0 || planenum >= numplanes)
 		{
-			ri.Sys_Error(ERR_DROP, "%s: Incorrect %d < %d planenum.",
+			Com_Error(ERR_DROP, "%s: Incorrect %d < %d planenum.",
 					__func__, planenum, numplanes);
 		}
 		out->plane = planes + planenum;
@@ -421,7 +421,7 @@ Mod_LoadNodes(const char *name, cplane_t *planes, int numplanes, mleaf_t *leafs,
 			{
 				if (leafnum  < 0 || leafnum >= *numnodes)
 				{
-					ri.Sys_Error(ERR_DROP, "%s: Incorrect %d nodenum as leaf.",
+					Com_Error(ERR_DROP, "%s: Incorrect %d nodenum as leaf.",
 							__func__, leafnum);
 				}
 
@@ -432,7 +432,7 @@ Mod_LoadNodes(const char *name, cplane_t *planes, int numplanes, mleaf_t *leafs,
 				leafnum = -1 - leafnum;
 				if (leafnum  < 0 || leafnum >= numleafs)
 				{
-					ri.Sys_Error(ERR_DROP, "%s: Incorrect %d leafnum.",
+					Com_Error(ERR_DROP, "%s: Incorrect %d leafnum.",
 							__func__, leafnum);
 				}
 
@@ -496,7 +496,7 @@ Mod_LoadVertexes(const char *name, mvertex_t **vertexes, int *numvertexes,
 
 	if (l->filelen % sizeof(*in))
 	{
-		ri.Sys_Error(ERR_DROP, "%s: funny lump size in %s",
+		Com_Error(ERR_DROP, "%s: funny lump size in %s",
 				__func__, name);
 	}
 
@@ -562,7 +562,7 @@ Mod_LoadTexinfo(const char *name, mtexinfo_t **texinfo, int *numtexinfo,
 
 	if (l->filelen % sizeof(*in))
 	{
-		ri.Sys_Error(ERR_DROP, "%s: funny lump size in %s",
+		Com_Error(ERR_DROP, "%s: funny lump size in %s",
 				__func__, name);
 	}
 
@@ -640,7 +640,7 @@ Mod_LoadEdges(const char *name, medge_t **edges, int *numedges,
 	in = (void *)(mod_base + l->fileofs);
 	if (l->filelen % sizeof(*in))
 	{
-		ri.Sys_Error(ERR_DROP, "%s: funny lump size in %s",
+		Com_Error(ERR_DROP, "%s: funny lump size in %s",
 				__func__, name);
 	}
 
@@ -677,7 +677,7 @@ Mod_LoadPlanes(const char *name, cplane_t **planes, int *numplanes,
 
 	if (l->filelen % sizeof(*in))
 	{
-		ri.Sys_Error(ERR_DROP, "%s: funny lump size in %s",
+		Com_Error(ERR_DROP, "%s: funny lump size in %s",
 				__func__, name);
 	}
 
@@ -722,7 +722,7 @@ Mod_LoadSurfedges(const char *name, int **surfedges, int *numsurfedges,
 
 	if (l->filelen % sizeof(*in))
 	{
-		ri.Sys_Error(ERR_DROP, "%s: funny lump size in %s",
+		Com_Error(ERR_DROP, "%s: funny lump size in %s",
 				__func__, name);
 	}
 
@@ -774,7 +774,7 @@ Mod_PointInLeaf(const vec3_t p, mnode_t *node)
 {
 	if (!node)
 	{
-		ri.Sys_Error(ERR_DROP, "%s: bad node.", __func__);
+		Com_Error(ERR_DROP, "%s: bad node.", __func__);
 		return NULL;
 	}
 

@@ -130,7 +130,7 @@ R_SubdividePolygon(int numverts, float *verts)
 
 	if (numverts > MAX_SUBDIVIDE_VERTS)
 	{
-		ri.Sys_Error(ERR_DROP, "%s: numverts = %i", __func__, numverts);
+		Com_Error(ERR_DROP, "%s: numverts = %i", __func__, numverts);
 	}
 
 	R_BoundPoly(numverts, verts, mins, maxs);
@@ -452,7 +452,7 @@ R_ClipSkyPolygon(int nump, vec3_t vecs, int stage)
 
 	if (nump > MAX_CLIP_VERTS - 2)
 	{
-		ri.Sys_Error(ERR_DROP, "%s: MAX_CLIP_VERTS", __func__);
+		Com_Error(ERR_DROP, "%s: MAX_CLIP_VERTS", __func__);
 	}
 
 	if (stage == 6)

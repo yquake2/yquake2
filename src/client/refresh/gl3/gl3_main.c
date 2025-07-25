@@ -1129,7 +1129,7 @@ GL3_DrawEntitiesOnList(void)
 					GL3_DrawSpriteModel(currententity, currentmodel);
 					break;
 				default:
-					ri.Sys_Error(ERR_DROP, "Bad modeltype");
+					Com_Error(ERR_DROP, "Bad modeltype");
 					break;
 			}
 		}
@@ -1175,7 +1175,7 @@ GL3_DrawEntitiesOnList(void)
 					GL3_DrawSpriteModel(currententity, currentmodel);
 					break;
 				default:
-					ri.Sys_Error(ERR_DROP, "Bad modeltype");
+					Com_Error(ERR_DROP, "Bad modeltype");
 					break;
 			}
 		}
@@ -1205,7 +1205,7 @@ SetupFrame(void)
 	{
 		if (!gl3_worldmodel)
 		{
-			ri.Sys_Error(ERR_DROP, "%s: bad world model", __func__);
+			Com_Error(ERR_DROP, "%s: bad world model", __func__);
 			return;
 		}
 
@@ -1645,7 +1645,7 @@ GL3_RenderView(refdef_t *fd)
 
 	if (!gl3_worldmodel && !(gl3_newrefdef.rdflags & RDF_NOWORLDMODEL))
 	{
-		ri.Sys_Error(ERR_DROP, "R_RenderView: NULL worldmodel");
+		Com_Error(ERR_DROP, "R_RenderView: NULL worldmodel");
 	}
 
 	if (r_speeds->value)
