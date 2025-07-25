@@ -727,7 +727,7 @@ R_Upload32Soft(unsigned *data, int width, int height, qboolean mipmap)
 	if (scaled_width * scaled_height > sizeof(scaled) / 4)
 	{
 		// this can't really happen (because they're clamped to 256 above), but whatever
-		ri.Sys_Error(ERR_DROP, "%s: too big", __func__);
+		Com_Error(ERR_DROP, "%s: too big", __func__);
 	}
 
 	/* scan the texture for any non-255 alpha */
@@ -979,7 +979,7 @@ R_LoadPic(const char *name, byte *pic, int width, int realwidth,
 	{
 		if (numgltextures == MAX_GLTEXTURES)
 		{
-			ri.Sys_Error(ERR_DROP, "%s: MAX_GLTEXTURES", __func__);
+			Com_Error(ERR_DROP, "%s: MAX_GLTEXTURES", __func__);
 		}
 
 		numgltextures++;
@@ -989,7 +989,7 @@ R_LoadPic(const char *name, byte *pic, int width, int realwidth,
 
 	if (strlen(name) >= sizeof(image->name))
 	{
-		ri.Sys_Error(ERR_DROP, "%s: \"%s\" is too long", __func__, name);
+		Com_Error(ERR_DROP, "%s: \"%s\" is too long", __func__, name);
 	}
 
 	strcpy(image->name, name);
@@ -1297,7 +1297,7 @@ R_InitImages(void)
 
 		if (!gl_state.d_16to8table)
 		{
-			ri.Sys_Error(ERR_FATAL, "%s: Couldn't load pics/16to8.pcx",
+			Com_Error(ERR_FATAL, "%s: Couldn't load pics/16to8.pcx",
 				__func__);
 		}
 	}
