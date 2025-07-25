@@ -92,7 +92,7 @@ extern vec_t VectorNormalize ( vec3_t v ) ;
 extern int VectorCompare ( vec3_t v1 , vec3_t v2 ) ;
 extern void AddPointToBounds ( vec3_t v , vec3_t mins , vec3_t maxs ) ;
 extern void ClearBounds ( vec3_t mins , vec3_t maxs ) ;
-extern int BoxOnPlaneSide2 ( vec3_t emins , vec3_t emaxs , struct cplane_s * p ) ;
+extern int BoxOnPlaneSide2 ( vec3_t emins , vec3_t emaxs , const struct cplane_s * p ) ;
 extern float anglemod ( float a ) ;
 extern float LerpAngle ( float a2 , float a1 , float frac ) ;
 extern float Q_fabs ( float f ) ;
