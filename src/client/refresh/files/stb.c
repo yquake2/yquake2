@@ -96,7 +96,7 @@ LoadSTB(const char *origname, const char* type, byte **pic, int *width, int *hei
 
 	ri.FS_FreeFile(rawdata);
 
-	R_Printf(PRINT_DEVELOPER, "%s() loaded: %s\n", __func__, filename);
+	Com_DPrintf("%s() loaded: %s\n", __func__, filename);
 
 	*pic = data;
 	*width = w;
