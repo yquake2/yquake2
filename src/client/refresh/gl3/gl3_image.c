@@ -492,7 +492,7 @@ GL3_LoadPic(char *name, byte *pic, int width, int realwidth,
 		}
 		else
 		{
-			R_Printf(PRINT_DEVELOPER,
+			Com_DPrintf(
 					"Warning, image '%s' has hi-res replacement smaller than the original! (%d x %d) < (%d x %d)\n",
 					name, image->width, image->height, realwidth, realheight);
 		}
@@ -577,7 +577,7 @@ GL3_LoadPic(char *name, byte *pic, int width, int realwidth,
 			}
 			else
 			{
-				R_Printf(PRINT_DEVELOPER,
+				Com_DPrintf(
 						"Warning, image '%s' has hi-res replacement smaller than the original! (%d x %d) < (%d x %d)\n",
 						name, image->width, image->height, realwidth, realheight);
 			}

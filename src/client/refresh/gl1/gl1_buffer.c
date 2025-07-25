@@ -381,7 +381,7 @@ R_SetBufferIndices(GLenum type, GLuint vertices_num)
 			}
 			break;
 		default:
-			R_Printf(PRINT_DEVELOPER, "R_SetBufferIndices: no such type %d\n", type);
+			Com_DPrintf("R_SetBufferIndices: no such type %d\n", type);
 			return;
 	}
 
