@@ -37,7 +37,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 viddef_t	vid;
 pixel_t		*vid_buffer = NULL;
 static pixel_t	*swap_buffers = NULL;
-static byte	*screen_buffer = NULL;
 static pixel_t	*swap_frames[2] = {NULL, NULL};
 static int	swap_current = 0;
 espan_t		*vid_polygon_spans = NULL;
@@ -2041,12 +2040,6 @@ RE_ShutdownContext(void)
 		free(swap_buffers);
 	}
 
-	if (screen_buffer)
-	{
-		free(screen_buffer);
-	}
-
-	screen_buffer = NULL;
 	swap_buffers = NULL;
 	vid_buffer = NULL;
 	swap_frames[0] = NULL;
@@ -2162,34 +2155,30 @@ point math used in R_ScanEdges() overflows at width 2048 !!
 char shift_size;
 
 static void
-RE_CopyToScreenBuffer(int vmin, int vmax)
-{
-	const unsigned *sdl_palette, *max_pixels;
-	unsigned *pixels_pos;
-	pixel_t *buffer_pos;
-
-	sdl_palette = (unsigned *)sw_state.currentpalette;
-	buffer_pos = vid_buffer + vmin;
-
-	max_pixels = (unsigned *)screen_buffer + vmax;
-	pixels_pos = (unsigned *)screen_buffer + vmin;
-
-	while (pixels_pos < max_pixels)
-	{
-		*pixels_pos = sdl_palette[*buffer_pos];
-		buffer_pos++;
-		pixels_pos++;
-	}
-}
-
-static void
 RE_CopyFrame(Uint32 *pixels, int pitch, SDL_Rect *rect)
 {
+	const unsigned *sdl_palette;
+
+	sdl_palette = (unsigned *)sw_state.currentpalette;
+
 	/* no gaps between images rows */
 	if (pitch == vid_buffer_width)
 	{
-		memcpy(pixels, (unsigned *)screen_buffer + rect->y * vid_buffer_width,
-			rect->h * 4 * vid_buffer_width);
+		const byte *src_max;
+		Uint32 *dst;
+		byte *src;
+
+		dst = pixels;
+		src = vid_buffer + rect->y * vid_buffer_width;
+		src_max = src + rect->h * vid_buffer_width;
+
+		while (src < src_max)
+		{
+			*dst = sdl_palette[*src];
+
+			src++;
+			dst++;
+		}
 	}
 	else
 	{
@@ -2201,10 +2190,15 @@ RE_CopyFrame(Uint32 *pixels, int pitch, SDL_Rect *rect)
 
 		for (y = rect->y; y < rect->y + rect->h; y++)
 		{
-			memcpy(dst, (unsigned *)screen_buffer + buffer_pos,
-				vid_buffer_width * 4);
+			int x;
+
+			for (x = 0; x < vid_buffer_width; x++)
+			{
+				dst[x] = sdl_palette[vid_buffer[buffer_pos]];
+				buffer_pos ++;
+			}
+
 			dst += pitch;
-			buffer_pos += vid_buffer_width;
 		}
 	}
 
@@ -2289,8 +2283,6 @@ RE_FlushFrame(int vmin, int vmax)
 		/* Looks like we already updated everything */
 		return;
 	}
-
-	RE_CopyToScreenBuffer(vmin, vmax);
 
 	if (sw_partialrefresh->value)
 	{
@@ -2514,7 +2506,6 @@ static void
 SWimp_CreateRender(int width, int height)
 {
 	swap_current = 0;
-	screen_buffer = malloc(height * width * 4);
 	swap_buffers = malloc(height * width * sizeof(pixel_t) * 2);
 	if (!swap_buffers)
 	{
