@@ -45,7 +45,8 @@ pixel_t		*vid_alphamap = NULL;
 light_t		vid_lightthreshold = 0;
 static int	vid_minu, vid_minv, vid_maxu, vid_maxv;
 static int	vid_zminu, vid_zminv, vid_zmaxu, vid_zmaxv;
-static qboolean IsHighDPIaware;
+static qboolean IsHighDPIaware = false;
+static qboolean texture_high_color = false;
 
 // last position  on map
 static vec3_t	lastvieworg;
@@ -322,6 +323,9 @@ VID_DamageBuffer(int u, int v)
 	{
 		vid_maxv = v;
 	}
+
+	/* Should copy internal buffer */
+	texture_high_color = false;
 }
 
 // clean damage state
@@ -551,7 +555,7 @@ R_ReallocateMapBuffers (void)
 {
 	if (!r_cnumsurfs || r_outofsurfaces)
 	{
-		if(lsurfs)
+		if (lsurfs)
 		{
 			free(lsurfs);
 		}
@@ -1502,12 +1506,14 @@ static rserr_t	SWimp_SetMode(int *pwidth, int *pheight, int mode, int fullscreen
 ** RE_BeginFrame
 */
 static void
-RE_BeginFrame( float camera_separation )
+RE_BeginFrame(float camera_separation)
 {
-	// pallete without changes
+	/* pallete without changes */
 	palette_changed = false;
-	// run without speed optimization
+	/* run without speed optimization */
 	fastmoving = false;
+	/* texture could redraw */
+	texture_high_color = false;
 
 	while (r_vsync->modified)
 	{
@@ -1572,7 +1578,7 @@ RE_SetMode(void)
 		{
 			R_Printf(PRINT_ALL, "%s() - invalid mode\n", __func__);
 
-			if(r_mode->value == sw_state.prev_mode)
+			if (r_mode->value == sw_state.prev_mode)
 			{
 				// trying again would result in a crash anyway, give up already
 				// (this would happen if your initing fails at all and your resolution already was 640x480)
@@ -1663,10 +1669,10 @@ Draw_BuildGammaTable (void)
 
 	overbright = sw_overbrightbits->value;
 
-	if(overbright < 0.5)
+	if (overbright < 0.5)
 		overbright = 0.5;
 
-	if(overbright > 4.0)
+	if (overbright > 4.0)
 		overbright = 4.0;
 
 	g = (2.1 - vid_gamma->value);
@@ -1755,6 +1761,24 @@ R_DrawBeam(const entity_t *e)
 //===================================================================
 
 /*
+ * FIXME: The following functions implement the render backend
+ * through SDL renderer. Only small parts belong here, refresh.c
+ * (at client side) needs to grow support funtions for software
+ * renderers and the renderer must use them. What's left here
+ * should be moved to a new file sw_sdl.c.
+ *
+ * Very, very problematic is at least the SDL initalization and
+ * window creation in this code. That is guaranteed to clash with
+ * the GL renderers (when switching GL -> Soft or the other way
+ * round) and works only by pure luck. And only as long as there
+ * is only one software renderer.
+ */
+
+static SDL_Window	*window = NULL;
+static SDL_Texture	*texture = NULL;
+static SDL_Renderer	*renderer = NULL;
+
+/*
 ============
 RE_SetSky
 ============
@@ -1831,6 +1855,71 @@ RE_EndWorldRenderpass( void )
 	return true;
 }
 
+static void
+RE_Draw_StretchRawColor(int x, int y, int w, int h, int cols, int rows,
+	const byte *data, int bits)
+{
+	int pitch, i;
+	Uint32 *pixels;
+
+	if (!cols || !rows || !data)
+	{
+		return;
+	}
+
+	/* Copy to original buffers */
+	RE_Draw_StretchRaw(x, y, w, h, cols, rows, data, bits);
+
+	if (bits != 32 || x || y ||
+		(w != vid_buffer_width) ||
+		(h != vid_buffer_height) ||
+		(cols != vid_buffer_width) ||
+		(rows != vid_buffer_height))
+	{
+		return;
+	}
+
+	/* Full screen update should be faster */
+#ifdef USE_SDL3
+	if (!SDL_LockTexture(texture, NULL, (void**)&pixels, &pitch))
+#else
+	if (SDL_LockTexture(texture, NULL, (void**)&pixels, &pitch))
+#endif
+	{
+		Com_Printf("Can't lock texture: %s\n", SDL_GetError());
+		return;
+	}
+
+	if ((pitch / sizeof(Uint32)) != vid_buffer_width)
+	{
+		SDL_UnlockTexture(texture);
+		Com_Printf("Different pitch in texture %d != %d\n",
+			pitch, vid_buffer_width);
+		return;
+	}
+
+	for (i = 0; i < vid_buffer_width * vid_buffer_height; i ++)
+	{
+#if SDL_BYTEORDER == SDL_BIG_ENDIAN
+		/* SDL_PIXELFORMAT_BGRA8888 */
+		((byte*)pixels)[i * 4 + 0] = 255;
+		((byte*)pixels)[i * 4 + 1] = data[i * 4 + 0]; /* Red */
+		((byte*)pixels)[i * 4 + 2] = data[i * 4 + 1]; /* Green */
+		((byte*)pixels)[i * 4 + 3] = data[i * 4 + 2]; /* Blue */
+#else
+		/* SDL_PIXELFORMAT_ARGB8888 */
+		((byte*)pixels)[i * 4 + 0] = data[i * 4 + 2]; /* Blue */
+		((byte*)pixels)[i * 4 + 1] = data[i * 4 + 1]; /* Green */
+		((byte*)pixels)[i * 4 + 2] = data[i * 4 + 0]; /* Red */
+		((byte*)pixels)[i * 4 + 3] = 255;
+#endif
+	}
+
+	SDL_UnlockTexture(texture);
+
+	texture_high_color = true;
+}
+
 /*
 ===============
 GetRefAPI
@@ -1876,7 +1965,7 @@ GetRefAPI(refimport_t imp)
 	refexport.DrawFill = RE_Draw_Fill;
 	refexport.DrawFadeScreen = RE_Draw_FadeScreen;
 
-	refexport.DrawStretchRaw = RE_Draw_StretchRaw;
+	refexport.DrawStretchRaw = RE_Draw_StretchRawColor;
 
 	refexport.Init = RE_Init;
 	refexport.IsVSyncActive = RE_IsVsyncActive;
@@ -1900,24 +1989,6 @@ GetRefAPI(refimport_t imp)
 	return refexport;
 }
 
-/*
- * FIXME: The following functions implement the render backend
- * through SDL renderer. Only small parts belong here, refresh.c
- * (at client side) needs to grow support funtions for software
- * renderers and the renderer must use them. What's left here
- * should be moved to a new file sw_sdl.c.
- *
- * Very, very problematic is at least the SDL initalization and
- * window creation in this code. That is guaranteed to clash with
- * the GL renderers (when switching GL -> Soft or the other way
- * round) and works only by pure luck. And only as long as there
- * is only one software renderer.
- */
-
-static SDL_Window	*window = NULL;
-static SDL_Texture	*texture = NULL;
-static SDL_Renderer	*renderer = NULL;
-
 int vid_buffer_height = 0;
 int vid_buffer_width = 0;
 
@@ -1926,7 +1997,7 @@ RE_InitContext(void *win)
 {
 	char title[40] = {0};
 
-	if(win == NULL)
+	if (win == NULL)
 	{
 		Com_Error(ERR_FATAL, "%s() must not be called with NULL argument!", __func__);
 		return false;
@@ -1945,7 +2016,7 @@ RE_InitContext(void *win)
 		SDL_SetRenderVSync(renderer, 1);
 #else
 		renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
-		if(!renderer)
+		if (!renderer)
 		{
 			renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_SOFTWARE | SDL_RENDERER_PRESENTVSYNC);
 		}
@@ -1957,13 +2028,15 @@ RE_InitContext(void *win)
 		renderer = SDL_CreateRenderer(window, NULL);
 #else
 		renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
-		if(!renderer)
+		if (!renderer)
 		{
 			renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_SOFTWARE);
 		}
 #endif
 	}
-	if(!renderer) {
+
+	if (!renderer)
+	{
 		Com_Printf("Can't create renderer: %s\n", SDL_GetError());
 		return false;
 	}
@@ -2001,6 +2074,7 @@ RE_InitContext(void *win)
 		vid_buffer_width = vid.width;
 	}
 
+	/* just buffer for 8bit -> 32bit covert and render */
 	texture = SDL_CreateTexture(renderer,
 #if SDL_BYTEORDER == SDL_BIG_ENDIAN
 				    SDL_PIXELFORMAT_BGRA8888,
@@ -2009,10 +2083,13 @@ RE_InitContext(void *win)
 #endif
 				    SDL_TEXTUREACCESS_STREAMING,
 				    vid_buffer_width, vid_buffer_height);
-	if(!texture) {
+
+	if (!texture)
+	{
 		Com_Printf("Can't create texture: %s\n", SDL_GetError());
 		return false;
 	}
+
 	R_InitGraphics(vid_buffer_width, vid_buffer_height);
 	SWimp_CreateRender(vid_buffer_width, vid_buffer_height);
 
@@ -2111,25 +2188,25 @@ RE_ShutdownContext(void)
 	}
 	finalverts = NULL;
 
-	if(blocklights)
+	if (blocklights)
 	{
 		free(blocklights);
 	}
 	blocklights = NULL;
 
-	if(r_edges)
+	if (r_edges)
 	{
 		free(r_edges);
 	}
 	r_edges = NULL;
 
-	if(lsurfs)
+	if (lsurfs)
 	{
 		free(lsurfs);
 	}
 	lsurfs = NULL;
 
-	if(r_warpbuffer)
+	if (r_warpbuffer)
 	{
 		free(r_warpbuffer);
 	}
@@ -2236,11 +2313,14 @@ RE_BufferDifferenceEnd(int vmin, int vmax)
 	front_buffer = (int*)(swap_frames[1] + vmax);
 	back_min = (int*)(swap_frames[0] + vmin);
 
-	do {
+	do
+	{
 		back_buffer --;
 		front_buffer --;
-	} while (back_buffer > back_min && *back_buffer == *front_buffer);
-	// +1 for fully cover changes
+	}
+	while (back_buffer > back_min && *back_buffer == *front_buffer);
+
+	/* +1 for fully cover changes */
 	return (pixel_t*)back_buffer - swap_frames[0] + sizeof(int);
 }
 
@@ -2284,42 +2364,45 @@ RE_FlushFrame(int vmin, int vmax)
 		return;
 	}
 
-	if (sw_partialrefresh->value)
+	if (!texture_high_color)
 	{
-		vmin = vmin / vid_buffer_width;
-		vmax = vmax / vid_buffer_width + 1;
-		if (vmax > vid_buffer_height)
+		if (sw_partialrefresh->value)
 		{
+			vmin = vmin / vid_buffer_width;
+			vmax = vmax / vid_buffer_width + 1;
+			if (vmax > vid_buffer_height)
+			{
+				vmax = vid_buffer_height;
+			}
+		}
+		else
+		{
+			// On MacOS texture is cleaned up after render,
+			// code have to copy a whole screen to the texture
+			vmin = 0;
 			vmax = vid_buffer_height;
 		}
-	}
-	else
-	{
-		// On MacOS texture is cleaned up after render,
-		// code have to copy a whole screen to the texture
-		vmin = 0;
-		vmax = vid_buffer_height;
-	}
 
-	/* set section to update */
-	rect.x = 0;
-	rect.y = vmin;
-	rect.w = vid_buffer_width;
-	rect.h = vmax - vmin;
+		/* set section to update */
+		rect.x = 0;
+		rect.y = vmin;
+		rect.w = vid_buffer_width;
+		rect.h = vmax - vmin;
 
 #ifdef USE_SDL3
-	if (!SDL_LockTexture(texture, &rect, (void**)&pixels, &pitch))
+		if (!SDL_LockTexture(texture, &rect, (void**)&pixels, &pitch))
 #else
-	if (SDL_LockTexture(texture, &rect, (void**)&pixels, &pitch))
+		if (SDL_LockTexture(texture, &rect, (void**)&pixels, &pitch))
 #endif
-	{
-		Com_Printf("Can't lock texture: %s\n", SDL_GetError());
-		return;
+		{
+			Com_Printf("Can't lock texture: %s\n", SDL_GetError());
+			return;
+		}
+
+		RE_CopyFrame(pixels, pitch / sizeof(Uint32), &rect);
+
+		SDL_UnlockTexture(texture);
 	}
-
-	RE_CopyFrame(pixels, pitch / sizeof(Uint32), &rect);
-
-	SDL_UnlockTexture(texture);
 
 #ifdef USE_SDL3
 	SDL_RenderTexture(renderer, texture, NULL, NULL);
@@ -2420,7 +2503,7 @@ SWimp_SetMode(int *pwidth, int *pheight, int mode, int fullscreen )
 	/* We trying to get resolution from desktop */
 	if (mode == -2)
 	{
-		if(!ri.GLimp_GetDesktopMode(pwidth, pheight))
+		if (!ri.GLimp_GetDesktopMode(pwidth, pheight))
 		{
 			R_Printf(PRINT_ALL, " can't detect mode\n");
 			return rserr_invalid_mode;
@@ -2433,7 +2516,7 @@ SWimp_SetMode(int *pwidth, int *pheight, int mode, int fullscreen )
 	{
 		int real_height, real_width;
 
-		if(ri.GLimp_GetDesktopMode(&real_width, &real_height))
+		if (ri.GLimp_GetDesktopMode(&real_width, &real_height))
 		{
 			if (real_height)
 			{
