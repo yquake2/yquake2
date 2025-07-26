@@ -2294,6 +2294,26 @@ RE_FlushFrame(int vmin, int vmax)
 
 	RE_CopyToScreenBuffer(vmin, vmax);
 
+	if (sw_partialrefresh->value)
+	{
+		vmin = vmin / vid_buffer_width;
+		vmax = vmax / vid_buffer_width + 1;
+		if (vmax > vid_buffer_height)
+		{
+			vmax = vid_buffer_height;
+		}
+	}
+	else
+	{
+		// On MacOS texture is cleaned up after render,
+		// code have to copy a whole screen to the texture
+		vmin = 0;
+		vmax = vid_buffer_height;
+	}
+
+	/* convert back to buffer pos */
+	vmin *= vid_buffer_width;
+	vmax *= vid_buffer_width;
 #ifdef USE_SDL3
 	if (!SDL_LockTexture(texture, NULL, (void**)&pixels, &pitch))
 #else
@@ -2304,17 +2324,7 @@ RE_FlushFrame(int vmin, int vmax)
 		return;
 	}
 
-	if (sw_partialrefresh->value)
-	{
-		RE_CopyFrame(pixels, pitch / sizeof(Uint32), vmin, vmax);
-	}
-	else
-	{
-		// On MacOS texture is cleaned up after render,
-		// code have to copy a whole screen to the texture
-		RE_CopyFrame(pixels, pitch / sizeof(Uint32), 0,
-			vid_buffer_height * vid_buffer_width);
-	}
+	RE_CopyFrame(pixels, pitch / sizeof(Uint32), vmin, vmax);
 
 	SDL_UnlockTexture(texture);
 
