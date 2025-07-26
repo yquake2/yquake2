@@ -720,6 +720,9 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
   extra yaw or pitch speed is applied. Default `0.02`(outer 2% of stick
   range).
 
+* **joy_trigger**: Trigger pressure required to register it as a
+  button press. Default `0.2` (20% of total trigger displacement).
+
 * **joy_flick_threshold**: Used only with Flick Stick, specifies the
   distance from the center of the stick that will make the player flick
   or rotate. Default `0.65` (65%).

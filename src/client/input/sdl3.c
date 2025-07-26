@@ -189,6 +189,9 @@ static cvar_t *joy_right_deadzone;
 static cvar_t *joy_flick_threshold;
 static cvar_t *joy_flick_smoothed;
 
+// Joystick's trigger threshold
+static cvar_t *joy_trigger;
+
 // Joystick haptic
 static cvar_t *joy_haptic_magnitude;
 static cvar_t *joy_haptic_distance;
@@ -270,6 +273,9 @@ static int started_flick;	// time of flick start
 #define MAX_SMOOTH_SAMPLES 8
 static float flick_samples[MAX_SMOOTH_SAMPLES];
 static unsigned short int front_sample = 0;
+
+// Threshold at which a trigger press is registered, in SDL units
+static int trig_thresh;
 
 extern void CalibrationFinishedCallback(void);
 
@@ -634,6 +640,18 @@ IN_GamepadConfirm_Changed(void)
 	{
 		japanese_confirm = true;
 	}
+}
+
+/*
+ * Sets the threshold at which a trigger press is registered as a button
+ */
+static void
+IN_GamepadTrigger_Changed(void)
+{
+	float thresh = joy_trigger->value;
+	joy_trigger->modified = false;
+	thresh = Q_clamp(thresh, 0.001f, 1.0f);
+	trig_thresh = 32766.0f * thresh;	// max value = 32767
 }
 
 #ifdef NO_SDL_GYRO
@@ -1040,11 +1058,11 @@ IN_Update(void)
 				switch (event.gaxis.axis)
 				{
 					case SDL_GAMEPAD_AXIS_LEFT_TRIGGER :
-						IN_VirtualKeyEvent(K_TRIG_LEFT, &left_trigger, axis_value > 8192);
+						IN_VirtualKeyEvent(K_TRIG_LEFT, &left_trigger, axis_value > trig_thresh);
 						break;
 
 					case SDL_GAMEPAD_AXIS_RIGHT_TRIGGER :
-						IN_VirtualKeyEvent(K_TRIG_RIGHT, &right_trigger, axis_value > 8192);
+						IN_VirtualKeyEvent(K_TRIG_RIGHT, &right_trigger, axis_value > trig_thresh);
 						break;
 				}
 
@@ -1284,6 +1302,10 @@ IN_Update(void)
 	if (joy_confirm->modified)
 	{
 		IN_GamepadConfirm_Changed();
+	}
+	if (joy_trigger->modified)
+	{
+		IN_GamepadTrigger_Changed();
 	}
 	IN_CheckGyroModified();
 	IN_UpdateGyroEnabled();
@@ -2728,6 +2750,7 @@ IN_Controller_Init(qboolean notify_user)
 	SDL_free((void *)joysticks);
 	IN_GamepadLabels_Changed();
 	IN_GamepadConfirm_Changed();
+	IN_GamepadTrigger_Changed();
 	IN_InitGyro();
 }
 
@@ -2841,6 +2864,7 @@ IN_Init(void)
 	joy_right_expo = Cvar_Get("joy_right_expo", "2.0", CVAR_ARCHIVE);
 	joy_right_snapaxis = Cvar_Get("joy_right_snapaxis", "0.15", CVAR_ARCHIVE);
 	joy_right_deadzone = Cvar_Get("joy_right_deadzone", "0.16", CVAR_ARCHIVE);
+	joy_trigger = Cvar_Get("joy_trigger", "0.2", CVAR_ARCHIVE);
 	joy_flick_threshold = Cvar_Get("joy_flick_threshold", "0.65", CVAR_ARCHIVE);
 	joy_flick_smoothed = Cvar_Get("joy_flick_smoothed", "8.0", CVAR_ARCHIVE);
 
