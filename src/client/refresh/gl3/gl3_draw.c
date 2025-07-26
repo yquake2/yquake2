@@ -40,7 +40,7 @@ GL3_Draw_InitLocal(void)
 	draw_chars = R_FindPic("conchars", (findimage_t)GL3_FindImage);
 	if (!draw_chars)
 	{
-		ri.Sys_Error(ERR_FATAL, "%s: Couldn't load pics/conchars.pcx",
+		Com_Error(ERR_FATAL, "%s: Couldn't load pics/conchars.pcx",
 			__func__);
 	}
 
@@ -273,7 +273,7 @@ GL3_Draw_Fill(int x, int y, int w, int h, int c)
 
 	if ((unsigned)c > 255)
 	{
-		ri.Sys_Error(ERR_FATAL, "Draw_Fill: bad color");
+		Com_Error(ERR_FATAL, "Draw_Fill: bad color");
 	}
 
 	color.c = d_8to24table[c];

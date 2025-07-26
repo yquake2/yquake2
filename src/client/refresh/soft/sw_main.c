@@ -18,7 +18,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
 
-// sw_main.c
 #include <limits.h>
 
 #ifdef USE_SDL3
@@ -68,11 +67,10 @@ pixel_t		*r_warpbuffer;
 
 typedef struct swstate_s
 {
-	qboolean	fullscreen;
-	int		prev_mode; // last valid SW mode
+	int prev_mode; /* last valid SW mode */
 
-	unsigned char	gammatable[256];
-	unsigned char	currentpalette[1024];
+	unsigned char gammatable[256];
+	unsigned char currentpalette[1024];
 } swstate_t;
 
 static swstate_t sw_state;
@@ -216,9 +214,8 @@ int		cachewidth;
 pixel_t		*d_viewbuffer;
 zvalue_t	*d_pzbuffer;
 
-static void RE_BeginFrame( float camera_separation );
+static void RE_BeginFrame(float camera_separation);
 static void Draw_BuildGammaTable(void);
-static void RE_FlushFrame(int vmin, int vmax);
 static void RE_CleanFrame(void);
 static void RE_EndFrame(void);
 static void R_DrawBeam(const entity_t *e);
@@ -698,8 +695,10 @@ R_ReallocateMapBuffers (void)
 		}
 
 		// one more for the terminator
-		if (r_numallocatedtriangles < vid.height+1)
-			r_numallocatedtriangles = vid.height+1;
+		if (r_numallocatedtriangles < vid.height + 1)
+		{
+			r_numallocatedtriangles = vid.height + 1;
+		}
 
 		triangle_spans  = malloc(r_numallocatedtriangles * sizeof(spanpackage_t));
 		if (!triangle_spans)
@@ -822,21 +821,23 @@ R_DrawEntitiesOnList
 static void
 R_DrawEntitiesOnList (void)
 {
-	int			i;
-	qboolean	translucent_entities = false;
+	qboolean translucent_entities = false;
+	int i;
 
 	if (!r_drawentities->value)
+	{
 		return;
+	}
 
 	// all bmodels have already been drawn by the edge list
-	for (i=0 ; i<r_newrefdef.num_entities ; i++)
+	for (i = 0; i < r_newrefdef.num_entities; i++)
 	{
 		entity_t *currententity = &r_newrefdef.entities[i];
 
-		if ( currententity->flags & RF_TRANSLUCENT )
+		if (currententity->flags & RF_TRANSLUCENT)
 		{
 			translucent_entities = true;
-			continue;
+			continue; /* not solid */
 		}
 
 		if ( currententity->flags & RF_BEAM )
@@ -865,7 +866,7 @@ R_DrawEntitiesOnList (void)
 				break;
 
 			case mod_alias:
-				R_AliasDrawModel(currententity, currentmodel);
+				R_DrawAliasModel(currententity, currentmodel);
 				break;
 
 			case mod_brush:
@@ -879,17 +880,21 @@ R_DrawEntitiesOnList (void)
 		}
 	}
 
-	if ( !translucent_entities )
+	if (!translucent_entities)
+	{
 		return;
+	}
 
-	for (i=0 ; i<r_newrefdef.num_entities ; i++)
+	for (i = 0; i < r_newrefdef.num_entities; i++)
 	{
 		entity_t *currententity = &r_newrefdef.entities[i];
 
-		if ( !( currententity->flags & RF_TRANSLUCENT ) )
-			continue;
+		if (!(currententity->flags & RF_TRANSLUCENT))
+		{
+			continue; /* solid */
+		}
 
-		if ( currententity->flags & RF_BEAM )
+		if (currententity->flags & RF_BEAM)
 		{
 			modelorg[0] = -r_origin[0];
 			modelorg[1] = -r_origin[1];
@@ -915,7 +920,7 @@ R_DrawEntitiesOnList (void)
 				break;
 
 			case mod_alias:
-				R_AliasDrawModel(currententity, currentmodel);
+				R_DrawAliasModel(currententity, currentmodel);
 				break;
 
 			case mod_brush:
@@ -937,7 +942,7 @@ R_BmodelCheckBBox
 =============
 */
 static int
-R_BmodelCheckBBox (const float *minmaxs)
+R_BmodelCheckBBox(const float *minmaxs)
 {
 	int i, clipflags;
 
@@ -946,7 +951,7 @@ R_BmodelCheckBBox (const float *minmaxs)
 	for (i=0 ; i<4 ; i++)
 	{
 		vec3_t acceptpt, rejectpt;
-		int *pindex;
+		const int *pindex;
 		float d;
 
 		// generate accept and reject points
@@ -995,7 +1000,7 @@ R_FindTopnode (vec3_t mins, vec3_t maxs)
 
 	while (1)
 	{
-		cplane_t *splitplane;
+		const cplane_t *splitplane;
 		int sides;
 
 		if (node->visframe != r_visframecount)
@@ -1104,7 +1109,7 @@ R_DrawBEntitiesOnList (void)
 
 	VectorCopy (modelorg, oldorigin);
 
-	for (i=0 ; i<r_newrefdef.num_entities ; i++)
+	for (i = 0; i < r_newrefdef.num_entities; i++)
 	{
 		entity_t *currententity = &r_newrefdef.entities[i];
 		const model_t *currentmodel = currententity->model;
@@ -1140,7 +1145,7 @@ R_DrawBEntitiesOnList (void)
 		R_RotateBmodel(currententity);
 
 		// calculate dynamic lighting for bmodel
-		R_PushDlights (currentmodel);
+		R_PushDlights(currentmodel);
 
 		if (topnode->contents == CONTENTS_NODE)
 		{
@@ -1200,7 +1205,7 @@ R_EdgeDrawing (entity_t *currententity)
 		db_time1 = rw_time2;
 	}
 
-	R_DrawBEntitiesOnList ();
+	R_DrawBEntitiesOnList();
 
 	if (r_dspeeds->value)
 	{
@@ -1275,9 +1280,9 @@ R_CalcPalette (void)
 //=======================================================================
 
 static void
-R_SetLightLevel (const entity_t *currententity)
+R_SetLightLevel(const entity_t *currententity)
 {
-	vec3_t		light;
+	vec3_t shadelight = {0};
 
 	if ((r_newrefdef.rdflags & RDF_NOWORLDMODEL) || (!r_drawentities->value) || (!currententity))
 	{
@@ -1285,9 +1290,33 @@ R_SetLightLevel (const entity_t *currententity)
 		return;
 	}
 
-	// save off light value for server to look at (BIG HACK!)
-	R_LightPoint (currententity, r_newrefdef.vieworg, light);
-	r_lightlevel->value = 150.0 * light[0];
+	/* save off light value for server to look at (BIG HACK!) */
+	R_LightPoint(currententity, r_newrefdef.vieworg, shadelight);
+
+	/* pick the greatest component, which should be the
+	 * same as the mono value returned by before color light apply */
+	if (shadelight[0] > shadelight[1])
+	{
+		if (shadelight[0] > shadelight[2])
+		{
+			r_lightlevel->value = 150 * shadelight[0];
+		}
+		else
+		{
+			r_lightlevel->value = 150 * shadelight[2];
+		}
+	}
+	else
+	{
+		if (shadelight[1] > shadelight[2])
+		{
+			r_lightlevel->value = 150 * shadelight[1];
+		}
+		else
+		{
+			r_lightlevel->value = 150 * shadelight[2];
+		}
+	}
 }
 
 static int
@@ -1311,14 +1340,14 @@ RE_RenderFrame
 ================
 */
 static void
-RE_RenderFrame (refdef_t *fd)
+RE_RenderFrame(refdef_t *fd)
 {
 	r_newrefdef = *fd;
 	entity_t	ent;
 
 	if (!r_worldmodel && !( r_newrefdef.rdflags & RDF_NOWORLDMODEL ) )
 	{
-		ri.Sys_Error(ERR_FATAL, "%s: NULL worldmodel", __func__);
+		Com_Error(ERR_FATAL, "%s: NULL worldmodel", __func__);
 	}
 
 	// Need to rerender whole frame
@@ -1353,10 +1382,10 @@ RE_RenderFrame (refdef_t *fd)
 
 	// Using the current view cluster (r_viewcluster), retrieve and decompress
 	// the PVS (Potentially Visible Set)
-	R_MarkLeaves ();	// done here so we know if we're in water
+	R_MarkLeaves();	// done here so we know if we're in water
 
 	// For each dlight_t* passed via r_newrefdef.dlights, mark polygons affected by a light.
-	R_PushDlights (r_worldmodel);
+	R_PushDlights(r_worldmodel);
 
 	// TODO: rearrange code same as in GL*_DrawWorld?
 	/* auto cycle the world frame for texture animation */
@@ -1385,7 +1414,7 @@ RE_RenderFrame (refdef_t *fd)
 	}
 	// Draw enemies, barrel etc...
 	// Use Z-Buffer mostly in read mode only.
-	R_DrawEntitiesOnList ();
+	R_DrawEntitiesOnList();
 
 	if (r_dspeeds->value)
 	{
@@ -1394,19 +1423,23 @@ RE_RenderFrame (refdef_t *fd)
 	}
 
 	// Duh !
-	R_DrawParticles ();
+	R_DrawParticles();
 
 	if (r_dspeeds->value)
+	{
 		dp_time2 = SDL_GetTicks();
+	}
 
 	// Perform pixel palette blending ia the pics/colormap.pcx lower part lookup table.
 	R_DrawAlphaSurfaces(&ent);
 
 	// Save off light value for server to look at (BIG HACK!)
-	R_SetLightLevel (&ent);
+	R_SetLightLevel(&ent);
 
 	if (r_dowarp)
+	{
 		D_WarpScreen ();
+	}
 
 	if (r_dspeeds->value)
 	{
@@ -1418,13 +1451,19 @@ RE_RenderFrame (refdef_t *fd)
 	R_CalcPalette ();
 
 	if (sw_aliasstats->value)
-		R_PrintAliasStats ();
+	{
+		R_PrintAliasStats();
+	}
 
 	if (r_speeds->value)
-		R_PrintTimes ();
+	{
+		R_PrintTimes();
+	}
 
 	if (r_dspeeds->value)
-		R_PrintDSpeeds ();
+	{
+		R_PrintDSpeeds();
+	}
 
 	R_ReallocateMapBuffers();
 }
@@ -1566,15 +1605,15 @@ R_GammaCorrectAndSetPalette( const unsigned char *palette )
 	// Replace palette
 	for ( i = 0; i < 256; i++ )
 	{
-		if (sw_state.currentpalette[i*4+0] != sw_state.gammatable[palette[i*4+2]] ||
-			sw_state.currentpalette[i*4+1] != sw_state.gammatable[palette[i*4+1]] ||
-			sw_state.currentpalette[i*4+2] != sw_state.gammatable[palette[i*4+0]])
+		if (sw_state.currentpalette[i * 4 + 0] != sw_state.gammatable[palette[i * 4 + 2]] ||
+			sw_state.currentpalette[i * 4 + 1] != sw_state.gammatable[palette[i * 4 + 1]] ||
+			sw_state.currentpalette[i * 4 + 2] != sw_state.gammatable[palette[i * 4 + 0]])
 		{
-			sw_state.currentpalette[i*4+0] = sw_state.gammatable[palette[i*4+2]]; // blue
-			sw_state.currentpalette[i*4+1] = sw_state.gammatable[palette[i*4+1]]; // green
-			sw_state.currentpalette[i*4+2] = sw_state.gammatable[palette[i*4+0]]; // red
+			sw_state.currentpalette[i * 4 + 0] = sw_state.gammatable[palette[i * 4 + 2]]; // blue
+			sw_state.currentpalette[i * 4 + 1] = sw_state.gammatable[palette[i * 4 + 1]]; // green
+			sw_state.currentpalette[i * 4 + 2] = sw_state.gammatable[palette[i * 4 + 0]]; // red
 
-			sw_state.currentpalette[i*4+3] = 0xFF; // alpha
+			sw_state.currentpalette[i * 4 + 3] = 255; // alpha
 			palette_changed = true;
 		}
 	}
@@ -1763,14 +1802,6 @@ RE_RegisterSkin (const char *name)
 	return R_FindImage (name, it_skin);
 }
 
-void R_Printf(int level, const char* msg, ...)
-{
-	va_list argptr;
-	va_start(argptr, msg);
-	ri.Com_VPrintf(level, msg, argptr);
-	va_end(argptr);
-}
-
 static qboolean
 RE_IsVsyncActive(void)
 {
@@ -1860,9 +1891,9 @@ GetRefAPI(refimport_t imp)
 	refexport.EndWorldRenderpass = RE_EndWorldRenderpass;
 	refexport.EndFrame = RE_EndFrame;
 
-    // Tell the client that we're unsing the
+	// Tell the client that we're unsing the
 	// new renderer restart API.
-    ri.Vid_RequestRestart(RESTART_NO);
+	ri.Vid_RequestRestart(RESTART_NO);
 
 	Swap_Init ();
 
@@ -1897,7 +1928,7 @@ RE_InitContext(void *win)
 
 	if(win == NULL)
 	{
-		ri.Sys_Error(ERR_FATAL, "%s() must not be called with NULL argument!", __func__);
+		Com_Error(ERR_FATAL, "%s() must not be called with NULL argument!", __func__);
 		return false;
 	}
 
@@ -1914,10 +1945,10 @@ RE_InitContext(void *win)
 		SDL_SetRenderVSync(renderer, 1);
 #else
 		renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
-                if(!renderer)
-                {
-                	renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_SOFTWARE | SDL_RENDERER_PRESENTVSYNC);
-                }
+		if(!renderer)
+		{
+			renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_SOFTWARE | SDL_RENDERER_PRESENTVSYNC);
+		}
 #endif
 	}
 	else
@@ -1926,10 +1957,10 @@ RE_InitContext(void *win)
 		renderer = SDL_CreateRenderer(window, NULL);
 #else
 		renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
-                if(!renderer)
-                {
-                	renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_SOFTWARE);
-                }
+		if(!renderer)
+		{
+			renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_SOFTWARE);
+		}
 #endif
 	}
 	if(!renderer) {
@@ -2008,6 +2039,7 @@ RE_ShutdownContext(void)
 	{
 		free(swap_buffers);
 	}
+
 	swap_buffers = NULL;
 	vid_buffer = NULL;
 	swap_frames[0] = NULL;
@@ -2123,54 +2155,65 @@ point math used in R_ScanEdges() overflows at width 2048 !!
 char shift_size;
 
 static void
-RE_CopyFrame (Uint32 * pixels, int pitch, int vmin, int vmax)
+RE_CopyFrame(Uint32 *pixels, int pitch, SDL_Rect *rect)
 {
-	Uint32 *sdl_palette = (Uint32 *)sw_state.currentpalette;
+	const unsigned *sdl_palette;
 
-	// no gaps between images rows
+	sdl_palette = (unsigned *)sw_state.currentpalette;
+
+	/* no gaps between images rows */
 	if (pitch == vid_buffer_width)
 	{
-		const Uint32	*max_pixels;
-		Uint32	*pixels_pos;
-		pixel_t	*buffer_pos;
+		const byte *src_max;
+		Uint32 *dst;
+		byte *src;
 
-		max_pixels = pixels + vmax;
-		buffer_pos = vid_buffer + vmin;
+		dst = pixels;
+		src = vid_buffer + rect->y * vid_buffer_width;
+		src_max = src + rect->h * vid_buffer_width;
 
-		pixels_pos = pixels + vmin;
-
-		while ( pixels_pos < max_pixels)
+		while (src < src_max)
 		{
-			*pixels_pos = sdl_palette[*buffer_pos];
-			buffer_pos++;
-			pixels_pos++;
+			*dst = sdl_palette[*src];
+
+			src++;
+			dst++;
 		}
 	}
 	else
 	{
-		int y,x, buffer_pos, ymin, ymax;
+		int y, buffer_pos;
+		Uint32 *dst;
 
-		ymin = vmin / vid_buffer_width;
-		ymax = vmax / vid_buffer_width;
+		buffer_pos = rect->y * vid_buffer_width;
+		dst = pixels;
 
-		buffer_pos = ymin * vid_buffer_width;
-		pixels += ymin * pitch;
-		for (y=ymin; y < ymax;  y++)
+		for (y = rect->y; y < rect->y + rect->h; y++)
 		{
-			for (x=0; x < vid_buffer_width; x ++)
+			int x;
+
+			for (x = 0; x < vid_buffer_width; x++)
 			{
-				pixels[x] = sdl_palette[vid_buffer[buffer_pos + x]];
+				dst[x] = sdl_palette[vid_buffer[buffer_pos]];
+				buffer_pos ++;
 			}
-			pixels += pitch;
-			buffer_pos += vid_buffer_width;
+
+			dst += pitch;
 		}
+	}
+
+	if ((sw_anisotropic->value > 0) && !fastmoving)
+	{
+		SmoothColorImage((unsigned *)pixels, rect->h * vid_buffer_width,
+			sw_anisotropic->value);
 	}
 }
 
 static int
 RE_BufferDifferenceStart(int vmin, int vmax)
 {
-	int *front_buffer, *back_buffer, *back_max;
+	int *front_buffer, *back_buffer;
+	const int *back_max;
 
 	back_buffer = (int*)(swap_frames[0] + vmin);
 	front_buffer = (int*)(swap_frames[1] + vmin);
@@ -2186,7 +2229,8 @@ RE_BufferDifferenceStart(int vmin, int vmax)
 static size_t
 RE_BufferDifferenceEnd(int vmin, int vmax)
 {
-	int *front_buffer, *back_buffer, *back_min;
+	int *front_buffer, *back_buffer;
+	const int *back_min;
 
 	back_buffer = (int*)(swap_frames[0] + vmax);
 	front_buffer = (int*)(swap_frames[1] + vmax);
@@ -2232,31 +2276,48 @@ RE_FlushFrame(int vmin, int vmax)
 {
 	int pitch;
 	Uint32 *pixels;
+	SDL_Rect rect;
 
-#ifdef USE_SDL3
-	if (!SDL_LockTexture(texture, NULL, (void**)&pixels, &pitch))
-#else
-	if (SDL_LockTexture(texture, NULL, (void**)&pixels, &pitch))
-#endif
+	if (vmin >= vmax)
 	{
-		Com_Printf("Can't lock texture: %s\n", SDL_GetError());
+		/* Looks like we already updated everything */
 		return;
 	}
+
 	if (sw_partialrefresh->value)
 	{
-		RE_CopyFrame (pixels, pitch / sizeof(Uint32), vmin, vmax);
+		vmin = vmin / vid_buffer_width;
+		vmax = vmax / vid_buffer_width + 1;
+		if (vmax > vid_buffer_height)
+		{
+			vmax = vid_buffer_height;
+		}
 	}
 	else
 	{
 		// On MacOS texture is cleaned up after render,
 		// code have to copy a whole screen to the texture
-		RE_CopyFrame (pixels, pitch / sizeof(Uint32), 0, vid_buffer_height * vid_buffer_width);
+		vmin = 0;
+		vmax = vid_buffer_height;
 	}
 
-	if ((sw_anisotropic->value > 0) && !fastmoving)
+	/* set section to update */
+	rect.x = 0;
+	rect.y = vmin;
+	rect.w = vid_buffer_width;
+	rect.h = vmax - vmin;
+
+#ifdef USE_SDL3
+	if (!SDL_LockTexture(texture, &rect, (void**)&pixels, &pitch))
+#else
+	if (SDL_LockTexture(texture, &rect, (void**)&pixels, &pitch))
+#endif
 	{
-		SmoothColorImage(pixels + vmin, vmax - vmin, sw_anisotropic->value);
+		Com_Printf("Can't lock texture: %s\n", SDL_GetError());
+		return;
 	}
+
+	RE_CopyFrame(pixels, pitch / sizeof(Uint32), &rect);
 
 	SDL_UnlockTexture(texture);
 
@@ -2272,7 +2333,7 @@ RE_FlushFrame(int vmin, int vmax)
 	swap_current ++;
 	vid_buffer = swap_frames[swap_current&1];
 
-	// All changes flushed
+	/* All changes flushed */
 	VID_NoDamageBuffer();
 }
 
@@ -2283,7 +2344,7 @@ RE_FlushFrame(int vmin, int vmax)
 ** front buffer.
 */
 static void
-RE_EndFrame (void)
+RE_EndFrame(void)
 {
 	int vmin, vmax;
 
@@ -2292,21 +2353,24 @@ RE_EndFrame (void)
 	{
 		vid_minu = 0;
 	}
+
 	if (vid_minv < 0)
 	{
 		vid_minv = 0;
 	}
+
 	if (vid_maxu > vid_buffer_width)
 	{
 		vid_maxu = vid_buffer_width;
 	}
+
 	if (vid_maxv > vid_buffer_height)
 	{
 		vid_maxv = vid_buffer_height;
 	}
 
-	vmin = vid_minu + vid_minv  * vid_buffer_width;
-	vmax = vid_maxu + vid_maxv  * vid_buffer_width;
+	vmin = vid_minu + vid_minv * vid_buffer_width;
+	vmax = vid_maxu + vid_maxv * vid_buffer_width;
 
 	// fix to correct limit
 	if (vmax > (vid_buffer_height * vid_buffer_width))
@@ -2315,7 +2379,7 @@ RE_EndFrame (void)
 	}
 
 	// if palette changed need to flush whole buffer
-	if (!palette_changed)
+	if (!palette_changed && sw_partialrefresh->value)
 	{
 		// search real begin/end of difference
 		vmin = RE_BufferDifferenceStart(vmin, vmax);
@@ -2445,8 +2509,8 @@ SWimp_CreateRender(int width, int height)
 	swap_buffers = malloc(height * width * sizeof(pixel_t) * 2);
 	if (!swap_buffers)
 	{
-		ri.Sys_Error(ERR_FATAL, "%s: Can't allocate swapbuffer.", __func__);
-		// code never returns after ERR_FATAL
+		Com_Error(ERR_FATAL, "%s: Can't allocate swapbuffer.", __func__);
+		/* code never returns after ERR_FATAL */
 		return;
 	}
 	swap_frames[0] = swap_buffers;
@@ -2505,32 +2569,10 @@ SWimp_CreateRender(int width, int height)
 
 	vid_polygon_spans = malloc(sizeof(espan_t) * (height + 1));
 
-	memset(sw_state.currentpalette, 0, sizeof(sw_state.currentpalette));
+	/* Use nontransparent white as default value */
+	memset(sw_state.currentpalette, 255, sizeof(sw_state.currentpalette));
 
 	R_GammaCorrectAndSetPalette( d_8to24table );
-}
-
-// this is only here so the functions in q_shared.c and q_shwin.c can link
-void
-Sys_Error (const char *error, ...)
-{
-	va_list		argptr;
-	char		text[4096]; // MAXPRINTMSG == 4096
-
-	va_start(argptr, error);
-	vsnprintf(text, sizeof(text), error, argptr);
-	va_end(argptr);
-
-	ri.Sys_Error (ERR_FATAL, "%s", text);
-}
-
-void
-Com_Printf(const char *msg, ...)
-{
-	va_list	argptr;
-	va_start(argptr, msg);
-	ri.Com_VPrintf(PRINT_ALL, msg, argptr);
-	va_end(argptr);
 }
 
 /*
@@ -2555,13 +2597,14 @@ R_ScreenShot_f(void)
 
 	if (!buffer)
 	{
-		R_Printf(PRINT_ALL, "R_ScreenShot: Couldn't malloc %d bytes\n", vid_buffer_width * vid_buffer_height * 3);
+		R_Printf(PRINT_ALL, "%s: Couldn't malloc %d bytes\n",
+			__func__, vid_buffer_width * vid_buffer_height * 3);
 		return;
 	}
 
 	for (x=0; x < vid_buffer_width; x ++)
 	{
-		for (y=0; y < vid_buffer_height; y ++) {
+		for (y = 0; y < vid_buffer_height; y ++) {
 			int buffer_pos = y * vid_buffer_width + x;
 			buffer[buffer_pos * 3 + 0] = palette[vid_buffer[buffer_pos] * 4 + 2]; // red
 			buffer[buffer_pos * 3 + 1] = palette[vid_buffer[buffer_pos] * 4 + 1]; // green

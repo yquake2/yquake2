@@ -56,7 +56,7 @@ LM_AllocLightmapBuffer(int buffer, qboolean clean)
 	}
 	if (!gl_lms.lightmap_buffer[buffer])
 	{
-		ri.Sys_Error(ERR_FATAL, "%s: Could not allocate lightmap buffer %d\n",
+		Com_Error(ERR_FATAL, "%s: Could not allocate lightmap buffer %d\n",
 			__func__, buffer);
 	}
 	if (clean)
@@ -125,7 +125,7 @@ LM_UploadBlock(qboolean dynamic)
 
 		if (++gl_lms.current_lightmap_texture == MAX_LIGHTMAPS)
 		{
-			ri.Sys_Error(ERR_DROP,
+			Com_Error(ERR_DROP,
 					"%s: MAX_LIGHTMAPS exceeded\n", __func__);
 		}
 	}
@@ -269,7 +269,7 @@ LM_CreateSurfaceLightmap(msurface_t *surf)
 
 		if (!LM_AllocBlock(smax, tmax, &surf->light_s, &surf->light_t))
 		{
-			ri.Sys_Error(ERR_FATAL, "%s: Consecutive calls to LM_AllocBlock(%d,%d) failed\n",
+			Com_Error(ERR_FATAL, "%s: Consecutive calls to LM_AllocBlock(%d,%d) failed\n",
 					__func__, smax, tmax);
 		}
 	}

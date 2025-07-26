@@ -1129,7 +1129,7 @@ GL3_DrawEntitiesOnList(void)
 					GL3_DrawSpriteModel(currententity, currentmodel);
 					break;
 				default:
-					ri.Sys_Error(ERR_DROP, "Bad modeltype");
+					Com_Error(ERR_DROP, "Bad modeltype");
 					break;
 			}
 		}
@@ -1175,7 +1175,7 @@ GL3_DrawEntitiesOnList(void)
 					GL3_DrawSpriteModel(currententity, currentmodel);
 					break;
 				default:
-					ri.Sys_Error(ERR_DROP, "Bad modeltype");
+					Com_Error(ERR_DROP, "Bad modeltype");
 					break;
 			}
 		}
@@ -1205,7 +1205,7 @@ SetupFrame(void)
 	{
 		if (!gl3_worldmodel)
 		{
-			ri.Sys_Error(ERR_DROP, "%s: bad world model", __func__);
+			Com_Error(ERR_DROP, "%s: bad world model", __func__);
 			return;
 		}
 
@@ -1645,7 +1645,7 @@ GL3_RenderView(refdef_t *fd)
 
 	if (!gl3_worldmodel && !(gl3_newrefdef.rdflags & RDF_NOWORLDMODEL))
 	{
-		ri.Sys_Error(ERR_DROP, "R_RenderView: NULL worldmodel");
+		Com_Error(ERR_DROP, "R_RenderView: NULL worldmodel");
 	}
 
 	if (r_speeds->value)
@@ -2047,38 +2047,4 @@ GetRefAPI(refimport_t imp)
     ri.Vid_RequestRestart(RESTART_NO);
 
 	return re;
-}
-
-void R_Printf(int level, const char* msg, ...)
-{
-	va_list argptr;
-	va_start(argptr, msg);
-	ri.Com_VPrintf(level, msg, argptr);
-	va_end(argptr);
-}
-
-/*
- * this is only here so the functions in shared source files
- * (shared.c, rand.c, flash.c, mem.c/hunk.c) can link
- */
-void
-Sys_Error(const char *error, ...)
-{
-	va_list argptr;
-	char text[4096]; // MAXPRINTMSG == 4096
-
-	va_start(argptr, error);
-	vsnprintf(text, sizeof(text), error, argptr);
-	va_end(argptr);
-
-	ri.Sys_Error(ERR_FATAL, "%s", text);
-}
-
-void
-Com_Printf(const char *msg, ...)
-{
-	va_list argptr;
-	va_start(argptr, msg);
-	ri.Com_VPrintf(PRINT_ALL, msg, argptr);
-	va_end(argptr);
 }

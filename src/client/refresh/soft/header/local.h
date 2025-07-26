@@ -482,7 +482,7 @@ void R_TransformFrustum(void);
 void R_DrawSubmodelPolygons(entity_t *currententity, const model_t *currentmodel, int clipflags, mnode_t *topnode);
 void R_DrawSolidClippedSubmodelPolygons(entity_t *currententity, const model_t *currentmodel, mnode_t *topnode);
 
-void R_AliasDrawModel(entity_t *currententity, const model_t *currentmodel);
+void R_DrawAliasModel(entity_t *currententity, const model_t *currentmodel);
 void R_BeginEdgeFrame(void);
 void R_ScanEdges(entity_t *currententity, const surf_t *surface);
 void R_PushDlights(const model_t *model);

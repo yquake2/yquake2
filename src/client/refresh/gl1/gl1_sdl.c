@@ -247,7 +247,7 @@ int RI_InitContext(void* win)
 	// Coders are stupid.
 	if (win == NULL)
 	{
-		ri.Sys_Error(ERR_FATAL, "R_InitContext() must not be called with NULL argument!");
+		Com_Error(ERR_FATAL, "R_InitContext() must not be called with NULL argument!");
 
 		return false;
 	}

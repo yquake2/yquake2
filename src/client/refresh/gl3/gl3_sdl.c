@@ -216,7 +216,7 @@ int GL3_PrepareForWindow(void)
 		{
 			if (libgl == NULL)
 			{
-				ri.Sys_Error(ERR_FATAL, "%s: Couldn't load libGL: %s!",
+				Com_Error(ERR_FATAL, "%s: Couldn't load libGL: %s!",
 					__func__, SDL_GetError());
 
 				return -1;
@@ -336,7 +336,7 @@ int GL3_InitContext(void* win)
 	// Coders are stupid.
 	if (win == NULL)
 	{
-		ri.Sys_Error(ERR_FATAL, "R_InitContext() must not be called with NULL argument!");
+		Com_Error(ERR_FATAL, "R_InitContext() must not be called with NULL argument!");
 
 		return false;
 	}
