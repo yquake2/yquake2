@@ -392,7 +392,7 @@ R_RegisterVariables (void)
 	// On MacOS texture is cleaned up after render and code have to copy a whole
 	// screen to texture, other platforms save previous texture content and can be
 	// copied only changed parts
-#if defined(__APPLE__)
+#if defined(__APPLE__) || defined(USE_SDL3)
 	sw_partialrefresh = ri.Cvar_Get("sw_partialrefresh", "0", CVAR_ARCHIVE);
 #else
 	sw_partialrefresh = ri.Cvar_Get("sw_partialrefresh", "1", CVAR_ARCHIVE);

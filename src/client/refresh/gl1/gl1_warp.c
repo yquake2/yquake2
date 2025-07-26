@@ -30,6 +30,7 @@
 #define SUBDIVIDE_SIZE 64
 #define ON_EPSILON 0.1 /* point on plane side epsilon */
 #define MAX_CLIP_VERTS 64
+#define MAX_SUBDIVIDE_VERTS 60
 
 float skyrotate;
 vec3_t skyaxis;
@@ -127,9 +128,9 @@ R_SubdividePolygon(int numverts, float *verts)
 	vec3_t total;
 	float total_s, total_t;
 
-	if (numverts > 60)
+	if (numverts > MAX_SUBDIVIDE_VERTS)
 	{
-		ri.Sys_Error(ERR_DROP, "numverts = %i", numverts);
+		ri.Sys_Error(ERR_DROP, "%s: numverts = %i", __func__, numverts);
 	}
 
 	R_BoundPoly(numverts, verts, mins, maxs);
@@ -451,7 +452,7 @@ R_ClipSkyPolygon(int nump, vec3_t vecs, int stage)
 
 	if (nump > MAX_CLIP_VERTS - 2)
 	{
-		ri.Sys_Error(ERR_DROP, "R_ClipSkyPolygon: MAX_CLIP_VERTS");
+		ri.Sys_Error(ERR_DROP, "%s: MAX_CLIP_VERTS", __func__);
 	}
 
 	if (stage == 6)

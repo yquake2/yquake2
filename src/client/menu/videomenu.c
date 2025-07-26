@@ -734,6 +734,7 @@ VID_MenuInit(void)
 			s_gl1_intensity_slider.generic.name = "color intensity";
 			s_gl1_intensity_slider.generic.x = 0;
 			s_gl1_intensity_slider.generic.y = (y += 10);
+			s_gl1_intensity_slider.generic.callback = RestartNeededForAllMsg;
 			s_gl1_intensity_slider.cvar = "gl1_intensity";
 			s_gl1_intensity_slider.minvalue = 1.0f;
 			s_gl1_intensity_slider.maxvalue = 10.0f;
