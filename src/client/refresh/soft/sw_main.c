@@ -217,7 +217,6 @@ zvalue_t	*d_pzbuffer;
 
 static void RE_BeginFrame(float camera_separation);
 static void Draw_BuildGammaTable(void);
-static void RE_FlushFrame(int vmin, int vmax);
 static void RE_CleanFrame(void);
 static void RE_EndFrame(void);
 static void R_DrawBeam(const entity_t *e);
@@ -2181,39 +2180,38 @@ RE_CopyToScreenBuffer(int vmin, int vmax)
 		buffer_pos++;
 		pixels_pos++;
 	}
-
-	if ((sw_anisotropic->value > 0) && !fastmoving)
-	{
-		SmoothColorImage((unsigned *)screen_buffer + vmin, vmax - vmin,
-			sw_anisotropic->value);
-	}
 }
 
 static void
-RE_CopyFrame(Uint32 * pixels, int pitch, int vmin, int vmax)
+RE_CopyFrame(Uint32 *pixels, int pitch, SDL_Rect *rect)
 {
 	/* no gaps between images rows */
 	if (pitch == vid_buffer_width)
 	{
-		memcpy(pixels, (unsigned *)screen_buffer + vmin,
-			(vmax - vmin) * 4);
+		memcpy(pixels, (unsigned *)screen_buffer + rect->y * vid_buffer_width,
+			rect->h * 4 * vid_buffer_width);
 	}
 	else
 	{
-		int y, buffer_pos, ymin, ymax;
+		int y, buffer_pos;
+		Uint32 *dst;
 
-		ymin = vmin / vid_buffer_width;
-		ymax = vmax / vid_buffer_width;
+		buffer_pos = rect->y * vid_buffer_width;
+		dst = pixels;
 
-		buffer_pos = ymin * vid_buffer_width;
-
-		for (y = ymin; y < ymax; y++)
+		for (y = rect->y; y < rect->y + rect->h; y++)
 		{
-			memcpy(pixels, (unsigned *)screen_buffer + buffer_pos,
+			memcpy(dst, (unsigned *)screen_buffer + buffer_pos,
 				vid_buffer_width * 4);
-			pixels += pitch;
+			dst += pitch;
 			buffer_pos += vid_buffer_width;
 		}
+	}
+
+	if ((sw_anisotropic->value > 0) && !fastmoving)
+	{
+		SmoothColorImage((unsigned *)pixels, rect->h * vid_buffer_width,
+			sw_anisotropic->value);
 	}
 }
 
@@ -2317,9 +2315,6 @@ RE_FlushFrame(int vmin, int vmax)
 	rect.w = vid_buffer_width;
 	rect.h = vmax - vmin;
 
-	/* convert back to buffer pos */
-	vmin *= vid_buffer_width;
-	vmax *= vid_buffer_width;
 #ifdef USE_SDL3
 	if (!SDL_LockTexture(texture, &rect, (void**)&pixels, &pitch))
 #else
@@ -2330,7 +2325,7 @@ RE_FlushFrame(int vmin, int vmax)
 		return;
 	}
 
-	RE_CopyFrame(pixels, pitch / sizeof(Uint32), vmin, vmax);
+	RE_CopyFrame(pixels, pitch / sizeof(Uint32), &rect);
 
 	SDL_UnlockTexture(texture);
 
@@ -2382,8 +2377,8 @@ RE_EndFrame(void)
 		vid_maxv = vid_buffer_height;
 	}
 
-	vmin = vid_minu + vid_minv  * vid_buffer_width;
-	vmax = vid_maxu + vid_maxv  * vid_buffer_width;
+	vmin = vid_minu + vid_minv * vid_buffer_width;
+	vmax = vid_maxu + vid_maxv * vid_buffer_width;
 
 	// fix to correct limit
 	if (vmax > (vid_buffer_height * vid_buffer_width))
@@ -2392,7 +2387,7 @@ RE_EndFrame(void)
 	}
 
 	// if palette changed need to flush whole buffer
-	if (!palette_changed)
+	if (!palette_changed && sw_partialrefresh->value)
 	{
 		// search real begin/end of difference
 		vmin = RE_BufferDifferenceStart(vmin, vmax);
