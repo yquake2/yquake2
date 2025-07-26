@@ -630,8 +630,8 @@ static void
 IN_GamepadConfirm_Changed(void)
 {
 	const int requested = (int)joy_confirm->value;
-	japanese_confirm = false;
 	joy_confirm->modified = false;
+	japanese_confirm = false;
 
 #if SDL_VERSION_ATLEAST(2, 0, 12)
 	if (requested < 0 && controller) // try to autodetect...

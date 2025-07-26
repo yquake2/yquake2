@@ -594,15 +594,17 @@ IN_GamepadLabels_Changed(void)
 			case SDL_GAMEPAD_TYPE_XBOXONE:
 				joy_current_lbls = LBL_XBOX;
 				return;
+			default:
+				break;
+		}
 
-			case SDL_GAMEPAD_TYPE_PS3:
-			case SDL_GAMEPAD_TYPE_PS4:
-			case SDL_GAMEPAD_TYPE_PS5:
+		// Getting type based on label detected by SDL3
+		switch (SDL_GetGamepadButtonLabel(controller, SDL_GAMEPAD_BUTTON_SOUTH))
+		{
+			case SDL_GAMEPAD_BUTTON_LABEL_CROSS:
 				joy_current_lbls = LBL_PLAYSTATION;
 				return;
-
-			case SDL_GAMEPAD_TYPE_NINTENDO_SWITCH_PRO:
-			case SDL_GAMEPAD_TYPE_NINTENDO_SWITCH_JOYCON_PAIR:
+			case SDL_GAMEPAD_BUTTON_LABEL_B:
 				joy_current_lbls = LBL_SWITCH;
 			default:
 				return;
@@ -622,21 +624,12 @@ static void
 IN_GamepadConfirm_Changed(void)
 {
 	const int requested = (int)joy_confirm->value;
-	japanese_confirm = false;
 	joy_confirm->modified = false;
+	japanese_confirm = false;
 
-	if (requested < 0 && controller) // try to autodetect...
-	{
-		switch (SDL_GetGamepadType(controller))
-		{
-			case SDL_GAMEPAD_TYPE_NINTENDO_SWITCH_PRO:
-			case SDL_GAMEPAD_TYPE_NINTENDO_SWITCH_JOYCON_PAIR:
-				japanese_confirm = true;
-			default:
-				return;
-		}
-	}
-	else if (requested == 1)
+	if ( (requested < 0 && controller &&
+		SDL_GetGamepadButtonLabel(controller, SDL_GAMEPAD_BUTTON_SOUTH) == SDL_GAMEPAD_BUTTON_LABEL_B)
+		|| requested == 1 )
 	{
 		japanese_confirm = true;
 	}
