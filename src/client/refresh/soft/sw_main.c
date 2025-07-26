@@ -18,7 +18,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
 
-// sw_main.c
 #include <limits.h>
 
 #ifdef USE_SDL3
@@ -1284,7 +1283,7 @@ R_CalcPalette (void)
 static void
 R_SetLightLevel(const entity_t *currententity)
 {
-	vec3_t light;
+	vec3_t shadelight = {0};
 
 	if ((r_newrefdef.rdflags & RDF_NOWORLDMODEL) || (!r_drawentities->value) || (!currententity))
 	{
@@ -1292,9 +1291,33 @@ R_SetLightLevel(const entity_t *currententity)
 		return;
 	}
 
-	// save off light value for server to look at (BIG HACK!)
-	R_LightPoint (currententity, r_newrefdef.vieworg, light);
-	r_lightlevel->value = 150.0 * light[0];
+	/* save off light value for server to look at (BIG HACK!) */
+	R_LightPoint(currententity, r_newrefdef.vieworg, shadelight);
+
+	/* pick the greatest component, which should be the
+	 * same as the mono value returned by before color light apply */
+	if (shadelight[0] > shadelight[1])
+	{
+		if (shadelight[0] > shadelight[2])
+		{
+			r_lightlevel->value = 150 * shadelight[0];
+		}
+		else
+		{
+			r_lightlevel->value = 150 * shadelight[2];
+		}
+	}
+	else
+	{
+		if (shadelight[1] > shadelight[2])
+		{
+			r_lightlevel->value = 150 * shadelight[1];
+		}
+		else
+		{
+			r_lightlevel->value = 150 * shadelight[2];
+		}
+	}
 }
 
 static int
@@ -1360,7 +1383,7 @@ RE_RenderFrame(refdef_t *fd)
 
 	// Using the current view cluster (r_viewcluster), retrieve and decompress
 	// the PVS (Potentially Visible Set)
-	R_MarkLeaves ();	// done here so we know if we're in water
+	R_MarkLeaves();	// done here so we know if we're in water
 
 	// For each dlight_t* passed via r_newrefdef.dlights, mark polygons affected by a light.
 	R_PushDlights(r_worldmodel);
@@ -1392,7 +1415,7 @@ RE_RenderFrame(refdef_t *fd)
 	}
 	// Draw enemies, barrel etc...
 	// Use Z-Buffer mostly in read mode only.
-	R_DrawEntitiesOnList ();
+	R_DrawEntitiesOnList();
 
 	if (r_dspeeds->value)
 	{
@@ -2262,7 +2285,7 @@ RE_FlushFrame(int vmin, int vmax)
 
 	if (sw_partialrefresh->value)
 	{
-		RE_CopyFrame (pixels, pitch / sizeof(Uint32), vmin, vmax);
+		RE_CopyFrame(pixels, pitch / sizeof(Uint32), vmin, vmax);
 	}
 	else
 	{
