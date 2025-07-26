@@ -2195,7 +2195,7 @@ RE_CopyFrame(Uint32 * pixels, int pitch, int vmin, int vmax)
 	/* no gaps between images rows */
 	if (pitch == vid_buffer_width)
 	{
-		memcpy(pixels + vmin, (unsigned *)screen_buffer + vmin,
+		memcpy(pixels, (unsigned *)screen_buffer + vmin,
 			(vmax - vmin) * 4);
 	}
 	else
@@ -2206,7 +2206,6 @@ RE_CopyFrame(Uint32 * pixels, int pitch, int vmin, int vmax)
 		ymax = vmax / vid_buffer_width;
 
 		buffer_pos = ymin * vid_buffer_width;
-		pixels += ymin * pitch;
 
 		for (y = ymin; y < ymax; y++)
 		{
@@ -2285,6 +2284,7 @@ RE_FlushFrame(int vmin, int vmax)
 {
 	int pitch;
 	Uint32 *pixels;
+	SDL_Rect rect;
 
 	if (vmin >= vmax)
 	{
@@ -2311,13 +2311,19 @@ RE_FlushFrame(int vmin, int vmax)
 		vmax = vid_buffer_height;
 	}
 
+	/* set section to update */
+	rect.x = 0;
+	rect.y = vmin;
+	rect.w = vid_buffer_width;
+	rect.h = vmax - vmin;
+
 	/* convert back to buffer pos */
 	vmin *= vid_buffer_width;
 	vmax *= vid_buffer_width;
 #ifdef USE_SDL3
-	if (!SDL_LockTexture(texture, NULL, (void**)&pixels, &pitch))
+	if (!SDL_LockTexture(texture, &rect, (void**)&pixels, &pitch))
 #else
-	if (SDL_LockTexture(texture, NULL, (void**)&pixels, &pitch))
+	if (SDL_LockTexture(texture, &rect, (void**)&pixels, &pitch))
 #endif
 	{
 		Com_Printf("Can't lock texture: %s\n", SDL_GetError());
