@@ -37,6 +37,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 viddef_t	vid;
 pixel_t		*vid_buffer = NULL;
 static pixel_t	*swap_buffers = NULL;
+static byte	*screen_buffer = NULL;
 static pixel_t	*swap_frames[2] = {NULL, NULL};
 static int	swap_current = 0;
 espan_t		*vid_polygon_spans = NULL;
@@ -2040,6 +2041,13 @@ RE_ShutdownContext(void)
 	{
 		free(swap_buffers);
 	}
+
+	if (screen_buffer)
+	{
+		free(screen_buffer);
+	}
+
+	screen_buffer = NULL;
 	swap_buffers = NULL;
 	vid_buffer = NULL;
 	swap_frames[0] = NULL;
@@ -2155,44 +2163,55 @@ point math used in R_ScanEdges() overflows at width 2048 !!
 char shift_size;
 
 static void
-RE_CopyFrame (Uint32 * pixels, int pitch, int vmin, int vmax)
+RE_CopyToScreenBuffer(int vmin, int vmax)
 {
-	const Uint32 *sdl_palette = (Uint32 *)sw_state.currentpalette;
+	const unsigned *sdl_palette, *max_pixels;
+	unsigned *pixels_pos;
+	pixel_t *buffer_pos;
 
-	// no gaps between images rows
+	sdl_palette = (unsigned *)sw_state.currentpalette;
+	buffer_pos = vid_buffer + vmin;
+
+	max_pixels = (unsigned *)screen_buffer + vmax;
+	pixels_pos = (unsigned *)screen_buffer + vmin;
+
+	while (pixels_pos < max_pixels)
+	{
+		*pixels_pos = sdl_palette[*buffer_pos];
+		buffer_pos++;
+		pixels_pos++;
+	}
+
+	if ((sw_anisotropic->value > 0) && !fastmoving)
+	{
+		SmoothColorImage((unsigned *)screen_buffer + vmin, vmax - vmin,
+			sw_anisotropic->value);
+	}
+}
+
+static void
+RE_CopyFrame(Uint32 * pixels, int pitch, int vmin, int vmax)
+{
+	/* no gaps between images rows */
 	if (pitch == vid_buffer_width)
 	{
-		const Uint32	*max_pixels;
-		Uint32	*pixels_pos;
-		pixel_t	*buffer_pos;
-
-		max_pixels = pixels + vmax;
-		buffer_pos = vid_buffer + vmin;
-
-		pixels_pos = pixels + vmin;
-
-		while ( pixels_pos < max_pixels)
-		{
-			*pixels_pos = sdl_palette[*buffer_pos];
-			buffer_pos++;
-			pixels_pos++;
-		}
+		memcpy(pixels + vmin, (unsigned *)screen_buffer + vmin,
+			(vmax - vmin) * 4);
 	}
 	else
 	{
-		int y,x, buffer_pos, ymin, ymax;
+		int y, buffer_pos, ymin, ymax;
 
 		ymin = vmin / vid_buffer_width;
 		ymax = vmax / vid_buffer_width;
 
 		buffer_pos = ymin * vid_buffer_width;
 		pixels += ymin * pitch;
-		for (y=ymin; y < ymax;  y++)
+
+		for (y = ymin; y < ymax; y++)
 		{
-			for (x=0; x < vid_buffer_width; x ++)
-			{
-				pixels[x] = sdl_palette[vid_buffer[buffer_pos + x]];
-			}
+			memcpy(pixels, (unsigned *)screen_buffer + buffer_pos,
+				vid_buffer_width * 4);
 			pixels += pitch;
 			buffer_pos += vid_buffer_width;
 		}
@@ -2273,6 +2292,8 @@ RE_FlushFrame(int vmin, int vmax)
 		return;
 	}
 
+	RE_CopyToScreenBuffer(vmin, vmax);
+
 #ifdef USE_SDL3
 	if (!SDL_LockTexture(texture, NULL, (void**)&pixels, &pitch))
 #else
@@ -2291,12 +2312,8 @@ RE_FlushFrame(int vmin, int vmax)
 	{
 		// On MacOS texture is cleaned up after render,
 		// code have to copy a whole screen to the texture
-		RE_CopyFrame (pixels, pitch / sizeof(Uint32), 0, vid_buffer_height * vid_buffer_width);
-	}
-
-	if ((sw_anisotropic->value > 0) && !fastmoving)
-	{
-		SmoothColorImage(pixels + vmin, vmax - vmin, sw_anisotropic->value);
+		RE_CopyFrame(pixels, pitch / sizeof(Uint32), 0,
+			vid_buffer_height * vid_buffer_width);
 	}
 
 	SDL_UnlockTexture(texture);
@@ -2486,6 +2503,7 @@ static void
 SWimp_CreateRender(int width, int height)
 {
 	swap_current = 0;
+	screen_buffer = malloc(height * width * 4);
 	swap_buffers = malloc(height * width * sizeof(pixel_t) * 2);
 	if (!swap_buffers)
 	{
@@ -2584,7 +2602,7 @@ R_ScreenShot_f(void)
 
 	for (x=0; x < vid_buffer_width; x ++)
 	{
-		for (y=0; y < vid_buffer_height; y ++) {
+		for (y = 0; y < vid_buffer_height; y ++) {
 			int buffer_pos = y * vid_buffer_width + x;
 			buffer[buffer_pos * 3 + 0] = palette[vid_buffer[buffer_pos] * 4 + 2]; // red
 			buffer[buffer_pos * 3 + 1] = palette[vid_buffer[buffer_pos] * 4 + 1]; // green
