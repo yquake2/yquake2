@@ -68,8 +68,8 @@ jobs:
         cp doc/080_contributing.md publish/quake2-win64-${{github.sha}}/misc/docs/080_contributing.txt
         cp doc/090_filelists.md publish/quake2-win64-${{github.sha}}/misc/docs/090_filelists.md
         # SDL3
-        wget -c https://github.com/libsdl-org/SDL/releases/download/release-3.2.16/SDL3-3.2.16-win32-x64.zip
-        unzip -o SDL3-3.2.16-win32-x64.zip
+        wget -c https://github.com/libsdl-org/SDL/releases/download/release-3.2.18/SDL3-3.2.18-win32-x64.zip
+        unzip -o SDL3-3.2.18-win32-x64.zip
         cp SDL3.dll publish/quake2-win64-${{github.sha}}/
         # openal-soft
         wget -c https://github.com/kcat/openal-soft/releases/download/1.23.1/openal-soft-1.23.1-bin.zip

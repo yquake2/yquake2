@@ -1497,7 +1497,7 @@ RI_Init(void)
 	R_Printf(PRINT_ALL, "Client: " YQ2VERSION "\n\n");
 
 #ifdef DEBUG
-	R_Printf(PRINT_ALL, "ref_gl1::R_Init() - DEBUG mode enabled\n");
+	R_Printf(PRINT_ALL, "ref_gl1::%s - DEBUG mode enabled\n", __func__);
 #endif
 
 	GetPCXPalette (&colormap, d_8to24table);
@@ -1516,7 +1516,7 @@ RI_Init(void)
 	if (!R_SetMode())
 	{
 		QGL_Shutdown();
-		R_Printf(PRINT_ALL, "ref_gl::R_Init() - could not R_SetMode()\n");
+		R_Printf(PRINT_ALL, "ref_gl1::%s - could not R_SetMode()\n", __func__);
 		return false;
 	}
 
@@ -1827,17 +1827,10 @@ RI_BeginFrame(float camera_separation)
 	{
 		int obb_val = (int)gl1_overbrightbits->value;
 
-		if (obb_val < 0)
-		{
-			obb_val = 0;
-		}
-		else if (obb_val == 3)
+		obb_val = Q_clamp(obb_val, 0, 4);
+		if (obb_val == 3)	// allowed values: 0,1,2,4
 		{
 			obb_val = 2;
-		}
-		else if (obb_val > 4)
-		{
-			obb_val = 4;
 		}
 
 		ri.Cvar_SetValue("gl1_overbrightbits", obb_val);

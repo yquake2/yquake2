@@ -666,9 +666,9 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
 
 * **joy_confirm**: Style of *confirm* and *cancel* buttons in menus. As
   with the previous one, SDL 2.0.12 is required for `-1` to work.
-  - `-1`: *Autodetect*, sets to `1` if Nintendo, `0` otherwise
-  - `0`: SOUTH to confirm, EAST to cancel (standard style)
-  - `1`: EAST to confirm, SOUTH to cancel (Japanese style)
+  - `-1`: *Autodetect*, sets to `1` if Nintendo gamepad, `0` otherwise
+  - `0`: *Standard style*: SOUTH to confirm, EAST to cancel
+  - `1`: *Japanese style*: EAST to confirm, SOUTH to cancel
 
 * **joy_sensitivity**: Simple sensitivity adjustment for yaw and pitch.
   Changing this applies a preset that adjusts the advanced cvars listed
@@ -689,10 +689,10 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
 
 * **joy_layout**: Allows to select the stick layout of the gamepad.
   - `0`: *Default*, left stick moves, right aims
-  - `1`: *Southpaw*, same as previous one with inverted sticks
+  - `1`: *Southpaw*, left stick aims, right moves
   - `2`: *Legacy*, left moves forward/backward and turns, right strafes
          and looks up/down
-  - `3`: *Legacy Southpaw*, inverted sticks version of previous one
+  - `3`: *Legacy Southpaw*, swapped sticks version of previous one
   - `4`: *Flick Stick*, left stick moves, right checks your surroundings
          in 360º, gyro required for looking up/down
   - `5`: *Flick Stick Southpaw*, swapped sticks version of last one
@@ -719,6 +719,9 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
   controllers. Additionally, this cvar defines the boundary where any
   extra yaw or pitch speed is applied. Default `0.02`(outer 2% of stick
   range).
+
+* **joy_trigger**: Trigger pressure required to register it as a
+  button press. Default `0.2` (20% of total trigger displacement).
 
 * **joy_flick_threshold**: Used only with Flick Stick, specifies the
   distance from the center of the stick that will make the player flick
