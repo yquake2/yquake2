@@ -26,22 +26,9 @@
  */
 
 extern void ReadLevel ( const char * filename ) ;
-extern void ReadLevelLocals ( FILE * f ) ;
-extern void ReadEdict ( FILE * f , edict_t * ent ) ;
 extern void WriteLevel ( const char * filename ) ;
-extern void WriteLevelLocals ( FILE * f ) ;
-extern void WriteEdict ( FILE * f , edict_t * ent ) ;
 extern void ReadGame ( const char * filename ) ;
 extern void WriteGame ( const char * filename , qboolean autosave ) ;
-extern void ReadClient ( FILE * f , gclient_t * client , short save_ver ) ;
-extern void WriteClient ( FILE * f , gclient_t * client ) ;
-extern void ReadField ( FILE * f , field_t * field , byte * base ) ;
-extern void WriteField2 ( FILE * f , field_t * field , byte * base ) ;
-extern void WriteField1 ( FILE * f , field_t * field , byte * base ) ;
-extern mmove_t * FindMmoveByName ( char * name ) ;
-extern mmoveList_t * GetMmoveByAddress ( mmove_t * adr ) ;
-extern byte * FindFunctionByName ( char * name ) ;
-extern functionList_t * GetFunctionByAddress ( byte * adr ) ;
 extern void InitGame ( void ) ;
 extern void Info_SetValueForKey ( char * s , char * key , char * value ) ;
 extern qboolean Info_Validate ( char * s ) ;
