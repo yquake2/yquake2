@@ -1382,10 +1382,10 @@ SetupGL(void)
 	int x, x2, y2, y, w, h;
 
 	/* set up viewport */
-	x = floor(gl3_newrefdef.x * vid.width / vid.width);
-	x2 = ceil((gl3_newrefdef.x + gl3_newrefdef.width) * vid.width / vid.width);
-	y = floor(vid.height - gl3_newrefdef.y * vid.height / vid.height);
-	y2 = ceil(vid.height - (gl3_newrefdef.y + gl3_newrefdef.height) * vid.height / vid.height);
+	x = floor(gl3_newrefdef.x * vid.width / (float)vid.width);
+	x2 = ceil((gl3_newrefdef.x + gl3_newrefdef.width) * vid.width / (float)vid.width);
+	y = floor(vid.height - gl3_newrefdef.y * vid.height / (float)vid.height);
+	y2 = ceil(vid.height - (gl3_newrefdef.y + gl3_newrefdef.height) * vid.height / (float)vid.height);
 
 	w = x2 - x;
 	h = y - y2;

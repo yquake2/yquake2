@@ -37,7 +37,7 @@ typedef struct vrect_s {
 // Hold the video state.
 typedef struct {
 	int height;
-	int	width;
+	int width;
 } viddef_t;
 
 // Global video state.

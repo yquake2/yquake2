@@ -146,13 +146,13 @@ Mod_LoadSubmodels(gl3model_t *loadmodel, byte *mod_base, lump_t *l)
 	{
 		if (i == 0)
 		{
-			// copy parent as template for first model
+			/* copy parent as template for first model */
 			memcpy(out, loadmodel, sizeof(*out));
 		}
 		else
 		{
-			// copy first as template for model
-			memcpy(out, loadmodel->submodels, sizeof(*out));
+			/* copy first as template for model */
+			memmove(out, loadmodel->submodels, sizeof(*out));
 		}
 
 		Com_sprintf (out->name, sizeof(out->name), "*%d", i);

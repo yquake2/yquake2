@@ -769,11 +769,11 @@ R_SetupGL(void)
 	int x, x2, y2, y, w, h;
 
 	/* set up viewport */
-	x = floor(r_newrefdef.x * vid.width / vid.width);
-	x2 = ceil((r_newrefdef.x + r_newrefdef.width) * vid.width / vid.width);
-	y = floor(vid.height - r_newrefdef.y * vid.height / vid.height);
+	x = floor(r_newrefdef.x * vid.width / (float)vid.width);
+	x2 = ceil((r_newrefdef.x + r_newrefdef.width) * vid.width / (float)vid.width);
+	y = floor(vid.height - r_newrefdef.y * vid.height / (float)vid.height);
 	y2 = ceil(vid.height -
-			  (r_newrefdef.y + r_newrefdef.height) * vid.height / vid.height);
+			  (r_newrefdef.y + r_newrefdef.height) * vid.height / (float)vid.height);
 
 	w = x2 - x;
 	h = y - y2;
