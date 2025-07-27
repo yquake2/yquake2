@@ -178,6 +178,10 @@ typedef struct mleaf_s
 	int		key;	/* BSP sequence number for leaf's contents */
 } mleaf_t;
 
+/* screen size info */
+extern refdef_t r_newrefdef;
+extern viddef_t vid;
+
 /* Shared models func */
 typedef struct image_s* (*findimage_t)(const char *name, imagetype_t type);
 extern void *Mod_LoadMD2 (const char *mod_name, const void *buffer, int modfilelen,

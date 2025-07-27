@@ -34,7 +34,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #define MAXALIASVERTS		2048
 #define MAXLIGHTS		1024 // allow some very large lightmaps
 
-viddef_t	vid;
 pixel_t		*vid_buffer = NULL;
 static pixel_t	*swap_buffers = NULL;
 static pixel_t	*swap_frames[2] = {NULL, NULL};
@@ -59,8 +58,6 @@ refimport_t	ri;
 byte		d_8to24table[256 * 4];
 
 vec3_t		skyaxis;
-
-refdef_t	r_newrefdef;
 
 model_t		*r_worldmodel;
 

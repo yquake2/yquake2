@@ -240,7 +240,7 @@ GL3_Draw_TileClear(int x, int y, int w, int h, const char *pic)
 void
 GL3_DrawFrameBufferObject(int x, int y, int w, int h, GLuint fboTexture, const float v_blend[4])
 {
-	qboolean underwater = (gl3_newrefdef.rdflags & RDF_UNDERWATER) != 0;
+	qboolean underwater = (r_newrefdef.rdflags & RDF_UNDERWATER) != 0;
 	gl3ShaderInfo_t* shader = underwater ? &gl3state.si2DpostProcessWater
 	                                     : &gl3state.si2DpostProcess;
 	GL3_UseProgram(shader->shaderProgram);
@@ -248,7 +248,7 @@ GL3_DrawFrameBufferObject(int x, int y, int w, int h, GLuint fboTexture, const f
 
 	if(underwater && shader->uniLmScalesOrTime != -1)
 	{
-		glUniform1f(shader->uniLmScalesOrTime, gl3_newrefdef.time);
+		glUniform1f(shader->uniLmScalesOrTime, r_newrefdef.time);
 	}
 	if(shader->uniVblend != -1)
 	{

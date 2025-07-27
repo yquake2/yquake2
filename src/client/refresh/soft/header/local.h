@@ -95,7 +95,6 @@ typedef enum
 /* 64 light grades available */
 #define LIGHTMASK		0xFF00
 
-extern viddef_t	vid;
 extern pixel_t	*vid_buffer;	// invisible buffer
 extern pixel_t	*vid_colormap;	// 256 * VID_GRADES size
 extern pixel_t	*vid_alphamap;	// 256 * 256 translucency map
@@ -559,8 +558,6 @@ void R_PrintTimes (void);
 void R_PrintDSpeeds (void);
 void R_LightPoint (const entity_t *currententity, vec3_t p, vec3_t color);
 void R_SetupFrame (void);
-
-extern  refdef_t		r_newrefdef;
 
 extern  surfcache_t	*sc_base;
 

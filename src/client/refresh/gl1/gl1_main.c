@@ -28,7 +28,6 @@
 
 #define NUM_BEAM_SEGS 6
 
-viddef_t vid;
 model_t *r_worldmodel;
 
 float gldepthmin, gldepthmax;
@@ -60,8 +59,6 @@ float r_world_matrix[16];
 float r_base_world_matrix[16];
 
 /* screen size info */
-refdef_t r_newrefdef;
-
 int r_viewcluster, r_viewcluster2, r_oldviewcluster, r_oldviewcluster2;
 unsigned r_rawpalette[256];
 

@@ -251,7 +251,7 @@ GL3_LM_BeginBuildingLightmaps(gl3model_t *m)
 		lightstyles[i].white = 3;
 	}
 
-	gl3_newrefdef.lightstyles = lightstyles;
+	r_newrefdef.lightstyles = lightstyles;
 
 	gl3_lms.current_lightmap_texture = 0;
 

@@ -79,9 +79,6 @@
 #define GL1_GAMMATABLE
 #endif
 
-extern viddef_t vid;
-
-
 enum stereo_modes {
 	STEREO_MODE_NONE,
 	STEREO_MODE_OPENGL,
@@ -177,7 +174,6 @@ extern vec3_t vright;
 extern vec3_t r_origin;
 
 /* screen size info */
-extern refdef_t r_newrefdef;
 extern int r_viewcluster, r_viewcluster2, r_oldviewcluster, r_oldviewcluster2;
 
 extern qboolean IsHighDPIaware;
