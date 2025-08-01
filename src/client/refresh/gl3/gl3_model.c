@@ -86,7 +86,7 @@ GL3_Mod_Modellist_f(void)
 
 	total = 0;
 	used = 0;
-	R_Printf(PRINT_ALL, "Loaded models:\n");
+	Com_Printf("Loaded models:\n");
 
 	for (i = 0, mod = mod_known; i < mod_numknown; i++, mod++)
 	{
@@ -103,15 +103,15 @@ GL3_Mod_Modellist_f(void)
 			continue;
 		}
 
-		R_Printf(PRINT_ALL, "%8i : %s %s\n",
+		Com_Printf("%8i : %s %s\n",
 			mod->extradatasize, mod->name, in_use);
 		total += mod->extradatasize;
 	}
 
-	R_Printf(PRINT_ALL, "Total resident: %i\n", total);
+	Com_Printf("Total resident: %i\n", total);
 	// update statistics
 	freeup = Mod_HasFreeSpace();
-	R_Printf(PRINT_ALL, "Used %d of %d models%s.\n", used, mod_max, freeup ? ", has free space" : "");
+	Com_Printf("Used %d of %d models%s.\n", used, mod_max, freeup ? ", has free space" : "");
 }
 
 void

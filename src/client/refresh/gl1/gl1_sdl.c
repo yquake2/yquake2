@@ -136,7 +136,7 @@ int RI_PrepareForWindow(void)
 		if (SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1) < 0)
 #endif
 		{
-			R_Printf(PRINT_ALL, "MSAA is unsupported: %s\n", SDL_GetError());
+			Com_Printf("MSAA is unsupported: %s\n", SDL_GetError());
 
 			ri.Cvar_SetValue ("r_msaa_samples", 0);
 
@@ -149,7 +149,7 @@ int RI_PrepareForWindow(void)
 		else if (SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, msaa_samples) < 0)
 #endif
 		{
-			R_Printf(PRINT_ALL, "MSAA %ix is unsupported: %s\n", msaa_samples, SDL_GetError());
+			Com_Printf("MSAA %ix is unsupported: %s\n", msaa_samples, SDL_GetError());
 
 			ri.Cvar_SetValue("r_msaa_samples", 0);
 
@@ -194,7 +194,7 @@ void RI_SetVsync(void)
 		{
 			// Not every system supports adaptive
 			// vsync, fallback to normal vsync.
-			R_Printf(PRINT_ALL, "Failed to set adaptive vsync, reverting to normal vsync.\n");
+			Com_Printf("Failed to set adaptive vsync, reverting to normal vsync.\n");
 			SDL_GL_SetSwapInterval(1);
 		}
 	}
@@ -203,7 +203,7 @@ void RI_SetVsync(void)
 	int vsyncState;
 	if (!SDL_GL_GetSwapInterval(&vsyncState))
 	{
-		R_Printf(PRINT_ALL, "Failed to get vsync state, assuming vsync inactive.\n");
+		Com_Printf("Failed to get vsync state, assuming vsync inactive.\n");
 		vsyncActive = false;
 	}
 	else
@@ -233,7 +233,7 @@ RI_UpdateGamma(void)
 
 	if (SDL_SetWindowGammaRamp(window, ramp, ramp, ramp) != 0)
 	{
-		R_Printf(PRINT_ALL, "Setting gamma failed: %s\n", SDL_GetError());
+		Com_Printf("Setting gamma failed: %s\n", SDL_GetError());
 	}
 #endif
 }
@@ -259,7 +259,7 @@ int RI_InitContext(void* win)
 
 	if (context == NULL)
 	{
-		R_Printf(PRINT_ALL, "%s: Creating OpenGL Context failed: %s\n", __func__, SDL_GetError());
+		Com_Printf("%s: Creating OpenGL Context failed: %s\n", __func__, SDL_GetError());
 
 		window = NULL;
 
@@ -271,13 +271,13 @@ int RI_InitContext(void* win)
 	// Load GL pointers through GLAD and check context.
 	if( !gladLoadGLES1Loader( (void * (*)(const char *)) SDL_GL_GetProcAddress ) )
 	{
-		R_Printf(PRINT_ALL, "%s ERROR: loading OpenGL ES function pointers failed!\n", __func__);
+		Com_Printf("%s ERROR: loading OpenGL ES function pointers failed!\n", __func__);
 		return false;
 	}
 
 	gl_config.major_version = GLVersion.major;
 	gl_config.minor_version = GLVersion.minor;
-	R_Printf(PRINT_ALL, "Initialized OpenGL ES version %d.%d context\n", gl_config.major_version, gl_config.minor_version);
+	Com_Printf("Initialized OpenGL ES version %d.%d context\n", gl_config.major_version, gl_config.minor_version);
 
 #else
 
@@ -287,7 +287,7 @@ int RI_InitContext(void* win)
 
 	if (gl_config.major_version < 1 || (gl_config.major_version == 1 && gl_config.minor_version < 4))
 	{
-		R_Printf(PRINT_ALL, "%s: Got an OpenGL version %d.%d context - need (at least) 1.4!\n", __func__, gl_config.major_version, gl_config.minor_version);
+		Com_Printf("%s: Got an OpenGL version %d.%d context - need (at least) 1.4!\n", __func__, gl_config.major_version, gl_config.minor_version);
 
 		return false;
 	}

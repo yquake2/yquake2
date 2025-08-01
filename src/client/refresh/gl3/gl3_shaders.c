@@ -905,7 +905,7 @@ initShader2D(gl3ShaderInfo_t* shaderInfo, const char* vertSrc, const char* fragS
 
 	if(shaderInfo->shaderProgram != 0)
 	{
-		R_Printf(PRINT_ALL, "WARNING: calling initShader2D for gl3ShaderInfo_t that already has a shaderProgram!\n");
+		Com_Printf("WARNING: calling initShader2D for gl3ShaderInfo_t that already has a shaderProgram!\n");
 		glDeleteProgram(shaderInfo->shaderProgram);
 	}
 
@@ -946,7 +946,7 @@ initShader2D(gl3ShaderInfo_t* shaderInfo, const char* vertSrc, const char* fragS
 		glGetActiveUniformBlockiv(prog, blockIndex, GL_UNIFORM_BLOCK_DATA_SIZE, &blockSize);
 		if(blockSize != sizeof(gl3state.uniCommonData))
 		{
-			R_Printf(PRINT_ALL, "WARNING: OpenGL driver disagrees with us about UBO size of 'uniCommon': %i vs %i\n",
+			Com_Printf("WARNING: OpenGL driver disagrees with us about UBO size of 'uniCommon': %i vs %i\n",
 					blockSize, (int)sizeof(gl3state.uniCommonData));
 
 			goto err_cleanup;
@@ -956,7 +956,7 @@ initShader2D(gl3ShaderInfo_t* shaderInfo, const char* vertSrc, const char* fragS
 	}
 	else
 	{
-		R_Printf(PRINT_ALL, "WARNING: Couldn't find uniform block index 'uniCommon'\n");
+		Com_Printf("WARNING: Couldn't find uniform block index 'uniCommon'\n");
 		// TODO: clean up?
 		return false;
 	}
@@ -967,7 +967,7 @@ initShader2D(gl3ShaderInfo_t* shaderInfo, const char* vertSrc, const char* fragS
 		glGetActiveUniformBlockiv(prog, blockIndex, GL_UNIFORM_BLOCK_DATA_SIZE, &blockSize);
 		if(blockSize != sizeof(gl3state.uni2DData))
 		{
-			R_Printf(PRINT_ALL, "WARNING: OpenGL driver disagrees with us about UBO size of 'uni2D'\n");
+			Com_Printf("WARNING: OpenGL driver disagrees with us about UBO size of 'uni2D'\n");
 			goto err_cleanup;
 		}
 
@@ -975,7 +975,7 @@ initShader2D(gl3ShaderInfo_t* shaderInfo, const char* vertSrc, const char* fragS
 	}
 	else
 	{
-		R_Printf(PRINT_ALL, "WARNING: Couldn't find uniform block index 'uni2D'\n");
+		Com_Printf("WARNING: Couldn't find uniform block index 'uni2D'\n");
 		goto err_cleanup;
 	}
 
@@ -1009,7 +1009,7 @@ initShader3D(gl3ShaderInfo_t* shaderInfo, const char* vertSrc, const char* fragS
 
 	if(shaderInfo->shaderProgram != 0)
 	{
-		R_Printf(PRINT_ALL, "WARNING: calling initShader3D for gl3ShaderInfo_t that already has a shaderProgram!\n");
+		Com_Printf("WARNING: calling initShader3D for gl3ShaderInfo_t that already has a shaderProgram!\n");
 		glDeleteProgram(shaderInfo->shaderProgram);
 	}
 
@@ -1044,7 +1044,7 @@ initShader3D(gl3ShaderInfo_t* shaderInfo, const char* vertSrc, const char* fragS
 		glGetActiveUniformBlockiv(prog, blockIndex, GL_UNIFORM_BLOCK_DATA_SIZE, &blockSize);
 		if(blockSize != sizeof(gl3state.uniCommonData))
 		{
-			R_Printf(PRINT_ALL, "WARNING: OpenGL driver disagrees with us about UBO size of 'uniCommon'\n");
+			Com_Printf("WARNING: OpenGL driver disagrees with us about UBO size of 'uniCommon'\n");
 
 			goto err_cleanup;
 		}
@@ -1053,7 +1053,7 @@ initShader3D(gl3ShaderInfo_t* shaderInfo, const char* vertSrc, const char* fragS
 	}
 	else
 	{
-		R_Printf(PRINT_ALL, "WARNING: Couldn't find uniform block index 'uniCommon'\n");
+		Com_Printf("WARNING: Couldn't find uniform block index 'uniCommon'\n");
 
 		goto err_cleanup;
 	}
@@ -1064,8 +1064,8 @@ initShader3D(gl3ShaderInfo_t* shaderInfo, const char* vertSrc, const char* fragS
 		glGetActiveUniformBlockiv(prog, blockIndex, GL_UNIFORM_BLOCK_DATA_SIZE, &blockSize);
 		if(blockSize != sizeof(gl3state.uni3DData))
 		{
-			R_Printf(PRINT_ALL, "WARNING: OpenGL driver disagrees with us about UBO size of 'uni3D'\n");
-			R_Printf(PRINT_ALL, "         driver says %d, we expect %d\n", blockSize, (int)sizeof(gl3state.uni3DData));
+			Com_Printf("WARNING: OpenGL driver disagrees with us about UBO size of 'uni3D'\n");
+			Com_Printf("         driver says %d, we expect %d\n", blockSize, (int)sizeof(gl3state.uni3DData));
 
 			goto err_cleanup;
 		}
@@ -1074,7 +1074,7 @@ initShader3D(gl3ShaderInfo_t* shaderInfo, const char* vertSrc, const char* fragS
 	}
 	else
 	{
-		R_Printf(PRINT_ALL, "WARNING: Couldn't find uniform block index 'uni3D'\n");
+		Com_Printf("WARNING: Couldn't find uniform block index 'uni3D'\n");
 
 		goto err_cleanup;
 	}
@@ -1085,8 +1085,8 @@ initShader3D(gl3ShaderInfo_t* shaderInfo, const char* vertSrc, const char* fragS
 		glGetActiveUniformBlockiv(prog, blockIndex, GL_UNIFORM_BLOCK_DATA_SIZE, &blockSize);
 		if(blockSize != sizeof(gl3state.uniLightsData))
 		{
-			R_Printf(PRINT_ALL, "WARNING: OpenGL driver disagrees with us about UBO size of 'uniLights'\n");
-			R_Printf(PRINT_ALL, "         OpenGL says %d, we say %d\n", blockSize, (int)sizeof(gl3state.uniLightsData));
+			Com_Printf("WARNING: OpenGL driver disagrees with us about UBO size of 'uniLights'\n");
+			Com_Printf("         OpenGL says %d, we say %d\n", blockSize, (int)sizeof(gl3state.uniLightsData));
 
 			goto err_cleanup;
 		}
@@ -1191,23 +1191,23 @@ static qboolean createShaders(void)
 {
 	if(!initShader2D(&gl3state.si2D, vertexSrc2D, fragmentSrc2D))
 	{
-		R_Printf(PRINT_ALL, "WARNING: Failed to create shader program for textured 2D rendering!\n");
+		Com_Printf("WARNING: Failed to create shader program for textured 2D rendering!\n");
 		return false;
 	}
 	if(!initShader2D(&gl3state.si2Dcolor, vertexSrc2Dcolor, fragmentSrc2Dcolor))
 	{
-		R_Printf(PRINT_ALL, "WARNING: Failed to create shader program for color-only 2D rendering!\n");
+		Com_Printf("WARNING: Failed to create shader program for color-only 2D rendering!\n");
 		return false;
 	}
 
 	if(!initShader2D(&gl3state.si2DpostProcess, vertexSrc2D, fragmentSrc2Dpostprocess))
 	{
-		R_Printf(PRINT_ALL, "WARNING: Failed to create shader program to render framebuffer object!\n");
+		Com_Printf("WARNING: Failed to create shader program to render framebuffer object!\n");
 		return false;
 	}
 	if(!initShader2D(&gl3state.si2DpostProcessWater, vertexSrc2D, fragmentSrc2DpostprocessWater))
 	{
-		R_Printf(PRINT_ALL, "WARNING: Failed to create shader program to render framebuffer object under water!\n");
+		Com_Printf("WARNING: Failed to create shader program to render framebuffer object under water!\n");
 		return false;
 	}
 
@@ -1216,64 +1216,64 @@ static qboolean createShaders(void)
 
 	if(!initShader3D(&gl3state.si3Dlm, vertexSrc3Dlm, lightmappedFrag))
 	{
-		R_Printf(PRINT_ALL, "WARNING: Failed to create shader program for textured 3D rendering with lightmap!\n");
+		Com_Printf("WARNING: Failed to create shader program for textured 3D rendering with lightmap!\n");
 		return false;
 	}
 	if(!initShader3D(&gl3state.si3Dtrans, vertexSrc3D, fragmentSrc3D))
 	{
-		R_Printf(PRINT_ALL, "WARNING: Failed to create shader program for rendering translucent 3D things!\n");
+		Com_Printf("WARNING: Failed to create shader program for rendering translucent 3D things!\n");
 		return false;
 	}
 	if(!initShader3D(&gl3state.si3DcolorOnly, vertexSrc3D, fragmentSrc3Dcolor))
 	{
-		R_Printf(PRINT_ALL, "WARNING: Failed to create shader program for flat-colored 3D rendering!\n");
+		Com_Printf("WARNING: Failed to create shader program for flat-colored 3D rendering!\n");
 		return false;
 	}
 	/*
 	if(!initShader3D(&gl3state.si3Dlm, vertexSrc3Dlm, fragmentSrc3D))
 	{
-		R_Printf(PRINT_ALL, "WARNING: Failed to create shader program for blending 3D lightmaps rendering!\n");
+		Com_Printf("WARNING: Failed to create shader program for blending 3D lightmaps rendering!\n");
 		return false;
 	}
 	*/
 	if(!initShader3D(&gl3state.si3Dturb, vertexSrc3Dwater, fragmentSrc3Dwater))
 	{
-		R_Printf(PRINT_ALL, "WARNING: Failed to create shader program for water rendering!\n");
+		Com_Printf("WARNING: Failed to create shader program for water rendering!\n");
 		return false;
 	}
 	if(!initShader3D(&gl3state.si3DlmFlow, vertexSrc3DlmFlow, lightmappedFrag))
 	{
-		R_Printf(PRINT_ALL, "WARNING: Failed to create shader program for scrolling textured 3D rendering with lightmap!\n");
+		Com_Printf("WARNING: Failed to create shader program for scrolling textured 3D rendering with lightmap!\n");
 		return false;
 	}
 	if(!initShader3D(&gl3state.si3DtransFlow, vertexSrc3Dflow, fragmentSrc3D))
 	{
-		R_Printf(PRINT_ALL, "WARNING: Failed to create shader program for scrolling textured translucent 3D rendering!\n");
+		Com_Printf("WARNING: Failed to create shader program for scrolling textured translucent 3D rendering!\n");
 		return false;
 	}
 	if(!initShader3D(&gl3state.si3Dsky, vertexSrc3D, fragmentSrc3Dsky))
 	{
-		R_Printf(PRINT_ALL, "WARNING: Failed to create shader program for sky rendering!\n");
+		Com_Printf("WARNING: Failed to create shader program for sky rendering!\n");
 		return false;
 	}
 	if(!initShader3D(&gl3state.si3Dsprite, vertexSrc3D, fragmentSrc3Dsprite))
 	{
-		R_Printf(PRINT_ALL, "WARNING: Failed to create shader program for sprite rendering!\n");
+		Com_Printf("WARNING: Failed to create shader program for sprite rendering!\n");
 		return false;
 	}
 	if(!initShader3D(&gl3state.si3DspriteAlpha, vertexSrc3D, fragmentSrc3DspriteAlpha))
 	{
-		R_Printf(PRINT_ALL, "WARNING: Failed to create shader program for alpha-tested sprite rendering!\n");
+		Com_Printf("WARNING: Failed to create shader program for alpha-tested sprite rendering!\n");
 		return false;
 	}
 	if(!initShader3D(&gl3state.si3Dalias, vertexSrcAlias, fragmentSrcAlias))
 	{
-		R_Printf(PRINT_ALL, "WARNING: Failed to create shader program for rendering textured models!\n");
+		Com_Printf("WARNING: Failed to create shader program for rendering textured models!\n");
 		return false;
 	}
 	if(!initShader3D(&gl3state.si3DaliasColor, vertexSrcAlias, fragmentSrcAliasColor))
 	{
-		R_Printf(PRINT_ALL, "WARNING: Failed to create shader program for rendering flat-colored models!\n");
+		Com_Printf("WARNING: Failed to create shader program for rendering flat-colored models!\n");
 		return false;
 	}
 
@@ -1285,7 +1285,7 @@ static qboolean createShaders(void)
 
 	if(!initShader3D(&gl3state.siParticle, vertexSrcParticles, particleFrag))
 	{
-		R_Printf(PRINT_ALL, "WARNING: Failed to create shader program for rendering particles!\n");
+		Com_Printf("WARNING: Failed to create shader program for rendering particles!\n");
 		return false;
 	}
 

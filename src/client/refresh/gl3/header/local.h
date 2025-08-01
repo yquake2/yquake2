@@ -63,7 +63,7 @@
 		static int show=1; \
 		if(show) { \
 			show = 0; \
-			R_Printf(PRINT_ALL, "STUB: %s() %s\n", __FUNCTION__, msg); \
+			Com_Printf("STUB: %s() %s\n", __FUNCTION__, msg); \
 		} \
 	} while(0);
 #else // .. so make this a no-op in released code

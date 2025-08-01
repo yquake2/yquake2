@@ -182,19 +182,19 @@ static void
 GL3_Strings(void)
 {
 	GLint i, numExtensions;
-	R_Printf(PRINT_ALL, "GL_VENDOR: %s\n", gl3config.vendor_string);
-	R_Printf(PRINT_ALL, "GL_RENDERER: %s\n", gl3config.renderer_string);
-	R_Printf(PRINT_ALL, "GL_VERSION: %s\n", gl3config.version_string);
-	R_Printf(PRINT_ALL, "GL_SHADING_LANGUAGE_VERSION: %s\n", gl3config.glsl_version_string);
+	Com_Printf("GL_VENDOR: %s\n", gl3config.vendor_string);
+	Com_Printf("GL_RENDERER: %s\n", gl3config.renderer_string);
+	Com_Printf("GL_VERSION: %s\n", gl3config.version_string);
+	Com_Printf("GL_SHADING_LANGUAGE_VERSION: %s\n", gl3config.glsl_version_string);
 
 	glGetIntegerv(GL_NUM_EXTENSIONS, &numExtensions);
 
-	R_Printf(PRINT_ALL, "GL_EXTENSIONS:");
+	Com_Printf("GL_EXTENSIONS:");
 	for(i = 0; i < numExtensions; i++)
 	{
-		R_Printf(PRINT_ALL, " %s", (const char*)glGetStringi(GL_EXTENSIONS, i));
+		Com_Printf(" %s", (const char*)glGetStringi(GL_EXTENSIONS, i));
 	}
-	R_Printf(PRINT_ALL, "\n");
+	Com_Printf("\n");
 }
 
 static void
@@ -356,13 +356,13 @@ enum
 static int
 SetMode_impl(int *pwidth, int *pheight, int mode, int fullscreen)
 {
-	R_Printf(PRINT_ALL, "Setting mode %d:", mode);
+	Com_Printf("Setting mode %d:", mode);
 
 	/* mode -1 is not in the vid mode table - so we keep the values in pwidth
 	   and pheight and don't even try to look up the mode info */
 	if ((mode >= 0) && !ri.Vid_GetModeInfo(pwidth, pheight, mode))
 	{
-		R_Printf(PRINT_ALL, " invalid mode\n");
+		Com_Printf(" invalid mode\n");
 		return rserr_invalid_mode;
 	}
 
@@ -371,12 +371,12 @@ SetMode_impl(int *pwidth, int *pheight, int mode, int fullscreen)
 	{
 		if(!ri.GLimp_GetDesktopMode(pwidth, pheight))
 		{
-			R_Printf( PRINT_ALL, " can't detect mode\n" );
+			Com_Printf(" can't detect mode\n" );
 			return rserr_invalid_mode;
 		}
 	}
 
-	R_Printf(PRINT_ALL, " %dx%d (vid_fullscreen %i)\n", *pwidth, *pheight, fullscreen);
+	Com_Printf(" %dx%d (vid_fullscreen %i)\n", *pwidth, *pheight, fullscreen);
 
 	if (!ri.GLimp_InitGraphics(fullscreen, pwidth, pheight))
 	{
@@ -461,11 +461,11 @@ GL3_SetMode(void)
 	{
 		if (err == rserr_invalid_mode)
 		{
-			R_Printf(PRINT_ALL, "ref_gl3::GL3_SetMode() - invalid mode\n");
+			Com_Printf("ref_gl3::GL3_SetMode() - invalid mode\n");
 
 			if (gl_msaa_samples->value != 0.0f)
 			{
-				R_Printf(PRINT_ALL, "gl_msaa_samples was %d - will try again with gl_msaa_samples = 0\n", (int)gl_msaa_samples->value);
+				Com_Printf("gl_msaa_samples was %d - will try again with gl_msaa_samples = 0\n", (int)gl_msaa_samples->value);
 				ri.Cvar_SetValue("r_msaa_samples", 0.0f);
 				gl_msaa_samples->modified = false;
 
@@ -488,7 +488,7 @@ GL3_SetMode(void)
 		/* try setting it back to something safe */
 		if ((err = SetMode_impl(&vid.width, &vid.height, gl3state.prev_mode, 0)) != rserr_ok)
 		{
-			R_Printf(PRINT_ALL, "ref_gl3::GL3_SetMode() - could not revert to safe mode\n");
+			Com_Printf("ref_gl3::GL3_SetMode() - could not revert to safe mode\n");
 			return false;
 		}
 	}
@@ -506,15 +506,15 @@ GL3_Init(void)
 
 	Swap_Init(); // FIXME: for fucks sake, this doesn't have to be done at runtime!
 
-	R_Printf(PRINT_ALL, "Refresh: " REF_VERSION "\n");
-	R_Printf(PRINT_ALL, "Client: " YQ2VERSION "\n\n");
+	Com_Printf("Refresh: " REF_VERSION "\n");
+	Com_Printf("Client: " YQ2VERSION "\n\n");
 
 	if(sizeof(float) != sizeof(GLfloat))
 	{
 		// if this ever happens, things would explode because we feed vertex arrays and UBO data
 		// using floats to OpenGL, which expects GLfloat (can't easily change, those floats are from HMM etc)
 		// (but to be honest I very much doubt this will ever happen.)
-		R_Printf(PRINT_ALL, "ref_gl3: sizeof(float) != sizeof(GLfloat) - we're in real trouble here.\n");
+		Com_Printf("ref_gl3: sizeof(float) != sizeof(GLfloat) - we're in real trouble here.\n");
 		return false;
 	}
 
@@ -530,7 +530,7 @@ GL3_Init(void)
 	/* create the window and set up the context */
 	if (!GL3_SetMode())
 	{
-		R_Printf(PRINT_ALL, "ref_gl3::R_Init() - could not R_SetMode()\n");
+		Com_Printf("ref_gl3::R_Init() - could not R_SetMode()\n");
 		return false;
 	}
 
@@ -542,7 +542,7 @@ GL3_Init(void)
 	gl3config.version_string = (const char*)glGetString(GL_VERSION);
 	gl3config.glsl_version_string = (const char*)glGetString(GL_SHADING_LANGUAGE_VERSION);
 
-	R_Printf(PRINT_ALL, "\nOpenGL setting:\n");
+	Com_Printf("\nOpenGL setting:\n");
 	GL3_Strings();
 
 	/*
@@ -551,53 +551,53 @@ GL3_Init(void)
 		// if (gl_config.major_version == 3 && gl_config.minor_version < 2)
 		{
 			QGL_Shutdown();
-			R_Printf(PRINT_ALL, "Support for OpenGL 3.2 is not available\n");
+			Com_Printf("Support for OpenGL 3.2 is not available\n");
 
 			return false;
 		}
 	}
 	*/
 
-	R_Printf(PRINT_ALL, "\n\nProbing for OpenGL extensions:\n");
+	Com_Printf("\n\nProbing for OpenGL extensions:\n");
 
 
 	/* Anisotropic */
-	R_Printf(PRINT_ALL, " - Anisotropic Filtering: ");
+	Com_Printf(" - Anisotropic Filtering: ");
 
 	if(gl3config.anisotropic)
 	{
 		glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &gl3config.max_anisotropy);
 
-		R_Printf(PRINT_ALL, "Max level: %ux\n", (int)gl3config.max_anisotropy);
+		Com_Printf("Max level: %ux\n", (int)gl3config.max_anisotropy);
 	}
 	else
 	{
 		gl3config.max_anisotropy = 0.0;
 
-		R_Printf(PRINT_ALL, "Not supported\n");
+		Com_Printf("Not supported\n");
 	}
 
 	if(gl3config.debug_output)
 	{
-		R_Printf(PRINT_ALL, " - OpenGL Debug Output: Supported ");
+		Com_Printf(" - OpenGL Debug Output: Supported ");
 		if(gl3_debugcontext->value == 0.0f)
 		{
-			R_Printf(PRINT_ALL, "(but disabled with gl3_debugcontext = 0)\n");
+			Com_Printf("(but disabled with gl3_debugcontext = 0)\n");
 		}
 		else
 		{
-			R_Printf(PRINT_ALL, "and enabled with gl3_debugcontext = %i\n", (int)gl3_debugcontext->value);
+			Com_Printf("and enabled with gl3_debugcontext = %i\n", (int)gl3_debugcontext->value);
 		}
 	}
 	else
 	{
-		R_Printf(PRINT_ALL, " - OpenGL Debug Output: Not Supported\n");
+		Com_Printf(" - OpenGL Debug Output: Not Supported\n");
 	}
 
 	gl3config.useBigVBO = false;
 	if(gl3_usebigvbo->value == 1.0f)
 	{
-		R_Printf(PRINT_ALL, "Enabling useBigVBO workaround because gl3_usebigvbo = 1\n");
+		Com_Printf("Enabling useBigVBO workaround because gl3_usebigvbo = 1\n");
 		gl3config.useBigVBO = true;
 	}
 	else if(gl3_usebigvbo->value == -1.0f)
@@ -621,15 +621,15 @@ GL3_Init(void)
 				//  but AFAIK the number behind that can be used to roughly match the driver version)
 				// => let's try matching for x.y.z with z >= 13431
 				// (no, I don't feel like testing which release since 16.2.1 has introduced the slowdown.)
-				R_Printf(PRINT_ALL, "Detected AMD Windows GPU driver, enabling useBigVBO workaround\n");
+				Com_Printf("Detected AMD Windows GPU driver, enabling useBigVBO workaround\n");
 				gl3config.useBigVBO = true;
 			}
 		}
 #elif defined(__linux__)
 		if(gl3config.vendor_string != NULL && strstr(gl3config.vendor_string, "Advanced Micro Devices, Inc.") != NULL)
 		{
-			R_Printf(PRINT_ALL, "Detected proprietary AMD GPU driver, enabling useBigVBO workaround\n");
-			R_Printf(PRINT_ALL, "(consider using the open source RadeonSI drivers, they tend to work better overall)\n");
+			Com_Printf("Detected proprietary AMD GPU driver, enabling useBigVBO workaround\n");
+			Com_Printf("(consider using the open source RadeonSI drivers, they tend to work better overall)\n");
 			gl3config.useBigVBO = true;
 		}
 #endif
@@ -642,11 +642,11 @@ GL3_Init(void)
 
 	if(GL3_InitShaders())
 	{
-		R_Printf(PRINT_ALL, "Loading shaders succeeded.\n");
+		Com_Printf("Loading shaders succeeded.\n");
 	}
 	else
 	{
-		R_Printf(PRINT_ALL, "Loading shaders failed.\n");
+		Com_Printf("Loading shaders failed.\n");
 		return false;
 	}
 
@@ -665,7 +665,7 @@ GL3_Init(void)
 	// take the viewsize into account (enforce that by setting invalid size)
 	gl3state.ppFBtexWidth = gl3state.ppFBtexHeight = -1;
 
-	R_Printf(PRINT_ALL, "\n");
+	Com_Printf("\n");
 	return true;
 }
 
@@ -1448,7 +1448,7 @@ SetupGL(void)
 			GLenum fbState = glCheckFramebufferStatus(GL_FRAMEBUFFER);
 			if(fbState != GL_FRAMEBUFFER_COMPLETE)
 			{
-				R_Printf(PRINT_ALL, "GL3 SetupGL(): WARNING: FBO is not complete, status = 0x%x\n", fbState);
+				Com_Printf("GL3 SetupGL(): WARNING: FBO is not complete, status = 0x%x\n", fbState);
 				gl3state.ppFBtexWidth = -1; // to try again next frame; TODO: maybe give up?
 				gl3state.ppFBObound = false;
 				glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -1681,7 +1681,7 @@ GL3_RenderView(refdef_t *fd)
 
 	if (r_speeds->value)
 	{
-		R_Printf(PRINT_ALL, "%4i wpoly %4i epoly %i tex %i lmaps\n",
+		Com_Printf("%4i wpoly %4i epoly %i tex %i lmaps\n",
 				c_brush_polys, c_alias_polys, c_visible_textures,
 				c_visible_lightmaps);
 	}
@@ -1851,7 +1851,7 @@ GL3_BeginFrame(float camera_separation)
 		}
 		else
 		{
-			R_Printf(PRINT_ALL, "stereo supermode changed, restarting video!\n");
+			Com_Printf("stereo supermode changed, restarting video!\n");
 			vid_fullscreen->modified = true;
 		}
 	}
@@ -1911,7 +1911,7 @@ GL3_BeginFrame(float camera_separation)
 #ifdef YQ2_GL3_GLES
 		// OpenGL ES3 only supports GL_NONE, GL_BACK and GL_COLOR_ATTACHMENT*
 		// so this doesn't make sense here, see https://docs.gl/es3/glDrawBuffers
-		R_Printf(PRINT_ALL, "NOTE: gl_drawbuffer not supported by OpenGL ES!\n");
+		Com_Printf("NOTE: gl_drawbuffer not supported by OpenGL ES!\n");
 #else // Desktop GL
 		// TODO: stereo stuff
 		//if ((gl3state.camera_separation == 0) || gl3state.stereo_mode != STEREO_MODE_OPENGL)

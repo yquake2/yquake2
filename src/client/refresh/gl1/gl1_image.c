@@ -286,7 +286,7 @@ R_TextureMode(const char *string)
 
 	if (i == NUM_GL_MODES)
 	{
-		R_Printf(PRINT_ALL, "bad filter name\n");
+		Com_Printf("bad filter name\n");
 		return;
 	}
 
@@ -376,7 +376,7 @@ R_TextureAlphaMode(const char *string)
 
 	if (i == NUM_GL_ALPHA_MODES)
 	{
-		R_Printf(PRINT_ALL, "bad alpha texture mode name\n");
+		Com_Printf("bad alpha texture mode name\n");
 		return;
 	}
 
@@ -398,7 +398,7 @@ R_TextureSolidMode(const char *string)
 
 	if (i == NUM_GL_SOLID_MODES)
 	{
-		R_Printf(PRINT_ALL, "bad solid texture mode name\n");
+		Com_Printf("bad solid texture mode name\n");
 		return;
 	}
 
@@ -416,7 +416,7 @@ R_ImageList_f(void)
 		"PAL"
 	};
 
-	R_Printf(PRINT_ALL, "------------------\n");
+	Com_Printf("------------------\n");
 	texels = 0;
 	used = 0;
 
@@ -440,33 +440,32 @@ R_ImageList_f(void)
 		switch (image->type)
 		{
 			case it_skin:
-				R_Printf(PRINT_ALL, "M");
+				Com_Printf("M");
 				break;
 			case it_sprite:
-				R_Printf(PRINT_ALL, "S");
+				Com_Printf("S");
 				break;
 			case it_wall:
-				R_Printf(PRINT_ALL, "W");
+				Com_Printf("W");
 				break;
 			case it_pic:
-				R_Printf(PRINT_ALL, "P");
+				Com_Printf("P");
 				break;
 			default:
-				R_Printf(PRINT_ALL, " ");
+				Com_Printf(" ");
 				break;
 		}
 
-		R_Printf(PRINT_ALL, " %3i %3i %s: %s (%dx%d) %s\n",
+		Com_Printf(" %3i %3i %s: %s (%dx%d) %s\n",
 				image->upload_width, image->upload_height,
 				palstrings[image->paletted], image->name,
 				image->width, image->height, in_use);
 	}
 
-	R_Printf(PRINT_ALL,
-			"Total texel count (not counting mipmaps): %i\n",
+	Com_Printf("Total texel count (not counting mipmaps): %i\n",
 			texels);
 	freeup = R_ImageHasFreeSpace();
-	R_Printf(PRINT_ALL, "Used %d of %d images%s.\n", used, image_max, freeup ? ", has free space" : "");
+	Com_Printf("Used %d of %d images%s.\n", used, image_max, freeup ? ", has free space" : "");
 }
 
 /*
@@ -1182,7 +1181,7 @@ R_FindImage(const char *name, imagetype_t type)
 
 	if (!image && r_validation->value)
 	{
-		R_Printf(PRINT_ALL, "%s: can't load %s\n", __func__, name);
+		Com_Printf("%s: can't load %s\n", __func__, name);
 	}
 
 	return image;

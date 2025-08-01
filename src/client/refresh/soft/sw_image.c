@@ -39,7 +39,7 @@ R_ImageList_f (void)
 	image_t	*image;
 	qboolean	freeup;
 
-	R_Printf(PRINT_ALL, "------------------\n");
+	Com_Printf("------------------\n");
 	texels = 0;
 	used = 0;
 
@@ -59,29 +59,29 @@ R_ImageList_f (void)
 		switch (image->type)
 		{
 		case it_skin:
-			R_Printf(PRINT_ALL, "M");
+			Com_Printf("M");
 			break;
 		case it_sprite:
-			R_Printf(PRINT_ALL, "S");
+			Com_Printf("S");
 			break;
 		case it_wall:
-			R_Printf(PRINT_ALL, "W");
+			Com_Printf("W");
 			break;
 		case it_pic:
-			R_Printf(PRINT_ALL, "P");
+			Com_Printf("P");
 			break;
 		default:
-			R_Printf(PRINT_ALL, " ");
+			Com_Printf(" ");
 			break;
 		}
 
-		R_Printf(PRINT_ALL,  " %3i %3i : %s (%dx%d) %s\n",
+		Com_Printf(" %3i %3i : %s (%dx%d) %s\n",
 			image->asset_width, image->asset_height, image->name,
 			image->width, image->height, in_use);
 	}
-	R_Printf(PRINT_ALL, "Total texel count: %i\n", texels);
+	Com_Printf("Total texel count: %i\n", texels);
 	freeup = R_ImageHasFreeSpace();
-	R_Printf(PRINT_ALL, "Used %d of %d images%s.\n", used, image_max, freeup ? ", has free space" : "");
+	Com_Printf("Used %d of %d images%s.\n", used, image_max, freeup ? ", has free space" : "");
 }
 
 //=======================================================
@@ -555,7 +555,7 @@ R_FindImage(const char *name, imagetype_t type)
 
 	if (!image && r_validation->value)
 	{
-		R_Printf(PRINT_ALL, "%s: can't load %s\n", __func__, name);
+		Com_Printf("%s: can't load %s\n", __func__, name);
 	}
 
 	return image;

@@ -115,7 +115,7 @@ RDraw_StretchPic(int x, int y, int w, int h, const char *pic)
 
 	if (!gl)
 	{
-		R_Printf(PRINT_ALL, "Can't find pic: %s\n", pic);
+		Com_Printf("Can't find pic: %s\n", pic);
 		return;
 	}
 
@@ -139,7 +139,7 @@ RDraw_PicScaled(int x, int y, const char *pic, float factor)
 
 	if (!gl)
 	{
-		R_Printf(PRINT_ALL, "Can't find pic: %s\n", pic);
+		Com_Printf("Can't find pic: %s\n", pic);
 		return;
 	}
 
@@ -197,7 +197,7 @@ RDraw_TileClear(int x, int y, int w, int h, const char *pic)
 
 	if (!image)
 	{
-		R_Printf(PRINT_ALL, "Can't find pic: %s\n", pic);
+		Com_Printf("Can't find pic: %s\n", pic);
 		return;
 	}
 
