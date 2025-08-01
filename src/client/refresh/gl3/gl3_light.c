@@ -83,11 +83,11 @@ GL3_PushDlights(void)
 	/* because the count hasn't advanced yet for this frame */
 	r_dlightframecount = gl3_framecount + 1;
 
-	l = gl3_newrefdef.dlights;
+	l = r_newrefdef.dlights;
 
-	gl3state.uniLightsData.numDynLights = gl3_newrefdef.num_dlights;
+	gl3state.uniLightsData.numDynLights = r_newrefdef.num_dlights;
 
-	for (i = 0; i < gl3_newrefdef.num_dlights; i++, l++)
+	for (i = 0; i < r_newrefdef.num_dlights; i++, l++)
 	{
 		gl3UniDynLight* udl = &gl3state.uniLightsData.dynLights[i];
 		R_MarkLights(l, 1 << i, gl3_worldmodel->nodes, r_dlightframecount, GL3_MarkSurfaceLights);
@@ -207,7 +207,7 @@ RecursiveLightPoint(mnode_t *node, vec3_t start, vec3_t end)
 			const float *rgb;
 			int j;
 
-			rgb = gl3_newrefdef.lightstyles[surf->styles[maps]].rgb;
+			rgb = r_newrefdef.lightstyles[surf->styles[maps]].rgb;
 
 			/* Apply light level to models */
 			for (j = 0; j < 3; j++)
@@ -264,9 +264,9 @@ GL3_LightPoint(entity_t *currententity, vec3_t p, vec3_t color)
 	}
 
 	/* add dynamic lights */
-	dl = gl3_newrefdef.dlights;
+	dl = r_newrefdef.dlights;
 
-	for (lnum = 0; lnum < gl3_newrefdef.num_dlights; lnum++, dl++)
+	for (lnum = 0; lnum < r_newrefdef.num_dlights; lnum++, dl++)
 	{
 		VectorSubtract(currententity->origin,
 				dl->origin, dist);
@@ -297,7 +297,7 @@ GL3_BuildLightMap(msurface_t *surf, int offsetInLMbuf, int stride)
 	if (surf->texinfo->flags &
 		(SURF_SKY | SURF_TRANS33 | SURF_TRANS66 | SURF_WARP))
 	{
-		ri.Sys_Error(ERR_DROP, "GL3_BuildLightMap called for non-lit surface");
+		Com_Error(ERR_DROP, "GL3_BuildLightMap called for non-lit surface");
 	}
 
 	smax = (surf->extents[0] >> 4) + 1;
@@ -308,7 +308,7 @@ GL3_BuildLightMap(msurface_t *surf, int offsetInLMbuf, int stride)
 
 	if (size > 34*34*3)
 	{
-		ri.Sys_Error(ERR_DROP, "Bad s_blocklights size");
+		Com_Error(ERR_DROP, "Bad s_blocklights size");
 	}
 
 	// count number of lightmaps surf actually has

@@ -138,7 +138,7 @@ GL3_ScreenShot(void)
 
 	if (!buffer)
 	{
-		R_Printf(PRINT_ALL, "GL3_ScreenShot: Couldn't malloc %d bytes\n", w*h*3);
+		Com_Printf("GL3_ScreenShot: Couldn't malloc %d bytes\n", w*h*3);
 		return;
 	}
 

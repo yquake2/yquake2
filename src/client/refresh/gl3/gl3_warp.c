@@ -77,7 +77,7 @@ R_SubdividePolygon(int numverts, float *verts, msurface_t *warpface)
 
 	if (numverts > 60)
 	{
-		ri.Sys_Error(ERR_DROP, "numverts = %i", numverts);
+		Com_Error(ERR_DROP, "numverts = %i", numverts);
 	}
 
 	R_BoundPoly(numverts, verts, mins, maxs);
@@ -235,7 +235,7 @@ GL3_EmitWaterPolys(msurface_t *fa)
 
 	if (fa->texinfo->flags & SURF_FLOWING)
 	{
-		scroll = -64.0f * ((gl3_newrefdef.time * 0.5) - (int)(gl3_newrefdef.time * 0.5));
+		scroll = -64.0f * ((r_newrefdef.time * 0.5) - (int)(r_newrefdef.time * 0.5));
 		if (scroll == 0.0f) // this is done in GL3_DrawGLFlowingPoly() TODO: keep?
 		{
 			scroll = -64.0f;
@@ -345,7 +345,7 @@ GL3_SetSky(const char *name, float rotate, vec3_t axis)
 
 		if (!image)
 		{
-			R_Printf(PRINT_ALL, "%s: can't load %s:%s sky\n",
+			Com_Printf("%s: can't load %s:%s sky\n",
 				__func__, skyname, suf[i]);
 			image = gl3_notexture;
 		}
@@ -492,7 +492,7 @@ ClipSkyPolygon(int nump, vec3_t vecs, int stage)
 
 	if (nump > MAX_CLIP_VERTS - 2)
 	{
-		ri.Sys_Error(ERR_DROP, "R_ClipSkyPolygon: MAX_CLIP_VERTS");
+		Com_Error(ERR_DROP, "R_ClipSkyPolygon: MAX_CLIP_VERTS");
 	}
 
 	if (stage == 6)
@@ -704,9 +704,9 @@ GL3_DrawSkyBox(void)
 	hmm_mat4 modMVmat = HMM_MultiplyMat4(origModelMat, HMM_Translate(transl));
 	if(skyrotate != 0.0f)
 	{
-		// glRotatef(gl3_newrefdef.time * skyrotate, skyaxis[0], skyaxis[1], skyaxis[2]);
+		// glRotatef(r_newrefdef.time * skyrotate, skyaxis[0], skyaxis[1], skyaxis[2]);
 		hmm_vec3 rotAxis = HMM_Vec3(skyaxis[0], skyaxis[1], skyaxis[2]);
-		modMVmat = HMM_MultiplyMat4(modMVmat, HMM_Rotate(gl3_newrefdef.time * skyrotate, rotAxis));
+		modMVmat = HMM_MultiplyMat4(modMVmat, HMM_Rotate(r_newrefdef.time * skyrotate, rotAxis));
 	}
 	gl3state.uni3DData.transModelMat4 = modMVmat;
 	GL3_UpdateUBO3D();

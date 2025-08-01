@@ -118,6 +118,8 @@ enum {
 	SURF_UNDERWATER = 0x80
 };
 
+/* in memory representation */
+
 typedef struct mvertex_s
 {
 	vec3_t		position;
@@ -172,9 +174,13 @@ typedef struct mleaf_s
 	int		area;
 
 	struct msurface_s	**firstmarksurface;
-	int		nummarksurfaces;
+	unsigned int nummarksurfaces;
 	int		key;	/* BSP sequence number for leaf's contents */
 } mleaf_t;
+
+/* screen size info */
+extern refdef_t r_newrefdef;
+extern viddef_t vid;
 
 /* Shared models func */
 typedef struct image_s* (*findimage_t)(const char *name, imagetype_t type);

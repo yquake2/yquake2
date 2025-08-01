@@ -183,7 +183,7 @@ GL3_DrawGLFlowingPoly(msurface_t *fa)
 
 	p = fa->polys;
 
-	scroll = -64.0f * ((gl3_newrefdef.time / 40.0f) - (int)(gl3_newrefdef.time / 40.0f));
+	scroll = -64.0f * ((r_newrefdef.time / 40.0f) - (int)(r_newrefdef.time / 40.0f));
 
 	if (scroll == 0.0f)
 	{
@@ -319,9 +319,9 @@ RenderBrushPoly(entity_t *currententity, msurface_t *fa)
 	// Any dynamic lights on this surface?
 	for (map = 0; map < MAX_LIGHTMAPS_PER_SURFACE && fa->styles[map] != 255; map++)
 	{
-		lmScales[map].R = gl3_newrefdef.lightstyles[fa->styles[map]].rgb[0];
-		lmScales[map].G = gl3_newrefdef.lightstyles[fa->styles[map]].rgb[1];
-		lmScales[map].B = gl3_newrefdef.lightstyles[fa->styles[map]].rgb[2];
+		lmScales[map].R = r_newrefdef.lightstyles[fa->styles[map]].rgb[0];
+		lmScales[map].G = r_newrefdef.lightstyles[fa->styles[map]].rgb[1];
+		lmScales[map].B = r_newrefdef.lightstyles[fa->styles[map]].rgb[2];
 		lmScales[map].A = 1.0f;
 	}
 
@@ -452,9 +452,9 @@ RenderLightmappedPoly(entity_t *currententity, msurface_t *surf)
 	// Any dynamic lights on this surface?
 	for (map = 0; map < MAX_LIGHTMAPS_PER_SURFACE && surf->styles[map] != 255; map++)
 	{
-		lmScales[map].R = gl3_newrefdef.lightstyles[surf->styles[map]].rgb[0];
-		lmScales[map].G = gl3_newrefdef.lightstyles[surf->styles[map]].rgb[1];
-		lmScales[map].B = gl3_newrefdef.lightstyles[surf->styles[map]].rgb[2];
+		lmScales[map].R = r_newrefdef.lightstyles[surf->styles[map]].rgb[0];
+		lmScales[map].G = r_newrefdef.lightstyles[surf->styles[map]].rgb[1];
+		lmScales[map].B = r_newrefdef.lightstyles[surf->styles[map]].rgb[2];
 		lmScales[map].A = 1.0f;
 	}
 
@@ -487,9 +487,9 @@ DrawInlineBModel(entity_t *currententity, gl3model_t *currentmodel)
 	dlight_t *lt;
 
 	/* calculate dynamic lighting for bmodel */
-	lt = gl3_newrefdef.dlights;
+	lt = r_newrefdef.dlights;
 
-	for (k = 0; k < gl3_newrefdef.num_dlights; k++, lt++)
+	for (k = 0; k < r_newrefdef.num_dlights; k++, lt++)
 	{
 		R_MarkLights(lt, 1 << k, currentmodel->nodes + currentmodel->firstnode,
 			r_dlightframecount, GL3_MarkSurfaceLights);
@@ -583,7 +583,7 @@ GL3_DrawBrushModel(entity_t *e, gl3model_t *currentmodel)
 		glEnable(GL_POLYGON_OFFSET_FILL);
 	}
 
-	VectorSubtract(gl3_newrefdef.vieworg, e->origin, modelorg);
+	VectorSubtract(r_newrefdef.vieworg, e->origin, modelorg);
 
 	if (rotated)
 	{
@@ -652,7 +652,7 @@ RecursiveWorldNode(entity_t *currententity, mnode_t *node)
 
 		/* check for door connected areas */
 		// check for door connected areas
-		if (!R_AreaVisible(gl3_newrefdef.areabits, pleaf))
+		if (!R_AreaVisible(r_newrefdef.areabits, pleaf))
 			return;	// not visible
 
 		mark = pleaf->firstmarksurface;
@@ -767,16 +767,16 @@ GL3_DrawWorld(void)
 		return;
 	}
 
-	if (gl3_newrefdef.rdflags & RDF_NOWORLDMODEL)
+	if (r_newrefdef.rdflags & RDF_NOWORLDMODEL)
 	{
 		return;
 	}
 
-	VectorCopy(gl3_newrefdef.vieworg, modelorg);
+	VectorCopy(r_newrefdef.vieworg, modelorg);
 
 	/* auto cycle the world frame for texture animation */
 	memset(&ent, 0, sizeof(ent));
-	ent.frame = (int)(gl3_newrefdef.time * 2);
+	ent.frame = (int)(r_newrefdef.time * 2);
 
 	gl3state.currenttexture = -1;
 

@@ -39,7 +39,7 @@ R_ImageList_f (void)
 	image_t	*image;
 	qboolean	freeup;
 
-	R_Printf(PRINT_ALL, "------------------\n");
+	Com_Printf("------------------\n");
 	texels = 0;
 	used = 0;
 
@@ -59,29 +59,29 @@ R_ImageList_f (void)
 		switch (image->type)
 		{
 		case it_skin:
-			R_Printf(PRINT_ALL, "M");
+			Com_Printf("M");
 			break;
 		case it_sprite:
-			R_Printf(PRINT_ALL, "S");
+			Com_Printf("S");
 			break;
 		case it_wall:
-			R_Printf(PRINT_ALL, "W");
+			Com_Printf("W");
 			break;
 		case it_pic:
-			R_Printf(PRINT_ALL, "P");
+			Com_Printf("P");
 			break;
 		default:
-			R_Printf(PRINT_ALL, " ");
+			Com_Printf(" ");
 			break;
 		}
 
-		R_Printf(PRINT_ALL,  " %3i %3i : %s (%dx%d) %s\n",
+		Com_Printf(" %3i %3i : %s (%dx%d) %s\n",
 			image->asset_width, image->asset_height, image->name,
 			image->width, image->height, in_use);
 	}
-	R_Printf(PRINT_ALL, "Total texel count: %i\n", texels);
+	Com_Printf("Total texel count: %i\n", texels);
 	freeup = R_ImageHasFreeSpace();
-	R_Printf(PRINT_ALL, "Used %d of %d images%s.\n", used, image_max, freeup ? ", has free space" : "");
+	Com_Printf("Used %d of %d images%s.\n", used, image_max, freeup ? ", has free space" : "");
 }
 
 //=======================================================
@@ -104,7 +104,7 @@ R_FindFreeImage (void)
 	if (i == numr_images)
 	{
 		if (numr_images == MAX_RIMAGES)
-			ri.Sys_Error(ERR_DROP, "%s: Max images", __func__);
+			Com_Error(ERR_DROP, "%s: Max images", __func__);
 		numr_images++;
 	}
 	image = &r_images[i];
@@ -264,7 +264,7 @@ R_LoadPic8(const char *name, const byte *pic, int width, int realwidth, int heig
 
 	image = R_FindFreeImage();
 	if (strlen(name) >= sizeof(image->name))
-		ri.Sys_Error(ERR_DROP, "%s: '%s' is too long", __func__, name);
+		Com_Error(ERR_DROP, "%s: '%s' is too long", __func__, name);
 	strcpy (image->name, name);
 	image->registration_sequence = registration_sequence;
 
@@ -278,7 +278,7 @@ R_LoadPic8(const char *name, const byte *pic, int width, int realwidth, int heig
 	image->pixels[0] = malloc(full_size);
 	if (!image->pixels[0])
 	{
-		ri.Sys_Error(ERR_FATAL, "%s: Can't allocate image.", __func__);
+		Com_Error(ERR_FATAL, "%s: Can't allocate image.", __func__);
 		// code never returns after ERR_FATAL
 		return NULL;
 	}
@@ -342,7 +342,7 @@ R_LoadPic(const char *name, const byte *pic, int width, int realwidth, int heigh
 		pic8 = malloc(data_size);
 		if (!pic8)
 		{
-			ri.Sys_Error(ERR_FATAL, "%s: Can't allocate image.", __func__);
+			Com_Error(ERR_FATAL, "%s: Can't allocate image.", __func__);
 			// code never returns after ERR_FATAL
 			return NULL;
 		}
@@ -555,7 +555,7 @@ R_FindImage(const char *name, imagetype_t type)
 
 	if (!image && r_validation->value)
 	{
-		R_Printf(PRINT_ALL, "%s: can't load %s\n", __func__, name);
+		Com_Printf("%s: can't load %s\n", __func__, name);
 	}
 
 	return image;
@@ -701,7 +701,7 @@ R_InitImages (void)
 
 	if ( !table16to8 )
 	{
-		ri.Sys_Error(ERR_FATAL, "%s: Couldn't load pics/16to8.dat", __func__);
+		Com_Error(ERR_FATAL, "%s: Couldn't load pics/16to8.dat", __func__);
 		// code never returns after ERR_FATAL
 		return;
 	}
@@ -709,7 +709,7 @@ R_InitImages (void)
 	d_16to8table = malloc(0x10000);
 	if ( !d_16to8table )
 	{
-		ri.Sys_Error(ERR_FATAL, "%s: Couldn't allocate memory for d_16to8table", __func__);
+		Com_Error(ERR_FATAL, "%s: Couldn't allocate memory for d_16to8table", __func__);
 		// code never returns after ERR_FATAL
 		return;
 	}

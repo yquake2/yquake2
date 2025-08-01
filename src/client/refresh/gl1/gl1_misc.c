@@ -125,7 +125,7 @@ R_ScreenShot(void)
 
 	if (!buffer)
 	{
-		R_Printf(PRINT_ALL, "%s: Couldn't malloc %d bytes\n", __func__, w*h*3);
+		Com_Printf("%s: Couldn't malloc %d bytes\n", __func__, w*h*3);
 		return;
 	}
 
@@ -160,10 +160,10 @@ R_ScreenShot(void)
 void
 R_Strings(void)
 {
-	R_Printf(PRINT_ALL, "GL_VENDOR: %s\n", gl_config.vendor_string);
-	R_Printf(PRINT_ALL, "GL_RENDERER: %s\n", gl_config.renderer_string);
-	R_Printf(PRINT_ALL, "GL_VERSION: %s\n", gl_config.version_string);
-	R_Printf(PRINT_ALL, "GL_EXTENSIONS: %s\n", gl_config.extensions_string);
+	Com_Printf("GL_VENDOR: %s\n", gl_config.vendor_string);
+	Com_Printf("GL_RENDERER: %s\n", gl_config.renderer_string);
+	Com_Printf("GL_VERSION: %s\n", gl_config.version_string);
+	Com_Printf("GL_EXTENSIONS: %s\n", gl_config.extensions_string);
 }
 
 void

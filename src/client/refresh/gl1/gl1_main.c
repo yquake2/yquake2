@@ -28,7 +28,6 @@
 
 #define NUM_BEAM_SEGS 6
 
-viddef_t vid;
 model_t *r_worldmodel;
 
 float gldepthmin, gldepthmax;
@@ -60,8 +59,6 @@ float r_world_matrix[16];
 float r_base_world_matrix[16];
 
 /* screen size info */
-refdef_t r_newrefdef;
-
 int r_viewcluster, r_viewcluster2, r_oldviewcluster, r_oldviewcluster2;
 unsigned r_rawpalette[256];
 
@@ -362,7 +359,7 @@ R_DrawEntitiesOnList(void)
 					R_DrawSpriteModel(currententity, currentmodel);
 					break;
 				default:
-					ri.Sys_Error(ERR_DROP, "Bad modeltype");
+					Com_Error(ERR_DROP, "Bad modeltype");
 					break;
 			}
 		}
@@ -408,7 +405,7 @@ R_DrawEntitiesOnList(void)
 					R_DrawSpriteModel(currententity, currentmodel);
 					break;
 				default:
-					ri.Sys_Error(ERR_DROP, "Bad modeltype");
+					Com_Error(ERR_DROP, "Bad modeltype");
 					break;
 			}
 		}
@@ -664,7 +661,7 @@ R_SetupFrame(void)
 	{
 		if (!r_worldmodel)
 		{
-			ri.Sys_Error(ERR_DROP, "%s: bad world model", __func__);
+			Com_Error(ERR_DROP, "%s: bad world model", __func__);
 			return;
 		}
 
@@ -769,11 +766,11 @@ R_SetupGL(void)
 	int x, x2, y2, y, w, h;
 
 	/* set up viewport */
-	x = floor(r_newrefdef.x * vid.width / vid.width);
-	x2 = ceil((r_newrefdef.x + r_newrefdef.width) * vid.width / vid.width);
-	y = floor(vid.height - r_newrefdef.y * vid.height / vid.height);
+	x = floor(r_newrefdef.x * vid.width / (float)vid.width);
+	x2 = ceil((r_newrefdef.x + r_newrefdef.width) * vid.width / (float)vid.width);
+	y = floor(vid.height - r_newrefdef.y * vid.height / (float)vid.height);
 	y2 = ceil(vid.height -
-			  (r_newrefdef.y + r_newrefdef.height) * vid.height / vid.height);
+			  (r_newrefdef.y + r_newrefdef.height) * vid.height / (float)vid.height);
 
 	w = x2 - x;
 	h = y - y2;
@@ -1093,7 +1090,7 @@ R_RenderView(refdef_t *fd)
 
 	if (!r_worldmodel && !(r_newrefdef.rdflags & RDF_NOWORLDMODEL))
 	{
-		ri.Sys_Error(ERR_DROP, "%s: NULL worldmodel", __func__);
+		Com_Error(ERR_DROP, "%s: NULL worldmodel", __func__);
 	}
 
 	if (r_speeds->value)
@@ -1132,7 +1129,7 @@ R_RenderView(refdef_t *fd)
 
 	if (r_speeds->value)
 	{
-		R_Printf(PRINT_ALL, "%4i wpoly %4i epoly %i tex %i lmaps\n",
+		Com_Printf("%4i wpoly %4i epoly %i tex %i lmaps\n",
 				c_brush_polys, c_alias_polys, c_visible_textures,
 				c_visible_lightmaps);
 	}
@@ -1330,13 +1327,13 @@ R_Register(void)
 static int
 SetMode_impl(int *pwidth, int *pheight, int mode, int fullscreen)
 {
-	R_Printf(PRINT_ALL, "Setting mode %d:", mode);
+	Com_Printf("Setting mode %d:", mode);
 
 	/* mode -1 is not in the vid mode table - so we keep the values in pwidth
 	   and pheight and don't even try to look up the mode info */
 	if ((mode >= 0) && !ri.Vid_GetModeInfo(pwidth, pheight, mode))
 	{
-		R_Printf(PRINT_ALL, " invalid mode\n");
+		Com_Printf(" invalid mode\n");
 		return rserr_invalid_mode;
 	}
 
@@ -1345,12 +1342,12 @@ SetMode_impl(int *pwidth, int *pheight, int mode, int fullscreen)
 	{
 		if(!ri.GLimp_GetDesktopMode(pwidth, pheight))
 		{
-			R_Printf( PRINT_ALL, " can't detect mode\n" );
+			Com_Printf(" can't detect mode\n" );
 			return rserr_invalid_mode;
 		}
 	}
 
-	R_Printf(PRINT_ALL, " %dx%d (vid_fullscreen %i)\n", *pwidth, *pheight, fullscreen);
+	Com_Printf(" %dx%d (vid_fullscreen %i)\n", *pwidth, *pheight, fullscreen);
 
 	if (!ri.GLimp_InitGraphics(fullscreen, pwidth, pheight))
 	{
@@ -1431,10 +1428,10 @@ R_SetMode(void)
 	{
 		if (err == rserr_invalid_mode)
 		{
-			R_Printf(PRINT_ALL, "ref_gl::R_SetMode() - invalid mode\n");
+			Com_Printf("ref_gl::R_SetMode() - invalid mode\n");
 			if (gl_msaa_samples->value != 0.0f)
 			{
-				R_Printf(PRINT_ALL, "gl_msaa_samples was %d - will try again with gl_msaa_samples = 0\n", (int)gl_msaa_samples->value);
+				Com_Printf("gl_msaa_samples was %d - will try again with gl_msaa_samples = 0\n", (int)gl_msaa_samples->value);
 				ri.Cvar_SetValue("r_msaa_samples", 0.0f);
 				gl_msaa_samples->modified = false;
 
@@ -1456,7 +1453,7 @@ R_SetMode(void)
 		/* try setting it back to something safe */
 		if ((err = SetMode_impl(&vid.width, &vid.height, gl_state.prev_mode, 0)) != rserr_ok)
 		{
-			R_Printf(PRINT_ALL, "ref_gl::R_SetMode() - could not revert to safe mode\n");
+			Com_Printf("ref_gl::R_SetMode() - could not revert to safe mode\n");
 			return false;
 		}
 	}
@@ -1493,11 +1490,11 @@ RI_Init(void)
 		r_turbsin[j] *= 0.5;
 	}
 
-	R_Printf(PRINT_ALL, "Refresh: " REF_VERSION "\n");
-	R_Printf(PRINT_ALL, "Client: " YQ2VERSION "\n\n");
+	Com_Printf("Refresh: " REF_VERSION "\n");
+	Com_Printf("Client: " YQ2VERSION "\n\n");
 
 #ifdef DEBUG
-	R_Printf(PRINT_ALL, "ref_gl1::%s - DEBUG mode enabled\n", __func__);
+	Com_Printf("ref_gl1::%s - DEBUG mode enabled\n", __func__);
 #endif
 
 	GetPCXPalette (&colormap, d_8to24table);
@@ -1516,7 +1513,7 @@ RI_Init(void)
 	if (!R_SetMode())
 	{
 		QGL_Shutdown();
-		R_Printf(PRINT_ALL, "ref_gl1::%s - could not R_SetMode()\n", __func__);
+		Com_Printf("ref_gl1::%s - could not R_SetMode()\n", __func__);
 		return false;
 	}
 
@@ -1525,19 +1522,19 @@ RI_Init(void)
 	// --------
 
 	/* get our various GL strings */
-	R_Printf(PRINT_ALL, "\nOpenGL setting:\n");
+	Com_Printf("\nOpenGL setting:\n");
 
 	gl_config.vendor_string = (char *)glGetString(GL_VENDOR);
-	R_Printf(PRINT_ALL, "GL_VENDOR: %s\n", gl_config.vendor_string);
+	Com_Printf("GL_VENDOR: %s\n", gl_config.vendor_string);
 
 	gl_config.renderer_string = (char *)glGetString(GL_RENDERER);
-	R_Printf(PRINT_ALL, "GL_RENDERER: %s\n", gl_config.renderer_string);
+	Com_Printf("GL_RENDERER: %s\n", gl_config.renderer_string);
 
 	gl_config.version_string = (char *)glGetString(GL_VERSION);
-	R_Printf(PRINT_ALL, "GL_VERSION: %s\n", gl_config.version_string);
+	Com_Printf("GL_VERSION: %s\n", gl_config.version_string);
 
 	gl_config.extensions_string = (char *)glGetString(GL_EXTENSIONS);
-	R_Printf(PRINT_ALL, "GL_EXTENSIONS: %s\n", gl_config.extensions_string);
+	Com_Printf("GL_EXTENSIONS: %s\n", gl_config.extensions_string);
 
 	sscanf(gl_config.version_string, "%d.%d", &gl_config.major_version, &gl_config.minor_version);
 
@@ -1546,18 +1543,18 @@ RI_Init(void)
 		if (gl_config.minor_version < 4)
 		{
 			QGL_Shutdown();
-			R_Printf(PRINT_ALL, "Support for OpenGL 1.4 is not available\n");
+			Com_Printf("Support for OpenGL 1.4 is not available\n");
 
 			return false;
 		}
 	}
 
-	R_Printf(PRINT_ALL, "\n\nProbing for OpenGL extensions:\n");
+	Com_Printf("\n\nProbing for OpenGL extensions:\n");
 
 	// ----
 
 	/* Point parameters */
-	R_Printf(PRINT_ALL, " - Point parameters: ");
+	Com_Printf(" - Point parameters: ");
 
 	if ( refresher == rf_opengles10 ||
 		strstr(gl_config.extensions_string, "GL_ARB_point_parameters") ||
@@ -1585,22 +1582,22 @@ RI_Init(void)
 		if (qglPointParameterf && qglPointParameterfv)
 		{
 			gl_config.pointparameters = true;
-			R_Printf(PRINT_ALL, "Okay\n");
+			Com_Printf("Okay\n");
 		}
 		else
 		{
-			R_Printf(PRINT_ALL, "Failed\n");
+			Com_Printf("Failed\n");
 		}
 	}
 	else
 	{
-		R_Printf(PRINT_ALL, "Disabled\n");
+		Com_Printf("Disabled\n");
 	}
 
 	// ----
 
 	/* Paletted texture */
-	R_Printf(PRINT_ALL, " - Paletted texture: ");
+	Com_Printf(" - Paletted texture: ");
 
 	if (strstr(gl_config.extensions_string, "GL_EXT_paletted_texture") &&
 		strstr(gl_config.extensions_string, "GL_EXT_shared_texture_palette"))
@@ -1616,52 +1613,52 @@ RI_Init(void)
 		if (qglColorTableEXT)
 		{
 			gl_config.palettedtexture = true;
-			R_Printf(PRINT_ALL, "Okay\n");
+			Com_Printf("Okay\n");
 		}
 		else
 		{
-			R_Printf(PRINT_ALL, "Failed\n");
+			Com_Printf("Failed\n");
 		}
 	}
 	else
 	{
-		R_Printf(PRINT_ALL, "Disabled\n");
+		Com_Printf("Disabled\n");
 	}
 
 	// --------
 
 	/* Anisotropic */
-	R_Printf(PRINT_ALL, " - Anisotropic: ");
+	Com_Printf(" - Anisotropic: ");
 
 	if (strstr(gl_config.extensions_string, "GL_EXT_texture_filter_anisotropic"))
 	{
 		gl_config.anisotropic = true;
 		glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &gl_config.max_anisotropy);
 
-		R_Printf(PRINT_ALL, "%ux\n", (int)gl_config.max_anisotropy);
+		Com_Printf("%ux\n", (int)gl_config.max_anisotropy);
 	}
 	else
 	{
 		gl_config.anisotropic = false;
 		gl_config.max_anisotropy = 0.0;
 
-		R_Printf(PRINT_ALL, "Failed\n");
+		Com_Printf("Failed\n");
 	}
 
 	// ----
 
 	/* Non power of two textures */
-	R_Printf(PRINT_ALL, " - Non power of two textures: ");
+	Com_Printf(" - Non power of two textures: ");
 
 	if (strstr(gl_config.extensions_string, GLEXTENSION_NPOT))
 	{
 		gl_config.npottextures = true;
-		R_Printf(PRINT_ALL, "Okay\n");
+		Com_Printf("Okay\n");
 	}
 	else
 	{
 		gl_config.npottextures = false;
-		R_Printf(PRINT_ALL, "Failed\n");
+		Com_Printf("Failed\n");
 	}
 
 #undef GLEXTENSION_NPOT
@@ -1671,7 +1668,7 @@ RI_Init(void)
 	/* Multitexturing */
 	gl_config.multitexture = false;
 
-	R_Printf(PRINT_ALL, " - Multitexturing: ");
+	Com_Printf(" - Multitexturing: ");
 
 	if ( refresher == rf_opengles10 || strstr(gl_config.extensions_string, "GL_ARB_multitexture") )
 	{
@@ -1690,16 +1687,16 @@ RI_Init(void)
 		if (qglActiveTexture && qglClientActiveTexture)
 		{
 			gl_config.multitexture = true;
-			R_Printf(PRINT_ALL, "Okay\n");
+			Com_Printf("Okay\n");
 		}
 		else
 		{
-			R_Printf(PRINT_ALL, "Failed\n");
+			Com_Printf("Failed\n");
 		}
 	}
 	else
 	{
-		R_Printf(PRINT_ALL, "Disabled\n");
+		Com_Printf("Disabled\n");
 	}
 
 	// ----
@@ -1712,16 +1709,16 @@ RI_Init(void)
 	 * Needless to say, GPU memory usage is highly increased, so watch out in low memory situations.
 	 */
 
-	R_Printf(PRINT_ALL, " - Lightmap copies: ");
+	Com_Printf(" - Lightmap copies: ");
 	gl_config.lightmapcopies = false;
 	if (gl_config.multitexture && gl1_lightmapcopies->value)
 	{
 		gl_config.lightmapcopies = true;
-		R_Printf(PRINT_ALL, "Okay\n");
+		Com_Printf("Okay\n");
 	}
 	else
 	{
-		R_Printf(PRINT_ALL, "Disabled\n");
+		Com_Printf("Disabled\n");
 	}
 
 	// ----
@@ -1736,7 +1733,7 @@ RI_Init(void)
 	 */
 
 #ifdef YQ2_GL1_GLES
-	R_Printf(PRINT_ALL, " - Discard framebuffer: ");
+	Com_Printf(" - Discard framebuffer: ");
 
 	if (strstr(gl_config.extensions_string, "GL_EXT_discard_framebuffer"))
 	{
@@ -1748,16 +1745,16 @@ RI_Init(void)
 	{
 		if (qglDiscardFramebufferEXT)	// enough to verify availability
 		{
-			R_Printf(PRINT_ALL, "Okay\n");
+			Com_Printf("Okay\n");
 		}
 		else
 		{
-			R_Printf(PRINT_ALL, "Failed\n");
+			Com_Printf("Failed\n");
 		}
 	}
 	else
 	{
-		R_Printf(PRINT_ALL, "Disabled\n");
+		Com_Printf("Disabled\n");
 	}
 #endif
 
@@ -1811,7 +1808,7 @@ RI_BeginFrame(float camera_separation)
 		}
 		else
 		{
-			R_Printf(PRINT_ALL, "stereo supermode changed, restarting video!\n");
+			Com_Printf("stereo supermode changed, restarting video!\n");
 			ri.Cmd_ExecuteText(EXEC_APPEND, "vid_restart\n");
 		}
 	}
@@ -2158,40 +2155,6 @@ GetRefAPI(refimport_t imp)
 	return re;
 }
 
-void R_Printf(int level, const char* msg, ...)
-{
-	va_list argptr;
-	va_start(argptr, msg);
-	ri.Com_VPrintf(level, msg, argptr);
-	va_end(argptr);
-}
-
-/*
- * this is only here so the functions in shared source files
- * (shared.c, rand.c, flash.c, mem.c/hunk.c) can link
- */
-void
-Sys_Error(const char *error, ...)
-{
-	va_list argptr;
-	char text[4096]; // MAXPRINTMSG == 4096
-
-	va_start(argptr, error);
-	vsnprintf(text, sizeof(text), error, argptr);
-	va_end(argptr);
-
-	ri.Sys_Error(ERR_FATAL, "%s", text);
-}
-
-void
-Com_Printf(const char *msg, ...)
-{
-	va_list argptr;
-	va_start(argptr, msg);
-	ri.Com_VPrintf(PRINT_ALL, msg, argptr);
-	va_end(argptr);
-}
-
 #ifdef DEBUG
 void
 glCheckError_(const char *file, const char *function, int line)
@@ -2213,7 +2176,7 @@ glCheckError_(const char *file, const char *function, int line)
 			MY_ERROR_CASE(GL_OUT_OF_MEMORY);
 			default: msg = "UNKNOWN";
 		}
-		R_Printf(PRINT_ALL, "glError: %s in %s (%s, %d)\n", msg, function, file, line);
+		Com_Printf("glError: %s in %s (%s, %d)\n", msg, function, file, line);
 	}
 
 #undef MY_ERROR_CASE

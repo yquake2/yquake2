@@ -210,7 +210,7 @@ PCX_Decode(const char *name, const byte *raw, int len, byte **pic, byte **palett
 		(pcx->color_planes <= 0) ||
 		(pcx->bits_per_pixel <= 0))
 	{
-		R_Printf(PRINT_ALL, "%s: Bad pcx file %s: version: %d:%d, encoding: %d\n",
+		Com_Printf("%s: Bad pcx file %s: version: %d:%d, encoding: %d\n",
 			__func__, name, pcx->manufacturer, pcx->version, pcx->encoding);
 		return;
 	}
@@ -226,7 +226,7 @@ PCX_Decode(const char *name, const byte *raw, int len, byte **pic, byte **palett
 	out = malloc(full_size);
 	if (!out)
 	{
-		R_Printf(PRINT_ALL, "%s: Can't allocate for %s\n", __func__, name);
+		Com_Printf("%s: Can't allocate for %s\n", __func__, name);
 		return;
 	}
 
@@ -290,7 +290,7 @@ PCX_Decode(const char *name, const byte *raw, int len, byte **pic, byte **palett
 
 			if (!(*palette))
 			{
-				R_Printf(PRINT_ALL, "%s: Can't allocate for %s\n", __func__, name);
+				Com_Printf("%s: Can't allocate for %s\n", __func__, name);
 				free(out);
 				return;
 			}
@@ -335,7 +335,7 @@ PCX_Decode(const char *name, const byte *raw, int len, byte **pic, byte **palett
 
 			if (!(*palette))
 			{
-				R_Printf(PRINT_ALL, "%s: Can't allocate for %s\n", __func__, name);
+				Com_Printf("%s: Can't allocate for %s\n", __func__, name);
 				free(out);
 				return;
 			}
@@ -346,7 +346,7 @@ PCX_Decode(const char *name, const byte *raw, int len, byte **pic, byte **palett
 
 				if ((((byte *)pcx)[len - 769] != 0x0C))
 				{
-					R_Printf(PRINT_DEVELOPER, "%s: %s has no palette marker\n",
+					Com_DPrintf("%s: %s has no palette marker\n",
 						__func__, name);
 				}
 			}
@@ -386,7 +386,7 @@ PCX_Decode(const char *name, const byte *raw, int len, byte **pic, byte **palett
 
 			if (!(*palette))
 			{
-				R_Printf(PRINT_ALL, "%s: Can't allocate for %s\n", __func__, name);
+				Com_Printf("%s: Can't allocate for %s\n", __func__, name);
 				free(out);
 				return;
 			}
@@ -427,7 +427,7 @@ PCX_Decode(const char *name, const byte *raw, int len, byte **pic, byte **palett
 	}
 	else
 	{
-		R_Printf(PRINT_ALL, "%s: Bad pcx file %s: planes: %d, bits: %d\n",
+		Com_Printf("%s: Bad pcx file %s: planes: %d, bits: %d\n",
 			__func__, name, pcx->color_planes, pcx->bits_per_pixel);
 		free(*pic);
 		*pic = NULL;
@@ -435,14 +435,14 @@ PCX_Decode(const char *name, const byte *raw, int len, byte **pic, byte **palett
 
 	if (pcx->color_planes != 1 || pcx->bits_per_pixel != 8)
 	{
-		R_Printf(PRINT_DEVELOPER, "%s: %s has uncommon flags, "
+		Com_DPrintf("%s: %s has uncommon flags, "
 			"could be unsupported by other engines\n",
 			__func__, name);
 	}
 
 	if (data - (byte *)pcx > len)
 	{
-		R_Printf(PRINT_DEVELOPER, "%s: %s file was malformed\n",
+		Com_DPrintf("%s: %s file was malformed\n",
 			__func__, name);
 		free(*pic);
 		*pic = NULL;
@@ -450,7 +450,7 @@ PCX_Decode(const char *name, const byte *raw, int len, byte **pic, byte **palett
 
 	if (image_issues)
 	{
-		R_Printf(PRINT_ALL, "%s: %s file has possible size issues.\n",
+		Com_Printf("%s: %s file has possible size issues.\n",
 			__func__, name);
 	}
 }

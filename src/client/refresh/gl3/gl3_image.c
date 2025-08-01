@@ -65,7 +65,7 @@ GL3_TextureMode(char *string)
 
 	if (i == num_modes)
 	{
-		R_Printf(PRINT_ALL, "bad filter name '%s' (probably from gl_texturemode)\n", string);
+		Com_Printf("bad filter name '%s' (probably from gl_texturemode)\n", string);
 		return;
 	}
 
@@ -164,7 +164,7 @@ GL3_BindLightmap(int lightmapnum)
 	int i=0;
 	if(lightmapnum < 0 || lightmapnum >= MAX_LIGHTMAPS)
 	{
-		R_Printf(PRINT_ALL, "WARNING: Invalid lightmapnum %i used!\n", lightmapnum);
+		Com_Printf("WARNING: Invalid lightmapnum %i used!\n", lightmapnum);
 		return;
 	}
 
@@ -407,7 +407,7 @@ GL3_LoadPic(char *name, byte *pic, int width, int realwidth,
 	{
 		if (numgl3textures == MAX_GL3TEXTURES)
 		{
-			ri.Sys_Error(ERR_DROP, "MAX_GLTEXTURES");
+			Com_Error(ERR_DROP, "MAX_GLTEXTURES");
 		}
 
 		numgl3textures++;
@@ -417,7 +417,7 @@ GL3_LoadPic(char *name, byte *pic, int width, int realwidth,
 
 	if (strlen(name) >= sizeof(image->name))
 	{
-		ri.Sys_Error(ERR_DROP, "%s: \"%s\" is too long", __func__, name);
+		Com_Error(ERR_DROP, "%s: \"%s\" is too long", __func__, name);
 	}
 
 	strcpy(image->name, name);
@@ -492,7 +492,7 @@ GL3_LoadPic(char *name, byte *pic, int width, int realwidth,
 		}
 		else
 		{
-			R_Printf(PRINT_DEVELOPER,
+			Com_DPrintf(
 					"Warning, image '%s' has hi-res replacement smaller than the original! (%d x %d) < (%d x %d)\n",
 					name, image->width, image->height, realwidth, realheight);
 		}
@@ -577,7 +577,7 @@ GL3_LoadPic(char *name, byte *pic, int width, int realwidth,
 			}
 			else
 			{
-				R_Printf(PRINT_DEVELOPER,
+				Com_DPrintf(
 						"Warning, image '%s' has hi-res replacement smaller than the original! (%d x %d) < (%d x %d)\n",
 						name, image->width, image->height, realwidth, realheight);
 			}
@@ -657,7 +657,7 @@ GL3_FindImage(const char *name, imagetype_t type)
 
 	if (!image && r_validation->value)
 	{
-		R_Printf(PRINT_ALL, "%s: can't load %s\n", __func__, name);
+		Com_Printf("%s: can't load %s\n", __func__, name);
 	}
 
 	return image;
@@ -784,7 +784,7 @@ GL3_ImageList_f(void)
 		" POT", "NPOT"
 	};
 
-	R_Printf(PRINT_ALL, "------------------\n");
+	Com_Printf("------------------\n");
 	texels = 0;
 	used = 0;
 
@@ -835,11 +835,11 @@ GL3_ImageList_f(void)
 		}
 		char isLava = image->is_lava ? 'L' : ' ';
 
-		R_Printf(PRINT_ALL, "%c%c %3i %3i %s %s: %s %s\n", imageType, isLava, w, h,
+		Com_Printf("%c%c %3i %3i %s %s: %s %s\n", imageType, isLava, w, h,
 		         formatstrings[image->has_alpha], potstrings[isNPOT], image->name, in_use);
 	}
 
-	R_Printf(PRINT_ALL, "Total texel count (not counting mipmaps): %i\n", texels);
+	Com_Printf("Total texel count (not counting mipmaps): %i\n", texels);
 	freeup = GL3_ImageHasFreeSpace();
-	R_Printf(PRINT_ALL, "Used %d of %d images%s.\n", used, image_max, freeup ? ", has free space" : "");
+	Com_Printf("Used %d of %d images%s.\n", used, image_max, freeup ? ", has free space" : "");
 }
