@@ -51,7 +51,7 @@ Draw_InitLocal (void)
 	draw_chars = R_FindPic ("conchars", (findimage_t)R_FindImage);
 	if (!draw_chars)
 	{
-		ri.Sys_Error(ERR_FATAL, "%s: Couldn't load pics/conchars.pcx", __func__);
+		Com_Error(ERR_FATAL, "%s: Couldn't load pics/conchars.pcx", __func__);
 	}
 }
 
@@ -177,7 +177,7 @@ RE_Draw_StretchPicImplementation (int x, int y, int w, int h, const image_t *pic
 		(x + w > vid_buffer_width) ||
 		(y + h > vid_buffer_height))
 	{
-		R_Printf(PRINT_ALL, "%s: bad coordinates %dx%d[%dx%d]",
+		Com_Printf("%s: bad coordinates %dx%d[%dx%d]",
 			__func__, x, y, w, h);
 		return;
 	}
@@ -309,7 +309,7 @@ RE_Draw_StretchPic (int x, int y, int w, int h, const char *name)
 	pic = R_FindPic (name, (findimage_t)R_FindImage);
 	if (!pic)
 	{
-		R_Printf(PRINT_ALL, "Can't find pic: %s\n", name);
+		Com_Printf("Can't find pic: %s\n", name);
 		return;
 	}
 	RE_Draw_StretchPicImplementation (x, y, w, h, pic);
@@ -387,7 +387,7 @@ RE_Draw_PicScaled(int x, int y, const char *name, float scale)
 	pic = R_FindPic (name, (findimage_t)R_FindImage);
 	if (!pic)
 	{
-		R_Printf(PRINT_ALL, "Can't find pic: %s\n", name);
+		Com_Printf("Can't find pic: %s\n", name);
 		return;
 	}
 
@@ -437,7 +437,7 @@ RE_Draw_TileClear (int x, int y, int w, int h, const char *name)
 	pic = R_FindPic (name, (findimage_t)R_FindImage);
 	if (!pic)
 	{
-		R_Printf(PRINT_ALL, "Can't find pic: %s\n", name);
+		Com_Printf("Can't find pic: %s\n", name);
 		return;
 	}
 	x2 = x + w;

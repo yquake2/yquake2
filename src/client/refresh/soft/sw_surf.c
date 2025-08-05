@@ -282,13 +282,13 @@ R_InitCaches (void)
 	// round up to page size
 	size = (size + 8191) & ~8191;
 
-	R_Printf(PRINT_ALL,"%ik surface cache.\n", size/1024);
+	Com_DPrintf("%ik surface cache.\n", size / 1024);
 
 	sc_size = size;
 	sc_base = (surfcache_t *)malloc(size);
 	if (!sc_base)
 	{
-		ri.Sys_Error(ERR_FATAL, "%s: Can't allocate cache.", __func__);
+		Com_Error(ERR_FATAL, "%s: Can't allocate cache.", __func__);
 		// code never returns after ERR_FATAL
 		return;
 	}
@@ -337,12 +337,12 @@ D_SCAlloc (int width, int size)
 
 	if ((width < 0) || (width > 256))
 	{
-		ri.Sys_Error(ERR_FATAL, "%s: bad cache width %d\n", __func__, width);
+		Com_Error(ERR_FATAL, "%s: bad cache width %d\n", __func__, width);
 	}
 
 	if ((size <= 0) || (size > 0x10000))
 	{
-		ri.Sys_Error(ERR_FATAL, "%s: bad cache size %d\n", __func__, size);
+		Com_Error(ERR_FATAL, "%s: bad cache size %d\n", __func__, size);
 	}
 
 	// Add header size
@@ -350,7 +350,7 @@ D_SCAlloc (int width, int size)
 	size = (size + 3) & ~3;
 	if (size > sc_size)
 	{
-		ri.Sys_Error(ERR_FATAL, "%s: %i > cache size of %i", __func__, size, sc_size);
+		Com_Error(ERR_FATAL, "%s: %i > cache size of %i", __func__, size, sc_size);
 	}
 
 	// if there is not size bytes after the rover, reset to the start
@@ -370,7 +370,7 @@ D_SCAlloc (int width, int size)
 		sc_rover = sc_rover->next;
 		if (!sc_rover)
 		{
-			ri.Sys_Error(ERR_FATAL, "%s: hit the end of memory", __func__);
+			Com_Error(ERR_FATAL, "%s: hit the end of memory", __func__);
 		}
 		if (sc_rover->owner)
 			*sc_rover->owner = NULL;

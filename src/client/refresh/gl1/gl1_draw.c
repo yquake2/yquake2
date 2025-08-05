@@ -40,7 +40,7 @@ Draw_InitLocal(void)
 	draw_chars = R_FindPic("conchars", (findimage_t)R_FindImage);
 	if (!draw_chars)
 	{
-		ri.Sys_Error(ERR_FATAL, "%s: Couldn't load pics/conchars.pcx",
+		Com_Error(ERR_FATAL, "%s: Couldn't load pics/conchars.pcx",
 			__func__);
 	}
 }
@@ -115,7 +115,7 @@ RDraw_StretchPic(int x, int y, int w, int h, const char *pic)
 
 	if (!gl)
 	{
-		R_Printf(PRINT_ALL, "Can't find pic: %s\n", pic);
+		Com_Printf("Can't find pic: %s\n", pic);
 		return;
 	}
 
@@ -139,7 +139,7 @@ RDraw_PicScaled(int x, int y, const char *pic, float factor)
 
 	if (!gl)
 	{
-		R_Printf(PRINT_ALL, "Can't find pic: %s\n", pic);
+		Com_Printf("Can't find pic: %s\n", pic);
 		return;
 	}
 
@@ -197,7 +197,7 @@ RDraw_TileClear(int x, int y, int w, int h, const char *pic)
 
 	if (!image)
 	{
-		R_Printf(PRINT_ALL, "Can't find pic: %s\n", pic);
+		Com_Printf("Can't find pic: %s\n", pic);
 		return;
 	}
 
@@ -221,7 +221,7 @@ RDraw_Fill(int x, int y, int w, int h, int c)
 
 	if ((unsigned)c > 255)
 	{
-		ri.Sys_Error(ERR_FATAL, "%s: bad color", __func__);
+		Com_Error(ERR_FATAL, "%s: bad color", __func__);
 	}
 
 	glDisable(GL_TEXTURE_2D);

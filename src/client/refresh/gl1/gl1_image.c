@@ -286,7 +286,7 @@ R_TextureMode(const char *string)
 
 	if (i == NUM_GL_MODES)
 	{
-		R_Printf(PRINT_ALL, "bad filter name\n");
+		Com_Printf("bad filter name\n");
 		return;
 	}
 
@@ -376,7 +376,7 @@ R_TextureAlphaMode(const char *string)
 
 	if (i == NUM_GL_ALPHA_MODES)
 	{
-		R_Printf(PRINT_ALL, "bad alpha texture mode name\n");
+		Com_Printf("bad alpha texture mode name\n");
 		return;
 	}
 
@@ -398,7 +398,7 @@ R_TextureSolidMode(const char *string)
 
 	if (i == NUM_GL_SOLID_MODES)
 	{
-		R_Printf(PRINT_ALL, "bad solid texture mode name\n");
+		Com_Printf("bad solid texture mode name\n");
 		return;
 	}
 
@@ -416,7 +416,7 @@ R_ImageList_f(void)
 		"PAL"
 	};
 
-	R_Printf(PRINT_ALL, "------------------\n");
+	Com_Printf("------------------\n");
 	texels = 0;
 	used = 0;
 
@@ -440,33 +440,32 @@ R_ImageList_f(void)
 		switch (image->type)
 		{
 			case it_skin:
-				R_Printf(PRINT_ALL, "M");
+				Com_Printf("M");
 				break;
 			case it_sprite:
-				R_Printf(PRINT_ALL, "S");
+				Com_Printf("S");
 				break;
 			case it_wall:
-				R_Printf(PRINT_ALL, "W");
+				Com_Printf("W");
 				break;
 			case it_pic:
-				R_Printf(PRINT_ALL, "P");
+				Com_Printf("P");
 				break;
 			default:
-				R_Printf(PRINT_ALL, " ");
+				Com_Printf(" ");
 				break;
 		}
 
-		R_Printf(PRINT_ALL, " %3i %3i %s: %s (%dx%d) %s\n",
+		Com_Printf(" %3i %3i %s: %s (%dx%d) %s\n",
 				image->upload_width, image->upload_height,
 				palstrings[image->paletted], image->name,
 				image->width, image->height, in_use);
 	}
 
-	R_Printf(PRINT_ALL,
-			"Total texel count (not counting mipmaps): %i\n",
+	Com_Printf("Total texel count (not counting mipmaps): %i\n",
 			texels);
 	freeup = R_ImageHasFreeSpace();
-	R_Printf(PRINT_ALL, "Used %d of %d images%s.\n", used, image_max, freeup ? ", has free space" : "");
+	Com_Printf("Used %d of %d images%s.\n", used, image_max, freeup ? ", has free space" : "");
 }
 
 /*
@@ -727,7 +726,7 @@ R_Upload32Soft(unsigned *data, int width, int height, qboolean mipmap)
 	if (scaled_width * scaled_height > sizeof(scaled) / 4)
 	{
 		// this can't really happen (because they're clamped to 256 above), but whatever
-		ri.Sys_Error(ERR_DROP, "%s: too big", __func__);
+		Com_Error(ERR_DROP, "%s: too big", __func__);
 	}
 
 	/* scan the texture for any non-255 alpha */
@@ -979,7 +978,7 @@ R_LoadPic(const char *name, byte *pic, int width, int realwidth,
 	{
 		if (numgltextures == MAX_GLTEXTURES)
 		{
-			ri.Sys_Error(ERR_DROP, "%s: MAX_GLTEXTURES", __func__);
+			Com_Error(ERR_DROP, "%s: MAX_GLTEXTURES", __func__);
 		}
 
 		numgltextures++;
@@ -989,7 +988,7 @@ R_LoadPic(const char *name, byte *pic, int width, int realwidth,
 
 	if (strlen(name) >= sizeof(image->name))
 	{
-		ri.Sys_Error(ERR_DROP, "%s: \"%s\" is too long", __func__, name);
+		Com_Error(ERR_DROP, "%s: \"%s\" is too long", __func__, name);
 	}
 
 	strcpy(image->name, name);
@@ -1102,7 +1101,7 @@ R_LoadPic(const char *name, byte *pic, int width, int realwidth,
 			}
 			else
 			{
-				R_Printf(PRINT_DEVELOPER,
+				Com_DPrintf(
 						"Warning, image '%s' has hi-res replacement smaller than the original! (%d x %d) < (%d x %d)\n",
 						name, image->width, image->height, realwidth, realheight);
 			}
@@ -1182,7 +1181,7 @@ R_FindImage(const char *name, imagetype_t type)
 
 	if (!image && r_validation->value)
 	{
-		R_Printf(PRINT_ALL, "%s: can't load %s\n", __func__, name);
+		Com_Printf("%s: can't load %s\n", __func__, name);
 	}
 
 	return image;
@@ -1297,7 +1296,7 @@ R_InitImages(void)
 
 		if (!gl_state.d_16to8table)
 		{
-			ri.Sys_Error(ERR_FATAL, "%s: Couldn't load pics/16to8.pcx",
+			Com_Error(ERR_FATAL, "%s: Couldn't load pics/16to8.pcx",
 				__func__);
 		}
 	}

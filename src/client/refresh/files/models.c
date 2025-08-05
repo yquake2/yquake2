@@ -50,7 +50,7 @@ Mod_LoadMD2 (const char *mod_name, const void *buffer, int modfilelen,
 	version = LittleLong (pinmodel->version);
 	if (version != ALIAS_VERSION)
 	{
-		R_Printf(PRINT_ALL, "%s: %s has wrong version number (%i should be %i)",
+		Com_Printf("%s: %s has wrong version number (%i should be %i)",
 				__func__, mod_name, version, ALIAS_VERSION);
 		return NULL;
 	}
@@ -58,7 +58,7 @@ Mod_LoadMD2 (const char *mod_name, const void *buffer, int modfilelen,
 	ofs_end = LittleLong(pinmodel->ofs_end);
 	if (ofs_end < 0 || ofs_end > modfilelen)
 	{
-		R_Printf(PRINT_ALL, "%s: model %s file size(%d) too small, should be %d",
+		Com_Printf("%s: model %s file size(%d) too small, should be %d",
 				__func__, mod_name, modfilelen, ofs_end);
 		return NULL;
 	}
@@ -72,49 +72,49 @@ Mod_LoadMD2 (const char *mod_name, const void *buffer, int modfilelen,
 
 	if (pheader->skinheight > MAX_LBM_HEIGHT)
 	{
-		R_Printf(PRINT_ALL, "%s: model %s has a skin taller than %d",
+		Com_Printf("%s: model %s has a skin taller than %d",
 				__func__, mod_name, MAX_LBM_HEIGHT);
 		return NULL;
 	}
 
 	if (pheader->num_xyz <= 0)
 	{
-		R_Printf(PRINT_ALL, "%s: model %s has no vertices",
+		Com_Printf("%s: model %s has no vertices",
 				__func__, mod_name);
 		return NULL;
 	}
 
 	if (pheader->num_xyz > MAX_VERTS)
 	{
-		R_Printf(PRINT_ALL, "%s: model %s has too many vertices",
+		Com_Printf("%s: model %s has too many vertices",
 				__func__, mod_name);
 		return NULL;
 	}
 
 	if (pheader->num_st <= 0)
 	{
-		R_Printf(PRINT_ALL, "%s: model %s has no st vertices",
+		Com_Printf("%s: model %s has no st vertices",
 				__func__, mod_name);
 		return NULL;
 	}
 
 	if (pheader->num_tris <= 0)
 	{
-		R_Printf(PRINT_ALL, "%s: model %s has no triangles",
+		Com_Printf("%s: model %s has no triangles",
 				__func__, mod_name);
 		return NULL;
 	}
 
 	if (pheader->num_frames <= 0)
 	{
-		R_Printf(PRINT_ALL, "%s: model %s has no frames",
+		Com_Printf("%s: model %s has no frames",
 				__func__, mod_name);
 		return NULL;
 	}
 
 	if (pheader->num_skins > MAX_MD2SKINS)
 	{
-		R_Printf(PRINT_ALL, "%s has too many skins (%i > %i), "
+		Com_Printf("%s has too many skins (%i > %i), "
 				"extra sprites will be ignored\n",
 				mod_name, pheader->num_skins, MAX_MD2SKINS);
 		pheader->num_skins = MAX_MD2SKINS;
@@ -182,7 +182,7 @@ Mod_LoadMD2 (const char *mod_name, const void *buffer, int modfilelen,
 
 	if (poutcmd[pheader->num_glcmds-1] != 0)
 	{
-		R_Printf(PRINT_ALL, "%s: Entity %s has possible last element issues with %d verts.\n",
+		Com_Printf("%s: Entity %s has possible last element issues with %d verts.\n",
 			__func__, mod_name, poutcmd[pheader->num_glcmds-1]);
 	}
 
@@ -240,14 +240,14 @@ Mod_LoadSP2 (const char *mod_name, const void *buffer, int modfilelen,
 
 	if (sprout->version != SPRITE_VERSION)
 	{
-		R_Printf(PRINT_ALL, "%s has wrong version number (%i should be %i)",
+		Com_Printf("%s has wrong version number (%i should be %i)",
 				mod_name, sprout->version, SPRITE_VERSION);
 		return NULL;
 	}
 
 	if (sprout->numframes > MAX_MD2SKINS)
 	{
-		R_Printf(PRINT_ALL, "%s has too many frames (%i > %i), "
+		Com_Printf("%s has too many frames (%i > %i), "
 				"extra frames will be ignored\n",
 				mod_name, sprout->numframes, MAX_MD2SKINS);
 		sprout->numframes = MAX_MD2SKINS;
@@ -379,7 +379,7 @@ Mod_LoadNodes(const char *name, cplane_t *planes, int numplanes, mleaf_t *leafs,
 
 	if (l->filelen % sizeof(*in))
 	{
-		ri.Sys_Error(ERR_DROP, "%s: funny lump size in %s",
+		Com_Error(ERR_DROP, "%s: funny lump size in %s",
 				__func__, name);
 	}
 
@@ -402,7 +402,7 @@ Mod_LoadNodes(const char *name, cplane_t *planes, int numplanes, mleaf_t *leafs,
 		planenum = LittleLong(in->planenum);
 		if (planenum  < 0 || planenum >= numplanes)
 		{
-			ri.Sys_Error(ERR_DROP, "%s: Incorrect %d < %d planenum.",
+			Com_Error(ERR_DROP, "%s: Incorrect %d < %d planenum.",
 					__func__, planenum, numplanes);
 		}
 		out->plane = planes + planenum;
@@ -421,7 +421,7 @@ Mod_LoadNodes(const char *name, cplane_t *planes, int numplanes, mleaf_t *leafs,
 			{
 				if (leafnum  < 0 || leafnum >= *numnodes)
 				{
-					ri.Sys_Error(ERR_DROP, "%s: Incorrect %d nodenum as leaf.",
+					Com_Error(ERR_DROP, "%s: Incorrect %d nodenum as leaf.",
 							__func__, leafnum);
 				}
 
@@ -432,7 +432,7 @@ Mod_LoadNodes(const char *name, cplane_t *planes, int numplanes, mleaf_t *leafs,
 				leafnum = -1 - leafnum;
 				if (leafnum  < 0 || leafnum >= numleafs)
 				{
-					ri.Sys_Error(ERR_DROP, "%s: Incorrect %d leafnum.",
+					Com_Error(ERR_DROP, "%s: Incorrect %d leafnum.",
 							__func__, leafnum);
 				}
 
@@ -496,7 +496,7 @@ Mod_LoadVertexes(const char *name, mvertex_t **vertexes, int *numvertexes,
 
 	if (l->filelen % sizeof(*in))
 	{
-		ri.Sys_Error(ERR_DROP, "%s: funny lump size in %s",
+		Com_Error(ERR_DROP, "%s: funny lump size in %s",
 				__func__, name);
 	}
 
@@ -562,7 +562,7 @@ Mod_LoadTexinfo(const char *name, mtexinfo_t **texinfo, int *numtexinfo,
 
 	if (l->filelen % sizeof(*in))
 	{
-		ri.Sys_Error(ERR_DROP, "%s: funny lump size in %s",
+		Com_Error(ERR_DROP, "%s: funny lump size in %s",
 				__func__, name);
 	}
 
@@ -602,7 +602,7 @@ Mod_LoadTexinfo(const char *name, mtexinfo_t **texinfo, int *numtexinfo,
 		image = GetTexImage(in->texture, find_image);
 		if (!image)
 		{
-			R_Printf(PRINT_ALL, "%s: Couldn't load %s\n",
+			Com_Printf("%s: Couldn't load %s\n",
 				__func__, in->texture);
 			image = notexture;
 		}
@@ -640,7 +640,7 @@ Mod_LoadEdges(const char *name, medge_t **edges, int *numedges,
 	in = (void *)(mod_base + l->fileofs);
 	if (l->filelen % sizeof(*in))
 	{
-		ri.Sys_Error(ERR_DROP, "%s: funny lump size in %s",
+		Com_Error(ERR_DROP, "%s: funny lump size in %s",
 				__func__, name);
 	}
 
@@ -677,7 +677,7 @@ Mod_LoadPlanes(const char *name, cplane_t **planes, int *numplanes,
 
 	if (l->filelen % sizeof(*in))
 	{
-		ri.Sys_Error(ERR_DROP, "%s: funny lump size in %s",
+		Com_Error(ERR_DROP, "%s: funny lump size in %s",
 				__func__, name);
 	}
 
@@ -722,7 +722,7 @@ Mod_LoadSurfedges(const char *name, int **surfedges, int *numsurfedges,
 
 	if (l->filelen % sizeof(*in))
 	{
-		ri.Sys_Error(ERR_DROP, "%s: funny lump size in %s",
+		Com_Error(ERR_DROP, "%s: funny lump size in %s",
 				__func__, name);
 	}
 
@@ -774,7 +774,7 @@ Mod_PointInLeaf(const vec3_t p, mnode_t *node)
 {
 	if (!node)
 	{
-		ri.Sys_Error(ERR_DROP, "%s: bad node.", __func__);
+		Com_Error(ERR_DROP, "%s: bad node.", __func__);
 		return NULL;
 	}
 

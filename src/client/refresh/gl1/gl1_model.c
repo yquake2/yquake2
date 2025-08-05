@@ -92,7 +92,7 @@ Mod_Modellist_f(void)
 
 	total = 0;
 	used = 0;
-	R_Printf(PRINT_ALL, "Loaded models:\n");
+	Com_Printf("Loaded models:\n");
 
 	for (i = 0, mod = mod_known; i < mod_numknown; i++, mod++)
 	{
@@ -109,15 +109,15 @@ Mod_Modellist_f(void)
 			continue;
 		}
 
-		R_Printf(PRINT_ALL, "%8i : %s %s\n",
+		Com_Printf("%8i : %s %s\n",
 			mod->extradatasize, mod->name, in_use);
 		total += mod->extradatasize;
 	}
 
-	R_Printf(PRINT_ALL, "Total resident: %i\n", total);
+	Com_Printf("Total resident: %i\n", total);
 	// update statistics
 	freeup = Mod_HasFreeSpace();
-	R_Printf(PRINT_ALL, "Used %d of %d models%s.\n", used, mod_max, freeup ? ", has free space" : "");
+	Com_Printf("Used %d of %d models%s.\n", used, mod_max, freeup ? ", has free space" : "");
 }
 
 void
@@ -139,7 +139,7 @@ Mod_ForName (char *name, model_t *parent_model, qboolean crash)
 
 	if (!name[0])
 	{
-		ri.Sys_Error(ERR_DROP, "%s: NULL name", __func__);
+		Com_Error(ERR_DROP, "%s: NULL name", __func__);
 	}
 
 	/* inline models are grabbed only from worldmodel */
@@ -149,7 +149,7 @@ Mod_ForName (char *name, model_t *parent_model, qboolean crash)
 
 		if (i < 1 || i >= parent_model->numsubmodels)
 		{
-			ri.Sys_Error(ERR_DROP, "%s: bad inline model number",
+			Com_Error(ERR_DROP, "%s: bad inline model number",
 					__func__);
 		}
 
@@ -183,7 +183,7 @@ Mod_ForName (char *name, model_t *parent_model, qboolean crash)
 	{
 		if (mod_numknown == MAX_MOD_KNOWN)
 		{
-			ri.Sys_Error(ERR_DROP, "%s: mod_numknown == MAX_MOD_KNOWN", __func__);
+			Com_Error(ERR_DROP, "%s: mod_numknown == MAX_MOD_KNOWN", __func__);
 		}
 
 		mod_numknown++;
@@ -198,7 +198,7 @@ Mod_ForName (char *name, model_t *parent_model, qboolean crash)
 	{
 		if (crash)
 		{
-			ri.Sys_Error(ERR_DROP, "%s: %s not found",
+			Com_Error(ERR_DROP, "%s: %s not found",
 					__func__, mod->name);
 		}
 
@@ -217,7 +217,7 @@ Mod_ForName (char *name, model_t *parent_model, qboolean crash)
 					&(mod->type));
 				if (!mod->extradata)
 				{
-					ri.Sys_Error(ERR_DROP, "%s: Failed to load %s",
+					Com_Error(ERR_DROP, "%s: Failed to load %s",
 						__func__, mod->name);
 				}
 			};
@@ -230,7 +230,7 @@ Mod_ForName (char *name, model_t *parent_model, qboolean crash)
 					&(mod->type));
 				if (!mod->extradata)
 				{
-					ri.Sys_Error(ERR_DROP, "%s: Failed to load %s",
+					Com_Error(ERR_DROP, "%s: Failed to load %s",
 						__func__, mod->name);
 				}
 			}
@@ -241,7 +241,7 @@ Mod_ForName (char *name, model_t *parent_model, qboolean crash)
 			break;
 
 		default:
-			ri.Sys_Error(ERR_DROP, "%s: unknown fileid for %s",
+			Com_Error(ERR_DROP, "%s: unknown fileid for %s",
 					__func__, mod->name);
 			break;
 	}
@@ -264,7 +264,7 @@ Mod_LoadSubmodels (model_t *loadmodel, byte *mod_base, lump_t *l)
 
 	if (l->filelen % sizeof(*in))
 	{
-		ri.Sys_Error(ERR_DROP, "%s: funny lump size in %s",
+		Com_Error(ERR_DROP, "%s: funny lump size in %s",
 				__func__, loadmodel->name);
 	}
 
@@ -278,13 +278,13 @@ Mod_LoadSubmodels (model_t *loadmodel, byte *mod_base, lump_t *l)
 	{
 		if (i == 0)
 		{
-			// copy parent as template for first model
+			/* copy parent as template for first model */
 			memcpy(out, loadmodel, sizeof(*out));
 		}
 		else
 		{
-			// copy first as template for model
-			memcpy(out, loadmodel->submodels, sizeof(*out));
+			/* copy first as template for model */
+			memmove(out, loadmodel->submodels, sizeof(*out));
 		}
 
 		Com_sprintf (out->name, sizeof(out->name), "*%d", i);
@@ -306,7 +306,7 @@ Mod_LoadSubmodels (model_t *loadmodel, byte *mod_base, lump_t *l)
 		//  check limits
 		if (out->firstnode >= loadmodel->numnodes)
 		{
-			ri.Sys_Error(ERR_DROP, "%s: Inline model %i has bad firstnode",
+			Com_Error(ERR_DROP, "%s: Inline model %i has bad firstnode",
 					__func__, i);
 		}
 	}
@@ -459,7 +459,7 @@ Mod_LoadFaces(model_t *loadmodel, byte *mod_base, lump_t *l)
 
 	if (l->filelen % sizeof(*in))
 	{
-		ri.Sys_Error(ERR_DROP, "%s: funny lump size in %s",
+		Com_Error(ERR_DROP, "%s: funny lump size in %s",
 				__func__, loadmodel->name);
 	}
 
@@ -488,7 +488,7 @@ Mod_LoadFaces(model_t *loadmodel, byte *mod_base, lump_t *l)
 
 		if (planenum < 0 || planenum >= loadmodel->numplanes)
 		{
-			ri.Sys_Error(ERR_DROP, "%s: Incorrect %d planenum.",
+			Com_Error(ERR_DROP, "%s: Incorrect %d planenum.",
 					__func__, planenum);
 		}
 		out->plane = loadmodel->planes + planenum;
@@ -497,7 +497,7 @@ Mod_LoadFaces(model_t *loadmodel, byte *mod_base, lump_t *l)
 
 		if ((ti < 0) || (ti >= loadmodel->numtexinfo))
 		{
-			ri.Sys_Error(ERR_DROP, "%s: bad texinfo number",
+			Com_Error(ERR_DROP, "%s: bad texinfo number",
 					__func__);
 		}
 
@@ -570,7 +570,7 @@ Mod_LoadLeafs(model_t *loadmodel, byte *mod_base, lump_t *l)
 
 	if (l->filelen % sizeof(*in))
 	{
-		ri.Sys_Error(ERR_DROP, "%s: funny lump size in %s",
+		Com_Error(ERR_DROP, "%s: funny lump size in %s",
 				__func__, loadmodel->name);
 	}
 
@@ -603,7 +603,7 @@ Mod_LoadLeafs(model_t *loadmodel, byte *mod_base, lump_t *l)
 		out->firstmarksurface = loadmodel->marksurfaces + firstleafface;
 		if ((firstleafface + out->nummarksurfaces) > loadmodel->nummarksurfaces)
 		{
-			ri.Sys_Error(ERR_DROP, "%s: wrong marksurfaces position in %s",
+			Com_Error(ERR_DROP, "%s: wrong marksurfaces position in %s",
 				__func__, loadmodel->name);
 		}
 	}
@@ -620,7 +620,7 @@ Mod_LoadMarksurfaces(model_t *loadmodel, byte *mod_base, lump_t *l)
 
 	if (l->filelen % sizeof(*in))
 	{
-		ri.Sys_Error(ERR_DROP, "%s: funny lump size in %s",
+		Com_Error(ERR_DROP, "%s: funny lump size in %s",
 				__func__, loadmodel->name);
 	}
 
@@ -636,7 +636,7 @@ Mod_LoadMarksurfaces(model_t *loadmodel, byte *mod_base, lump_t *l)
 
 		if ((j < 0) || (j >= loadmodel->numsurfaces))
 		{
-			ri.Sys_Error(ERR_DROP, "%s: bad surface number",
+			Com_Error(ERR_DROP, "%s: bad surface number",
 					__func__);
 		}
 
@@ -653,7 +653,7 @@ Mod_LoadBrushModel(model_t *mod, void *buffer, int modfilelen)
 
 	if (mod != mod_known)
 	{
-		ri.Sys_Error(ERR_DROP, "%s: Loaded a brush model after the world", __func__);
+		Com_Error(ERR_DROP, "%s: Loaded a brush model after the world", __func__);
 	}
 
 	header = (dheader_t *)buffer;
@@ -662,7 +662,7 @@ Mod_LoadBrushModel(model_t *mod, void *buffer, int modfilelen)
 
 	if (i != BSPVERSION)
 	{
-		ri.Sys_Error(ERR_DROP, "%s: %s has wrong version number (%i should be %i)",
+		Com_Error(ERR_DROP, "%s: %s has wrong version number (%i should be %i)",
 				__func__, mod->name, i, BSPVERSION);
 	}
 

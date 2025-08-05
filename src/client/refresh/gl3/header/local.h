@@ -63,7 +63,7 @@
 		static int show=1; \
 		if(show) { \
 			show = 0; \
-			R_Printf(PRINT_ALL, "STUB: %s() %s\n", __FUNCTION__, msg); \
+			Com_Printf("STUB: %s() %s\n", __FUNCTION__, msg); \
 		} \
 	} while(0);
 #else // .. so make this a no-op in released code
@@ -275,10 +275,6 @@ typedef struct
 
 extern gl3config_t gl3config;
 extern gl3state_t gl3state;
-
-extern viddef_t vid;
-
-extern refdef_t gl3_newrefdef;
 
 extern int gl3_visframecount; /* bumped when going to a new PVS */
 extern int gl3_framecount; /* used for dlight push checking */

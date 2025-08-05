@@ -45,7 +45,7 @@ LoadWal(const char *origname, imagetype_t type, loadimage_t load_image)
 
 	if (size < sizeof(miptex_t))
 	{
-		R_Printf(PRINT_ALL, "%s: can't load %s, small header\n", __func__, name);
+		Com_Printf("%s: can't load %s, small header\n", __func__, name);
 		ri.FS_FreeFile((void *)mt);
 		return NULL;
 	}
@@ -57,7 +57,7 @@ LoadWal(const char *origname, imagetype_t type, loadimage_t load_image)
 	if ((ofs <= 0) || (width <= 0) || (height <= 0) ||
 	    (((size - ofs) / height) < width))
 	{
-		R_Printf(PRINT_ALL, "%s: can't load %s, small body\n", __func__, name);
+		Com_Printf("%s: can't load %s, small body\n", __func__, name);
 		ri.FS_FreeFile((void *)mt);
 		return NULL;
 	}
@@ -92,14 +92,14 @@ LoadM8(const char *origname, imagetype_t type, loadimage_t load_image)
 
 	if (size < sizeof(m8tex_t))
 	{
-		R_Printf(PRINT_ALL, "%s: can't load %s, small header\n", __func__, name);
+		Com_Printf("%s: can't load %s, small header\n", __func__, name);
 		ri.FS_FreeFile((void *)mt);
 		return NULL;
 	}
 
 	if (LittleLong (mt->version) != M8_VERSION)
 	{
-		R_Printf(PRINT_ALL, "%s: can't load %s, wrong magic value.\n", __func__, name);
+		Com_Printf("%s: can't load %s, wrong magic value.\n", __func__, name);
 		ri.FS_FreeFile ((void *)mt);
 		return NULL;
 	}
@@ -111,7 +111,7 @@ LoadM8(const char *origname, imagetype_t type, loadimage_t load_image)
 	if ((ofs <= 0) || (width <= 0) || (height <= 0) ||
 	    (((size - ofs) / height) < width))
 	{
-		R_Printf(PRINT_ALL, "%s: can't load %s, small body\n", __func__, name);
+		Com_Printf("%s: can't load %s, small body\n", __func__, name);
 		ri.FS_FreeFile((void *)mt);
 		return NULL;
 	}
@@ -156,14 +156,14 @@ LoadM32(const char *origname, imagetype_t type, loadimage_t load_image)
 
 	if (size < sizeof(m32tex_t))
 	{
-		R_Printf(PRINT_ALL, "%s: can't load %s, small header\n", __func__, name);
+		Com_Printf("%s: can't load %s, small header\n", __func__, name);
 		ri.FS_FreeFile((void *)mt);
 		return NULL;
 	}
 
 	if (LittleLong (mt->version) != M32_VERSION)
 	{
-		R_Printf(PRINT_ALL, "%s: can't load %s, wrong magic value.\n", __func__, name);
+		Com_Printf("%s: can't load %s, wrong magic value.\n", __func__, name);
 		ri.FS_FreeFile ((void *)mt);
 		return NULL;
 	}
@@ -175,7 +175,7 @@ LoadM32(const char *origname, imagetype_t type, loadimage_t load_image)
 	if ((ofs <= 0) || (width <= 0) || (height <= 0) ||
 	    (((size - ofs) / height) < (width * 4)))
 	{
-		R_Printf(PRINT_ALL, "%s: can't load %s, small body\n", __func__, name);
+		Com_Printf("%s: can't load %s, small body\n", __func__, name);
 		ri.FS_FreeFile((void *)mt);
 		return NULL;
 	}

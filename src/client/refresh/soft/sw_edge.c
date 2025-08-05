@@ -172,7 +172,7 @@ R_StepActiveU (edge_t *pedge)
 
 			if (pedge->prev == &edge_head)
 			{
-				R_Printf(PRINT_ALL,"Already in head.\n");
+				Com_Printf("Already in head.\n");
 			}
 
 			// push it back to keep it sorted

@@ -258,33 +258,33 @@ void _VectorAdd(vec3_t veca, vec3_t vecb, vec3_t out);
 void _VectorCopy(vec3_t in, vec3_t out);
 
 void ClearBounds(vec3_t mins, vec3_t maxs);
-void AddPointToBounds(vec3_t v, vec3_t mins, vec3_t maxs);
+void AddPointToBounds(const vec3_t v, vec3_t mins, vec3_t maxs);
 void ClosestPointOnBounds(const vec3_t p, const vec3_t amin, const vec3_t amax, vec3_t out);
 qboolean IsZeroVector(vec3_t v);
-int VectorCompare(vec3_t v1, vec3_t v2);
+int VectorCompare(const vec3_t v1, const vec3_t v2);
 vec_t VectorLengthSquared(vec3_t v);
-vec_t VectorLength(vec3_t v);
-void CrossProduct(vec3_t v1, vec3_t v2, vec3_t cross);
+vec_t VectorLength(const vec3_t v);
+void CrossProduct(const vec3_t v1, const vec3_t v2, vec3_t cross);
 vec_t VectorNormalize(vec3_t v); /* returns vector length */
-vec_t VectorNormalize2(vec3_t v, vec3_t out);
+vec_t VectorNormalize2(const vec3_t v, vec3_t out);
 void VectorInverse(vec3_t v);
-void VectorInverse2(vec3_t v, vec3_t out);
-void VectorScale(vec3_t in, vec_t scale, vec3_t out);
-void VectorLerp(vec3_t v1, vec3_t v2, vec_t factor, vec3_t out);
-void VectorToQuat(vec3_t v, quat_t out);
-void QuatInverse(quat_t q, quat_t out);
-void QuatMultiply(quat_t q1, quat_t q2, quat_t out);
-void QuatAngleAxis(vec3_t v, float angle, quat_t out);
+void VectorInverse2(const vec3_t v, vec3_t out);
+void VectorScale(const vec3_t in, const vec_t scale, vec3_t out);
+void VectorLerp(const vec3_t v1, const vec3_t v2, const vec_t factor, vec3_t out);
+void VectorToQuat(const vec3_t v, quat_t out);
+void QuatInverse(const quat_t q, quat_t out);
+void QuatMultiply(const quat_t q1, const quat_t q2, quat_t out);
+void QuatAngleAxis(const vec3_t v, float angle, quat_t out);
 void RotateVectorByUnitQuat(vec3_t v, quat_t q_unit);
 float Q_magnitude(float x, float y);
 int Q_log2(int val);
 
-void R_ConcatRotations(float in1[3][3], float in2[3][3], float out[3][3]);
-void R_ConcatTransforms(float in1[3][4], float in2[3][4], float out[3][4]);
+void R_ConcatRotations(const float in1[3][3], const float in2[3][3], float out[3][3]);
+void R_ConcatTransforms(const float in1[3][4], const float in2[3][4], float out[3][4]);
 
 void AngleVectors(const vec3_t angles, vec3_t forward, vec3_t right, vec3_t up);
 void AngleVectors2(const vec3_t value1, vec3_t angles);
-int BoxOnPlaneSide(vec3_t emins, vec3_t emaxs, struct cplane_s *plane);
+int BoxOnPlaneSide(const vec3_t emins, const vec3_t emaxs, const struct cplane_s *plane);
 float anglemod(float a);
 float LerpAngle(float a1, float a2, float frac);
 

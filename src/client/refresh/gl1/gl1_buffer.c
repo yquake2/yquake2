@@ -393,7 +393,7 @@ R_SetBufferIndices(GLenum primitive, GLuint vertices_num)
 			}
 			break;
 		default:
-			R_Printf(PRINT_DEVELOPER, "%s: no such primitive %d\n", __func__, primitive);
+			Com_DPrintf("%s: no such primitive %d\n", __func__, primitive);
 			return;
 	}
 
