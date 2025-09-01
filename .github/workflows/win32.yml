@@ -16,6 +16,9 @@ concurrency:
 jobs:
   build_mingw_x86_32:
     runs-on: windows-latest
+    permissions:
+      actions: read
+      contents: read
     strategy:
       fail-fast: false
       matrix:
@@ -74,9 +77,8 @@ jobs:
         unzip -o openal-soft-1.23.1-bin.zip
         cp openal-soft-1.23.1-bin/bin/Win32/soft_oal.dll publish/quake2-win32-${{github.sha}}/openal32.dll
         # curl (releases use a custom build curl.dll)
-        wget -c -O curl-mingw-latest.zip "https://curl.se/windows/latest.cgi?p=win32-mingw.zip"
-        unzip -o curl-mingw-latest.zip
-        cp curl-*-win32-mingw/bin/libcurl.dll publish/quake2-win32-${{github.sha}}/curl.dll
+        wget -c -O libcurl-4.dll "https://github.com/dhewm/dhewm3-libs/raw/refs/heads/master/i686-w64-mingw32/bin/libcurl-4.dll"
+        cp libcurl-4.dll publish/quake2-win32-${{github.sha}}/curl.dll
     - name: Upload testbuild package
       uses: actions/upload-artifact@v4
       with:

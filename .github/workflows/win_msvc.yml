@@ -16,6 +16,9 @@ concurrency:
 jobs:
   build_win_x86_msvc:
     runs-on: windows-latest
+    permissions:
+      actions: read
+      contents: read
     defaults:
       run:
         # use git bash for for all steps (unless specified otherwise per step)
@@ -76,10 +79,9 @@ jobs:
         cp doc/080_contributing.md publish/$PKGDIR/misc/docs/080_contributing.txt
         cp doc/090_filelists.md publish/$PKGDIR/misc/docs/090_filelists.md
         # copy runtime libraries (SDL, OpenAL, cURL)
-        cd ../dhewm3-libs-master/i686-w64-mingw32/bin/
-        cp OpenAL32.dll SDL2.dll ../../../yquake2/publish/$PKGDIR/
-        cp libcurl-4.dll ../../../yquake2/publish/$PKGDIR/curl.dll
-        cd -
+        cp ../dhewm3-libs-master/i686-w64-mingw32/bin/OpenAL32.dll publish/$PKGDIR/
+        cp ../dhewm3-libs-master/i686-w64-mingw32/bin/SDL2.dll publish/$PKGDIR/
+        cp ../dhewm3-libs-master/i686-w64-mingw32/bin/libcurl-4.dll publish/$PKGDIR/curl.dll
     - name: Upload testbuild package
       uses: actions/upload-artifact@v4
       with:
@@ -94,6 +96,10 @@ jobs:
         if-no-files-found: error
   build_win_x86_64_msvc:
     runs-on: windows-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
     defaults:
       run:
         # use git bash for for all steps (unless specified otherwise per step)
@@ -154,10 +160,9 @@ jobs:
         cp doc/080_contributing.md publish/$PKGDIR/misc/docs/080_contributing.txt
         cp doc/090_filelists.md publish/$PKGDIR/misc/docs/090_filelists.md
         # copy runtime libraries (SDL, OpenAL, cURL)
-        cd ../dhewm3-libs-master/x86_64-w64-mingw32/bin/
-        cp OpenAL32.dll SDL2.dll ../../../yquake2/publish/$PKGDIR/
-        cp libcurl-4.dll ../../../yquake2/publish/$PKGDIR/curl.dll
-        cd -
+        cp ../dhewm3-libs-master/x86_64-w64-mingw32/bin/OpenAL32.dll publish/$PKGDIR/
+        cp ../dhewm3-libs-master/x86_64-w64-mingw32/bin/SDL2.dll publish/$PKGDIR/
+        cp ../dhewm3-libs-master/x86_64-w64-mingw32/bin/libcurl-4.dll publish/$PKGDIR/curl.dll
     - name: Upload testbuild package
       uses: actions/upload-artifact@v4
       with:
@@ -170,3 +175,14 @@ jobs:
         name: ${{ env.pkgname }}-debugsyms
         path: debug-syms/
         if-no-files-found: error
+    - name: Run MSVC Code Analysis
+      uses: microsoft/msvc-code-analysis-action@v0.1.1
+      id: run-analysis
+      with:
+        cmakeBuildDirectory: build
+        buildConfiguration: RelWithDebInfo
+        ruleset: NativeRecommendedRules.ruleset
+    - name: Upload SARIF to GitHub Code Scanning
+      uses: github/codeql-action/upload-sarif@v3
+      with:
+        sarif_file: ${{ steps.run-analysis.outputs.sarif }}

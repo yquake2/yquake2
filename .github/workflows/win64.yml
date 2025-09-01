@@ -16,11 +16,16 @@ concurrency:
 jobs:
   build_mingw_x86_64:
     runs-on: windows-latest
+    permissions:
+      actions: read
+      contents: read
     strategy:
       fail-fast: false
       matrix:
         include:
           - { sys: mingw64, env: x86_64 }
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
     - uses: msys2/setup-msys2@v2
       with:
@@ -38,6 +43,7 @@ jobs:
           mingw-w64-${{matrix.env}}-sdl3
           mingw-w64-${{matrix.env}}-wget
           mingw-w64-${{matrix.env}}-pkgconf
+          mingw-w64-${{matrix.env}}-github-cli
     - name: Check out repository code
       uses: actions/checkout@v4
     - name: Build
@@ -46,6 +52,7 @@ jobs:
         sed -i 's|WITH_SDL3:=no|WITH_SDL3:=yes|g' Makefile
         # Public runners come with 4 CPUs.
         make -j4
+        make -j4 ref_gles1
     - name: Create testbuild package
       shell: msys2 {0}
       run: |
@@ -68,11 +75,15 @@ jobs:
         cp doc/080_contributing.md publish/quake2-win64-${{github.sha}}/misc/docs/080_contributing.txt
         cp doc/090_filelists.md publish/quake2-win64-${{github.sha}}/misc/docs/090_filelists.md
         # SDL3
-        wget -c https://github.com/libsdl-org/SDL/releases/download/release-3.2.18/SDL3-3.2.18-win32-x64.zip
-        unzip -o SDL3-3.2.18-win32-x64.zip
+        gh release download release-3.2.20 \
+          --repo libsdl-org/SDL \
+          --pattern "SDL3-3.2.20-win32-x64.zip"
+        unzip -o SDL3-3.2.20-win32-x64.zip
         cp SDL3.dll publish/quake2-win64-${{github.sha}}/
         # openal-soft
-        wget -c https://github.com/kcat/openal-soft/releases/download/1.23.1/openal-soft-1.23.1-bin.zip
+        gh release download 1.23.1 \
+          --repo kcat/openal-soft \
+          --pattern "openal-soft-1.23.1-bin.zip"
         unzip -o openal-soft-1.23.1-bin.zip
         cp openal-soft-1.23.1-bin/bin/Win64/soft_oal.dll publish/quake2-win64-${{github.sha}}/openal32.dll
         # curl (releases use a custom build curl.dll)
