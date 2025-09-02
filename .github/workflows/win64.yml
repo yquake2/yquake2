@@ -75,10 +75,10 @@ jobs:
         cp doc/080_contributing.md publish/quake2-win64-${{github.sha}}/misc/docs/080_contributing.txt
         cp doc/090_filelists.md publish/quake2-win64-${{github.sha}}/misc/docs/090_filelists.md
         # SDL3
-        gh release download release-3.2.20 \
+        gh release download release-3.2.22 \
           --repo libsdl-org/SDL \
-          --pattern "SDL3-3.2.20-win32-x64.zip"
-        unzip -o SDL3-3.2.20-win32-x64.zip
+          --pattern "SDL3-3.2.22-win32-x64.zip"
+        unzip -o SDL3-3.2.22-win32-x64.zip
         cp SDL3.dll publish/quake2-win64-${{github.sha}}/
         # openal-soft
         gh release download 1.23.1 \
