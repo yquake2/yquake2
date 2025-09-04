@@ -16,6 +16,9 @@ concurrency:
 jobs:
   build_macos_aarch64:
     runs-on: macos-latest
+    permissions:
+      actions: read
+      contents: read
     strategy:
       fail-fast: false
       matrix:
