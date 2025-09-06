@@ -1,3 +1,38 @@
+Quake II 8.51 to 8.60:
+- Vastly improved level loading times in single-player. Set
+  sv_optimize_mp_loadtime to 7 to enable in multiplayer. (by
+  BjossiAlfreds)
+- Sort the resolution list in the video menu.
+- Update the entity files with more map fixes for hangar1, jail2, jail4,
+  mine1 and mine2. (by BjossiAlfreds)
+- Fix loop sound of BSP models always playing at origin. See cvar
+  s_bsp_soundpos for more info and options. (by BjossiAlfreds)
+- Fix the `soundlist` command. (by 0lvin)
+- Make frustrums znear value configureable through the `gl_znear` cvar.
+  Setting it to values less than the default `4` may fix problems with
+  weapon models getting clipped by the player view, at risk of heavy
+  glitches. (by protocultor)
+- Failed SFX allocations are no longer a fatal error. (by BjossiAlfreds)
+- Clean temporary entities on renderer restart. Fixes possible crashes
+  when restarting or changing the renderer. (by BjossiAlfreds)
+- Implement gamma correction for the OpenGL 1.4 renderer build against
+  SDL 3. (by protocultor)
+- Implement minimum light level for the OpenGL 1.4 renderer. Can be used
+  to illuminate dark scenes. (by protocultor)
+- Vastly improved gyro support. (by ceski)
+- Improve labeling of gamepad buttons when build against SDL 3. (by
+  protocultor)
+- Fix glitches in the Software renderer when build against SDL 3. (by
+  0lvin)
+- Improved feeling and customization of analog sticks on gamepad. (by
+  ceski)
+- Fixed GL1 multitexturing in surfaces using multiple light styles. (by
+  protocultor)
+- Fix plasma beam rendering incorrectly with left / center handed
+  weapon. (by BjossiAlfreds)
+- Fix monsters acting confused while following combat points. (by
+  BjossiAlfreds)
+
 Quake II 8.50 to 8.51:
 - Fix savegame and mod incompatibilities when Yamagi Quake II is
   complied in C23 mode. With this fix applied savegames written by
