@@ -28,8 +28,13 @@ jobs:
     - name: Install build dependencies
       run: |
         sudo apt update
-        sudo apt install libgl1-mesa-dev libsdl2-dev libopenal-dev libcurl4-openssl-dev \
+        sudo apt install libgl1-mesa-dev libopenal-dev libcurl4-openssl-dev \
             build-essential
+    - name: Build SDL3
+      uses: libsdl-org/setup-sdl@main
+      with:
+        install-linux-dependencies: true
+        version: 3-latest
     - name: Check out repository code
       uses: actions/checkout@v4
     - name: Build
