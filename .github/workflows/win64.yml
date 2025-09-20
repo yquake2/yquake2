@@ -49,10 +49,9 @@ jobs:
     - name: Build
       shell: msys2 {0}
       run: |
-        sed -i 's|WITH_SDL3:=no|WITH_SDL3:=yes|g' Makefile
         # Public runners come with 4 CPUs.
-        make -j4
-        make -j4 ref_gles1
+        make WITH_SDL3=yes -j4
+        make WITH_SDL3=yes -j4 ref_gles1
     - name: Create testbuild package
       shell: msys2 {0}
       run: |

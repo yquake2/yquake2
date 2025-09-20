@@ -46,7 +46,7 @@ jobs:
         # build with cmake and visual studio
         #echo $PWD # /d/a/dhewm3/dhewm3
         # NOTE: not setting -G "Visual Studio 17 2022" so it just uses the default VS version it can find
-        cmake -A Win32 -DYQUAKE2LIBS="../dhewm3-libs-master/i686-w64-mingw32/" -S . -B build
+        cmake -A Win32 -DSDL3_SUPPORT=OFF -DYQUAKE2LIBS="../dhewm3-libs-master/i686-w64-mingw32/" -S . -B build
         time cmake --build build/ --config RelWithDebInfo
     - name: Create testbuild package
       run: |
@@ -127,7 +127,7 @@ jobs:
       run: |
         # build with cmake and visual studio
         # NOTE: not setting -G "Visual Studio 17 2022" so it just uses the default VS version it can find
-        cmake -A x64 -DYQUAKE2LIBS="../dhewm3-libs-master/x86_64-w64-mingw32/" -S . -B build
+        cmake -A x64 -DSDL3_SUPPORT=OFF -DYQUAKE2LIBS="../dhewm3-libs-master/x86_64-w64-mingw32/" -S . -B build
         time cmake --build build/ --config RelWithDebInfo
     - name: Create testbuild package
       run: |

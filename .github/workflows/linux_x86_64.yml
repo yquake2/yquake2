@@ -35,8 +35,8 @@ jobs:
     - name: Build
       run: |
         # Public runners come with 4 CPUs.
-        make -j4
-        make -j4 ref_gles1
+        make WITH_SDL3=no -j4
+        make WITH_SDL3=no -j4 ref_gles1
     - name: Create testbuild package
       run: |
         # Create release directory tree

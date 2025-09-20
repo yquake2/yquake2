@@ -46,7 +46,7 @@ jobs:
       shell: msys2 {0}
       run: |
         # Public runners come with 4 CPUs.
-        make -j4
+        make WITH_SDL3=no -j4
     - name: Create testbuild package
       shell: msys2 {0}
       run: |
