@@ -53,8 +53,8 @@ WITH_OPENAL:=yes
 # or libopenal.so. Not supported on Windows.
 WITH_RPATH:=yes
 
-# Builds with SDL 3 instead of SDL 2.
-WITH_SDL3:=no
+# When disabled SDL 2 is used instead of SDL 3.
+WITH_SDL3:=yes
 
 # Enable systemwide installation of game assets.
 WITH_SYSTEMWIDE:=no
