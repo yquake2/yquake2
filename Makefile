@@ -141,6 +141,9 @@ ifdef UBSAN
 DEBUG=1
 endif
 
+# Used to detect SDL, needs to be overridable for cross-compilation
+PKG_CONFIG ?= pkgconf
+
 # ----------
 
 # Base CFLAGS. These may be overridden by the environment.
@@ -284,7 +287,7 @@ endif
 
 # Extra CFLAGS for SDL.
 ifeq ($(WITH_SDL3),yes)
-SDLCFLAGS := $(shell pkgconf --cflags sdl3)
+SDLCFLAGS := $(shell $(PKG_CONFIG) --cflags sdl3)
 SDLCFLAGS += -DUSE_SDL3
 else
 SDLCFLAGS := $(shell sdl2-config --cflags)
@@ -377,7 +380,7 @@ ifeq ($(WITH_SDL3),yes)
 ifeq ($(YQ2_OSTYPE), Darwin)
 SDLLDFLAGS := -lSDL3
 else
-SDLLDFLAGS := $(shell pkgconf --libs sdl3)
+SDLLDFLAGS := $(shell $(PKG_CONFIG) --libs sdl3)
 endif
 else
 ifeq ($(YQ2_OSTYPE), Darwin)
