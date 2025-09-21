@@ -625,7 +625,7 @@ VID_Shutdown(void)
 // =========================================================
 
 void
-R_BeginRegistration(char *map)
+R_BeginRegistration(const char *map)
 {
 	if (ref_active)
 	{
@@ -634,7 +634,7 @@ R_BeginRegistration(char *map)
 }
 
 struct model_s*
-R_RegisterModel(char *name)
+R_RegisterModel(const char *name)
 {
 	if (ref_active)
 	{

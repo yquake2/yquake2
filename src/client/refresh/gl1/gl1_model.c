@@ -131,7 +131,7 @@ Mod_Init(void)
  * Loads in a model for the given name
  */
 static model_t *
-Mod_ForName (char *name, model_t *parent_model, qboolean crash)
+Mod_ForName(const char *name, model_t *parent_model, qboolean crash)
 {
 	model_t *mod;
 	void *buf;
@@ -743,7 +743,7 @@ Mod_FreeAll(void)
  * Specifies the model that will be used as the world
  */
 void
-RI_BeginRegistration(char *model)
+RI_BeginRegistration(const char *model)
 {
 	char fullname[MAX_QPATH];
 	cvar_t *flushmap;
@@ -769,7 +769,7 @@ RI_BeginRegistration(char *model)
 }
 
 struct model_s *
-RI_RegisterModel(char *name)
+RI_RegisterModel(const char *name)
 {
 	model_t *mod;
 

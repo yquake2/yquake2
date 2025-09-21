@@ -392,22 +392,22 @@ typedef void (*xcommand_t)(void);
 void Cmd_Init(void);
 void Cmd_Shutdown(void);
 
-void Cmd_AddCommand(char *cmd_name, xcommand_t function);
+void Cmd_AddCommand(const char *cmd_name, xcommand_t function);
 
 /* called by the init functions of other parts of the program to */
 /* register commands and functions to call for them. */
 /* The cmd_name is referenced later, so it should not be in temp memory */
 /* if function is NULL, the command will be forwarded to the server */
 /* as a clc_stringcmd instead of executed locally */
-void Cmd_RemoveCommand(char *cmd_name);
+void Cmd_RemoveCommand(const char *cmd_name);
 
-qboolean Cmd_Exists(char *cmd_name);
+qboolean Cmd_Exists(const char *cmd_name);
 
 /* used by the cvar code to check for cvar / command name overlap */
 
-char *Cmd_CompleteCommand(char *partial);
+const char *Cmd_CompleteCommand(const char *partial);
 
-char *Cmd_CompleteMapCommand(char *partial);
+const char *Cmd_CompleteMapCommand(const char *partial);
 
 /* attempts to match a partial command for automatic command line completion */
 /* returns NULL if nothing fits */
@@ -715,8 +715,8 @@ void FS_FreeList(char **list, int nfiles);
 void FS_InitFilesystem(void);
 void FS_ShutdownFilesystem(void);
 void FS_BuildGameSpecificSearchPath(const char *dir);
-char *FS_Gamedir(void);
-char *FS_NextPath(const char *prevpath);
+const char *FS_Gamedir(void);
+const char *FS_NextPath(const char *prevpath);
 int FS_LoadFile(const char *path, void **buffer);
 qboolean FS_FileInGamedir(const char *file);
 qboolean FS_AddPAKFromGamedir(const char *pak);
@@ -729,7 +729,7 @@ char **FS_ListMods(int *nummods);
 /* properly handles partial reads */
 
 void FS_FreeFile(void *buffer);
-void FS_CreatePath(char *path);
+void FS_CreatePath(const char *path);
 
 /* MISC */
 
@@ -773,8 +773,8 @@ YQ2_ATTR_NORETURN void Com_Quit(void);
 int Com_ServerState(void);              /* this should have just been a cvar... */
 void Com_SetServerState(int state);
 
-unsigned Com_BlockChecksum(void *buffer, int length);
-byte COM_BlockSequenceCRCByte(byte *base, int length, int sequence);
+unsigned Com_BlockChecksum(const void *buffer, int length);
+byte COM_BlockSequenceCRCByte(const byte *base, int length, int sequence);
 
 extern cvar_t *developer;
 extern cvar_t *modder;
