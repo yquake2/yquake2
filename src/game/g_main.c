@@ -91,11 +91,11 @@ cvar_t *g_machinegun_norecoil;
 cvar_t *g_quick_weap;
 cvar_t *g_swap_speed;
 
-void G_RunFrame(void);
+static void G_RunFrame(void);
 
 /* =================================================================== */
 
-void
+static void
 ShutdownGame(void)
 {
 	gi.dprintf("==== ShutdownGame ====\n");
@@ -210,14 +210,14 @@ Com_Printf(const char *msg, ...)
 
 /* ====================================================================== */
 
-void
+static void
 ClientEndServerFrames(void)
 {
 	int i;
 	edict_t *ent;
 
 	/* calc the player views now that all
-	   pushing  and damage has been added */
+	   pushing and damage has been added */
 	for (i = 0; i < maxclients->value; i++)
 	{
 		ent = g_edicts + 1 + i;
@@ -234,7 +234,7 @@ ClientEndServerFrames(void)
 /*
  * Returns the created target changelevel
  */
-edict_t *
+static edict_t *
 CreateTargetChangeLevel(char *map)
 {
 	edict_t *ent;
@@ -322,8 +322,10 @@ EndDMLevel(void)
 		ent = G_Find(NULL, FOFS(classname), "target_changelevel");
 
 		if (!ent)
-		{   /* the map designer didn't include a changelevel,
-			   so create a fake ent that goes back to the same level */
+		{
+			/* the map designer didn't include a changelevel,
+			   so create a fake ent that goes back to the same
+			   level */
 			BeginIntermission(CreateTargetChangeLevel(level.mapname));
 			return;
 		}
@@ -332,7 +334,7 @@ EndDMLevel(void)
 	}
 }
 
-void
+static void
 CheckNeedPass(void)
 {
 	int need;
@@ -407,7 +409,7 @@ CheckDMRules(void)
 	}
 }
 
-void
+static void
 ExitLevel(void)
 {
 	int i;
@@ -444,7 +446,7 @@ ExitLevel(void)
 /*
  * Advances the world by 0.1 seconds
  */
-void
+static void
 G_RunFrame(void)
 {
 	int i;

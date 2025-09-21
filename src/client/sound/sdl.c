@@ -40,6 +40,8 @@
 #include <SDL2/SDL.h>
 #endif
 
+#include <errno.h>
+
 /* Local includes */
 #include "../../client/header/client.h"
 #include "../../client/sound/header/local.h"
@@ -1368,7 +1370,11 @@ SDL_BackendInit(void)
 	if (strcmp(s_sdldriver->string, "auto") != 0)
 	{
 		snprintf(reqdriver, sizeof(reqdriver), "%s=%s", "SDL_AUDIODRIVER", s_sdldriver->string);
-		putenv(reqdriver);
+		if (putenv(reqdriver))
+		{
+			Com_Printf("%s: putenv is failed: %s\n",
+				__func__, strerror(errno));
+		}
 	}
 
 	Com_Printf("Starting SDL audio callback.\n");
@@ -1532,7 +1538,11 @@ SDL_BackendInit(void)
 	if (strcmp(s_sdldriver->string, "auto") != 0)
 	{
 		snprintf(reqdriver, sizeof(reqdriver), "%s=%s", "SDL_AUDIODRIVER", s_sdldriver->string);
-		putenv(reqdriver);
+		if (putenv(reqdriver))
+		{
+			Com_Printf("%s: putenv is failed: %s\n",
+				__func__, strerror(errno));
+		}
 	}
 
 	Com_Printf("Starting SDL audio callback.\n");

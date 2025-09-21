@@ -223,6 +223,11 @@ Pickup_Powerup(edict_t *ent, edict_t *other)
 void
 Drop_General(edict_t *ent, gitem_t *item)
 {
+	if (!ent || !item)
+	{
+		return;
+	}
+
 	Drop_Item(ent, item);
 	ent->client->pers.inventory[ITEM_INDEX(item)]--;
 	ValidateSelectedItem(ent);
@@ -489,7 +494,7 @@ Use_Quad(edict_t *ent, gitem_t *item)
 {
 	int timeout;
 
-	if (!ent || !item)
+	if (!ent || !item || !ent->client)
 	{
 		return;
 	}
@@ -524,7 +529,7 @@ Use_Quad(edict_t *ent, gitem_t *item)
 void
 Use_Breather(edict_t *ent, gitem_t *item)
 {
-	if (!ent || !item)
+	if (!ent || !item || !ent->client)
 	{
 		return;
 	}
@@ -547,7 +552,7 @@ Use_Breather(edict_t *ent, gitem_t *item)
 void
 Use_Envirosuit(edict_t *ent, gitem_t *item)
 {
-	if (!ent || !item)
+	if (!ent || !item || !ent->client)
 	{
 		return;
 	}
@@ -654,12 +659,7 @@ Add_Ammo(edict_t *ent, gitem_t *item, int count)
 	int index;
 	int max;
 
-	if (!ent || !item)
-	{
-		return false;
-	}
-
-	if (!ent->client)
+	if (!ent || !item || !ent->client)
 	{
 		return false;
 	}
@@ -878,12 +878,7 @@ Pickup_Health(edict_t *ent, edict_t *other)
 int
 ArmorIndex(edict_t *ent)
 {
-	if (!ent)
-	{
-		return 0;
-	}
-
-	if (!ent->client)
+	if (!ent || !ent->client)
 	{
 		return 0;
 	}
@@ -1159,9 +1154,9 @@ Touch_Item(edict_t *ent, edict_t *other, cplane_t *plane /* unused */, csurface_
 
 		/* show icon and name on status bar */
 		other->client->ps.stats[STAT_PICKUP_ICON] =
-			gi.imageindex( ent->item->icon);
+			gi.imageindex(ent->item->icon);
 		other->client->ps.stats[STAT_PICKUP_STRING] =
-		   	CS_ITEMS + ITEM_INDEX( ent->item);
+			CS_ITEMS + ITEM_INDEX(ent->item);
 		other->client->pickup_msg_time = level.time + 3.0;
 
 		/* change selected item */
@@ -1169,7 +1164,7 @@ Touch_Item(edict_t *ent, edict_t *other, cplane_t *plane /* unused */, csurface_
 		{
 			other->client->pers.selected_item =
 				other->client->ps.stats[STAT_SELECTED_ITEM] =
-			   	ITEM_INDEX( ent->item);
+				ITEM_INDEX(ent->item);
 		}
 
 		if (ent->item->pickup == Pickup_Health)
@@ -1533,6 +1528,7 @@ PrecacheItem(gitem_t *it)
 		if ((len >= MAX_QPATH) || (len < 5))
 		{
 			gi.error("PrecacheItem: %s has bad precache string", it->classname);
+			return;
 		}
 
 		memcpy(data, start, len);
@@ -2684,6 +2680,12 @@ SP_item_health_mega(edict_t *self)
 void
 InitItems(void)
 {
+	if (sizeof(gameitemlist) > sizeof(itemlist))
+	{
+		gi.error("Defined items more than %d\n", MAX_ITEMS);
+		return;
+	}
+
 	memset(itemlist, 0, sizeof(itemlist));
 	memcpy(itemlist, gameitemlist, sizeof(gameitemlist));
 	game.num_items = sizeof(gameitemlist) / sizeof(gameitemlist[0]) - 1;
