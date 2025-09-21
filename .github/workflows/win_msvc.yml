@@ -40,7 +40,7 @@ jobs:
         # only unpack the stuff needed (no x86_64 stuff, no docs from share/)
         unzip dhewm3libs.zip "dhewm3-libs-master/i686-w64-mingw32/**" -x "dhewm3-libs-master/i686-w64-mingw32/share/**"
     - name: Check out repository code
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
     - name: Build
       run: |
         # build with cmake and visual studio
@@ -122,7 +122,7 @@ jobs:
         # only unpack the stuff needed (no i686 stuff, no docs from share/)
         unzip dhewm3libs.zip "dhewm3-libs-master/x86_64-w64-mingw32/**" -x "dhewm3-libs-master/x86_64-w64-mingw32/share/**"
     - name: Check out repository code
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
     - name: Build
       run: |
         # build with cmake and visual studio

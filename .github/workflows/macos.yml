@@ -30,7 +30,7 @@ jobs:
         brew update
         brew install sdl2 openal-soft make
     - name: Check out repository code
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
     - name: Build
       run: |
         # Public runners come with 3 CPUs.

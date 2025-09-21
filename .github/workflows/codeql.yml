@@ -2,7 +2,8 @@ name: "CodeQL"
 run-name: CodeQL
 on:
   push:
-    branches: [ "master" ]
+    branches:
+      - 'master'
   pull_request:
     types:
       - edited
@@ -29,15 +30,27 @@ jobs:
         - language: actions
           build-mode: none
         - language: c-cpp
-          build-mode: autobuild
+          build-mode: manual
     steps:
+    - name: Install build dependencies
+      run: |
+        sudo apt update
+        sudo apt install libgl1-mesa-dev libsdl2-dev libopenal-dev libcurl4-openssl-dev \
+            build-essential
     - name: Checkout repository
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
     - name: Initialize CodeQL
       uses: github/codeql-action/init@v3
       with:
         languages: ${{ matrix.language }}
         build-mode: ${{ matrix.build-mode }}
+    - name: Configure with CMake
+      run: |
+        cmake -S . -B build \
+          -DCMAKE_BUILD_TYPE=Release \
+          -DSDL3_SUPPORT=OFF
+    - name: Build Project
+      run: cmake --build build --config Release
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v3
       with:

@@ -41,7 +41,7 @@ jobs:
           mingw-w64-${{matrix.env}}-SDL2
           mingw-w64-${{matrix.env}}-wget
     - name: Check out repository code
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
     - name: Build
       shell: msys2 {0}
       run: |
@@ -69,8 +69,8 @@ jobs:
         cp doc/080_contributing.md publish/quake2-win32-${{github.sha}}/misc/docs/080_contributing.txt
         cp doc/090_filelists.md publish/quake2-win32-${{github.sha}}/misc/docs/090_filelists.md
         # SDL2
-        wget -c https://github.com/libsdl-org/SDL/releases/download/release-2.32.8/SDL2-2.32.8-win32-x86.zip
-        unzip -o SDL2-2.32.8-win32-x86.zip
+        wget -c https://github.com/libsdl-org/SDL/releases/download/release-2.32.10/SDL2-2.32.10-win32-x86.zip
+        unzip -o SDL2-2.32.10-win32-x86.zip
         cp SDL2.dll publish/quake2-win32-${{github.sha}}/
         # openal-soft
         wget -c https://github.com/kcat/openal-soft/releases/download/1.24.3/openal-soft-1.24.3-bin.zip

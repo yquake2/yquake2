@@ -45,7 +45,7 @@ jobs:
           mingw-w64-${{matrix.env}}-pkgconf
           mingw-w64-${{matrix.env}}-github-cli
     - name: Check out repository code
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
     - name: Build
       shell: msys2 {0}
       run: |
