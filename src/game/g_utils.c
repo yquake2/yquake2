@@ -29,8 +29,8 @@
 #define MAXCHOICES 8
 
 void
-G_ProjectSource(vec3_t point, vec3_t distance, vec3_t forward,
-		vec3_t right, vec3_t result)
+G_ProjectSource(const vec3_t point, const vec3_t distance, const vec3_t forward,
+		const vec3_t right, vec3_t result)
 {
 	result[0] = point[0] + forward[0] * distance[0] + right[0] * distance[1];
 	result[1] = point[1] + forward[1] * distance[0] + right[1] * distance[1];
@@ -52,6 +52,11 @@ G_Find(edict_t *from, int fieldofs, const char *match)
 {
 	char *s;
 
+	if (!match)
+	{
+		return NULL;
+	}
+
 	if (!from)
 	{
 		from = g_edicts;
@@ -59,11 +64,6 @@ G_Find(edict_t *from, int fieldofs, const char *match)
 	else
 	{
 		from++;
-	}
-
-	if (!match)
-	{
-		return NULL;
 	}
 
 	for ( ; from < &g_edicts[globals.num_edicts]; from++)
@@ -270,6 +270,7 @@ G_UseTargets(edict_t *ent, edict_t *activator)
 			{
 				level.total_secrets--;
 			}
+
 			/* same deal with target_goal, but also turn off CD music if applicable */
 			else if (!Q_stricmp(t->classname,"target_goal"))
 			{
@@ -308,7 +309,7 @@ G_UseTargets(edict_t *ent, edict_t *activator)
 
 			if (t == ent)
 			{
-				gi.dprintf("WARNING: Entity used itself.\n");
+				gi.dprintf("WARNING: %s used itself.\n", t->classname);
 			}
 			else
 			{
@@ -484,6 +485,11 @@ G_CopyString(char *in)
 {
 	char *out;
 
+	if (!in)
+	{
+		return NULL;
+	}
+
 	out = gi.TagMalloc(strlen(in) + 1, TAG_LEVEL);
 	strcpy(out, in);
 	return out;
@@ -492,6 +498,11 @@ G_CopyString(char *in)
 void
 G_InitEdict(edict_t *e)
 {
+	if (!e)
+	{
+		return;
+	}
+
 	e->inuse = true;
 	e->classname = "noclass";
 	e->gravity = 1.0;
@@ -557,7 +568,9 @@ G_Spawn(void)
 	edict_t *e = G_SpawnOptional();
 
 	if (!e)
-		gi.error ("ED_Alloc: no free edicts");
+	{
+		gi.error("%s: no free edicts", __func__);
+	}
 
 	return e;
 }
@@ -568,6 +581,11 @@ G_Spawn(void)
 void
 G_FreeEdict(edict_t *ed)
 {
+	if (!ed)
+	{
+		return;
+	}
+
 	gi.unlinkentity(ed); /* unlink from world */
 
 	if (deathmatch->value || coop->value)

@@ -51,7 +51,7 @@
  * solid_edge items only clip against bsp models.
  */
 
-edict_t *
+static edict_t *
 SV_TestEntityPosition(edict_t *ent)
 {
 	trace_t trace;
@@ -85,7 +85,7 @@ SV_TestEntityPosition(edict_t *ent)
 	return NULL;
 }
 
-void
+static void
 SV_CheckVelocity(edict_t *ent)
 {
 	if (!ent)
@@ -104,7 +104,7 @@ SV_CheckVelocity(edict_t *ent)
  * Runs thinking code for
  * this frame if necessary
  */
-qboolean
+static qboolean
 SV_RunThink(edict_t *ent)
 {
 	float thinktime;
@@ -131,6 +131,7 @@ SV_RunThink(edict_t *ent)
 	if (!ent->think)
 	{
 		gi.error("NULL ent->think");
+		return false;
 	}
 
 	ent->think(ent);
@@ -142,7 +143,7 @@ SV_RunThink(edict_t *ent)
  * Two entities have touched, so
  * run their touch functions
  */
-void
+static void
 SV_Impact(edict_t *e1, trace_t *trace)
 {
 	edict_t *e2;
@@ -170,7 +171,7 @@ SV_Impact(edict_t *e1, trace_t *trace)
  * returns the blocked flags (1 = floor,
  * 2 = step / wall)
  */
-int
+static int
 ClipVelocity(vec3_t in, vec3_t normal, vec3_t out, float overbounce)
 {
 	float backoff;
@@ -215,7 +216,7 @@ ClipVelocity(vec3_t in, vec3_t normal, vec3_t out, float overbounce)
  * 2 = wall / step
  * 4 = dead stop
  */
-int
+static int
 SV_FlyMove(edict_t *ent, float time, int mask)
 {
 	edict_t *hit;
@@ -391,12 +392,17 @@ SV_AddGravity(edict_t *ent)
  * This leads to a lot of false block tests in SV_Push
  * if another bmodel is in the vicinity.
  */
-void
+static void
 RealBoundingBox(edict_t *ent, vec3_t mins, vec3_t maxs)
 {
 	vec3_t forward, left, up, f1, l1, u1;
 	vec3_t p[8];
 	int i, j, k, j2, k4;
+
+	if (!ent)
+	{
+		return;
+	}
 
 	for (k = 0; k < 2; k++)
 	{
@@ -481,7 +487,7 @@ RealBoundingBox(edict_t *ent, vec3_t mins, vec3_t maxs)
 			maxs[0] = p[i][0];
 		}
 
- 		if (maxs[1] < p[i][1])
+		if (maxs[1] < p[i][1])
 		{
 			maxs[1] = p[i][1];
 		}
@@ -500,7 +506,7 @@ RealBoundingBox(edict_t *ent, vec3_t mins, vec3_t maxs)
 /*
  * Does not change the entities velocity at all
  */
-trace_t
+static trace_t
 SV_PushEntity(edict_t *ent, vec3_t push)
 {
 	trace_t trace;
@@ -591,7 +597,7 @@ static edict_t *obstacle;
  * Objects need to be moved back on a failed push,
  * otherwise riders would continue to slide.
  */
-qboolean
+static qboolean
 SV_Push(edict_t *pusher, vec3_t move, vec3_t amove)
 {
 	int i, e;
@@ -641,7 +647,7 @@ SV_Push(edict_t *pusher, vec3_t move, vec3_t amove)
 
 	/* Create a real bounding box for
 	   rotating brush models. */
-	RealBoundingBox(pusher,realmins,realmaxs);
+	RealBoundingBox(pusher, realmins, realmaxs);
 
 	/* see if any solid entities
 	   are inside the final position */
@@ -719,9 +725,11 @@ SV_Push(edict_t *pusher, vec3_t move, vec3_t amove)
 			block = SV_TestEntityPosition(check);
 
 			if (!block)
-
-			{   /* pushed ok */
+			{
+				/* pushed ok */
 				gi.linkentity(check);
+
+				/* impact? */
 				continue;
 			}
 
@@ -769,7 +777,7 @@ SV_Push(edict_t *pusher, vec3_t move, vec3_t amove)
  * Bmodel objects don't interact with each
  * other, but push all box objects
  */
-void
+static void
 SV_Physics_Pusher(edict_t *ent)
 {
 	vec3_t move, amove;
@@ -808,9 +816,10 @@ SV_Physics_Pusher(edict_t *ent)
 		}
 	}
 
-	if (pushed_p > &pushed[MAX_EDICTS -1 ])
+	if (pushed_p > &pushed[MAX_EDICTS - 1])
 	{
 		gi.error("pushed_p > &pushed[MAX_EDICTS - 1], memory corrupted");
+		return;
 	}
 
 	if (part)
@@ -848,7 +857,7 @@ SV_Physics_Pusher(edict_t *ent)
 /*
  * Non moving objects can only think
  */
-void
+static void
 SV_Physics_None(edict_t *ent)
 {
 	if (!ent)
@@ -863,7 +872,7 @@ SV_Physics_None(edict_t *ent)
 /*
  * A moving object that doesn't obey physics
  */
-void
+static void
 SV_Physics_Noclip(edict_t *ent)
 {
 	if (!ent)
@@ -891,7 +900,7 @@ SV_Physics_Noclip(edict_t *ent)
  * Toss, bounce, and fly movement.
  * When onground, do nothing.
  */
-void
+static void
 SV_Physics_Toss(edict_t *ent)
 {
 	trace_t trace;
@@ -1042,7 +1051,7 @@ SV_Physics_Toss(edict_t *ent)
  * still on the ground, but  will fall if the floor
  * is pulled out from under them.
  */
-void
+static void
 SV_AddRotationalFriction(edict_t *ent)
 {
 	int n;
@@ -1079,7 +1088,7 @@ SV_AddRotationalFriction(edict_t *ent)
 	}
 }
 
-void
+static void
 SV_Physics_Step(edict_t *ent)
 {
 	qboolean wasonground;
@@ -1295,6 +1304,6 @@ G_RunEntity(edict_t *ent)
 			SV_Physics_Toss(ent);
 			break;
 		default:
-			gi.error("SV_Physics: bad movetype %i", (int)ent->movetype);
+			gi.error("%s: bad movetype %i", __func__, (int)ent->movetype);
 	}
 }

@@ -28,7 +28,7 @@
 
 typedef struct
 {
-	char *name;
+	const char *name;
 	void (*spawn)(edict_t *ent);
 } spawn_t;
 
@@ -368,7 +368,7 @@ ED_NewString(const char *string)
  * Takes a key/value pair and sets
  * the binary values in an edict
  */
-void
+static void
 ED_ParseField(const char *key, const char *value, edict_t *ent)
 {
 	field_t *f;
@@ -376,7 +376,7 @@ ED_ParseField(const char *key, const char *value, edict_t *ent)
 	float v;
 	vec3_t vec;
 
-	if (!key || !value)
+	if (!ent || !value || !key)
 	{
 		return;
 	}
@@ -428,15 +428,15 @@ ED_ParseField(const char *key, const char *value, edict_t *ent)
 		}
 	}
 
-	gi.dprintf("%s is not a field\n", key);
+	gi.dprintf("'%s' is not a field. Value is '%s'\n", key, value);
 }
 
 /*
  * Parses an edict out of the given string,
- * returning the new position ed should be
+ * returning the new position. ed should be
  * a properly initialized empty edict.
  */
-char *
+static char *
 ED_ParseEdict(char *data, edict_t *ent)
 {
 	qboolean init;
@@ -465,6 +465,7 @@ ED_ParseEdict(char *data, edict_t *ent)
 		if (!data)
 		{
 			gi.error("ED_ParseEntity: EOF without closing brace");
+			break;
 		}
 
 		Q_strlcpy(keyname, com_token, sizeof(keyname));
@@ -474,12 +475,14 @@ ED_ParseEdict(char *data, edict_t *ent)
 
 		if (!data)
 		{
-			gi.error("ED_ParseEntity: EOF without closing brace");
+			gi.error("%s: EOF without closing brace", __func__);
+			break;
 		}
 
 		if (com_token[0] == '}')
 		{
-			gi.error("ED_ParseEntity: closing brace without data");
+			gi.error("%s: closing brace without data", __func__);
+			break;
 		}
 
 		init = true;
@@ -639,7 +642,8 @@ SpawnEntities(const char *mapname, char *entities, const char *spawnpoint)
 
 		if (com_token[0] != '{')
 		{
-			gi.error("ED_LoadFromFile: found %s when expecting {", com_token);
+			gi.error("%s: found %s when expecting {", __func__, com_token);
+			break;
 		}
 
 		if (!ent)
@@ -656,7 +660,7 @@ SpawnEntities(const char *mapname, char *entities, const char *spawnpoint)
 		/* yet another map hack */
 		if (!Q_stricmp(level.mapname, "command") &&
 			!Q_stricmp(ent->classname, "trigger_once") &&
-		   	!Q_stricmp(ent->model, "*27"))
+			!Q_stricmp(ent->model, "*27"))
 		{
 			ent->spawnflags &= ~SPAWNFLAG_NOT_HARD;
 		}
@@ -821,13 +825,13 @@ static char *dm_statusbar =
 	"	pic	9 "
 	"endif "
 
-/*  help / weapon icon */
+/* help / weapon icon */
 	"if 11 "
 	"	xv	148 "
 	"	pic	11 "
 	"endif "
 
-/*  frags */
+/* frags */
 	"xr	-50 "
 	"yt 2 "
 	"num 3 14 "
@@ -883,7 +887,7 @@ SP_worldspawn(edict_t *ent)
 
 	if (st.nextmap)
 	{
-		strcpy(level.nextmap, st.nextmap);
+		Q_strlcpy(level.nextmap, st.nextmap, sizeof(level.nextmap));
 	}
 
 	/* make some data visible to the server */
