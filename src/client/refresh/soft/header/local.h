@@ -570,8 +570,8 @@ void Draw_InitLocal(void);
 void R_InitCaches(void);
 void D_FlushCaches(void);
 
-void	RE_BeginRegistration (char *model);
-struct model_s	*RE_RegisterModel (char *name);
+void	RE_BeginRegistration (const char *model);
+struct model_s	*RE_RegisterModel (const char *name);
 void	RE_EndRegistration (void);
 
 struct image_s	*RE_Draw_FindPic (const char *name);

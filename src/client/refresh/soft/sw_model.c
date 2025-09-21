@@ -123,7 +123,7 @@ Loads in a model for the given name
 ==================
 */
 static model_t *
-Mod_ForName (char *name, model_t *parent_model, qboolean crash)
+Mod_ForName(const char *name, model_t *parent_model, qboolean crash)
 {
 	model_t	*mod;
 	void	*buf;
@@ -697,7 +697,7 @@ Specifies the model that will be used as the world
 =====================
 */
 void
-RE_BeginRegistration (char *model)
+RE_BeginRegistration(const char *model)
 {
 	char	fullname[MAX_QPATH];
 	cvar_t	*flushmap;
@@ -724,11 +724,11 @@ RE_RegisterModel
 =====================
 */
 struct model_s *
-RE_RegisterModel (char *name)
+RE_RegisterModel (const char *name)
 {
 	model_t	*mod;
 
-	mod = Mod_ForName (name, r_worldmodel, false);
+	mod = Mod_ForName(name, r_worldmodel, false);
 	if (mod)
 	{
 		mod->registration_sequence = registration_sequence;

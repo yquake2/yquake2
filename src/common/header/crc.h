@@ -28,6 +28,6 @@
 #define CO_CRC_H
 
 void CRC_Init(unsigned short *crcvalue);
-unsigned short CRC_Block(byte *start, int count);
+unsigned short CRC_Block(const byte *start, int count);
 
 #endif

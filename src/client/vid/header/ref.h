@@ -183,8 +183,8 @@ typedef struct
 	// are flood filled to eliminate mip map edge errors, and pics have
 	// an implicit "pics/" prepended to the name. (a pic name that starts with a
 	// slash will not use the "pics/" prefix or the ".pcx" postfix)
-	void	(EXPORT *BeginRegistration) (char *map);
-	struct model_s * (EXPORT *RegisterModel) (char *name);
+	void	(EXPORT *BeginRegistration) (const char *map);
+	struct model_s * (EXPORT *RegisterModel) (const char *name);
 	struct image_s * (EXPORT *RegisterSkin) (const char *name);
 
 	void	(EXPORT *SetSky) (const char *name, float rotate, vec3_t axis);
@@ -223,8 +223,8 @@ typedef struct
 {
 	YQ2_ATTR_NORETURN_FUNCPTR void	(IMPORT *Sys_Error) (int err_level, const char *str, ...) PRINTF_ATTR(2, 3);
 
-	void	(IMPORT *Cmd_AddCommand) (char *name, void(*cmd)(void));
-	void	(IMPORT *Cmd_RemoveCommand) (char *name);
+	void	(IMPORT *Cmd_AddCommand) (const char *name, void(*cmd)(void));
+	void	(IMPORT *Cmd_RemoveCommand) (const char *name);
 	int		(IMPORT *Cmd_Argc) (void);
 	char	*(IMPORT *Cmd_Argv) (int i);
 	void	(IMPORT *Cmd_ExecuteText) (int exec_when, char *text);
@@ -241,7 +241,7 @@ typedef struct
 
 	// gamedir will be the current directory that generated
 	// files should be stored to, ie: "f:\quake\id1"
-	char	*(IMPORT *FS_Gamedir) (void);
+	const char	*(IMPORT *FS_Gamedir) (void);
 
 	cvar_t	*(IMPORT *Cvar_Get) (const char *name, const char *value, int flags);
 	cvar_t	*(IMPORT *Cvar_Set) (const char *name, const char *value);
@@ -269,9 +269,9 @@ extern refimport_t ri;
 /*
  * Refresh API
  */
-void R_BeginRegistration(char *map);
+void R_BeginRegistration(const char *map);
 void R_Clear(void);
-struct model_s *R_RegisterModel(char *name);
+struct model_s *R_RegisterModel(const char *name);
 struct image_s *R_RegisterSkin(const char *name);
 void R_SetSky(const char *name, float rotate, vec3_t axis);
 void R_EndRegistration(void);
