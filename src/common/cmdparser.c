@@ -594,7 +594,7 @@ Cmd_MacroExpandString(char *text)
 		memcpy(temporary + i, token, j);
 		strcpy(temporary + i + j, start);
 
-		strcpy(expanded, temporary);
+		Q_strlcpy(expanded, temporary, sizeof(expanded));
 		scan = expanded;
 		i--;
 

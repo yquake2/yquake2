@@ -284,7 +284,7 @@ fire_lead(edict_t *self, vec3_t start, vec3_t aimdir, int damage, int kick,
 			}
 			else
 			{
-				if (strncmp(tr.surface->name, "sky", 3) != 0)
+				if (tr.surface && strncmp(tr.surface->name, "sky", 3) != 0)
 				{
 					gi.WriteByte(svc_temp_entity);
 					gi.WriteByte(te_impact);
