@@ -1119,6 +1119,12 @@ S_StartSound(vec3_t origin, int entnum, int entchannel, sfx_t *sfx,
 		return;
 	}
 
+	/* -1 means localized (menu sounds, etc.) */
+	if ((entnum < -1) || (entnum >= cl_numentities))
+	{
+		return;
+	}
+
 	if (sfx->name[0] == '*')
 	{
 		sfx = S_RegisterSexedSound(&cl_entities[entnum].current, sfx->name);
@@ -1333,7 +1339,7 @@ S_StartLocalSound(char *sound)
 		return;
 	}
 
-	S_StartSound(NULL, cl.playernum + 1, 0, sfx, 1, 1, 0);
+	S_StartSound(NULL, -1, 0, sfx, 1, 1, 0);
 }
 
 /*
@@ -1388,15 +1394,10 @@ S_BuildSoundList(int *sounds)
 {
 	int i;
 
-	for (i = 0; i < cl.frame.num_entities; i++)
+	for (i = 0; i < cl.frame.num_entities && i < MAX_CL_ENTS; i++)
 	{
 		int num;
 		entity_state_t *ent;
-
-		if (i >= MAX_EDICTS)
-		{
-			break;
-		}
 
 		num = (cl.frame.parse_entities + i) & (MAX_PARSE_ENTITIES - 1);
 		ent = &cl_parse_entities[num];
@@ -1796,7 +1797,7 @@ GetBSPEntitySoundOrigin(int ent, const vec3_t listener_org, vec3_t org)
 	vec3_t amin, amax;
 	int mi;
 
-	if ((ent < 0) || (ent >= MAX_EDICTS))
+	if ((ent < 0) || (ent >= cl_numentities))
 	{
 		return false;
 	}
@@ -1849,18 +1850,14 @@ GetBSPEntitySoundOrigin(int ent, const vec3_t listener_org, vec3_t org)
 void
 GetEntitySoundOrigin(int ent, const vec3_t listener_org, vec3_t org)
 {
-	centity_t *old;
-
-	if ((ent < 0) || (ent >= MAX_EDICTS))
-	{
-		Com_Error(ERR_DROP, "%s: bad entity %d >= %d\n",
-			__func__, ent, MAX_EDICTS);
-	}
+	vec_t *lerp_origin;
 
 	if (!GetBSPEntitySoundOrigin(ent, listener_org, org))
 	{
-		old = &cl_entities[ent];
-		VectorCopy(old->lerp_origin, org);
+		lerp_origin = ((ent >= 0) && (ent < cl_numentities)) ?
+			cl_entities[ent].lerp_origin : vec3_origin;
+
+		VectorCopy(lerp_origin, org);
 	}
 }
 

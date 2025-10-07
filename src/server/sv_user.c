@@ -222,7 +222,7 @@ SV_Baselines_f(void)
 		SAFE_MARGIN : 560;
 
 	/* write a packet full of data */
-	while (start < MAX_EDICTS)
+	while (start < sv.numbaselines)
 	{
 		base = &sv.baselines[start];
 
@@ -244,7 +244,7 @@ SV_Baselines_f(void)
 	}
 
 	/* send next command */
-	if (start == MAX_EDICTS)
+	if (start == sv.numbaselines)
 	{
 		MSG_WriteByte(&sv_client->netchan.message, svc_stufftext);
 		MSG_WriteString(&sv_client->netchan.message,
