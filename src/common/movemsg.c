@@ -780,15 +780,10 @@ MSG_WriteDeltaEntity(const entity_state_t *from,
 {
 	int bits;
 
-	if (!to->number)
+	/* entnums are sent in 16-bit form */
+	if (to->number >= 32768)
 	{
-		Com_Error(ERR_FATAL, "Unset entity number");
-	}
-
-	if (to->number >= MAX_EDICTS)
-	{
-		Com_Error(ERR_DROP, "%s: bad entity %d >= %d\n",
-			__func__, to->number, MAX_EDICTS);
+		return;
 	}
 
 	/* send an update */
