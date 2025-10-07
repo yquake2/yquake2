@@ -74,7 +74,8 @@ typedef struct
 	struct cmodel_s *models[MAX_MODELS];
 
 	char configstrings[MAX_CONFIGSTRINGS][MAX_QPATH];
-	entity_state_t baselines[MAX_EDICTS];
+	entity_state_t *baselines;
+	int numbaselines;
 
 	/* the multicast buffer is used to send a message to a set of clients
 	   it is only used to marshall data until SV_Multicast is called */

@@ -26,6 +26,11 @@
 
 #include "header/server.h"
 
+/* entnum and channel are sent in the same signed 16-bit value
+   3 bits for channel, 13 for entnum, so limit is 4096
+*/
+#define SND_MAX_ENTNUM 4096
+
 char sv_outputbuf[SV_OUTPUTBUF_LENGTH];
 
 void
@@ -317,6 +322,11 @@ SV_StartSound(vec3_t origin, edict_t *entity, int channel, int soundindex,
 	}
 
 	ent = NUM_FOR_EDICT(entity);
+
+	if (ent >= SND_MAX_ENTNUM)
+	{
+		return;
+	}
 
 	if (channel & 8) /* no PHS flag */
 	{

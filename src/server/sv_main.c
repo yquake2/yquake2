@@ -705,6 +705,19 @@ SV_FinalMessage(char *message, qboolean reconnect)
 	}
 }
 
+/* Also called in SpawnServer just in case */
+void
+SV_ClearBaselines(void)
+{
+	if (sv.baselines)
+	{
+		free(sv.baselines);
+		sv.baselines = NULL;
+	}
+
+	sv.numbaselines = 0;
+}
+
 /*
  * Called when each game quits,
  * before Sys_Quit or Sys_Error
@@ -726,6 +739,7 @@ SV_Shutdown(char *finalmsg, qboolean reconnect)
 		FS_FCloseFile(sv.demofile);
 	}
 
+	SV_ClearBaselines();
 	memset(&sv, 0, sizeof(sv));
 	Com_SetServerState(sv.state);
 

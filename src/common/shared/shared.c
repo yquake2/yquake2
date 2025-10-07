@@ -1597,3 +1597,20 @@ Info_SetValueForKey(char *s, char *key, char *value)
 
 	*s = 0;
 }
+
+unsigned int
+NextPow2(unsigned int i)
+{
+	if (i & (1U << 31U))
+	{
+		return 0;
+	}
+
+	i |= i >> 1U;
+	i |= i >> 2U;
+	i |= i >> 4U;
+	i |= i >> 8U;
+	i |= i >> 16U;
+
+	return i + 1;
+}
