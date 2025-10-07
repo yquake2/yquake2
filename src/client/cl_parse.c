@@ -278,10 +278,15 @@ CL_ParseDelta(const entity_state_t *from, entity_state_t *to, int number, int bi
 static void
 CL_DeltaEntity(frame_t *frame, int newnum, entity_state_t *old, int bits)
 {
-	centity_t *ent;
+	centity_t nullstate, *ent;
 	entity_state_t *state;
 
-	ent = &cl_entities[newnum];
+	ent = CL_AllocEntity(newnum);
+	if (!ent)
+	{
+		memset(&nullstate, 0, sizeof(nullstate));
+		ent = &nullstate;
+	}
 
 	state = &cl_parse_entities[cl.parse_entities & (MAX_PARSE_ENTITIES - 1)];
 	cl.parse_entities++;
@@ -344,6 +349,7 @@ CL_ParsePacketEntities(frame_t *oldframe, frame_t *newframe)
 {
 	unsigned int newnum;
 	unsigned bits;
+	centity_t nullstate, *ent;
 	entity_state_t *oldstate = NULL;
 	int oldindex, oldnum;
 
@@ -377,10 +383,10 @@ CL_ParsePacketEntities(frame_t *oldframe, frame_t *newframe)
 	{
 		newnum = CL_ParseEntityBits(&bits);
 
-		if (newnum >= MAX_EDICTS)
+		if (newnum >= MAX_CL_ENTS)
 		{
 			Com_Error(ERR_DROP, "%s: bad entity %d >= %d\n",
-				__func__, newnum, MAX_EDICTS);
+				__func__, newnum, MAX_CL_ENTS);
 			return;
 		}
 
@@ -430,7 +436,7 @@ CL_ParsePacketEntities(frame_t *oldframe, frame_t *newframe)
 
 			if (oldnum != newnum)
 			{
-				Com_Printf("U_REMOVE: oldnum != newnum\n");
+				Com_Printf("U_REMOVE: oldnum != newnum: %d %d\n", oldnum, newnum);
 			}
 
 			oldindex++;
@@ -485,9 +491,12 @@ CL_ParsePacketEntities(frame_t *oldframe, frame_t *newframe)
 				Com_Printf("   baseline: %i\n", newnum);
 			}
 
+			ent = CL_AllocEntity(newnum);
+
 			CL_DeltaEntity(newframe, newnum,
-					&cl_entities[newnum].baseline,
+					ent ? &ent->baseline : &nullstate.baseline,
 					bits);
+
 			continue;
 		}
 	}
@@ -935,11 +944,14 @@ CL_ParseBaseline(void)
 	unsigned bits;
 	int newnum;
 	entity_state_t nullstate;
+	centity_t *ent;
 
 	memset(&nullstate, 0, sizeof(nullstate));
 
 	newnum = CL_ParseEntityBits(&bits);
-	es = &cl_entities[newnum].baseline;
+	ent = CL_AllocEntity(newnum);
+	es = ent ? &ent->baseline : &nullstate;
+
 	CL_ParseDelta(&nullstate, es, newnum, bits);
 }
 
@@ -1234,13 +1246,6 @@ CL_ParseStartSoundPacket(void)
 		/* entity reletive */
 		channel = MSG_ReadShort(&net_message);
 		ent = channel >> 3;
-
-		if (ent > MAX_EDICTS)
-		{
-			Com_Error(ERR_DROP, "%s: bad entity %d >= %d\n",
-				__func__, ent, MAX_EDICTS);
-		}
-
 		channel &= 7;
 	}
 	else

@@ -52,17 +52,21 @@ CL_AddMuzzleFlash(void)
 
 	i = MSG_ReadShort(&net_message);
 
-	if ((i < 1) || (i >= MAX_EDICTS))
+	if ((i < 1) || (i >= MAX_CL_ENTS))
 	{
 		Com_Error(ERR_DROP, "%s: bad entity %d >= %d\n",
-			__func__, i, MAX_EDICTS);
+			__func__, i, MAX_CL_ENTS);
 	}
 
 	weapon = MSG_ReadByte(&net_message);
 	silenced = weapon & MZ_SILENCED;
 	weapon &= ~MZ_SILENCED;
 
-	pl = &cl_entities[i];
+	pl = CL_AllocEntity(i);
+	if (!pl)
+	{
+		return;
+	}
 
 	dl = CL_AllocDlight(i);
 	VectorCopy(pl->current.origin, dl->origin);
@@ -324,19 +328,20 @@ CL_AddMuzzleFlash(void)
 void
 CL_AddMuzzleFlash2(void)
 {
-	int ent;
+	int entnum;
+	centity_t *ent;
 	vec3_t origin;
 	unsigned flash_number;
 	cdlight_t *dl;
 	vec3_t forward, right;
 	char soundname[64];
 
-	ent = MSG_ReadShort(&net_message);
+	entnum = MSG_ReadShort(&net_message);
 
-	if ((ent < 1) || (ent >= MAX_EDICTS))
+	if ((entnum < 1) || (entnum >= MAX_CL_ENTS))
 	{
 		Com_Error(ERR_DROP, "%s: bad entity %d >= %d\n",
-			__func__, ent, MAX_EDICTS);
+			__func__, entnum, MAX_CL_ENTS);
 	}
 
 	flash_number = MSG_ReadByte(&net_message);
@@ -347,20 +352,26 @@ CL_AddMuzzleFlash2(void)
 		return;
 	}
 
+	ent = CL_AllocEntity(entnum);
+	if (!ent)
+	{
+		return;
+	}
+
 	/* locate the origin */
-	AngleVectors(cl_entities[ent].current.angles, forward, right, NULL);
-	origin[0] = cl_entities[ent].current.origin[0] + forward[0] *
+	AngleVectors(ent->current.angles, forward, right, NULL);
+	origin[0] = ent->current.origin[0] + forward[0] *
 				monster_flash_offset[flash_number][0] + right[0] *
 				monster_flash_offset[flash_number][1];
-	origin[1] = cl_entities[ent].current.origin[1] + forward[1] *
+	origin[1] = ent->current.origin[1] + forward[1] *
 				monster_flash_offset[flash_number][0] + right[1] *
 				monster_flash_offset[flash_number][1];
-	origin[2] = cl_entities[ent].current.origin[2] + forward[2] *
+	origin[2] = ent->current.origin[2] + forward[2] *
 				monster_flash_offset[flash_number][0] + right[2] *
 				monster_flash_offset[flash_number][1] +
 				monster_flash_offset[flash_number][2];
 
-	dl = CL_AllocDlight(ent);
+	dl = CL_AllocDlight(entnum);
 	VectorCopy(origin, dl->origin);
 	dl->radius = 200.0f + (randk() & 31);
 	dl->minlight = 32;
@@ -386,7 +397,7 @@ CL_AddMuzzleFlash2(void)
 			dl->color[2] = 0;
 			CL_ParticleEffect(origin, vec3_origin, 0, 40);
 			CL_SmokeAndFlash(origin);
-			S_StartSound(NULL, ent, CHAN_WEAPON,
+			S_StartSound(NULL, entnum, CHAN_WEAPON,
 				S_RegisterSound("infantry/infatck1.wav"), 1, ATTN_NORM, 0);
 			break;
 
@@ -403,7 +414,7 @@ CL_AddMuzzleFlash2(void)
 			dl->color[2] = 0;
 			CL_ParticleEffect(origin, vec3_origin, 0, 40);
 			CL_SmokeAndFlash(origin);
-			S_StartSound(NULL, ent, CHAN_WEAPON,
+			S_StartSound(NULL, entnum, CHAN_WEAPON,
 				S_RegisterSound("soldier/solatck3.wav"), 1, ATTN_NORM, 0);
 			break;
 
@@ -420,7 +431,7 @@ CL_AddMuzzleFlash2(void)
 			dl->color[2] = 0;
 			CL_ParticleEffect(origin, vec3_origin, 0, 40);
 			CL_SmokeAndFlash(origin);
-			S_StartSound(NULL, ent, CHAN_WEAPON,
+			S_StartSound(NULL, entnum, CHAN_WEAPON,
 				S_RegisterSound("gunner/gunatck2.wav"), 1, ATTN_NORM, 0);
 			break;
 
@@ -438,7 +449,7 @@ CL_AddMuzzleFlash2(void)
 
 			CL_ParticleEffect(origin, vec3_origin, 0, 40);
 			CL_SmokeAndFlash(origin);
-			S_StartSound(NULL, ent, CHAN_WEAPON,
+			S_StartSound(NULL, entnum, CHAN_WEAPON,
 				S_RegisterSound("infantry/infatck1.wav"), 1, ATTN_NORM, 0);
 			break;
 
@@ -455,7 +466,7 @@ CL_AddMuzzleFlash2(void)
 
 			CL_ParticleEffect(origin, vec3_origin, 0, 40);
 			CL_SmokeAndFlash(origin);
-			S_StartSound(NULL, ent, CHAN_WEAPON,
+			S_StartSound(NULL, entnum, CHAN_WEAPON,
 				S_RegisterSound("infantry/infatck1.wav"), 1, ATTN_NONE, 0);
 			break;
 
@@ -471,7 +482,7 @@ CL_AddMuzzleFlash2(void)
 			dl->color[0] = 1;
 			dl->color[1] = 1;
 			dl->color[2] = 0;
-			S_StartSound(NULL, ent, CHAN_WEAPON,
+			S_StartSound(NULL, entnum, CHAN_WEAPON,
 				S_RegisterSound("soldier/solatck2.wav"), 1, ATTN_NORM, 0);
 			break;
 
@@ -480,7 +491,7 @@ CL_AddMuzzleFlash2(void)
 			dl->color[0] = 1;
 			dl->color[1] = 1;
 			dl->color[2] = 0;
-			S_StartSound(NULL, ent, CHAN_WEAPON,
+			S_StartSound(NULL, entnum, CHAN_WEAPON,
 				S_RegisterSound("flyer/flyatck3.wav"), 1, ATTN_NORM, 0);
 			break;
 
@@ -488,7 +499,7 @@ CL_AddMuzzleFlash2(void)
 			dl->color[0] = 1;
 			dl->color[1] = 1;
 			dl->color[2] = 0;
-			S_StartSound(NULL, ent, CHAN_WEAPON,
+			S_StartSound(NULL, entnum, CHAN_WEAPON,
 				S_RegisterSound("medic/medatck1.wav"), 1, ATTN_NORM, 0);
 			break;
 
@@ -496,7 +507,7 @@ CL_AddMuzzleFlash2(void)
 			dl->color[0] = 1;
 			dl->color[1] = 1;
 			dl->color[2] = 0;
-			S_StartSound(NULL, ent, CHAN_WEAPON,
+			S_StartSound(NULL, entnum, CHAN_WEAPON,
 				S_RegisterSound("hover/hovatck1.wav"), 1, ATTN_NORM, 0);
 			break;
 
@@ -504,7 +515,7 @@ CL_AddMuzzleFlash2(void)
 			dl->color[0] = 1;
 			dl->color[1] = 1;
 			dl->color[2] = 0;
-			S_StartSound(NULL, ent, CHAN_WEAPON,
+			S_StartSound(NULL, entnum, CHAN_WEAPON,
 				S_RegisterSound("floater/fltatck1.wav"), 1, ATTN_NORM, 0);
 			break;
 
@@ -520,7 +531,7 @@ CL_AddMuzzleFlash2(void)
 			dl->color[1] = 1;
 			dl->color[2] = 0;
 			CL_SmokeAndFlash(origin);
-			S_StartSound(NULL, ent, CHAN_WEAPON,
+			S_StartSound(NULL, entnum, CHAN_WEAPON,
 				S_RegisterSound("soldier/solatck1.wav"), 1, ATTN_NORM, 0);
 			break;
 
@@ -530,7 +541,7 @@ CL_AddMuzzleFlash2(void)
 			dl->color[0] = 1;
 			dl->color[1] = 1;
 			dl->color[2] = 0;
-			S_StartSound(NULL, ent, CHAN_WEAPON,
+			S_StartSound(NULL, entnum, CHAN_WEAPON,
 				S_RegisterSound("tank/tnkatck3.wav"), 1, ATTN_NORM, 0);
 			break;
 
@@ -560,7 +571,7 @@ CL_AddMuzzleFlash2(void)
 			CL_SmokeAndFlash(origin);
 			Com_sprintf(soundname, sizeof(soundname), "tank/tnkatk2%c.wav",
 				'a' + (char)(randk() % 5));
-			S_StartSound(NULL, ent, CHAN_WEAPON, 
+			S_StartSound(NULL, entnum, CHAN_WEAPON, 
 				S_RegisterSound(soundname), 1, ATTN_NORM, 0);
 			break;
 
@@ -569,7 +580,7 @@ CL_AddMuzzleFlash2(void)
 			dl->color[0] = 1;
 			dl->color[1] = 0.5f;
 			dl->color[2] = 0.2f;
-			S_StartSound(NULL, ent, CHAN_WEAPON,
+			S_StartSound(NULL, entnum, CHAN_WEAPON,
 				S_RegisterSound("chick/chkatck2.wav"), 1, ATTN_NORM, 0);
 			break;
 
@@ -579,7 +590,7 @@ CL_AddMuzzleFlash2(void)
 			dl->color[0] = 1;
 			dl->color[1] = 0.5f;
 			dl->color[2] = 0.2f;
-			S_StartSound(NULL, ent, CHAN_WEAPON,
+			S_StartSound(NULL, entnum, CHAN_WEAPON,
 				S_RegisterSound("tank/tnkatck1.wav"), 1, ATTN_NORM, 0);
 			break;
 
@@ -594,7 +605,7 @@ CL_AddMuzzleFlash2(void)
 			dl->color[0] = 1;
 			dl->color[1] = 0.5f;
 			dl->color[2] = 0.2f;
-			S_StartSound(NULL, ent, CHAN_WEAPON,
+			S_StartSound(NULL, entnum, CHAN_WEAPON,
 				S_RegisterSound("tank/rocket.wav"), 1, ATTN_NORM, 0);
 			break;
 
@@ -605,7 +616,7 @@ CL_AddMuzzleFlash2(void)
 			dl->color[0] = 1;
 			dl->color[1] = 0.5;
 			dl->color[2] = 0;
-			S_StartSound(NULL, ent, CHAN_WEAPON,
+			S_StartSound(NULL, entnum, CHAN_WEAPON,
 				S_RegisterSound("gunner/gunatck3.wav"), 1, ATTN_NORM, 0);
 			break;
 
@@ -643,7 +654,7 @@ CL_AddMuzzleFlash2(void)
 			dl->color[0] = 1;
 			dl->color[1] = 1;
 			dl->color[2] = 0;
-			S_StartSound(NULL, ent, CHAN_WEAPON,
+			S_StartSound(NULL, entnum, CHAN_WEAPON,
 				S_RegisterSound("makron/blaster.wav"), 1, ATTN_NORM, 0);
 			break;
 
@@ -658,7 +669,7 @@ CL_AddMuzzleFlash2(void)
 			dl->color[2] = 0;
 			CL_ParticleEffect(origin, vec3_origin, 0, 40);
 			CL_SmokeAndFlash(origin);
-			S_StartSound(NULL, ent, CHAN_WEAPON,
+			S_StartSound(NULL, entnum, CHAN_WEAPON,
 				S_RegisterSound("boss3/xfire.wav"), 1, ATTN_NORM, 0);
 			break;
 
@@ -739,7 +750,7 @@ CL_AddMuzzleFlash2(void)
 			dl->color[0] = 0;
 			dl->color[1] = 1;
 			dl->color[2] = 0;
-			S_StartSound(NULL, ent, CHAN_WEAPON,
+			S_StartSound(NULL, entnum, CHAN_WEAPON,
 				S_RegisterSound("tank/tnkatck3.wav"), 1, ATTN_NORM, 0);
 			break;
 
@@ -747,7 +758,7 @@ CL_AddMuzzleFlash2(void)
 			dl->color[0] = -1;
 			dl->color[1] = -1;
 			dl->color[2] = -1;
-			S_StartSound(NULL, ent, CHAN_WEAPON,
+			S_StartSound(NULL, entnum, CHAN_WEAPON,
 				S_RegisterSound("weapons/disint2.wav"), 1, ATTN_NORM, 0);
 			break;
 
