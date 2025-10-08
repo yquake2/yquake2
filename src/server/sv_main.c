@@ -711,7 +711,7 @@ SV_ClearBaselines(void)
 {
 	if (sv.baselines)
 	{
-		free(sv.baselines);
+		Z_Free(sv.baselines);
 		sv.baselines = NULL;
 	}
 

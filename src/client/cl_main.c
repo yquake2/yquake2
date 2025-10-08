@@ -117,7 +117,7 @@ CL_ClearEntities(void)
 {
 	if (cl_entities)
 	{
-		free(cl_entities);
+		Z_Free(cl_entities);
 		cl_entities = NULL;
 	}
 
@@ -127,7 +127,6 @@ CL_ClearEntities(void)
 centity_t *
 CL_AllocEntity(int entnum)
 {
-	centity_t *new_block;
 	int nextpow2;
 
 	if ((entnum < 0) || (entnum >= MAX_CL_ENTS))
@@ -140,15 +139,7 @@ CL_AllocEntity(int entnum)
 		nextpow2 = (cl_numentities || (entnum >= ALLOC_ENTITIES_MIN)) ?
 			(int)NextPow2(entnum) : ALLOC_ENTITIES_MIN;
 
-		new_block = realloc(cl_entities, nextpow2 * sizeof(centity_t));
-		if (!new_block)
-		{
-			return NULL;
-		}
-
-		memset(new_block + cl_numentities, 0, (nextpow2 - cl_numentities) * sizeof(centity_t));
-
-		cl_entities = new_block;
+		cl_entities = Z_Realloc(cl_entities, nextpow2 * sizeof(centity_t));
 		cl_numentities = nextpow2;
 	}
 

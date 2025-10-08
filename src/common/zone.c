@@ -109,3 +109,51 @@ Z_Malloc(int size)
 	return Z_TagMalloc(size, 0);
 }
 
+void *
+Z_TagRealloc(void *ptr, int size, int tag)
+{
+	zhead_t *z, *zr;
+
+	if (!ptr)
+	{
+		return Z_TagMalloc(size, tag);
+	}
+
+	z = (zhead_t *)ptr - 1;
+
+	if (z->magic != Z_MAGIC)
+	{
+		Com_Printf("ERROR: Z_Realloc(%p) failed: bad magic\n", ptr);
+		abort();
+	}
+
+	size = size + sizeof(zhead_t);
+	zr = realloc(z, size);
+
+	if (!zr)
+	{
+		Com_Error(ERR_FATAL, "Z_Realloc: failed on allocation of %i bytes", size);
+	}
+
+	if (size > zr->size)
+	{
+		memset((byte *)zr + zr->size, 0, size - zr->size);
+	}
+
+	z_bytes -= zr->size;
+	z_bytes += size;
+
+	zr->tag = tag;
+	zr->size = size;
+	zr->prev->next = zr;
+	zr->next->prev = zr;
+
+	return zr + 1;
+}
+
+void *
+Z_Realloc(void *ptr, int size)
+{
+	return Z_TagRealloc(ptr, size, 0);
+}
+
