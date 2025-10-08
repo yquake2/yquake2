@@ -38,7 +38,6 @@ server_t sv; /* local server */
 static entity_state_t *
 SV_AllocBaseline(int entnum)
 {
-	entity_state_t *new_block;
 	int nextpow2;
 
 	if ((entnum < 0) || (entnum >= MAX_SV_ENTS))
@@ -51,15 +50,7 @@ SV_AllocBaseline(int entnum)
 		nextpow2 = (sv.numbaselines || (entnum >= ALLOC_ENTITIES_MIN)) ?
 			(int)NextPow2(entnum) : ALLOC_ENTITIES_MIN;
 
-		new_block = realloc(sv.baselines, nextpow2 * sizeof(entity_state_t));
-		if (!new_block)
-		{
-			return NULL;
-		}
-
-		memset(new_block + sv.numbaselines, 0, (nextpow2 - sv.numbaselines) * sizeof(entity_state_t));
-
-		sv.baselines = new_block;
+		sv.baselines = Z_Realloc(sv.baselines, nextpow2 * sizeof(entity_state_t));
 		sv.numbaselines = nextpow2;
 	}
 
