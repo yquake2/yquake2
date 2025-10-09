@@ -128,6 +128,7 @@ M_PopMenu(void)
 	if (m_menudepth < 1)
 	{
 		Com_Error(ERR_FATAL, "%s: depth < 1", __func__);
+		return;
 	}
 
 	m_menudepth--;
@@ -154,6 +155,7 @@ M_PopMenuSilent(void)
 	if (m_menudepth < 1)
 	{
 		Com_Error(ERR_FATAL, "%s: depth < 1", __func__);
+		return;
 	}
 
 	m_menudepth--;
@@ -330,7 +332,7 @@ Key_GetMenuKey(int key)
 	return key;
 }
 
-const char *
+static const char *
 Default_MenuKey(menuframework_s *m, int key)
 {
 	const char *sound = NULL;
@@ -3500,17 +3502,22 @@ ModsApplyActionFunc(void *unused)
 static void
 Mods_MenuInit(void)
 {
-	int currentmod;
-	int x = 0;
-	int y = 0;
-	char modname[MAX_QPATH]; //TG626
+	int currentmod, x = 0, y = 0, i;
+	char modname[MAX_QPATH]; /* TG626 */
+	char **displaynames;
 
 	Mods_NamesInit();
 
-	// create array of bracketed display names from folder names - TG626
-	char **displaynames = malloc(sizeof(*displaynames) * (nummods+1));
+	/* create array of bracketed display names from folder names - TG626 */
+	displaynames = malloc(sizeof(*displaynames) * (nummods + 1));
+	YQ2_COM_CHECK_OOM(displaynames, "malloc()", sizeof(*displaynames) * (nummods + 1))
+	if (!displaynames)
+	{
+		/* unaware about YQ2_ATTR_NORETURN_FUNCPTR? */
+		return;
+	}
 
-	for (int i=0; i < nummods; i++)
+	for (i = 0; i < nummods; i++)
 	{
 		strcpy(modname, "[");
 		if (strlen(modnames[i]) < 16)
@@ -3528,13 +3535,19 @@ Mods_MenuInit(void)
 		}
 		strcat(modname, "]");
 
-		displaynames[i] = malloc(strlen(modname) + 1);
-		strcpy(displaynames[i], modname);
+		displaynames[i] = strdup(modname);
+		YQ2_COM_CHECK_OOM(displaynames[i], "strdup()", strlen(modname) + 1)
+		if (!displaynames[i])
+		{
+			/* unaware about YQ2_ATTR_NORETURN_FUNCPTR? */
+			return;
+		}
 	}
-	displaynames[nummods] = NULL;
-	//end TG626
 
-	// pre-select the current mod for display in the list
+	displaynames[nummods] = NULL;
+	/* end TG626 */
+
+	/* pre-select the current mod for display in the list */
 	for (currentmod = 0; currentmod < nummods; currentmod++)
 	{
 		if (M_IsGame(modnames[currentmod]))
@@ -3897,6 +3910,7 @@ Create_Savestrings(void)
 
 		FS_Read(tmp, sizeof(tmp), f);
 		FS_FCloseFile(f);
+		tmp[sizeof(tmp) - 1] = 0;
 
 		if (strlen(tmp) > 12)
 		{
@@ -4486,8 +4500,8 @@ M_Menu_JoinServer_f(void)
  */
 
 static menuframework_s s_startserver_menu;
-char **mapnames = NULL;
-int nummaps;
+static char **mapnames = NULL;
+static int nummaps;
 
 static menuaction_s s_startserver_start_action;
 static menuaction_s s_startserver_dmoptions_action;
@@ -4630,41 +4644,37 @@ StartServerActionFunc(void *self)
 	M_ForceMenuOff();
 }
 
-static void
-StartServer_MenuInit(void)
+void
+CleanCachedMapsList(void)
 {
-	static const char *dm_coop_names[] =
+	if (mapnames != NULL)
 	{
-		"deathmatch",
-		"cooperative",
-		0
-	};
-	static const char *dm_coop_names_rogue[] =
-	{
-		"deathmatch",
-		"cooperative",
-		"tag",
-		0
-	};
+		size_t i;
 
-	char *buffer;
-	char *s;
-	float scale = SCR_GetMenuScale();
-
-	/* initialize list of maps once, reuse it afterwards (=> it isn't freed unless the game dir is changed) */
-	if (mapnames == NULL)
-	{
-		int i, length;
-		size_t nummapslen;
-
-		nummaps = 0;
-		s_startmap_list.curvalue = 0;
-
-		/* load the list of map names */
-		if ((length = FS_LoadFile("maps.lst", (void **)&buffer)) == -1)
+		for (i = 0; i < nummaps; i++)
 		{
-			Com_Error(ERR_DROP, "couldn't find maps.lst\n");
+			free(mapnames[i]);
 		}
+
+		free(mapnames);
+		mapnames = NULL;
+	}
+}
+
+static char**
+GetMapsList(int *num)
+{
+	int length;
+	char *buffer;
+
+	/* load the list of map names */
+	if ((length = FS_LoadFile("maps.lst", (void **)&buffer)) != -1)
+	{
+		char **mapnames = NULL;
+		size_t nummapslen;
+		int i, nummaps = 0;
+
+		char *s;
 
 		s = buffer;
 		i = 0;
@@ -4681,13 +4691,20 @@ StartServer_MenuInit(void)
 
 		if (nummaps == 0)
 		{
-			Com_Error(ERR_DROP, "no maps in maps.lst\n");
+			Com_Printf("no maps in maps.lst\n");
+			/* unaware about YQ2_ATTR_NORETURN_FUNCPTR? */
+			return NULL;
 		}
 
 		nummapslen = sizeof(char *) * (nummaps + 1);
 		mapnames = malloc(nummapslen);
 
 		YQ2_COM_CHECK_OOM(mapnames, "malloc(sizeof(char *) * (nummaps + 1))", nummapslen)
+		if (!mapnames)
+		{
+			/* unaware about YQ2_ATTR_NORETURN_FUNCPTR? */
+			return NULL;
+		}
 
 		memset(mapnames, 0, nummapslen);
 
@@ -4713,10 +4730,216 @@ StartServer_MenuInit(void)
 
 			mapnames[i] = strdup(scratch);
 			YQ2_COM_CHECK_OOM(mapnames[i], "strdup(scratch)", strlen(scratch)+1)
+			if (!mapnames[i])
+			{
+				free(mapnames);
+				/* unaware about YQ2_ATTR_NORETURN_FUNCPTR? */
+				return NULL;
+			}
 		}
 
-		mapnames[nummaps] = 0;
+		mapnames[nummaps] = NULL;
 		FS_FreeFile(buffer);
+
+		*num = nummaps;
+		return mapnames;
+	}
+
+	return NULL;
+}
+
+static char**
+GetMapsInFolderList(int *nummaps)
+{
+	/* Generate list by bsp files in maps/ directory */
+	size_t nummapslen;
+	char **list = NULL, **mapnames = NULL;
+	int num = 0, i;
+
+	list = FS_ListFiles2("maps/*.bsp", &num, 0, 0);
+	if (!list)
+	{
+		Com_Printf("couldn't find maps/*.bsp\n");
+		/* unaware about YQ2_ATTR_NORETURN_FUNCPTR? */
+		return NULL;
+	}
+
+	nummapslen = sizeof(char *) * (num);
+	mapnames = malloc(nummapslen);
+	YQ2_COM_CHECK_OOM(mapnames, "malloc(sizeof(char *) * (num))", nummapslen)
+	if (!mapnames)
+	{
+		FS_FreeList(list, num);
+		/* unaware about YQ2_ATTR_NORETURN_FUNCPTR? */
+		return NULL;
+	}
+
+	memset(mapnames, 0, nummapslen);
+
+	for (i = 0; i < num - 1; i++)
+	{
+		char scratch[200], shortname[MAX_QPATH];
+		int len;
+
+		len = strlen(list[i]);
+		if (len > 9 && len < MAX_QPATH)
+		{
+			/* maps/ + .bsp */
+			Q_strlcpy(shortname, list[i] + 5, sizeof(shortname));
+			shortname[len - 9]  = 0;
+
+			Com_sprintf(scratch, sizeof(scratch), "%s\n%s", shortname, shortname);
+
+			mapnames[i] = strdup(scratch);
+			YQ2_COM_CHECK_OOM(mapnames[i], "strdup(scratch)", strlen(scratch)+1)
+			if (!mapnames[i])
+			{
+				/* unaware about YQ2_ATTR_NORETURN_FUNCPTR? */
+				return NULL;
+			}
+		}
+	}
+
+	mapnames[num - 1] = NULL;
+
+	/* sort maps names alphabetically */
+	qsort(mapnames, num - 1, sizeof(char*), Q_sort_stricmp);
+
+	/* free file list */
+	FS_FreeList(list, num);
+	*nummaps = num - 1;
+
+	return mapnames;
+}
+
+static char**
+GetCombinedMapsList(int *nummaps)
+{
+	char **mapnames_list = NULL, **mapnames_folder = NULL, **mapnames = NULL;
+	int nummaps_list = 0, nummaps_folder = 0;
+	size_t nummapslen, currpos;
+
+	mapnames_folder = GetMapsInFolderList(&nummaps_folder);
+	if (!mapnames_folder)
+	{
+		/* no maps at all? */
+		return NULL;
+	}
+
+	mapnames_list = GetMapsList(&nummaps_list);
+	if (!mapnames_list)
+	{
+		/* no maps in list? */
+		*nummaps = nummaps_folder;
+		return mapnames_folder;
+	}
+
+	/* we have maps in file and in folder */
+	nummapslen = sizeof(char *) * (nummaps_list + nummaps_folder + 1);
+	mapnames = malloc(nummapslen);
+	YQ2_COM_CHECK_OOM(mapnames, "malloc(sizeof(char *) * (num))", nummapslen)
+	if (!mapnames)
+	{
+		size_t i;
+
+		for (i = 0; i < nummaps_list; i++)
+		{
+			free(mapnames_list[i]);
+		}
+
+		free(mapnames_list);
+		/* unaware about YQ2_ATTR_NORETURN_FUNCPTR? */
+		*nummaps = nummaps_folder;
+		return mapnames_folder;
+	}
+
+	memset(mapnames, 0, nummapslen);
+	memcpy(mapnames, mapnames_list, sizeof(char *) * nummaps_list);
+	*nummaps = nummaps_list;
+	free(mapnames_list);
+
+	for (currpos = 0; currpos < nummaps_folder; currpos ++)
+	{
+		qboolean found;
+		char *foldername;
+		size_t i;
+
+		foldername = strchr(mapnames_folder[currpos], '\n');
+		if (!foldername)
+		{
+			free(mapnames_folder[currpos]);
+			continue;
+		}
+		foldername++;
+
+		found = false;
+		for (i = 0; i < *nummaps; i++)
+		{
+			char *currname;
+
+			currname = strchr(mapnames[i], '\n');
+			if (!currname)
+			{
+				continue;
+			}
+			currname++;
+
+			if (!Q_stricmp(currname, foldername))
+			{
+				found = true;
+				break;
+			}
+		}
+
+		if (!found)
+		{
+			mapnames[*nummaps] = mapnames_folder[currpos];
+			(*nummaps) ++;
+		}
+		else
+		{
+			free(mapnames_folder[currpos]);
+		}
+	}
+
+	mapnames[*nummaps] = NULL;
+
+	free(mapnames_folder);
+	return mapnames;
+}
+
+static void
+StartServer_MenuInit(void)
+{
+	static const char *dm_coop_names[] =
+	{
+		"deathmatch",
+		"cooperative",
+		0
+	};
+	static const char *dm_coop_names_rogue[] =
+	{
+		"deathmatch",
+		"cooperative",
+		"tag",
+		0
+	};
+
+	float scale = SCR_GetMenuScale();
+
+	/* initialize list of maps once, reuse it afterwards (=> it isn't freed unless the game dir is changed) */
+	if (mapnames == NULL)
+	{
+		nummaps = 0;
+		s_startmap_list.curvalue = 0;
+
+		mapnames = GetCombinedMapsList(&nummaps);
+
+		if (!mapnames || !nummaps)
+		{
+			Com_Error(ERR_DROP, "no maps in maps.lst\n");
+			return;
+		}
 	}
 
 	/* initialize the menu stuff */
@@ -5916,6 +6139,11 @@ PlayerDirectoryList(void)
 	// malloc directories
 	char** data = (char**)calloc(num, sizeof(char*));
 	YQ2_COM_CHECK_OOM(data, "calloc()", num * sizeof(char*))
+	if (!data)
+	{
+		/* unaware about YQ2_ATTR_NORETURN_FUNCPTR? */
+		return false;
+	}
 
 	s_directory.data = data;
 
@@ -5977,8 +6205,11 @@ PlayerDirectoryList(void)
 	// free file list
 	FS_FreeList(list, num);
 
-	// sort them male, female, alphabetical
-	qsort(s_directory.data, s_directory.num - 1, sizeof(char*), dircmp_func);
+	/* sort them male, female, alphabetical */
+	if (s_directory.num > 2)
+	{
+		qsort(s_directory.data, s_directory.num - 1, sizeof(char*), dircmp_func);
+	}
 
 	return true;
 }
@@ -6017,12 +6248,17 @@ HasSkinsInDir(const char *dirname, int *num)
 		*num += num_pcx - 1;
 	}
 
-	if (num)
+	if (*num)
 	{
 		curr = list = malloc(sizeof(char *) * (*num + 1));
-		YQ2_COM_CHECK_OOM(list, "realloc()", (size_t)sizeof(char *) * (*num + 1))
+		YQ2_COM_CHECK_OOM(list, "malloc()", (size_t)sizeof(char *) * (*num + 1))
+		if (!list)
+		{
+			/* unaware about YQ2_ATTR_NORETURN_FUNCPTR? */
+			return false;
+		}
 
-		if (list_png)
+		if (list_png && num_png)
 		{
 			int j;
 
@@ -6042,11 +6278,9 @@ HasSkinsInDir(const char *dirname, int *num)
 					}
 				}
 			}
-
-			free(list_png);
 		}
 
-		if (list_pcx)
+		if (list_pcx && num_pcx)
 		{
 			int j;
 
@@ -6066,13 +6300,21 @@ HasSkinsInDir(const char *dirname, int *num)
 					}
 				}
 			}
-
-			free(list_pcx);
 		}
 
 		*curr = NULL;
 		curr++;
 		*num = curr - list;
+	}
+
+	if (list_png)
+	{
+		free(list_png);
+	}
+
+	if (list_pcx)
+	{
+		free(list_pcx);
 	}
 
 	return list;
@@ -6096,6 +6338,11 @@ PlayerModelList(void)
 	// malloc models
 	data = (char**)calloc(MAX_PLAYERMODELS, sizeof(char*));
 	YQ2_COM_CHECK_OOM(data, "calloc()", MAX_PLAYERMODELS * sizeof(char*))
+	if (!data)
+	{
+		/* unaware about YQ2_ATTR_NORETURN_FUNCPTR? */
+		return false;
+	}
 
 	s_modelname.data = data;
 	s_modelname.num = 0;
@@ -6160,6 +6407,12 @@ PlayerModelList(void)
 		/* malloc skinnames */
 		data = (char**)malloc((s_skinnames[mdl].num + 1) * sizeof(char*));
 		YQ2_COM_CHECK_OOM(data, "malloc()", (s_skinnames[mdl].num + 1) * sizeof(char*))
+		if (!data)
+		{
+			/* unaware about YQ2_ATTR_NORETURN_FUNCPTR? */
+			return false;
+		}
+
 		memset(data, 0, (s_skinnames[mdl].num + 1) * sizeof(char*));
 
 		s_skinnames[mdl].data = data;
@@ -6188,6 +6441,11 @@ PlayerModelList(void)
 					s = (char*)malloc(l);
 
 					YQ2_COM_CHECK_OOM(s, "malloc()", l * sizeof(char))
+					if (!s)
+					{
+						/* unaware about YQ2_ATTR_NORETURN_FUNCPTR? */
+						return false;
+					}
 
 					StripExtension(t);
 					Q_strlcpy(s, t + 1, l);
@@ -6206,6 +6464,11 @@ PlayerModelList(void)
 		s = (char*)malloc(l);
 
 		YQ2_COM_CHECK_OOM(s, "malloc()", l * sizeof(char))
+		if (!s)
+		{
+			/* unaware about YQ2_ATTR_NORETURN_FUNCPTR? */
+			return false;
+		}
 
 		Q_strlcpy(s, t + 1, l);
 

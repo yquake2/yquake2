@@ -2008,16 +2008,7 @@ FS_BuildGameSpecificSearchPath(const char *dir)
 
 	// ...and the current list of maps in the "start network server" menu is
 	// cleared so that it will be re-initialized when the menu is accessed
-	if (mapnames != NULL)
-	{
-		for (i = 0; i < nummaps; i++)
-		{
-			free(mapnames[i]);
-		}
-
-		free(mapnames);
-		mapnames = NULL;
-	}
+	CleanCachedMapsList();
 
 	// Start the demoloop, if requested. This is kind of hacky: Normaly the
 	// demo loop would be started by the menu, after changeing the 'game'
