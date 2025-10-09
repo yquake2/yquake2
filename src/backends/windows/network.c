@@ -101,8 +101,8 @@ NetadrToSockadr(netadr_t *a, struct sockaddr_storage *s)
 
 			if (error)
 			{
-				Com_Printf("NET_NetadrToSockadr: inet_pton: %s",
-						gai_strerror(error));
+				Com_Printf("%s: inet_pton: %s",
+						__func__, gai_strerror(error));
 				return;
 			}
 
@@ -410,7 +410,7 @@ NET_StringToSockaddr(const char *s, struct sockaddr_storage *sadr)
 
 		if (!*space)
 		{
-			Com_Printf("NET_StringToSockaddr: invalid IPv6 address %s\n", s);
+			Com_Printf("%s: invalid IPv6 address %s\n", __func__, s);
 			return false;
 		}
 
@@ -429,8 +429,8 @@ NET_StringToSockaddr(const char *s, struct sockaddr_storage *sadr)
 	if ((err = getaddrinfo(addrs, ports, &hints, &resultp)))
 	{
 		/* Error */
-		Com_Printf("NET_StringToSockaddr: string %s:\n%s\n", s,
-				gai_strerror(err));
+		Com_Printf("%s: string %s:\n%s\n", s,
+				__func__, gai_strerror(err));
 		return false;
 	}
 
@@ -670,7 +670,7 @@ NET_SendPacket(netsrc_t sock, int length, void *data, netadr_t to)
 
 			break;
 		default:
-			Com_Printf("NET_SendPacket: bad address type");
+			Com_Printf("%s: bad address type", __func__);
 			return;
 			break;
 	}
@@ -717,8 +717,8 @@ NET_SendPacket(netsrc_t sock, int length, void *data, netadr_t to)
 
 			if (error)
 			{
-				Com_Printf("NET_SendPacket: getnameinfo: %s",
-						gai_strerror(error));
+				Com_Printf("%s: getnameinfo: %s",
+						__func__, gai_strerror(error));
 				return;
 			}
 
@@ -739,8 +739,8 @@ NET_SendPacket(netsrc_t sock, int length, void *data, netadr_t to)
 
 				if (error)
 				{
-					Com_Printf("NET_SendPacket: getaddrinfo: %s",
-							gai_strerror(error));
+					Com_Printf("%s: getaddrinfo: %s",
+							__func__, gai_strerror(error));
 					return;
 				}
 
@@ -749,8 +749,8 @@ NET_SendPacket(netsrc_t sock, int length, void *data, netadr_t to)
 			}
 			else
 			{
-				Com_Printf("NET_SendPacket: IPv6 multicast destination but +set multicast not specified: %s",
-						tmp);
+				Com_Printf("%s: IPv6 multicast destination but +set multicast not specified: %s",
+						__func__, tmp);
 				return;
 			}
 		}
@@ -848,22 +848,22 @@ NET_IPSocket(char *net_interface, int port, netsrc_t type, int family)
 	{
 		if ((newsocket = socket(ai->ai_family, ai->ai_socktype, ai->ai_protocol)) == -1)
 		{
-			Com_Printf("NET_IPSocket: socket: %s\n", strerror(errno));
+			Com_Printf("%s: socket: %s\n", __func__, strerror(errno));
 			continue;
 		}
 
 		/* make it non-blocking */
 		if (ioctlsocket(newsocket, FIONBIO, &t) == -1)
 		{
-			Com_Printf("NET_IPSocket: ioctl FIONBIO: %s\n", strerror(errno));
+			Com_Printf("%s: ioctl FIONBIO: %s\n", __func__, strerror(errno));
 			continue;
 		}
 
 		if (setsockopt(newsocket, SOL_SOCKET, SO_REUSEADDR, (char *)&one,
 					sizeof(one)))
 		{
-			printf("NET_IPSocket: setsockopt(SO_REUSEADDR) failed: %u\n",
-					WSAGetLastError());
+			printf("%s: setsockopt(SO_REUSEADDR) failed: %u\n",
+					__func__, WSAGetLastError());
 			continue;
 		}
 
@@ -873,15 +873,15 @@ NET_IPSocket(char *net_interface, int port, netsrc_t type, int family)
 			if (setsockopt(newsocket, SOL_SOCKET, SO_BROADCAST, (char *)&one,
 						sizeof(one)))
 			{
-				Com_Printf("ERROR: NET_IPSocket: setsockopt SO_BROADCAST:%s\n",
-						strerror(errno));
+				Com_Printf("ERROR: %s: setsockopt SO_BROADCAST:%s\n",
+						__func__, strerror(errno));
 				return 0;
 			}
 		}
 
 		if (bind(newsocket, ai->ai_addr, ai->ai_addrlen) < 0)
 		{
-			Com_Printf("NET_IPSocket: bind: %s\n", strerror(errno));
+			Com_Printf("%s: bind: %s\n", __func__, strerror(errno));
 			closesocket(newsocket);
 		}
 		else
@@ -925,8 +925,8 @@ NET_IPSocket(char *net_interface, int port, netsrc_t type, int family)
 							(char *)&mreq.ipv6mr_interface,
 							sizeof(mreq.ipv6mr_interface)) < 0)
 				{
-					Com_Printf("NET_IPSocket: IPV6_MULTICAST_IF: %s\n",
-							strerror(errno));
+					Com_Printf("%s: IPV6_MULTICAST_IF: %s\n",
+							__func__, strerror(errno));
 				}
 
 				/* Join multicast group ONLY if server */
@@ -940,8 +940,8 @@ NET_IPSocket(char *net_interface, int port, netsrc_t type, int family)
 
 					if ((Error = getaddrinfo(QUAKE2MCAST, NULL, &hints, &res)))
 					{
-						Com_Printf("NET_IPSocket: getaddrinfo: %s\n",
-								gai_strerror(Error));
+						Com_Printf("%s: getaddrinfo: %s\n",
+								__func__, gai_strerror(Error));
 						break;
 					}
 
@@ -955,8 +955,8 @@ NET_IPSocket(char *net_interface, int port, netsrc_t type, int family)
 
 					if (Error)
 					{
-						Com_Printf("NET_IPSocket: IPV6_JOIN_GROUP: %s\n",
-								strerror(errno));
+						Com_Printf("%s: IPV6_JOIN_GROUP: %s\n",
+								__func__, strerror(errno));
 						break;
 					}
 				}
@@ -1001,6 +1001,7 @@ NET_OpenIP(void)
 		if (!ip_sockets[NS_SERVER] && !ip6_sockets[NS_SERVER] && dedicated)
 		{
 			Com_Error(ERR_FATAL, "Couldn't allocate dedicated server IP port");
+			return;
 		}
 	}
 
@@ -1073,8 +1074,8 @@ NET_IPXSocket(int port)
 	if (setsockopt(newsocket, SOL_SOCKET, SO_BROADCAST, (char *)&t,
 				sizeof(t)) == -1)
 	{
-		Com_Printf("WARNING: IPX_Socket: setsockopt SO_BROADCAST: %s\n",
-				NET_ErrorString());
+		Com_Printf("WARNING: %s: setsockopt SO_BROADCAST: %s\n",
+				__func__, NET_ErrorString());
 		return 0;
 	}
 
@@ -1273,6 +1274,7 @@ NET_Init(void)
 	if (r)
 	{
 		Com_Error(ERR_FATAL, "Winsock initialization failed.");
+		return;
 	}
 
 	Com_Printf("Winsock Initialized\n");
