@@ -129,7 +129,7 @@ CL_AllocEntity(int entnum)
 {
 	int nextpow2;
 
-	if ((entnum < 0) || (entnum >= MAX_CL_ENTS))
+	if ((entnum < 0) || (entnum > MAX_CL_ENTNUM))
 	{
 		return NULL;
 	}

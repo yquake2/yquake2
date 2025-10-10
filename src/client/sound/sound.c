@@ -1394,7 +1394,7 @@ S_BuildSoundList(int *sounds)
 {
 	int i;
 
-	for (i = 0; i < cl.frame.num_entities && i < MAX_CL_ENTS; i++)
+	for (i = 0; i < cl.frame.num_entities && i <= MAX_CL_ENTNUM; i++)
 	{
 		int num;
 		entity_state_t *ent;
