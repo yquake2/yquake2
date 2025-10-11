@@ -138,7 +138,11 @@ main(int argc, char **argv)
 	setenv("LC_ALL", "C", 1);
 
 	/// Do not delay reads on stdin
-	fcntl(fileno(stdin), F_SETFL, fcntl(fileno(stdin), F_GETFL, NULL) | FNDELAY);
+	if (fcntl(fileno(stdin), F_SETFL, fcntl(fileno(stdin), F_GETFL, NULL) | FNDELAY))
+	{
+		Com_Printf("%s: change stdin to nodeleay %s\n",
+			__func__, strerror(errno));
+	}
 
 	// Initialize the game.
 	// Never returns.

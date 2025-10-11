@@ -71,8 +71,13 @@ Sys_Error(const char *error, ...)
 	va_list argptr;
 	char string[1024];
 
-	/* change stdin to non blocking */
-	fcntl(0, F_SETFL, fcntl(0, F_GETFL, 0) & ~FNDELAY);
+	/* change stdin to blocking */
+	if (fcntl(fileno(stdin), F_SETFL, fcntl(0, F_GETFL, 0) & ~FNDELAY))
+	{
+		Com_Printf("%s: change stdin to blocking %s\n",
+			__func__, strerror(errno));
+	}
+
 
 #ifndef DEDICATED_ONLY
 	CL_Shutdown();
@@ -101,7 +106,11 @@ Sys_Quit(void)
 	}
 
 	Qcommon_Shutdown();
-	fcntl(0, F_SETFL, fcntl(0, F_GETFL, 0) & ~FNDELAY);
+	if (fcntl(fileno(stdin), F_SETFL, fcntl(0, F_GETFL, 0) & ~FNDELAY))
+	{
+		Com_Printf("%s: change stdin to blocking %s\n",
+			__func__, strerror(errno));
+	}
 
 	printf("------------------------------------\n");
 
@@ -340,7 +349,7 @@ Sys_FindFirst(const char *path, unsigned musthave, unsigned canhave)
 	{
 		if (!*findpattern || glob_match(findpattern, d->d_name))
 		{
-			if ((strcmp(d->d_name, ".") != 0) || (strcmp(d->d_name, "..") != 0))
+			if ((strcmp(d->d_name, ".") != 0) && (strcmp(d->d_name, "..") != 0))
 			{
 				snprintf(findpath, sizeof(findpath), "%s/%s", findbase, d->d_name);
 				return findpath;
@@ -365,7 +374,7 @@ Sys_FindNext(unsigned musthave, unsigned canhave)
 	{
 		if (!*findpattern || glob_match(findpattern, d->d_name))
 		{
-			if ((strcmp(d->d_name, ".") != 0) || (strcmp(d->d_name, "..") != 0))
+			if ((strcmp(d->d_name, ".") != 0) && (strcmp(d->d_name, "..") != 0))
 			{
 				snprintf(findpath, sizeof(findpath), "%s/%s", findbase, d->d_name);
 				return findpath;
@@ -416,7 +425,8 @@ Sys_GetGameAPI(void *parms)
 
 	if (game_library)
 	{
-		Com_Error(ERR_FATAL, "Sys_GetGameAPI without Sys_UnloadingGame");
+		Com_Error(ERR_FATAL, "%s without Sys_UnloadingGame", __func__);
+		return NULL;
 	}
 
 	Com_Printf("Loading library: %s\n", gamename);

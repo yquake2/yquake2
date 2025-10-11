@@ -432,6 +432,7 @@ NET_StringToSockaddr(const char *s, struct sockaddr_storage *sadr)
 		default:
 			Com_Printf("NET_StringToSockaddr: string %s:\nprotocol family %d not supported\n",
 				s, resultp->ai_family);
+			freeaddrinfo(resultp);
 			return false;
 	}
 
@@ -629,9 +630,8 @@ NET_SendPacket(netsrc_t sock, int length, void *data, netadr_t to)
 			break;
 
 		default:
-			Com_Error(ERR_FATAL, "NET_SendPacket: bad address type");
+			Com_Error(ERR_FATAL, "%s: bad address type", __func__);
 			return;
-			break;
 	}
 
 	NetadrToSockadr(&to, &addr);

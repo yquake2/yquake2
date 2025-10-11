@@ -458,6 +458,7 @@ WriteField1(FILE *f, field_t *field, byte *base)
 				{
 					gi.error("%s: function not in list, can't save game",
 						__func__);
+					return;
 				}
 
 				len = strlen(func->funcStr) + 1;
@@ -479,6 +480,7 @@ WriteField1(FILE *f, field_t *field, byte *base)
 				{
 					gi.error("%s: mmove not in list, can't save game",
 						__func__);
+					return;
 				}
 
 				len = strlen(mmove->mmoveStr) + 1;
@@ -527,6 +529,7 @@ WriteField2(FILE *f, field_t *field, byte *base)
 				{
 					gi.error("%s: function not in list, can't save game",
 						__func__);
+					return;
 				}
 
 				len = strlen(func->funcStr)+1;
@@ -543,6 +546,7 @@ WriteField2(FILE *f, field_t *field, byte *base)
 				{
 					gi.error("%s: mmove not in list, can't save game",
 						__func__);
+					return;
 				}
 
 				len = strlen(mmove->mmoveStr)+1;
@@ -597,11 +601,23 @@ ReadField(FILE *f, field_t *field, byte *base)
 			}
 			else
 			{
-				*(char **)p = gi.TagMalloc(32 + len, TAG_LEVEL);
-				if (fread(*(char **)p, len, 1, f) != 1)
+				char *s;
+
+				s = gi.TagMalloc(len + 1, TAG_LEVEL);
+				if (!s)
+				{
+					gi.error("%s: can't allocate string field", __func__);
+					return;
+				}
+
+				if (fread(s, len, 1, f) != 1)
 				{
 					gi.error("%s: can't read string field", __func__);
+					return;
 				}
+
+				s[len] = 0;
+				*(char **)p = s;
 			}
 
 			break;
@@ -657,11 +673,13 @@ ReadField(FILE *f, field_t *field, byte *base)
 				{
 					gi.error("%s: function name is longer than buffer (%i chars)",
 							__func__, (int)sizeof(funcStr));
+					return;
 				}
 
 				if (fread (funcStr, len, 1, f) != 1)
 				{
 					gi.error("%s: can't get function name", __func__);
+					return;
 				}
 
 				funcStr[sizeof(funcStr) - 1] = 0;
@@ -687,11 +705,13 @@ ReadField(FILE *f, field_t *field, byte *base)
 				{
 					gi.error("%s: mmove name is longer than buffer (%i chars)",
 							__func__, (int)sizeof(funcStr));
+					return;
 				}
 
 				if (fread(funcStr, len, 1, f) != 1)
 				{
 					gi.error("%s: can't get move name", __func__);
+					return;
 				}
 
 				funcStr[sizeof(funcStr) - 1] = 0;
@@ -751,6 +771,7 @@ ReadClient(FILE *f, gclient_t *client, short save_ver)
 	{
 		fclose(f);
 		gi.error("%s: can't read client", __func__);
+		return;
 	}
 
 	for (field = clientfields; field->name; field++)
@@ -796,6 +817,7 @@ WriteGame(const char *filename, qboolean autosave)
 	if (!f)
 	{
 		gi.error("%s: Couldn't open %s", __func__, filename);
+		return;
 	}
 
 	/* Savegame identification */
@@ -841,6 +863,7 @@ ReadGame(const char *filename)
 	if (!f)
 	{
 		gi.error("%s: Couldn't open %s", __func__, filename);
+		return;
 	}
 
 	/* Sanity checks */
@@ -848,6 +871,7 @@ ReadGame(const char *filename)
 	{
 		fclose(f);
 		gi.error("%s: can't read save file", __func__);
+		return;
 	}
 
 	static const struct {
@@ -874,6 +898,7 @@ ReadGame(const char *filename)
 	{
 		fclose(f);
 		gi.error("Savegame from an incompatible version.\n");
+		return;
 	}
 	else if (save_ver == 1)
 	{
@@ -881,11 +906,13 @@ ReadGame(const char *filename)
 		{
 			fclose(f);
 			gi.error("Savegame from another game.so.\n");
+			return;
 		}
 		else if (strcmp(sv.os, OSTYPE_1) != 0)
 		{
 			fclose(f);
 			gi.error("Savegame from another os.\n");
+			return;
 		}
 
 #ifdef _WIN32
@@ -894,12 +921,14 @@ ReadGame(const char *filename)
 		{
 			fclose(f);
 			gi.error("Savegame from another architecture.\n");
+			return;
 		}
 #else
 		if (strcmp(sv.arch, ARCH_1) != 0)
 		{
 			fclose(f);
 			gi.error("Savegame from another architecture.\n");
+			return;
 		}
 #endif
 	}
@@ -909,11 +938,13 @@ ReadGame(const char *filename)
 		{
 			fclose(f);
 			gi.error("Savegame from another game.so.\n");
+			return;
 		}
 		else if (strcmp(sv.os, YQ2OSTYPE) != 0)
 		{
 			fclose(f);
 			gi.error("Savegame from another os.\n");
+			return;
 		}
 		else if (strcmp(sv.arch, YQ2ARCH) != 0)
 		{
@@ -927,6 +958,7 @@ ReadGame(const char *filename)
 			{
 				fclose(f);
 				gi.error("Savegame from another architecture.\n");
+				return;
 			}
 		}
 	}
@@ -938,6 +970,7 @@ ReadGame(const char *filename)
 	{
 		fclose(f);
 		gi.error("%s: can't read game", __func__);
+		return;
 	}
 
 	game.clients = gi.TagMalloc(game.maxclients * sizeof(game.clients[0]),
@@ -1029,6 +1062,7 @@ WriteLevel(const char *filename)
 	if (!f)
 	{
 		gi.error("%s: Couldn't open %s", __func__, filename);
+		return;
 	}
 
 	/* write out edict size for checking */
@@ -1075,8 +1109,8 @@ ReadEdict(FILE *f, edict_t *ent)
 	{
 		fclose(f);
 		gi.error("%s: can't read edict", __func__);
+		return;
 	}
-
 
 	for (field = fields; field->name; field++)
 	{
@@ -1099,6 +1133,7 @@ ReadLevelLocals(FILE *f)
 	{
 		fclose(f);
 		gi.error("%s: can't read level", __func__);
+		return;
 	}
 
 	for (field = levelfields; field->name; field++)
@@ -1129,6 +1164,7 @@ ReadLevel(const char *filename)
 	if (!f)
 	{
 		gi.error("%s: Couldn't open %s", __func__, filename);
+		return;
 	}
 
 	/* free any dynamic memory allocated by
@@ -1144,12 +1180,14 @@ ReadLevel(const char *filename)
 	{
 		fclose(f);
 		gi.error("%s: can't read edict size", __func__);
+		return;
 	}
 
 	if (i != sizeof(edict_t))
 	{
 		fclose(f);
 		gi.error("%s: mismatched edict size", __func__);
+		return;
 	}
 
 	/* load the level locals */
@@ -1162,6 +1200,7 @@ ReadLevel(const char *filename)
 		{
 			fclose(f);
 			gi.error("%s: failed to read entnum", __func__);
+			break;
 		}
 
 		if (entnum == -1)

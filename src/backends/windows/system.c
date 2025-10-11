@@ -395,7 +395,7 @@ Sys_UnloadGame(void)
 {
 	if (!FreeLibrary(game_library))
 	{
-		Com_Error(ERR_FATAL, "FreeLibrary failed for game library");
+		Com_Error(ERR_FATAL, "%s failed for game library", __func__);
 	}
 
 	game_library = NULL;
@@ -411,7 +411,8 @@ Sys_GetGameAPI(void *parms)
 
 	if (game_library)
 	{
-		Com_Error(ERR_FATAL, "Sys_GetGameAPI without Sys_UnloadingGame");
+		Com_Error(ERR_FATAL, "%s without Sys_UnloadingGame", __func__);
+		return NULL;
 	}
 
 	/* now run through the search paths */
@@ -651,7 +652,7 @@ Sys_FreeLibrary(void *handle)
 
 	if (!FreeLibrary(handle))
 	{
-		Com_Error(ERR_FATAL, "FreeLibrary failed on %p", handle);
+		Com_Error(ERR_FATAL, "%s failed for game library", __func__);
 	}
 }
 

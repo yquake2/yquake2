@@ -150,7 +150,7 @@ static voidpf ZCALLBACK fopen_file_func_utf(voidpf opaque, const char *filename,
 {
 	FILE* file = NULL;
 	WCHAR *mode_fopen = NULL;
-	WCHAR wfilename[MAX_OSPATH];
+	WCHAR wfilename[MAX_OSPATH * 2];
 
 	if ((mode & ZLIB_FILEFUNC_MODE_READWRITEFILTER) == ZLIB_FILEFUNC_MODE_READ)
 	{
@@ -167,7 +167,8 @@ static voidpf ZCALLBACK fopen_file_func_utf(voidpf opaque, const char *filename,
 
 	if (!((filename == NULL) || (mode_fopen == NULL)))
 	{
-		MultiByteToWideChar(CP_UTF8, 0, filename, -1, wfilename, sizeof(wfilename));
+		MultiByteToWideChar(CP_UTF8, 0, filename, -1, wfilename,
+			sizeof(wfilename) / sizeof(*wfilename));
 		file = _wfopen((const wchar_t *) wfilename, mode_fopen);
 	}
 
@@ -204,9 +205,25 @@ FS_FileLength(FILE *f)
 	int end; /* End of file. */
 
 	pos = ftell(f);
-	fseek(f, 0, SEEK_END);
+	if (pos < 0)
+	{
+		Com_Printf("%s: refusing to ftell\n", __func__);
+		return -1;
+	}
+
+	if (fseek(f, 0, SEEK_END))
+	{
+		Com_Printf("%s: seek failed", __func__);
+		return -1;
+	}
+
 	end = ftell(f);
-	fseek(f, pos, SEEK_SET);
+
+	if (fseek(f, pos, SEEK_SET))
+	{
+		Com_Printf("%s: seek failed", __func__);
+		return -1;
+	}
 
 	return end;
 }
@@ -215,12 +232,13 @@ FS_FileLength(FILE *f)
  * Creates any directories needed to store the given filename.
  */
 void
-FS_CreatePath(char *path)
+FS_CreatePath(const char *path)
 {
 	char *cur; /* Current '/'. */
 	char *old; /* Old '/'. */
+	char dir_path[MAX_OSPATH];
 
-	FS_DPrintf("FS_CreatePath(%s)\n", path);
+	FS_DPrintf("%s(%s)\n", __func__, path);
 
 	if (strstr(path, "..") != NULL)
 	{
@@ -228,14 +246,16 @@ FS_CreatePath(char *path)
 		return;
 	}
 
-	cur = old = path;
+	Q_strlcpy(dir_path, path, sizeof(dir_path));
+
+	cur = old = dir_path;
 
 	while (cur != NULL)
 	{
 		if ((cur - old) > 1)
 		{
 			*cur = '\0';
-			Sys_Mkdir(path);
+			Sys_Mkdir(dir_path);
 			*cur = '/';
 		}
 
@@ -262,7 +282,7 @@ FS_DPrintf(const char *format, ...)
 	Com_Printf("%s", msg);
 }
 
-char *
+const char *
 FS_Gamedir(void)
 {
 	return fs_gamedir;
@@ -304,6 +324,7 @@ FS_GetFileByHandle(fileHandle_t f)
 	if ((f < 0) || (f > MAX_HANDLES))
 	{
 		Com_Error(ERR_DROP, "%s: out of range", __func__);
+		return NULL;
 	}
 
 	if (f == 0)
@@ -468,8 +489,10 @@ FS_FOpenFile(const char *rawname, fileHandle_t *f, qboolean gamedir_only)
 
 		// Evil hack for maps.lst and players/
 		// TODO: A flag to ignore paks would be better
-		if ((strcmp(fs_gamedirvar->string, "") == 0) && search->pack) {
-			if ((strcmp(name, "maps.lst") == 0) || (strncmp(name, "players/", 8) == 0)) {
+		if ((strcmp(fs_gamedirvar->string, "") == 0) && search->pack)
+		{
+			if ((!strcmp(name, "maps.lst")) || (!strncmp(name, "players/", 8)))
+			{
 				if (FS_FileInGamedir(name))
 				{
 					continue;
@@ -544,6 +567,7 @@ FS_FOpenFile(const char *rawname, fileHandle_t *f, qboolean gamedir_only)
 				}
 
 				Com_Error(ERR_FATAL, "Couldn't reopen '%s'", pack->name);
+				return 0;
 			}
 		}
 		else
@@ -938,6 +962,7 @@ FS_LoadPK3(const char *packPath)
 	{
 		unzClose(handle);
 		Com_Error(ERR_FATAL, "%s: '%s' is not a pack file", __func__, packPath);
+		return NULL;
 	}
 
 	numFiles = global.number_entry;
@@ -947,6 +972,7 @@ FS_LoadPK3(const char *packPath)
 		unzClose(handle);
 		Com_Error(ERR_FATAL, "%s: '%s' has %i files",
 				__func__, packPath, numFiles);
+		return NULL;
 	}
 
 	files = Z_Malloc(numFiles * sizeof(fsPackFile_t));
@@ -981,7 +1007,7 @@ FS_LoadPK3(const char *packPath)
 /*
  * Allows enumerating all of the directories in the search path.
  */
-char *
+const char *
 FS_NextPath(const char *prevPath)
 {
 	char *prev;
@@ -1155,6 +1181,11 @@ FS_ListFiles(const char *findname, int *numfiles,
 	/* Allocate the list. */
 	list = calloc(nfiles, sizeof(char *));
 	YQ2_COM_CHECK_OOM(list, "calloc()", (size_t)nfiles*sizeof(char*))
+	if (!list)
+	{
+		/* unaware about YQ2_ATTR_NORETURN_FUNCPTR? */
+		return NULL;
+	}
 
 	/* Fill the list. */
 	s = Sys_FindFirst(findname, musthave, canthave);
@@ -1258,11 +1289,18 @@ FS_ListFiles2(const char *findname, int *numfiles,
 	nfiles = 0;
 	list = malloc(sizeof(char *));
 	YQ2_COM_CHECK_OOM(list, "malloc()", sizeof(char*))
+	if (!list)
+	{
+		/* unaware about YQ2_ATTR_NORETURN_FUNCPTR? */
+		return NULL;
+	}
 
 	for (search = fs_searchPaths; search != NULL; search = search->next)
 	{
 		if (search->pack != NULL)
 		{
+			char **tmp;
+
 			if (canthave & SFF_INPACK)
 			{
 				continue;
@@ -1283,8 +1321,16 @@ FS_ListFiles2(const char *findname, int *numfiles,
 			}
 
 			nfiles += j;
-			list = realloc(list, nfiles * sizeof(char *));
-			YQ2_COM_CHECK_OOM(list, "realloc()", (size_t)nfiles*sizeof(char*))
+			tmp = realloc(list, nfiles * sizeof(char *));
+			if (!tmp)
+			{
+				free(list);
+				YQ2_COM_CHECK_OOM(tmp, "realloc()", (size_t)nfiles*sizeof(char*))
+				/* unaware about YQ2_ATTR_NORETURN_FUNCPTR? */
+				return NULL;
+			}
+
+			list = tmp;
 
 			for (i = 0, j = nfiles - j; i < search->pack->numFiles; i++)
 			{
@@ -1306,10 +1352,21 @@ FS_ListFiles2(const char *findname, int *numfiles,
 
 		if (tmplist != NULL)
 		{
+			char **tmp;
+
 			tmpnfiles--;
 			nfiles += tmpnfiles;
-			list = realloc(list, nfiles * sizeof(char *));
-			YQ2_COM_CHECK_OOM(list, "2nd realloc()", (size_t)nfiles*sizeof(char*))
+			tmp = realloc(list, nfiles * sizeof(char *));
+			if (!tmp)
+			{
+				FS_FreeList(tmplist, tmpnfiles + 1);
+				free(list);
+				YQ2_COM_CHECK_OOM(tmp, "2nd realloc()", (size_t)nfiles*sizeof(char*))
+				/* unaware about YQ2_ATTR_NORETURN_FUNCPTR? */
+				return NULL;
+			}
+
+			list = tmp;
 
 			for (i = 0, j = nfiles - tmpnfiles; i < tmpnfiles; i++, j++)
 			{
@@ -1346,7 +1403,13 @@ FS_ListFiles2(const char *findname, int *numfiles,
 	{
 		nfiles -= tmpnfiles;
 		tmplist = malloc(nfiles * sizeof(char *));
-		YQ2_COM_CHECK_OOM(tmplist, "malloc()", (size_t)nfiles*sizeof(char*))
+		if (!tmplist)
+		{
+			free(list);
+			YQ2_COM_CHECK_OOM(tmplist, "malloc()", (size_t)nfiles*sizeof(char*))
+			/* unaware about YQ2_ATTR_NORETURN_FUNCPTR? */
+			return NULL;
+		}
 
 		for (i = 0, j = 0; i < nfiles + tmpnfiles; i++)
 		{
@@ -1363,9 +1426,19 @@ FS_ListFiles2(const char *findname, int *numfiles,
 	/* Add a guard. */
 	if (nfiles > 0)
 	{
+		char **tmp;
+
 		nfiles++;
-		list = realloc(list, nfiles * sizeof(char *));
-		YQ2_COM_CHECK_OOM(list, "3rd realloc()", (size_t)nfiles*sizeof(char*))
+		tmp = realloc(list, nfiles * sizeof(char *));
+		if (!tmp)
+		{
+			free(list);
+			YQ2_COM_CHECK_OOM(tmp, "3rd realloc()", (size_t)nfiles*sizeof(char*))
+			/* unaware about YQ2_ATTR_NORETURN_FUNCPTR? */
+			return NULL;
+		}
+
+		list = tmp;
 		list[nfiles - 1] = NULL;
 	}
 
@@ -1388,14 +1461,17 @@ FS_FreeList(char **list, int nfiles)
 {
 	int i;
 
+	if (!list)
+	{
+		return;
+	}
+
 	for (i = 0; i < nfiles - 1; i++)
 	{
 		free(list[i]);
-		list[i] = 0;
 	}
 
 	free(list);
-	list = 0;
 }
 
 /*
@@ -1437,6 +1513,12 @@ FS_ListMods(int *nummods)
 	char **dirchildren, **packsinchilddir, **modnames;
 
 	modnames = malloc((MAX_QPATH + 1) * (MAX_MODS + 1));
+	if (!modnames)
+	{
+		YQ2_COM_CHECK_OOM(modnames, "malloc()", (MAX_QPATH + 1) * (MAX_MODS + 1))
+		/* unaware about YQ2_ATTR_NORETURN_FUNCPTR? */
+		return NULL;
+	}
 	memset(modnames, 0, (MAX_QPATH + 1) * (MAX_MODS + 1));
 
 	// iterate over all Raw paths
@@ -1504,6 +1586,11 @@ FS_ListMods(int *nummods)
 						if (!matchfound)
 						{
 							modnames[nmods] = malloc(strlen(modname) + 1);
+							if (!modnames[nmods])
+							{
+								break;
+							}
+
 							strcpy(modnames[nmods], modname);
 
 							nmods++;
@@ -1534,7 +1621,7 @@ FS_Dir_f(void)
 {
 	char **dirnames; /* File list. */
 	char findname[1024]; /* File search path and pattern. */
-	char *path = NULL; /* Search path. */
+	const char *path = NULL; /* Search path. */
 	char *lastsep;
 	char wildcard[1024] = "*.*"; /* File pattern. */
 	int i; /* Loop counter. */
@@ -1585,20 +1672,33 @@ FS_Dir_f(void)
 qboolean
 FS_FileInGamedir(const char *file)
 {
-	char path[MAX_OSPATH];
-	FILE *fd;
+	const char *path;
 
-	Com_sprintf(path, sizeof(path), "%s/%s", fs_gamedir, file);
+	/* now run through the search paths */
+	path = NULL;
 
-	if ((fd = Q_fopen(path, "rb")) != NULL)
+	while (1)
 	{
-		fclose(fd);
-		return true;
+		char name[MAX_OSPATH];
+		FILE *fd;
+
+		path = FS_NextPath(path);
+
+		if (!path)
+		{
+			return false;     /* couldn't find one anywhere */
+		}
+
+		snprintf(name, MAX_OSPATH, "%s/%s", path, file);
+
+		if ((fd = Q_fopen(name, "rb")) != NULL)
+		{
+			fclose(fd);
+			return true;
+		}
 	}
-	else
-	{
-		return false;
-	}
+
+	return false;
 }
 
 /*
@@ -1870,7 +1970,8 @@ FS_AddDirToSearchPath(char *dir, qboolean create) {
 }
 
 static void
-FS_BuildGenericSearchPath(void) {
+FS_BuildGenericSearchPath(void)
+{
 	// We may not use the va() function from shared.c
 	// since it's buffersize is 1024 while most OS have
 	// a maximum path size of 4096...
@@ -2005,16 +2106,7 @@ FS_BuildGameSpecificSearchPath(const char *dir)
 
 	// ...and the current list of maps in the "start network server" menu is
 	// cleared so that it will be re-initialized when the menu is accessed
-	if (mapnames != NULL)
-	{
-		for (i = 0; i < nummaps; i++)
-		{
-			free(mapnames[i]);
-		}
-
-		free(mapnames);
-		mapnames = NULL;
-	}
+	CleanCachedMapsList();
 
 	// Start the demoloop, if requested. This is kind of hacky: Normaly the
 	// demo loop would be started by the menu, after changeing the 'game'
@@ -2164,7 +2256,7 @@ FS_InitFilesystem(void)
 	if (strcmp(fs_basedir->string, ".") != 0)
 	{
 		Com_Printf("+set basedir is deprecated, use -datadir instead\n");
-		strcpy(datadir, fs_basedir->string);
+		Q_strlcpy(datadir, fs_basedir->string, sizeof(datadir));
 	}
 	else if (strlen(datadir) == 0)
 	{

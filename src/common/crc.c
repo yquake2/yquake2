@@ -139,7 +139,7 @@ CRC_Init(unsigned short *crcvalue)
 }
 
 unsigned short
-CRC_Block(byte *start, int count)
+CRC_Block(const byte *start, int count)
 {
 	unsigned short crc;
 
@@ -154,7 +154,7 @@ CRC_Block(byte *start, int count)
 }
 
 byte
-COM_BlockSequenceCRCByte(byte *base, int length, int sequence)
+COM_BlockSequenceCRCByte(const byte *base, int length, int sequence)
 {
 	int n;
 	int x;
