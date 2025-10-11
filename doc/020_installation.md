@@ -277,7 +277,7 @@ To compile Yamagi Quake II from source the following dependencies
 * A LibGL implementation with system headers.
 * An OpenAL implementation, *openal-soft* is highly recommended.
 * libcurl.
-* SDL 2.0.
+* SDL 3.0.
 
 
 ### Prerequisites on Windows when using MinGW
@@ -297,16 +297,16 @@ be started through *C:\MSYS2\msys32.exe* or the 64 bit version through
 The build dependencies can be installed with:
 
 * On Arch Linux based distributions: `pacman -S base-devel mesa openal
-  curl sdl2`
+  curl sdl3`
 * On Debian based distributions: `apt install build-essential
-  libgl1-mesa-dev libsdl2-dev libopenal-dev libcurl4-openssl-dev`
-* On FreeBSD: `pkg install gmake libGL sdl2 openal-soft curl`
+  libgl1-mesa-dev libsdl3-dev libopenal-dev libcurl4-openssl-dev`
+* On FreeBSD: `pkg install gmake libGL sdl3 openal-soft curl`
 * On NetBSD: `pkgin install gmake SDL2 openal-soft curl`
-* On OpenBSD: `pkg_add gmake sdl2 openal curl`
-* On Solaris/Illumos: `pkg install sdl2 openal curl`
-* On Haiku: `pkgman libsdl2_devel openal_devel curl_devel`
+* On OpenBSD: `pkg_add gmake sdl3 openal curl`
+* On Solaris/Illumos: `pkg install sdl3 openal curl`
+* On Haiku: `pkgman libsdl3_devel openal_devel curl_devel`
 * On MacOS the dependencies can be installed with Homebrew (from
-  https://brew.sh): `brew install sdl2 openal-soft`
+  https://brew.sh): `brew install sdl3 openal-soft`
 
 Other distributions or platforms often have package named similar to the
 Debian or FreeBSD packages.
@@ -327,8 +327,8 @@ graphics API available on some SoCs (like Raspberry Pi 3 or older), type
 *make with_gles1*.
 
 For the addons download or clone their source, change into the source
-directory and type *make* (Linux, MacOS and Windows) or *gmake*
-(FreeBSD, NetBSD, OpenBSD). After the compilation finishes the *release/game.so*
+directory and type *make* (Linux, MacOS, Windows) or *gmake* (FreeBSD,
+NetBSD, OpenBSD). After the compilation finishes the *release/game.so*
 is copied to the corresponding directory in the Quake II installation.
 
 
