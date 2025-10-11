@@ -222,6 +222,7 @@ endif()
 # cURL support.
 if (${CURL_SUPPORT})
 	find_package(CURL REQUIRED)
+	include_directories(${CURL_INCLUDE_DIR})
 	add_definitions(-DUSE_CURL)
 endif()
 
