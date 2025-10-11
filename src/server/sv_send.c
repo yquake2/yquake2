@@ -29,7 +29,7 @@
 /* entnum and channel are sent in the same signed 16-bit value
    3 bits for channel, 13 for entnum, so limit is 4096
 */
-#define SND_MAX_ENTNUM 4096
+#define SND_MAX_ENTNUM 4095
 
 char sv_outputbuf[SV_OUTPUTBUF_LENGTH];
 
@@ -306,24 +306,27 @@ SV_StartSound(vec3_t origin, edict_t *entity, int channel, int soundindex,
 	vec3_t origin_v;
 	qboolean use_phs;
 
-	if ((volume < 0) || (volume > 1.0))
+	if ((volume < 0.0f) || (volume > 1.0f))
 	{
-		Com_Error(ERR_FATAL, "%s: volume = %f", __func__, volume);
+		Com_DPrintf("%s: volume out of bounds [0-1]: %f\n", __func__, volume);
+		volume = 1.0f;
 	}
 
-	if ((attenuation < 0) || (attenuation > 4))
+	if ((attenuation < 0.0f) || (attenuation > 4.0f))
 	{
-		Com_Error(ERR_FATAL, "%s: attenuation = %f", __func__, attenuation);
+		Com_DPrintf("%s: attenuation out of bounds [0-4]: %f\n", __func__, attenuation);
+		attenuation = 0.0f;
 	}
 
-	if ((timeofs < 0) || (timeofs > 0.255))
+	if ((timeofs < 0.0f) || (timeofs > 0.255f))
 	{
-		Com_Error(ERR_FATAL, "%s: timeofs = %f", __func__, timeofs);
+		Com_DPrintf("%s: timeofs out of bounds [0-0.255]: %f\n", __func__, timeofs);
+		timeofs = 0.0f;
 	}
 
 	ent = NUM_FOR_EDICT(entity);
 
-	if (ent >= SND_MAX_ENTNUM)
+	if (ent > SND_MAX_ENTNUM)
 	{
 		return;
 	}
