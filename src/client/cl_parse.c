@@ -383,10 +383,10 @@ CL_ParsePacketEntities(frame_t *oldframe, frame_t *newframe)
 	{
 		newnum = CL_ParseEntityBits(&bits);
 
-		if (newnum >= MAX_CL_ENTS)
+		if (newnum > MAX_CL_ENTNUM)
 		{
-			Com_Error(ERR_DROP, "%s: bad entity %d >= %d\n",
-				__func__, newnum, MAX_CL_ENTS);
+			Com_Error(ERR_DROP, "%s: bad entity %d > %d\n",
+				__func__, newnum, MAX_CL_ENTNUM);
 		}
 
 		if (net_message.readcount > net_message.cursize)
