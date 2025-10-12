@@ -38,15 +38,20 @@ jobs:
           mingw-w64-${{matrix.env}}-gcc
           mingw-w64-${{matrix.env}}-make
           mingw-w64-${{matrix.env}}-openal
-          mingw-w64-${{matrix.env}}-SDL2
+          mingw-w64-${{matrix.env}}-pkgconf
           mingw-w64-${{matrix.env}}-wget
     - name: Check out repository code
       uses: actions/checkout@v4
     - name: Build
       shell: msys2 {0}
       run: |
+        # Download and extract SDL3 devel files.
+        wget -c https://github.com/libsdl-org/SDL/releases/download/release-3.2.24/SDL3-devel-3.2.24-mingw.tar.gz
+        tar xf SDL3-devel-3.2.24-mingw.tar.gz
+        mv SDL3-3.2.24 SDL3
         # Public runners come with 4 CPUs.
-        make -j4
+        PKG_CONFIG_PATH=SDL3/i686-w64-mingw32/lib/pkgconfig make -j4
+        PKG_CONFIG_PATH=SDL3/i686-w64-mingw32/lib/pkgconfig make -j4 ref_gles1
     - name: Create testbuild package
       shell: msys2 {0}
       run: |
@@ -68,14 +73,12 @@ jobs:
         cp doc/070_packaging.md publish/quake2-win32-${{github.sha}}/misc/docs/070_packaging.txt
         cp doc/080_contributing.md publish/quake2-win32-${{github.sha}}/misc/docs/080_contributing.txt
         cp doc/090_filelists.md publish/quake2-win32-${{github.sha}}/misc/docs/090_filelists.md
-        # SDL2
-        wget -c https://github.com/libsdl-org/SDL/releases/download/release-2.32.8/SDL2-2.32.8-win32-x86.zip
-        unzip -o SDL2-2.32.8-win32-x86.zip
-        cp SDL2.dll publish/quake2-win32-${{github.sha}}/
+        # SDL3
+        cp SDL3/i686-w64-mingw32/bin/SDL3.dll publish/quake2-win32-${{github.sha}}/
         # openal-soft
-        wget -c https://github.com/kcat/openal-soft/releases/download/1.23.1/openal-soft-1.23.1-bin.zip
-        unzip -o openal-soft-1.23.1-bin.zip
-        cp openal-soft-1.23.1-bin/bin/Win32/soft_oal.dll publish/quake2-win32-${{github.sha}}/openal32.dll
+        wget -c https://github.com/kcat/openal-soft/releases/download/1.24.3/openal-soft-1.24.3-bin.zip
+        unzip -o openal-soft-1.24.3-bin.zip
+        cp openal-soft-1.24.3-bin/bin/Win32/soft_oal.dll publish/quake2-win32-${{github.sha}}/openal32.dll
         # curl (releases use a custom build curl.dll)
         wget -c -O libcurl-4.dll "https://github.com/dhewm/dhewm3-libs/raw/refs/heads/master/i686-w64-mingw32/bin/libcurl-4.dll"
         cp libcurl-4.dll publish/quake2-win32-${{github.sha}}/curl.dll
