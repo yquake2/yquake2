@@ -38,7 +38,6 @@ cvar_t *dedicated;
 extern cvar_t *color_terminal;
 extern cvar_t *logfile_active;
 extern jmp_buf abortframe; /* an ERR_DROP occured, exit the entire frame */
-extern zhead_t z_chain;
 
 #ifndef DEDICATED_ONLY
 FILE *log_stats_file;
@@ -307,7 +306,7 @@ Qcommon_Init(int argc, char **argv)
 	randk_seed();
 
 	// Initialize zone malloc().
-	z_chain.next = z_chain.prev = &z_chain;
+	Z_Init();
 
 	// Start early subsystems.
 	COM_InitArgv(argc, argv);
