@@ -26,6 +26,7 @@
 
 #include "header/common.h"
 #include "header/zone.h"
+#include <limits.h>
 
 #define Z_MAGIC 0x1d1d
 
@@ -41,8 +42,8 @@ Z_Free(void *ptr)
 
 	if (z->magic != Z_MAGIC)
 	{
-		Com_Printf("ERROR: Z_free(%p) failed: bad magic\n", ptr);
-		abort();
+		Com_Error(ERR_FATAL, "%s: not a valid memory block: %p", __func__, ptr);
+		return;
 	}
 
 	z->prev->next = z->next;
@@ -50,6 +51,7 @@ Z_Free(void *ptr)
 
 	z_count--;
 	z_bytes -= z->size;
+
 	free(z);
 }
 
@@ -80,15 +82,23 @@ Z_TagMalloc(int size, int tag)
 {
 	zhead_t *z;
 
+	if ((size <= 0) || ((INT_MAX - size) < sizeof(zhead_t)))
+	{
+		Com_Error(ERR_FATAL, "%s: bad allocation size: %i", __func__, size);
+		return NULL;
+	}
+
 	size = size + sizeof(zhead_t);
 	z = malloc(size);
 
 	if (!z)
 	{
-		Com_Error(ERR_FATAL, "Z_Malloc: failed on allocation of %i bytes", size);
+		Com_Error(ERR_FATAL, "%s: failed to allocate %i bytes", __func__, size);
+		return NULL;
 	}
 
 	memset(z, 0, size);
+
 	z_count++;
 	z_bytes += size;
 	z->magic = Z_MAGIC;
@@ -114,6 +124,12 @@ Z_TagRealloc(void *ptr, int size, int tag)
 {
 	zhead_t *z, *zr;
 
+	if ((size <= 0) || ((INT_MAX - size) < sizeof(zhead_t)))
+	{
+		Com_Error(ERR_FATAL, "%s: bad allocation size: %i", __func__, size);
+		return NULL;
+	}
+
 	if (!ptr)
 	{
 		return Z_TagMalloc(size, tag);
@@ -123,8 +139,8 @@ Z_TagRealloc(void *ptr, int size, int tag)
 
 	if (z->magic != Z_MAGIC)
 	{
-		Com_Printf("ERROR: Z_Realloc(%p) failed: bad magic\n", ptr);
-		abort();
+		Com_Error(ERR_FATAL, "%s: not a valid memory block: %p", __func__, ptr);
+		return NULL;
 	}
 
 	size = size + sizeof(zhead_t);
@@ -132,7 +148,8 @@ Z_TagRealloc(void *ptr, int size, int tag)
 
 	if (!zr)
 	{
-		Com_Error(ERR_FATAL, "Z_Realloc: failed on allocation of %i bytes", size);
+		Com_Error(ERR_FATAL, "%s: failed to allocate %i bytes", __func__, size);
+		return NULL;
 	}
 
 	if (size > zr->size)
