@@ -30,8 +30,20 @@
 
 #define Z_MAGIC 0x1d1d
 
-zhead_t z_chain;
-int z_count, z_bytes;
+static zhead_t z_chain;
+static int z_count, z_bytes;
+
+void
+Z_Init(void)
+{
+	memset(&z_chain, 0, sizeof(z_chain));
+
+	z_chain.prev = &z_chain;
+	z_chain.next = &z_chain;
+
+	z_count = 0;
+	z_bytes = 0;
+}
 
 void
 Z_Free(void *ptr)
