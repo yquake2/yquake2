@@ -30,6 +30,15 @@
 
 #include "../../common/header/common.h"
 
+/* musl based distros do not have execinfo.h */
+#if defined(HAVE_EXECINFO)
+    #include <features.h>
+    #ifndef __USE_GNU
+        /* IS MUSL - no execinfo.h */
+        #undef HAVE_EXECINFO
+    #endif
+#endif
+
 #if defined(HAVE_EXECINFO)
 #include <execinfo.h>
 
