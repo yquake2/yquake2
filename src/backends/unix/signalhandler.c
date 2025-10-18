@@ -32,11 +32,13 @@
 
 /* musl based distros do not have execinfo.h */
 #if defined(HAVE_EXECINFO)
+#ifndef __APPLE__
     #include <features.h>
     #ifndef __USE_GNU
         /* IS MUSL - no execinfo.h */
         #undef HAVE_EXECINFO
     #endif
+#endif
 #endif
 
 #if defined(HAVE_EXECINFO)
