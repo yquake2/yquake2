@@ -39,11 +39,9 @@ static YQ2_ALIGNAS_TYPE(int32_t) byte fatpvs[65536 / 8];
 static void
 SV_EmitPacketEntities(client_frame_t *from, client_frame_t *to, sizebuf_t *msg)
 {
-	entity_state_t nullstate, *oldent, *newent;
+	entity_state_t *oldent, *newent;
 	int oldindex, newindex;
 	int from_num_entities;
-
-	memset(&nullstate, 0, sizeof(nullstate));
 
 	MSG_WriteByte(msg, svc_packetentities);
 
@@ -111,7 +109,7 @@ SV_EmitPacketEntities(client_frame_t *from, client_frame_t *to, sizebuf_t *msg)
 		{
 			/* this is a new entity, send it from the baseline */
 			MSG_WriteDeltaEntity(
-				(newnum < sv.numbaselines) ? &sv.baselines[newnum] : &nullstate,
+				(newnum < sv.numbaselines) ? &sv.baselines[newnum] : NULL,
 				newent, msg, true, true);
 
 			newindex++;
