@@ -216,7 +216,6 @@ CL_Record_f(void)
 	int i;
 	int len;
 	entity_state_t *ent;
-	entity_state_t nullstate;
 
 	if (Cmd_Argc() != 2)
 	{
@@ -285,8 +284,6 @@ CL_Record_f(void)
 	}
 
 	/* baselines */
-	memset(&nullstate, 0, sizeof(nullstate));
-
 	for (i = 0; i < cl_numentities; i++)
 	{
 		ent = &cl_entities[i].baseline;
@@ -306,7 +303,7 @@ CL_Record_f(void)
 
 		MSG_WriteByte(&buf, svc_spawnbaseline);
 
-		MSG_WriteDeltaEntity(&nullstate, &cl_entities[i].baseline,
+		MSG_WriteDeltaEntity(NULL, &cl_entities[i].baseline,
 				&buf, true, true);
 	}
 
