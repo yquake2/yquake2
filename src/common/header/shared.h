@@ -1270,12 +1270,20 @@ typedef struct
 size_t verify_fread(void *, size_t, size_t, FILE *);
 size_t verify_fwrite(void *, size_t, size_t, FILE *);
 
-/* Returns the next power of 2 value larger than i
+/* Returns the next power of 2 value greater-than-or-equal to i
  * Examples:
  *   NextPow2(733) == 1024
- *   NextPow2(2048) == 4096
+ *   NextPow2(2048) == 2048
  * Returns 1 if i == 0 and 0 if i == (1 << 31)
  */
 unsigned int NextPow2(unsigned int i);
+
+/* Returns the next power of 2 value greater than i
+ * Examples:
+ *   NextPow2gt(733) == 1024
+ *   NextPow2gt(2048) == 4096
+ * Returns 1 if i == 0 and 0 if i == (1 << 31)
+ */
+unsigned int NextPow2gt(unsigned int i);
 
 #endif /* COMMON_SHARED_H */
