@@ -49,7 +49,7 @@ SV_AllocBaseline(int entnum)
 	if (entnum >= sv.numbaselines)
 	{
 		nextpow2 = (sv.numbaselines || (entnum >= ALLOC_ENTITIES_MIN)) ?
-			(int)NextPow2(entnum) : ALLOC_ENTITIES_MIN;
+			(int)NextPow2gt(entnum) : ALLOC_ENTITIES_MIN;
 
 		sv.baselines = Z_Realloc(sv.baselines, nextpow2 * sizeof(entity_state_t));
 		sv.numbaselines = nextpow2;
