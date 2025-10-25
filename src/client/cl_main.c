@@ -137,7 +137,7 @@ CL_AllocEntity(int entnum)
 	if (entnum >= cl_numentities)
 	{
 		nextpow2 = (cl_numentities || (entnum >= ALLOC_ENTITIES_MIN)) ?
-			(int)NextPow2(entnum) : ALLOC_ENTITIES_MIN;
+			(int)NextPow2gt(entnum) : ALLOC_ENTITIES_MIN;
 
 		cl_entities = Z_Realloc(cl_entities, nextpow2 * sizeof(centity_t));
 		cl_numentities = nextpow2;
