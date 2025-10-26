@@ -355,6 +355,7 @@ CL_RequestNextDownload(void)
 						}
 
 						n++;
+						/* fall through */
 
 					case 1: /* weapon model */
 						Com_sprintf(fn, sizeof(fn), "players/%s/weapon.md2", model);
@@ -366,6 +367,7 @@ CL_RequestNextDownload(void)
 						}
 
 						n++;
+						/* fall through */
 
 					case 2: /* weapon skin */
 						Com_sprintf(fn, sizeof(fn), "players/%s/weapon.pcx", model);
@@ -377,6 +379,7 @@ CL_RequestNextDownload(void)
 						}
 
 						n++;
+						/* fall through */
 
 					case 3: /* skin */
 						Com_sprintf(fn, sizeof(fn), "players/%s/%s.pcx", model, skin);
@@ -388,6 +391,7 @@ CL_RequestNextDownload(void)
 						}
 
 						n++;
+						/* fall through */
 
 					case 4: /* skin_i */
 						Com_sprintf(fn, sizeof(fn), "players/%s/%s_i.pcx", model, skin);
