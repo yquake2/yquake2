@@ -56,7 +56,6 @@ SV_New_f(void)
 {
 	static char *gamedir;
 	int playernum;
-	edict_t *ent;
 
 	Com_DPrintf("New() from %s\n", sv_client->name);
 
@@ -102,9 +101,7 @@ SV_New_f(void)
 	if (sv.state == ss_game)
 	{
 		/* set up the entity for the client */
-		ent = EDICT_NUM(playernum + 1);
-		ent->s.number = playernum + 1;
-		sv_client->edict = ent;
+		CLNUM_EDICT(playernum)->s.number = playernum + 1;
 		memset(&sv_client->lastcmd, 0, sizeof(sv_client->lastcmd));
 
 		/* begin fetching configstrings */
@@ -493,7 +490,7 @@ SV_ExecuteUserCommand(char *s)
 	   macro expand variables on the server.  It seems unlikely that a
 	   client ever ought to need to be able to do this... */
 	Cmd_TokenizeString(s, false);
-	sv_player = sv_client->edict;
+	sv_player = CL_EDICT(sv_client);
 
 	for (u = ucmds; u->name; u++)
 	{
@@ -521,7 +518,7 @@ SV_ClientThink(client_t *cl, usercmd_t *cmd)
 		return;
 	}
 
-	ge->ClientThink(cl->edict, cmd);
+	ge->ClientThink(CL_EDICT(cl), cmd);
 }
 
 /*
@@ -543,7 +540,7 @@ SV_ExecuteClientMessage(client_t *cl)
 	int lastframe;
 
 	sv_client = cl;
-	sv_player = sv_client->edict;
+	sv_player = CL_EDICT(sv_client);
 
 	/* only allow one move command */
 	move_issued = false;

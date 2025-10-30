@@ -113,7 +113,7 @@ SV_SetPlayer(void)
 		}
 
 		sv_client = &svs.clients[idnum];
-		sv_player = sv_client->edict;
+		sv_player = CL_EDICT(sv_client);
 
 		if (!sv_client->state)
 		{
@@ -135,7 +135,7 @@ SV_SetPlayer(void)
 		if (!strcmp(cl->name, s))
 		{
 			sv_client = cl;
-			sv_player = sv_client->edict;
+			sv_player = CL_EDICT(cl);
 			return true;
 		}
 	}
@@ -177,7 +177,7 @@ SV_GameMap_f(void)
 {
 	char *map;
 	int i;
-	client_t *cl;
+	edict_t *clent;
 	qboolean *savedInuse;
 
 	if (Cmd_Argc() != 2)
@@ -206,25 +206,25 @@ SV_GameMap_f(void)
 			/* clear all the client inuse flags before saving so that
 			   when the level is re-entered, the clients will spawn
 			   at spawn points instead of occupying body shells */
-			savedInuse = malloc(maxclients->value * sizeof(qboolean));
+			savedInuse = Z_Malloc(maxclients->value * sizeof(qboolean));
 
-			YQ2_COM_CHECK_OOM(savedInuse, "malloc()", maxclients->value * sizeof(qboolean))
-
-			for (i = 0, cl = svs.clients; i < maxclients->value; i++, cl++)
+			for (i = 0; i < maxclients->value; i++)
 			{
-				savedInuse[i] = cl->edict->inuse;
-				cl->edict->inuse = false;
+				clent = CLNUM_EDICT(i);
+
+				savedInuse[i] = clent->inuse;
+				clent->inuse = false;
 			}
 
 			SV_WriteLevelFile();
 
 			/* we must restore these for clients to transfer over correctly */
-			for (i = 0, cl = svs.clients; i < maxclients->value; i++, cl++)
+			for (i = 0; i < maxclients->value; i++)
 			{
-				cl->edict->inuse = savedInuse[i];
+				CLNUM_EDICT(i)->inuse = savedInuse[i];
 			}
 
-			free(savedInuse);
+			Z_Free(savedInuse);
 		}
 	}
 
@@ -407,7 +407,7 @@ SV_Status_f(void)
 		}
 
 		Com_Printf("%2i ", i);
-		Com_Printf("%5i ", cl->edict->client->ps.stats[STAT_FRAGS]);
+		Com_Printf("%5i ", CL_EDICT(cl)->client->ps.stats[STAT_FRAGS]);
 
 		if (cl->state == cs_connected)
 		{

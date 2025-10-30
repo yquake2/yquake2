@@ -256,7 +256,7 @@ SV_Multicast(vec3_t origin, multicast_t to)
 
 		if (mask)
 		{
-			if (!SV_WereConnected(client->edict->s.origin, mask, area1))
+			if (!SV_WereConnected(CL_EDICT(client)->s.origin, mask, area1))
 			{
 				continue;
 			}

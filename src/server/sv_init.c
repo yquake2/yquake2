@@ -413,7 +413,6 @@ void
 SV_InitGame(void)
 {
 	int i, gamemode;
-	edict_t *ent;
 	char idmaster[32];
 
 	if (svs.initialized)
@@ -495,9 +494,7 @@ SV_InitGame(void)
 
 	for (i = 0; i < maxclients->value; i++)
 	{
-		ent = EDICT_NUM(i + 1);
-		ent->s.number = i + 1;
-		svs.clients[i].edict = ent;
+		CLNUM_EDICT(i)->s.number = i + 1;
 		memset(&svs.clients[i].lastcmd, 0, sizeof(svs.clients[i].lastcmd));
 	}
 }
