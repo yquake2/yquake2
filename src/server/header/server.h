@@ -48,6 +48,8 @@
 
 #define SV_OUTPUTBUF_LENGTH (MAX_MSGLEN - 16)
 #define EDICT_NUM(n) ((edict_t *)((byte *)ge->edicts + ge->edict_size * (n)))
+#define CL_EDICT(cl) EDICT_NUM(1 + ((cl) - svs.clients))
+#define CLNUM_EDICT(i) EDICT_NUM(i + 1)
 #define NUM_FOR_EDICT(e) (((byte *)(e) - (byte *)ge->edicts) / ge->edict_size)
 
 typedef enum
@@ -125,7 +127,6 @@ typedef struct client_s
 	int rate;
 	int surpressCount;                  /* number of messages rate supressed */
 
-	edict_t *edict;                     /* EDICT_NUM(clientnum+1) */
 	char name[32];                      /* extracted from userinfo, high bits masked */
 
 	/* The datagram is written to by sound calls, prints,
