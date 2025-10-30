@@ -1286,4 +1286,24 @@ unsigned int NextPow2(unsigned int i);
  */
 unsigned int NextPow2gt(unsigned int i);
 
+/* Bitlist
+ * API for using arrays of bits with maximum space efficiency
+*/
+
+/* number of bits per array index */
+typedef char bitlist_t;
+#define BITLIST_BPU (sizeof(bitlist_t) * 8)
+
+/* calculate length of array given number of bits n
+ * Example: bitlist_t mybits[BITLIST_SIZE(512)];
+*/
+#define BITLIST_SIZE(n) (1 + (((n) - 1) / BITLIST_BPU))
+
+/* Set bit i to 1 or clear it to 0 */
+#define BITLIST_SET(l, i) l[(i) / BITLIST_BPU] |= 1 << ((i) % BITLIST_BPU)
+#define BITLIST_CLEAR(l, i) l[(i) / BITLIST_BPU] &= ~(1 << ((i) % BITLIST_BPU))
+
+/* test the value of bit i */
+#define BITLIST_ISSET(l, i) (l[(i) / BITLIST_BPU] & (1 << ((i) % BITLIST_BPU))) != 0
+
 #endif /* COMMON_SHARED_H */

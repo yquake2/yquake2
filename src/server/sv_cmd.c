@@ -178,7 +178,7 @@ SV_GameMap_f(void)
 	char *map;
 	int i;
 	edict_t *clent;
-	qboolean *savedInuse;
+	bitlist_t savedInuse[BITLIST_SIZE(MAX_CLIENTS)];
 
 	if (Cmd_Argc() != 2)
 	{
@@ -206,13 +206,17 @@ SV_GameMap_f(void)
 			/* clear all the client inuse flags before saving so that
 			   when the level is re-entered, the clients will spawn
 			   at spawn points instead of occupying body shells */
-			savedInuse = Z_Malloc(maxclients->value * sizeof(qboolean));
+			memset(savedInuse, 0, sizeof(savedInuse));
 
 			for (i = 0; i < maxclients->value; i++)
 			{
 				clent = CLNUM_EDICT(i);
 
-				savedInuse[i] = clent->inuse;
+				if (clent->inuse)
+				{
+					BITLIST_SET(savedInuse, i);
+				}
+
 				clent->inuse = false;
 			}
 
@@ -221,10 +225,9 @@ SV_GameMap_f(void)
 			/* we must restore these for clients to transfer over correctly */
 			for (i = 0; i < maxclients->value; i++)
 			{
-				CLNUM_EDICT(i)->inuse = savedInuse[i];
+				CLNUM_EDICT(i)->inuse =
+					BITLIST_ISSET(savedInuse, i) ? true : false;
 			}
-
-			Z_Free(savedInuse);
 		}
 	}
 
