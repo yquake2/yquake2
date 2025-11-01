@@ -528,7 +528,7 @@ CL_InitLocal(void)
 	CL_InitInput();
 
 	/* register our variables */
-	cin_force43 = Cvar_Get("cin_force43", "1", 0);
+	cin_force43 = Cvar_Get("cin_force43", "1", CVAR_ARCHIVE);
 
 	cl_add_blend = Cvar_Get("cl_blend", "1", 0);
 	cl_add_lights = Cvar_Get("cl_lights", "1", 0);
