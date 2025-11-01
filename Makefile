@@ -42,6 +42,11 @@
 # HTTP download.
 WITH_CURL:=yes
 
+# Enables backtraces through execinfo on supported platforms.
+# Usefull to get some basic debug information when the game
+# crashes.
+WITH_EXECINFO:=yes
+
 # Enables the optional OpenAL sound system.
 # To use it your system needs libopenal.so.1
 # or openal32.dll (we recommend openal-soft)
@@ -520,36 +525,26 @@ release/quake2 : CFLAGS += -DUSE_OPENAL -DDEFAULT_OPENAL_DRIVER='"libopenal.so.1
 endif
 endif
 
+ifeq ($(WITH_EXECINFO),yes)
 ifeq ($(YQ2_OSTYPE), Linux)
 release/quake2 : CFLAGS += -DHAVE_EXECINFO
-endif
-
-ifeq ($(YQ2_OSTYPE), Darwin)
+else ifeq ($(YQ2_OSTYPE), Darwin)
 release/quake2 : CFLAGS += -DHAVE_EXECINFO
-endif
-
-ifeq ($(YQ2_OSTYPE), SunOS)
+else ifeq ($(YQ2_OSTYPE), SunOS)
 release/quake2 : CFLAGS += -DHAVE_EXECINFO
-endif
-
-ifeq ($(YQ2_OSTYPE), FreeBSD)
+else ifeq ($(YQ2_OSTYPE), FreeBSD)
+release/quake2 : CFLAGS += -DHAVE_EXECINFO
+release/quake2 : LDLIBS += -lexecinfo
+else ifeq ($(YQ2_OSTYPE), NetBSD)
+release/quake2 : CFLAGS += -DHAVE_EXECINFO
+release/quake2 : LDLIBS += -lexecinfo
+else ifeq ($(YQ2_OSTYPE), OpenBSD)
+release/quake2 : CFLAGS += -DHAVE_EXECINFO
+release/quake2 : LDLIBS += -lexecinfo
+else ifeq ($(YQ2_OSTYPE), Haiku)
 release/quake2 : CFLAGS += -DHAVE_EXECINFO
 release/quake2 : LDLIBS += -lexecinfo
 endif
-
-ifeq ($(YQ2_OSTYPE), NetBSD)
-release/quake2 : CFLAGS += -DHAVE_EXECINFO
-release/quake2 : LDLIBS += -lexecinfo
-endif
-
-ifeq ($(YQ2_OSTYPE), OpenBSD)
-release/quake2 : CFLAGS += -DHAVE_EXECINFO
-release/quake2 : LDLIBS += -lexecinfo
-endif
-
-ifeq ($(YQ2_OSTYPE), Haiku)
-release/quake2 : CFLAGS += -DHAVE_EXECINFO
-release/quake2 : LDLIBS += -lexecinfo
 endif
 
 ifeq ($(WITH_RPATH),yes)
