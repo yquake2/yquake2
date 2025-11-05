@@ -806,9 +806,12 @@ extern int time_after_game;
 extern int time_before_ref;
 extern int time_after_ref;
 
+void Z_Init(void);
 void Z_Free(void *ptr);
 void *Z_Malloc(int size);           /* returns 0 filled memory */
 void *Z_TagMalloc(int size, int tag);
+void *Z_Realloc(void *ptr, int size);
+void *Z_TagRealloc(void *ptr, int size, int tag);
 void Z_FreeTags(int tag);
 
 void Qcommon_Init(int argc, char **argv);
@@ -873,5 +876,35 @@ void Sys_SetupFPU(void);
 /* ======================================================================= */
 
 void Mods_NamesFinish(void);
+
+/* stringlist_t API
+ * Store strings in a dynamic array
+ */
+
+typedef struct
+{
+	char **lst;
+	int n;
+	int cap;
+} stringlist_t;
+
+/* Frees all dynamic memory and initializes the data structure back to zero */
+void StringList_Free(stringlist_t *sl);
+
+/* Looks for string s in the list.
+ * If s is NULL, returns the next free spot in the list.
+ * Otherwise returns index of s found in the list.
+ * Returns length of list + 1 if nothing was found.
+*/
+int StringList_Find(const stringlist_t *sl, const char *s);
+
+/* Returns true if s is in the list, false otherwise */
+qboolean StringList_IsInList(const stringlist_t *sl, const char *s);
+
+/* Adds s to the first free spot in the list, resizes if necessary */
+void StringList_Add(stringlist_t *sl, const char *s);
+
+#define StringList_Len(sl) (sl)->n
+#define StringList_Elem(sl, i) (sl)->lst[i]
 
 #endif

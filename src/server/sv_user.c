@@ -56,7 +56,6 @@ SV_New_f(void)
 {
 	static char *gamedir;
 	int playernum;
-	edict_t *ent;
 
 	Com_DPrintf("New() from %s\n", sv_client->name);
 
@@ -102,15 +101,33 @@ SV_New_f(void)
 	if (sv.state == ss_game)
 	{
 		/* set up the entity for the client */
-		ent = EDICT_NUM(playernum + 1);
-		ent->s.number = playernum + 1;
-		sv_client->edict = ent;
+		CLNUM_EDICT(playernum)->s.number = playernum + 1;
 		memset(&sv_client->lastcmd, 0, sizeof(sv_client->lastcmd));
 
 		/* begin fetching configstrings */
 		MSG_WriteByte(&sv_client->netchan.message, svc_stufftext);
 		MSG_WriteString(&sv_client->netchan.message,
 				va("cmd configstrings %i 0\n", svs.spawncount));
+	}
+}
+
+static void
+PrintOverflowConfigstrings(void)
+{
+	int i, n;
+
+	n = StringList_Len(&sv.configstrings_overflow);
+
+	if (!n)
+	{
+		return;
+	}
+
+	Com_Printf("Failed to load %i resources: configstrings overflowed\n", n);
+
+	for (i = 0; i < n; i++)
+	{
+		Com_Printf("  %s\n", StringList_Elem(&sv.configstrings_overflow, i));
 	}
 }
 
@@ -172,6 +189,8 @@ SV_Configstrings_f(void)
 	/* send next command */
 	if (start == MAX_CONFIGSTRINGS)
 	{
+		PrintOverflowConfigstrings();
+
 		MSG_WriteByte(&sv_client->netchan.message, svc_stufftext);
 		MSG_WriteString(&sv_client->netchan.message,
 				va("cmd baselines %i 0\n", svs.spawncount));
@@ -189,7 +208,6 @@ SV_Baselines_f(void)
 {
 	int start;
 	int max_msgutil;
-	entity_state_t nullstate;
 	entity_state_t *base;
 
 	Com_DPrintf("Baselines() from %s\n", sv_client->name);
@@ -215,27 +233,25 @@ SV_Baselines_f(void)
 		start = 0;
 	}
 
-	memset(&nullstate, 0, sizeof(nullstate));
-
 	/* 560 is roughly the legacy safety margin */
 	max_msgutil = (SV_Optimizations() & OPTIMIZE_MSGUTIL) ?
 		SAFE_MARGIN : 560;
 
 	/* write a packet full of data */
-	while (start < MAX_EDICTS)
+	while (start < sv.numbaselines)
 	{
 		base = &sv.baselines[start];
 
 		if (base->modelindex || base->sound || base->effects)
 		{
-			if ((sv_client->netchan.message.cursize + MSG_DeltaEntity_Size(&nullstate, base, true, true))
+			if ((sv_client->netchan.message.cursize + MSG_DeltaEntity_Size(NULL, base, true, true))
 				> (MAX_MSGLEN - (CMD_MARGIN + max_msgutil)))
 			{
 				break;
 			}
 
 			MSG_WriteByte(&sv_client->netchan.message, svc_spawnbaseline);
-			MSG_WriteDeltaEntity(&nullstate, base,
+			MSG_WriteDeltaEntity(NULL, base,
 					&sv_client->netchan.message,
 					true, true);
 		}
@@ -244,7 +260,7 @@ SV_Baselines_f(void)
 	}
 
 	/* send next command */
-	if (start == MAX_EDICTS)
+	if (start == sv.numbaselines)
 	{
 		MSG_WriteByte(&sv_client->netchan.message, svc_stufftext);
 		MSG_WriteString(&sv_client->netchan.message,
@@ -496,7 +512,7 @@ SV_ExecuteUserCommand(char *s)
 	   macro expand variables on the server.  It seems unlikely that a
 	   client ever ought to need to be able to do this... */
 	Cmd_TokenizeString(s, false);
-	sv_player = sv_client->edict;
+	sv_player = CL_EDICT(sv_client);
 
 	for (u = ucmds; u->name; u++)
 	{
@@ -524,7 +540,7 @@ SV_ClientThink(client_t *cl, usercmd_t *cmd)
 		return;
 	}
 
-	ge->ClientThink(cl->edict, cmd);
+	ge->ClientThink(CL_EDICT(cl), cmd);
 }
 
 /*
@@ -546,7 +562,7 @@ SV_ExecuteClientMessage(client_t *cl)
 	int lastframe;
 
 	sv_client = cl;
-	sv_player = sv_client->edict;
+	sv_player = CL_EDICT(sv_client);
 
 	/* only allow one move command */
 	move_issued = false;

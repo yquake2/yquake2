@@ -48,6 +48,8 @@
 
 #define SV_OUTPUTBUF_LENGTH (MAX_MSGLEN - 16)
 #define EDICT_NUM(n) ((edict_t *)((byte *)ge->edicts + ge->edict_size * (n)))
+#define CL_EDICT(cl) EDICT_NUM(1 + ((cl) - svs.clients))
+#define CLNUM_EDICT(i) EDICT_NUM(i + 1)
 #define NUM_FOR_EDICT(e) (((byte *)(e) - (byte *)ge->edicts) / ge->edict_size)
 
 typedef enum
@@ -73,8 +75,10 @@ typedef struct
 	char name[MAX_QPATH];           /* map name, or cinematic name */
 	struct cmodel_s *models[MAX_MODELS];
 
+	stringlist_t configstrings_overflow;
 	char configstrings[MAX_CONFIGSTRINGS][MAX_QPATH];
-	entity_state_t baselines[MAX_EDICTS];
+	entity_state_t *baselines;
+	int numbaselines;
 
 	/* the multicast buffer is used to send a message to a set of clients
 	   it is only used to marshall data until SV_Multicast is called */
@@ -124,7 +128,6 @@ typedef struct client_s
 	int rate;
 	int surpressCount;                  /* number of messages rate supressed */
 
-	edict_t *edict;                     /* EDICT_NUM(clientnum+1) */
 	char name[32];                      /* extracted from userinfo, high bits masked */
 
 	/* The datagram is written to by sound calls, prints,
