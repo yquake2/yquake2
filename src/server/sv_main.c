@@ -732,6 +732,7 @@ SV_Shutdown(char *finalmsg, qboolean reconnect)
 		FS_FCloseFile(sv.demofile);
 	}
 
+	StringList_Free(&sv.configstrings_overflow);
 	SV_ClearBaselines();
 	memset(&sv, 0, sizeof(sv));
 	Com_SetServerState(sv.state);

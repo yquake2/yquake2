@@ -83,7 +83,17 @@ SV_FindIndex(const char *name, int start, int max, qboolean create)
 
 	if (i == max)
 	{
-		Com_Error(ERR_DROP, "*Index: overflow");
+		if (!StringList_IsInList(&sv.configstrings_overflow, name))
+		{
+			if (sv.state != ss_loading)
+			{
+				Com_Printf("Failed to load %s: configstrings overflowed\n", name);
+			}
+
+			StringList_Add(&sv.configstrings_overflow, name);
+		}
+
+		return 0;
 	}
 
 	Q_strlcpy(sv.configstrings[start + i], name, sizeof(sv.configstrings[start + i]));

@@ -112,6 +112,26 @@ SV_New_f(void)
 }
 
 static void
+PrintOverflowConfigstrings(void)
+{
+	int i, n;
+
+	n = StringList_Len(&sv.configstrings_overflow);
+
+	if (!n)
+	{
+		return;
+	}
+
+	Com_Printf("Failed to load %i resources: configstrings overflowed\n", n);
+
+	for (i = 0; i < n; i++)
+	{
+		Com_Printf("  %s\n", StringList_Elem(&sv.configstrings_overflow, i));
+	}
+}
+
+static void
 SV_Configstrings_f(void)
 {
 	int start;
@@ -169,6 +189,8 @@ SV_Configstrings_f(void)
 	/* send next command */
 	if (start == MAX_CONFIGSTRINGS)
 	{
+		PrintOverflowConfigstrings();
+
 		MSG_WriteByte(&sv_client->netchan.message, svc_stufftext);
 		MSG_WriteString(&sv_client->netchan.message,
 				va("cmd baselines %i 0\n", svs.spawncount));
