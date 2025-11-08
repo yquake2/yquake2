@@ -37,6 +37,8 @@ void *Z_TagMalloc(size_t size, unsigned short tag);
 void *Z_Realloc(void *ptr, size_t size);
 void *Z_TagRealloc(void *ptr, size_t size, unsigned short tag);
 
+size_t Z_BlockSize(const void *ptr);
+
 void Z_Stats_f (void);
 
 #endif
