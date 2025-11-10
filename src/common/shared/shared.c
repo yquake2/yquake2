@@ -1580,19 +1580,9 @@ Info_RemoveKey(char *s, char *key)
  * because they can mess up the server's parsing
  */
 qboolean
-Info_Validate(char *s)
+Info_Validate(const char *s)
 {
-	if (strstr(s, "\""))
-	{
-		return false;
-	}
-
-	if (strstr(s, ";"))
-	{
-		return false;
-	}
-
-	return true;
+	return (Q_strchrs(s, "\";") == NULL) ? true : false;
 }
 
 static qboolean

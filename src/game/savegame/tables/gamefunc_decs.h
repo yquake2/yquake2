@@ -31,7 +31,7 @@ extern void ReadGame ( const char * filename ) ;
 extern void WriteGame ( const char * filename , qboolean autosave ) ;
 extern void InitGame ( void ) ;
 extern void Info_SetValueForKey ( char * s , char * key , char * value ) ;
-extern qboolean Info_Validate ( char * s ) ;
+extern qboolean Info_Validate ( const char * s ) ;
 extern void Info_RemoveKey ( char * s , char * key ) ;
 extern char * Info_ValueForKey ( char * s , char * key ) ;
 extern int Q_strlcat ( char * dst , const char * src , int size ) ;
