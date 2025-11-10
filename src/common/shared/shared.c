@@ -1517,19 +1517,19 @@ Info_ValueForKey(char *s, char *key)
 }
 
 void
-Info_RemoveKey(char *s, char *key)
+Info_RemoveKey(char *s, const char *key)
 {
-	char *start;
-	char pkey[512];
-	char value[512];
-	char *o;
+	char *start, *kstart;
+	size_t klen;
 
-	if (strstr(key, "\\"))
+	if (strchr(key, '\\'))
 	{
 		return;
 	}
 
-	while (1)
+	klen = strlen(key);
+
+	while (*s != '\0')
 	{
 		start = s;
 
@@ -1538,38 +1538,20 @@ Info_RemoveKey(char *s, char *key)
 			s++;
 		}
 
-		o = pkey;
+		/* key segment */
+		kstart = s;
+		s = Q_strchr0(s, '\\');
 
-		while (*s != '\\')
+		if (*s != '\0')
 		{
-			if (!*s)
-			{
-				return;
-			}
-
-			*o++ = *s++;
+			/* value segment */
+			s = Q_strchr0(s + 1, '\\');
 		}
 
-		*o = 0;
-		s++;
-
-		o = value;
-
-		while (*s != '\\' && *s)
+		if (!strncmp(kstart, key, klen) &&
+			(kstart[klen] == '\\' || kstart[klen] == '\0'))
 		{
-			*o++ = *s++;
-		}
-
-		*o = 0;
-
-		if (!strcmp(key, pkey))
-		{
-			memmove(start, s, strlen(s) + 1); /* remove this part */
-			return;
-		}
-
-		if (!*s)
-		{
+			memmove(start, s, strlen(s) + 1);
 			return;
 		}
 	}
@@ -1618,7 +1600,7 @@ Info_ValidateKeyValue(const char *key, const char *value)
 }
 
 void
-Info_SetValueForKey(char *s, char *key, char *value)
+Info_SetValueForKey(char *s, const char *key, const char *value)
 {
 	char newi[MAX_INFO_KEYVAL];
 	char *dest;

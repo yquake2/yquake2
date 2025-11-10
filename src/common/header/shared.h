@@ -401,8 +401,8 @@ char *va(const char *format, ...)  PRINTF_ATTR(1, 2);
 #define MAX_INFO_STRING 512
 
 char *Info_ValueForKey(char *s, char *key);
-void Info_RemoveKey(char *s, char *key);
-void Info_SetValueForKey(char *s, char *key, char *value);
+void Info_RemoveKey(char *s, const char *key);
+void Info_SetValueForKey(char *s, const char *key, const char *value);
 qboolean Info_Validate(const char *s);
 
 /* ============================================= */
