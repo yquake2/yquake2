@@ -397,6 +397,7 @@ char *va(const char *format, ...)  PRINTF_ATTR(1, 2);
 /* key / value info strings */
 #define MAX_INFO_KEY 64
 #define MAX_INFO_VALUE 64
+#define MAX_INFO_KEYVAL ((MAX_INFO_KEY - 1) + (MAX_INFO_VALUE - 1) + 3) /* 3 for 2 backslashes and null char */
 #define MAX_INFO_STRING 512
 
 char *Info_ValueForKey(char *s, char *key);

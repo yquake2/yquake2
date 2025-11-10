@@ -1595,71 +1595,71 @@ Info_Validate(char *s)
 	return true;
 }
 
+static qboolean
+Info_ValidateKeyValue(const char *key, const char *value)
+{
+	const char *hit;
+
+	hit = Q_strchrs(key, "\"\\;");
+	if (hit)
+	{
+		Com_Printf("Can't use keys with a '%c'\n", *hit);
+		return false;
+	}
+
+	if (value)
+	{
+		hit = Q_strchrs(value, "\"\\");
+		if (hit)
+		{
+			Com_Printf("Can't use values with a '%c'\n", *hit);
+			return false;
+		}
+	}
+
+	if ((strlen(key) > MAX_INFO_KEY - 1) ||
+		(value && (strlen(value) > MAX_INFO_VALUE - 1)))
+	{
+		Com_Printf("Keys and values must be < %i characters.\n", MAX_INFO_KEY);
+		return false;
+	}
+
+	return true;
+}
+
 void
 Info_SetValueForKey(char *s, char *key, char *value)
 {
-	char newi[MAX_INFO_STRING], *v;
-	int c;
-	int maxsize = MAX_INFO_STRING;
+	char newi[MAX_INFO_KEYVAL];
+	char *dest;
+	size_t slen, needed;
 
 	if (!key)
 	{
 		return;
 	}
 
-	if (strstr(key, "\\") || (value && strstr(value, "\\")))
+	if (!Info_ValidateKeyValue(key, value))
 	{
-		Com_Printf("Can't use keys or values with a \\\n");
-		return;
-	}
-
-	if (strstr(key, ";"))
-	{
-		Com_Printf("Can't use keys with a semicolon\n");
-		return;
-	}
-
-	if (strstr(key, "\"") || (value && strstr(value, "\"")))
-	{
-		Com_Printf("Can't use keys or values with a \"\n");
-		return;
-	}
-
-	if ((strlen(key) > MAX_INFO_KEY - 1) || (value && (strlen(value) > MAX_INFO_KEY - 1)))
-	{
-		Com_Printf("Keys and values must be < 64 characters.\n");
 		return;
 	}
 
 	Info_RemoveKey(s, key);
 
-	if (!value || !strlen(value))
+	if (!value || *value == '\0')
 	{
 		return;
 	}
 
 	Com_sprintf(newi, sizeof(newi), "\\%s\\%s", key, value);
 
-	if (strlen(newi) + strlen(s) >= maxsize)
+	slen = strlen(s);
+	dest = s + slen;
+
+	needed = Q_strlcpy_ascii(dest, newi, MAX_INFO_STRING - slen);
+	if (needed > (MAX_INFO_STRING - slen - 1))
 	{
 		Com_Printf("Info string length exceeded\n");
-		return;
+		*dest = '\0';
 	}
-
-	/* only copy ascii values */
-	s += strlen(s);
-	v = newi;
-
-	while (*v)
-	{
-		c = *v++;
-		c &= 127; /* strip high bits */
-
-		if ((c >= 32) && (c < 127))
-		{
-			*s++ = c;
-		}
-	}
-
-	*s = 0;
 }
