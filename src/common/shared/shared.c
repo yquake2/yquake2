@@ -1247,6 +1247,44 @@ Q_strlcpy(char *dst, const char *src, int size)
 	return s - src;
 }
 
+size_t
+Q_strlcpy_ascii(char *d, const char *s, size_t n)
+{
+	size_t ns = 0;
+	char c;
+	int dzero = n == 0;
+
+	if (!dzero)
+	{
+		n--;
+	}
+
+	for (; *s != '\0'; s++)
+	{
+		c = *s;
+		c &= 127;
+
+		if ((c >= 32) && (c < 127))
+		{
+			if (n)
+			{
+				*d = c;
+				d++;
+				n--;
+			}
+
+			ns++;
+		}
+	}
+
+	if (!dzero)
+	{
+		*d = '\0';
+	}
+
+	return ns;
+}
+
 int
 Q_strlcat(char *dst, const char *src, int size)
 {
@@ -1319,6 +1357,34 @@ Q_strisnum(const char *s)
 	}
 
 	return true;
+}
+
+char *
+Q_strchrs(const char *s, const char *chrs)
+{
+	char *hit;
+
+	for (; *chrs != '\0'; chrs++)
+	{
+		hit = strchr(s, *chrs);
+		if (hit)
+		{
+			return hit;
+		}
+	}
+
+	return NULL;
+}
+
+char *
+Q_strchr0(const char *s, char c)
+{
+	while (*s != c && *s != '\0')
+	{
+		s++;
+	}
+
+	return (char *)s;
 }
 
 /*

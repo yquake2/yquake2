@@ -342,6 +342,14 @@ char *Q_strlwr(char *s);
 int Q_strlcpy(char *dst, const char *src, int size);
 int Q_strlcat(char *dst, const char *src, int size);
 
+/* Copies only ASCII chars > 31 && < 127 from s to d, up to n - 1
+ * Returns space needed to fully copy s to d (minus null char)
+ * Does not modify d at all if n is 0
+ * Example: needed = Q_strlcpy_ascii(d, "b\robby", 3)
+ *          needed is 5 and d contains "bo\0"
+ */
+size_t Q_strlcpy_ascii(char *d, const char *s, size_t n);
+
 /* Delete n characters from s starting at index i */
 void Q_strdel(char *s, size_t i, size_t n);
 
@@ -349,6 +357,17 @@ void Q_strdel(char *s, size_t i, size_t n);
 /* Returns length of src on success, 0 if there is not enough space in dest for src */
 size_t Q_strins(char *dest, const char *src, size_t i, size_t n);
 qboolean Q_strisnum(const char *s);
+
+/* A strchr that can search for multiple characters
+ * chrs is a string of characters to search for
+ * If found, returns a pointer to that char inside s, NULL otherwise
+ */
+char *Q_strchrs(const char *s, const char *chrs);
+
+/* Returns a pointer to c in s if found
+ * Otherwise returns a pointer to the null-terminator at the end of s
+ */
+char *Q_strchr0(const char *s, char c);
 
 /* ============================================= */
 
