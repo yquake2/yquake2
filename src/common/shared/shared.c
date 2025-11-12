@@ -1247,6 +1247,44 @@ Q_strlcpy(char *dst, const char *src, int size)
 	return s - src;
 }
 
+size_t
+Q_strlcpy_ascii(char *d, const char *s, size_t n)
+{
+	size_t ns = 0;
+	char c;
+	int dzero = n == 0;
+
+	if (!dzero)
+	{
+		n--;
+	}
+
+	for (; *s != '\0'; s++)
+	{
+		c = *s;
+		c &= 127;
+
+		if ((c >= 32) && (c < 127))
+		{
+			if (n)
+			{
+				*d = c;
+				d++;
+				n--;
+			}
+
+			ns++;
+		}
+	}
+
+	if (!dzero)
+	{
+		*d = '\0';
+	}
+
+	return ns;
+}
+
 int
 Q_strlcat(char *dst, const char *src, int size)
 {
@@ -1319,6 +1357,34 @@ Q_strisnum(const char *s)
 	}
 
 	return true;
+}
+
+char *
+Q_strchrs(const char *s, const char *chrs)
+{
+	char *hit;
+
+	for (; *chrs != '\0'; chrs++)
+	{
+		hit = strchr(s, *chrs);
+		if (hit)
+		{
+			return hit;
+		}
+	}
+
+	return NULL;
+}
+
+char *
+Q_strchr0(const char *s, char c)
+{
+	while (*s != c && *s != '\0')
+	{
+		s++;
+	}
+
+	return (char *)s;
 }
 
 /*
@@ -1395,75 +1461,76 @@ Q_sort_strcomp(const void *s1, const void *s2)
  * or an empty string.
  */
 char *
-Info_ValueForKey(char *s, char *key)
+Info_ValueForKey(const char *s, const char *key)
 {
-	char pkey[512];
-	static char value[2][512]; /* use two buffers so compares
-							     work without stomping on each other */
-	static int valueindex;
-	char *o;
+	/* use two buffers so compares
+	   work without stomping on each other
+	*/
+	static char value[2][MAX_INFO_VALUE];
+	static int valueindex = 0;
+
+	const char *kstart, *vstart;
+	char *v;
+	size_t klen, vlen;
 
 	valueindex ^= 1;
+	v = value[valueindex];
+	*v = '\0';
 
-	if (*s == '\\')
+	klen = strlen(key);
+
+	while (*s != '\0')
 	{
-		s++;
-	}
-
-	while (1)
-	{
-		o = pkey;
-
-		while (*s != '\\')
+		if (*s == '\\')
 		{
-			if (!*s)
+			s++;
+		}
+
+		kstart = s;
+		s = Q_strchr0(s, '\\');
+
+		if (*s == '\0')
+		{
+			break;
+		}
+
+		vstart = s + 1;
+		s = Q_strchr0(vstart, '\\');
+
+		if (!strncmp(kstart, key, klen) &&
+			kstart[klen] == '\\')
+		{
+			vlen = s - vstart;
+
+			if (vlen > 0)
 			{
-				return "";
+				vlen++; /* Q_strlcpy accounts for null char */
+
+				Q_strlcpy(v, vstart,
+					(vlen < MAX_INFO_VALUE) ? vlen : MAX_INFO_VALUE);
 			}
 
-			*o++ = *s++;
+			break;
 		}
-
-		*o = 0;
-		s++;
-
-		o = value[valueindex];
-
-		while (*s != '\\' && *s)
-		{
-			*o++ = *s++;
-		}
-
-		*o = 0;
-
-		if (!strcmp(key, pkey))
-		{
-			return value[valueindex];
-		}
-
-		if (!*s)
-		{
-			return "";
-		}
-
-		s++;
 	}
+
+	return v;
 }
 
 void
-Info_RemoveKey(char *s, char *key)
+Info_RemoveKey(char *s, const char *key)
 {
-	char *start;
-	char pkey[512];
-	char value[512];
-	char *o;
+	char *start, *kstart;
+	size_t klen;
 
-	if (strstr(key, "\\"))
+	if (strchr(key, '\\'))
 	{
 		return;
 	}
 
-	while (1)
+	klen = strlen(key);
+
+	while (*s != '\0')
 	{
 		start = s;
 
@@ -1472,38 +1539,20 @@ Info_RemoveKey(char *s, char *key)
 			s++;
 		}
 
-		o = pkey;
+		/* key segment */
+		kstart = s;
+		s = Q_strchr0(s, '\\');
 
-		while (*s != '\\')
+		if (*s != '\0')
 		{
-			if (!*s)
-			{
-				return;
-			}
-
-			*o++ = *s++;
+			/* value segment */
+			s = Q_strchr0(s + 1, '\\');
 		}
 
-		*o = 0;
-		s++;
-
-		o = value;
-
-		while (*s != '\\' && *s)
+		if (!strncmp(kstart, key, klen) &&
+			(kstart[klen] == '\\' || kstart[klen] == '\0'))
 		{
-			*o++ = *s++;
-		}
-
-		*o = 0;
-
-		if (!strcmp(key, pkey))
-		{
-			memmove(start, s, strlen(s) + 1); /* remove this part */
-			return;
-		}
-
-		if (!*s)
-		{
+			memmove(start, s, strlen(s) + 1);
 			return;
 		}
 	}
@@ -1514,15 +1563,37 @@ Info_RemoveKey(char *s, char *key)
  * because they can mess up the server's parsing
  */
 qboolean
-Info_Validate(char *s)
+Info_Validate(const char *s)
 {
-	if (strstr(s, "\""))
+	return (Q_strchrs(s, "\";") == NULL) ? true : false;
+}
+
+static qboolean
+Info_ValidateKeyValue(const char *key, const char *value)
+{
+	const char *hit;
+
+	hit = Q_strchrs(key, "\"\\;");
+	if (hit)
 	{
+		Com_Printf("Can't use keys with a '%c'\n", *hit);
 		return false;
 	}
 
-	if (strstr(s, ";"))
+	if (value)
 	{
+		hit = Q_strchrs(value, "\"\\");
+		if (hit)
+		{
+			Com_Printf("Can't use values with a '%c'\n", *hit);
+			return false;
+		}
+	}
+
+	if ((strlen(key) > MAX_INFO_KEY - 1) ||
+		(value && (strlen(value) > MAX_INFO_VALUE - 1)))
+	{
+		Com_Printf("Keys and values must be < %i characters.\n", MAX_INFO_KEY);
 		return false;
 	}
 
@@ -1530,70 +1601,38 @@ Info_Validate(char *s)
 }
 
 void
-Info_SetValueForKey(char *s, char *key, char *value)
+Info_SetValueForKey(char *s, const char *key, const char *value)
 {
-	char newi[MAX_INFO_STRING], *v;
-	int c;
-	int maxsize = MAX_INFO_STRING;
+	char newi[MAX_INFO_KEYVAL];
+	char *dest;
+	size_t slen, needed;
 
 	if (!key)
 	{
 		return;
 	}
 
-	if (strstr(key, "\\") || (value && strstr(value, "\\")))
+	if (!Info_ValidateKeyValue(key, value))
 	{
-		Com_Printf("Can't use keys or values with a \\\n");
-		return;
-	}
-
-	if (strstr(key, ";"))
-	{
-		Com_Printf("Can't use keys with a semicolon\n");
-		return;
-	}
-
-	if (strstr(key, "\"") || (value && strstr(value, "\"")))
-	{
-		Com_Printf("Can't use keys or values with a \"\n");
-		return;
-	}
-
-	if ((strlen(key) > MAX_INFO_KEY - 1) || (value && (strlen(value) > MAX_INFO_KEY - 1)))
-	{
-		Com_Printf("Keys and values must be < 64 characters.\n");
 		return;
 	}
 
 	Info_RemoveKey(s, key);
 
-	if (!value || !strlen(value))
+	if (!value || *value == '\0')
 	{
 		return;
 	}
 
 	Com_sprintf(newi, sizeof(newi), "\\%s\\%s", key, value);
 
-	if (strlen(newi) + strlen(s) >= maxsize)
+	slen = strlen(s);
+	dest = s + slen;
+
+	needed = Q_strlcpy_ascii(dest, newi, MAX_INFO_STRING - slen);
+	if (needed > (MAX_INFO_STRING - slen - 1))
 	{
 		Com_Printf("Info string length exceeded\n");
-		return;
+		*dest = '\0';
 	}
-
-	/* only copy ascii values */
-	s += strlen(s);
-	v = newi;
-
-	while (*v)
-	{
-		c = *v++;
-		c &= 127; /* strip high bits */
-
-		if ((c >= 32) && (c < 127))
-		{
-			*s++ = c;
-		}
-	}
-
-	*s = 0;
 }
