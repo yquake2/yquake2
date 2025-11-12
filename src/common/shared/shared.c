@@ -1461,59 +1461,60 @@ Q_sort_strcomp(const void *s1, const void *s2)
  * or an empty string.
  */
 char *
-Info_ValueForKey(char *s, char *key)
+Info_ValueForKey(const char *s, const char *key)
 {
-	char pkey[512];
-	static char value[2][512]; /* use two buffers so compares
-							     work without stomping on each other */
-	static int valueindex;
-	char *o;
+	/* use two buffers so compares
+	   work without stomping on each other
+	*/
+	static char value[2][MAX_INFO_VALUE];
+	static int valueindex = 0;
+
+	const char *kstart, *vstart;
+	char *v;
+	size_t klen, vlen;
 
 	valueindex ^= 1;
+	v = value[valueindex];
+	*v = '\0';
 
-	if (*s == '\\')
+	klen = strlen(key);
+
+	while (*s != '\0')
 	{
-		s++;
-	}
-
-	while (1)
-	{
-		o = pkey;
-
-		while (*s != '\\')
+		if (*s == '\\')
 		{
-			if (!*s)
+			s++;
+		}
+
+		kstart = s;
+		s = Q_strchr0(s, '\\');
+
+		if (*s == '\0')
+		{
+			break;
+		}
+
+		vstart = s + 1;
+		s = Q_strchr0(vstart, '\\');
+
+		if (!strncmp(kstart, key, klen) &&
+			kstart[klen] == '\\')
+		{
+			vlen = s - vstart;
+
+			if (vlen > 0)
 			{
-				return "";
+				vlen++; /* Q_strlcpy accounts for null char */
+
+				Q_strlcpy(v, vstart,
+					(vlen < MAX_INFO_VALUE) ? vlen : MAX_INFO_VALUE);
 			}
 
-			*o++ = *s++;
+			break;
 		}
-
-		*o = 0;
-		s++;
-
-		o = value[valueindex];
-
-		while (*s != '\\' && *s)
-		{
-			*o++ = *s++;
-		}
-
-		*o = 0;
-
-		if (!strcmp(key, pkey))
-		{
-			return value[valueindex];
-		}
-
-		if (!*s)
-		{
-			return "";
-		}
-
-		s++;
 	}
+
+	return v;
 }
 
 void
