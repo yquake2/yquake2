@@ -326,8 +326,8 @@ int Scrap_AllocBlock(int w, int h, int *x, int *y);
 	gl_buf.tex[1][gl_buf.tx] = LS; gl_buf.tex[1][gl_buf.tx+1] = LT; gl_buf.tx += 2;
 
 #define GLBUFFER_COLOR(R, G, B, A) \
-	gl_buf.clr[gl_buf.cl] = R; gl_buf.clr[gl_buf.cl+1] = G; \
-	gl_buf.clr[gl_buf.cl+2] = B; gl_buf.clr[gl_buf.cl+3] = A; gl_buf.cl += 4;
+	gl_buf.clr[gl_buf.cl] = gammatable[R]; gl_buf.clr[gl_buf.cl+1] = gammatable[G]; \
+	gl_buf.clr[gl_buf.cl+2] = gammatable[B]; gl_buf.clr[gl_buf.cl+3] = A; gl_buf.cl += 4;
 
 void R_ApplyGLBuffer(void);
 void R_UpdateGLBuffer(buffered_draw_t type, int colortex, int lighttex, int flags, float alpha);
