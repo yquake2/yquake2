@@ -29,6 +29,7 @@
 #include "input/header/input.h"
 
 static cvar_t *cl_nodelta;
+static cvar_t *cl_centertime;
 
 static unsigned frame_msec;
 static unsigned old_sys_frame_time;
@@ -62,6 +63,11 @@ static kbutton_t in_klook, in_speed, in_use, in_attack;
 kbutton_t in_strafe;
 
 static int in_impulse;
+
+// New centerview
+static float center_target;	// total rotation needed to achieve a centered view
+static float center_progress = 1.0f;	// from 0.0 to 1.0
+static int center_start;	// time of centering start
 
 static void
 KeyDown(kbutton_t *b)
@@ -443,6 +449,28 @@ CL_AdjustAngles(void)
 
 	cl.viewangles[PITCH] -= speed * cl_pitchspeed->value * up;
 	cl.viewangles[PITCH] += speed * cl_pitchspeed->value * down;
+
+	// centerview progression
+	if (center_progress < 1.0f && cl_centertime->value > 0)
+	{
+		float cur_progress =
+			(float)(sys_frame_time - center_start) / cl_centertime->value;
+
+		if (cur_progress >= 1.0f)
+		{
+			cur_progress = 1.0f;
+		}
+		else
+		{
+			// "Ease out" processing: f(x) = 1-(1-x)^2 , 0 <= x <= 1
+			cur_progress = 1.0f - cur_progress;
+			cur_progress *= cur_progress;
+			cur_progress = 1.0f - cur_progress;
+		}
+
+		cl.viewangles[PITCH] -= (cur_progress - center_progress) * center_target;
+		center_progress = cur_progress;
+	}
 }
 
 /*
@@ -520,7 +548,16 @@ CL_ClampPitch(void)
 void
 IN_CenterView(void)
 {
-	cl.viewangles[PITCH] = -SHORT2ANGLE(cl.frame.playerstate.pmove.delta_angles[PITCH]);
+	if (cl_centertime->value <= 0)	// vanilla
+	{
+		cl.viewangles[PITCH] = -SHORT2ANGLE(cl.frame.playerstate.pmove.delta_angles[PITCH]);
+	}
+	else	// start centering the view
+	{
+		center_target = cl.viewangles[PITCH] - SHORT2ANGLE(cl.frame.playerstate.pmove.delta_angles[PITCH]);
+		center_progress = 0.0f;
+		center_start = sys_frame_time;
+	}
 }
 
 /*
@@ -571,6 +608,7 @@ CL_InitInput(void)
 	Cmd_AddCommand("-klook", IN_KLookUp);
 
 	cl_nodelta = Cvar_Get("cl_nodelta", "0", 0);
+	cl_centertime = Cvar_Get("cl_centertime", "180", CVAR_ARCHIVE);
 }
 
 void
