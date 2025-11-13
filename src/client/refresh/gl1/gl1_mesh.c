@@ -190,9 +190,7 @@ R_DrawAliasFrameLerp(entity_t *currententity, dmdl_t *paliashdr, float backlerp)
 					}
 				}
 
-				GLBUFFER_COLOR(gammatable[idx[0]],
-					gammatable[idx[1]],
-					gammatable[idx[2]], alpha * 255)
+				GLBUFFER_COLOR(idx[0], idx[1], idx[2], alpha * 255)
 			}
 			while (--count);
 		}
@@ -229,9 +227,7 @@ R_DrawAliasFrameLerp(entity_t *currententity, dmdl_t *paliashdr, float backlerp)
 					}
 				}
 
-				GLBUFFER_COLOR(gammatable[idx[0]],
-					gammatable[idx[1]],
-					gammatable[idx[2]], alpha * 255)
+				GLBUFFER_COLOR(idx[0], idx[1], idx[2], alpha * 255)
 			}
 			while (--count);
 		}

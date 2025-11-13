@@ -664,7 +664,8 @@ dynamic_surf:
 
 			R_BuildLightMap(surf, base, BLOCK_WIDTH * LIGHTMAP_BYTES);
 
-			if (surf->dlightframe != r_framecount)
+			surf->dirty_lightmap = (surf->dlightframe == r_framecount);
+			if (!surf->dirty_lightmap || gl_config.lightmapcopies)
 			{
 				for (map = 0; map < MAXLIGHTMAPS && surf->styles[map] != 255; map++)
 				{
@@ -675,8 +676,6 @@ dynamic_surf:
 					}
 				}
 			}
-
-			surf->dirty_lightmap = (surf->dlightframe == r_framecount);
 			R_JoinAreas(&current, &best);
 		}
 

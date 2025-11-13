@@ -38,7 +38,7 @@ void
 R_RenderDlight(dlight_t *light)
 {
 	const float rad = light->intensity * 0.35;
-	int i, j;
+	int i, j, clr[3];
 	float vtx[3], a;
 
 	R_SetBufferIndices(GL_TRIANGLE_FAN, 18);
@@ -46,11 +46,11 @@ R_RenderDlight(dlight_t *light)
 	for ( i = 0; i < 3; i++ )
 	{
 		vtx [ i ] = light->origin [ i ] - vpn [ i ] * rad;
+		clr [ i ] = light->color [ i ] * 51;	// 255 * 0.2 = 51
 	}
 
 	GLBUFFER_VERTEX( vtx[0], vtx[1], vtx[2] )
-	GLBUFFER_COLOR( light->color[0] * 51, light->color[1] * 51,
-		light->color[2] * 51, 255 )	// 255 * 0.2 = 51
+	GLBUFFER_COLOR( clr[0], clr[1], clr[2], 255 )
 
 	for ( i = 16; i >= 0; i-- )
 	{

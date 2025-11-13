@@ -204,6 +204,9 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
 * **cl_unpaused_scvis**: If set to `1` (the default) the client unpause
   when the screen becomes visible.
 
+* **cl_centertime**: Time in ms that takes the `centerview` command to
+  finish. `0` is immediate (Vanilla Q2 behaviour). Default `180`.
+
 * **in_grab**: Defines how the mouse is grabbed by Yamagi Quake IIs
   window. If set to `0` the mouse is never grabbed and if set to `1`
   it's always grabbed. If set to `2` (the default) the mouse is grabbed
