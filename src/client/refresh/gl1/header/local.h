@@ -272,8 +272,6 @@ extern model_t *r_worldmodel;
 extern unsigned d_8to24table[256];
 extern int registration_sequence;
 
-void V_AddBlend(float r, float g, float b, float a, float *v_blend);
-
 void R_ScreenShot(void);
 void R_DrawAliasModel(entity_t *currententity, const model_t *currentmodel);
 void R_DrawBrushModel(entity_t *currententity, const model_t *currentmodel);
@@ -289,15 +287,12 @@ void R_RotateForEntity(entity_t *e);
 void R_MarkLeaves(void);
 
 extern int r_dlightframecount;
-glpoly_t *WaterWarpPolyVerts(glpoly_t *p);
 void R_EmitWaterPolys(msurface_t *fa);
 void R_AddSkySurface(msurface_t *fa);
 void R_ClearSkyBox(void);
 void R_DrawSkyBox(void);
 void R_MarkSurfaceLights(dlight_t *light, int bit, mnode_t *node,
 	int lightframecount);
-
-void COM_StripExtension(char *in, char *out);
 
 image_t *R_LoadPic(const char *name, byte *pic, int width, int realwidth,
 		int height, int realheight, size_t data_size, imagetype_t type, int bits);
@@ -338,7 +333,7 @@ void R_ApplyGLBuffer(void);
 void R_UpdateGLBuffer(buffered_draw_t type, int colortex, int lighttex, int flags, float alpha);
 void R_Buffer2DQuad(GLfloat ul_vx, GLfloat ul_vy, GLfloat dr_vx, GLfloat dr_vy,
 	GLfloat ul_tx, GLfloat ul_ty, GLfloat dr_tx, GLfloat dr_ty);
-void R_SetBufferIndices(GLenum type, GLuint vertices_num);
+void R_SetBufferIndices(GLenum primitive, GLuint vertices_num);
 
 #ifdef YQ2_GL1_GLES
 #define glPolygonMode(...)
@@ -470,7 +465,7 @@ extern glconfig_t gl_config;
 extern glstate_t gl_state;
 
 /*
- * Updates the gamma ramp.
+ * Updates the gamma ramp (SDL2 only).
  */
 void RI_UpdateGamma(void);
 

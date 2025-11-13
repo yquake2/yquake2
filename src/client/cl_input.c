@@ -28,10 +28,10 @@
 #include "header/client.h"
 #include "input/header/input.h"
 
-cvar_t *cl_nodelta;
+static cvar_t *cl_nodelta;
 
-unsigned frame_msec;
-unsigned old_sys_frame_time;
+static unsigned frame_msec;
+static unsigned old_sys_frame_time;
 
 /*
  * KEY BUTTONS
@@ -55,15 +55,15 @@ unsigned old_sys_frame_time;
  *   +mlook src time
  */
 
-kbutton_t in_klook;
-kbutton_t in_left, in_right, in_forward, in_back;
-kbutton_t in_lookup, in_lookdown, in_moveleft, in_moveright;
-kbutton_t in_strafe, in_speed, in_use, in_attack;
-kbutton_t in_up, in_down;
+static kbutton_t in_left, in_right, in_forward, in_back;
+static kbutton_t in_lookup, in_lookdown, in_moveleft, in_moveright;
+static kbutton_t in_up, in_down;
+static kbutton_t in_klook, in_speed, in_use, in_attack;
+kbutton_t in_strafe;
 
-int in_impulse;
+static int in_impulse;
 
-void
+static void
 KeyDown(kbutton_t *b)
 {
 	int k;
@@ -75,7 +75,6 @@ KeyDown(kbutton_t *b)
 	{
 		k = (int)strtol(c, (char **)NULL, 10);
 	}
-
 	else
 	{
 		k = -1; /* typed manually at the console for continuous down */
@@ -90,12 +89,10 @@ KeyDown(kbutton_t *b)
 	{
 		b->down[0] = k;
 	}
-
 	else if (!b->down[1])
 	{
 		b->down[1] = k;
 	}
-
 	else
 	{
 		Com_Printf("Three keys down for a button!\n");
@@ -119,7 +116,7 @@ KeyDown(kbutton_t *b)
 	b->state |= 1 + 2; /* down + impulse down */
 }
 
-void
+static void
 KeyUp(kbutton_t *b)
 {
 	int k;
@@ -132,7 +129,6 @@ KeyUp(kbutton_t *b)
 	{
 		k = (int)strtol(c, (char **)NULL, 10);
 	}
-
 	else
 	{
 		/* typed manually at the console, assume for unsticking, so clear all */
@@ -145,12 +141,10 @@ KeyUp(kbutton_t *b)
 	{
 		b->down[0] = 0;
 	}
-
 	else if (b->down[1] == k)
 	{
 		b->down[1] = 0;
 	}
-
 	else
 	{
 		return; /* key up without coresponding down (menu pass through) */
@@ -174,7 +168,6 @@ KeyUp(kbutton_t *b)
 	{
 		b->msec += uptime - b->downtime;
 	}
-
 	else
 	{
 		b->msec += 10;
@@ -184,187 +177,187 @@ KeyUp(kbutton_t *b)
 	b->state |= 4; /* impulse up */
 }
 
-void
+static void
 IN_KLookDown(void)
 {
 	KeyDown(&in_klook);
 }
 
-void
+static void
 IN_KLookUp(void)
 {
 	KeyUp(&in_klook);
 }
 
-void
+static void
 IN_UpDown(void)
 {
 	KeyDown(&in_up);
 }
 
-void
+static void
 IN_UpUp(void)
 {
 	KeyUp(&in_up);
 }
 
-void
+static void
 IN_DownDown(void)
 {
 	KeyDown(&in_down);
 }
 
-void
+static void
 IN_DownUp(void)
 {
 	KeyUp(&in_down);
 }
 
-void
+static void
 IN_LeftDown(void)
 {
 	KeyDown(&in_left);
 }
 
-void
+static void
 IN_LeftUp(void)
 {
 	KeyUp(&in_left);
 }
 
-void
+static void
 IN_RightDown(void)
 {
 	KeyDown(&in_right);
 }
 
-void
+static void
 IN_RightUp(void)
 {
 	KeyUp(&in_right);
 }
 
-void
+static void
 IN_ForwardDown(void)
 {
 	KeyDown(&in_forward);
 }
 
-void
+static void
 IN_ForwardUp(void)
 {
 	KeyUp(&in_forward);
 }
 
-void
+static void
 IN_BackDown(void)
 {
 	KeyDown(&in_back);
 }
 
-void
+static void
 IN_BackUp(void)
 {
 	KeyUp(&in_back);
 }
 
-void
+static void
 IN_LookupDown(void)
 {
 	KeyDown(&in_lookup);
 }
 
-void
+static void
 IN_LookupUp(void)
 {
 	KeyUp(&in_lookup);
 }
 
-void
+static void
 IN_LookdownDown(void)
 {
 	KeyDown(&in_lookdown);
 }
 
-void
+static void
 IN_LookdownUp(void)
 {
 	KeyUp(&in_lookdown);
 }
 
-void
+static void
 IN_MoveleftDown(void)
 {
 	KeyDown(&in_moveleft);
 }
 
-void
+static void
 IN_MoveleftUp(void)
 {
 	KeyUp(&in_moveleft);
 }
 
-void
+static void
 IN_MoverightDown(void)
 {
 	KeyDown(&in_moveright);
 }
 
-void
+static void
 IN_MoverightUp(void)
 {
 	KeyUp(&in_moveright);
 }
 
-void
+static void
 IN_SpeedDown(void)
 {
 	KeyDown(&in_speed);
 }
 
-void
+static void
 IN_SpeedUp(void)
 {
 	KeyUp(&in_speed);
 }
 
-void
+static void
 IN_StrafeDown(void)
 {
 	KeyDown(&in_strafe);
 }
 
-void
+static void
 IN_StrafeUp(void)
 {
 	KeyUp(&in_strafe);
 }
 
-void
+static void
 IN_AttackDown(void)
 {
 	KeyDown(&in_attack);
 }
 
-void
+static void
 IN_AttackUp(void)
 {
 	KeyUp(&in_attack);
 }
 
-void
+static void
 IN_UseDown(void)
 {
 	KeyDown(&in_use);
 }
 
-void
+static void
 IN_UseUp(void)
 {
 	KeyUp(&in_use);
 }
 
-void
+static void
 IN_Impulse(void)
 {
 	in_impulse = (int)strtol(Cmd_Argv(1), (char **)NULL, 10);
@@ -374,7 +367,7 @@ IN_Impulse(void)
  * Returns the fraction of the
  * frame that the key was down
  */
-float
+static float
 CL_KeyState(kbutton_t *key)
 {
 	float val;
@@ -418,7 +411,7 @@ cvar_t *cl_anglespeedkey;
 /*
  * Moves the local angle positions
  */
-void
+static void
 CL_AdjustAngles(void)
 {
 	float speed;
@@ -428,7 +421,6 @@ CL_AdjustAngles(void)
 	{
 		speed = cls.nframetime * cl_anglespeedkey->value;
 	}
-
 	else
 	{
 		speed = cls.nframetime;
@@ -456,7 +448,7 @@ CL_AdjustAngles(void)
 /*
  * Send the intended movement message to the server
  */
-void
+static void
 CL_BaseMove(usercmd_t *cmd)
 {
 	CL_AdjustAngles();
@@ -492,7 +484,7 @@ CL_BaseMove(usercmd_t *cmd)
 	}
 }
 
-void
+static void
 CL_ClampPitch(void)
 {
 	float pitch;
@@ -523,56 +515,6 @@ CL_ClampPitch(void)
 	{
 		cl.viewangles[PITCH] = -89 - pitch;
 	}
-}
-
-void
-CL_FinishMove(usercmd_t *cmd)
-{
-	int ms;
-	int i;
-
-	/* figure button bits */
-	if (in_attack.state & 3)
-	{
-		cmd->buttons |= BUTTON_ATTACK;
-	}
-
-	in_attack.state &= ~2;
-
-	if (in_use.state & 3)
-	{
-		cmd->buttons |= BUTTON_USE;
-	}
-
-	in_use.state &= ~2;
-
-	if (anykeydown && (cls.key_dest == key_game))
-	{
-		cmd->buttons |= BUTTON_ANY;
-	}
-
-	/* send milliseconds of time to apply the move */
-	ms = cls.nframetime * 1000;
-
-	if (ms > 250)
-	{
-		ms = 100; /* time was unreasonable */
-	}
-
-	cmd->msec = ms;
-
-	CL_ClampPitch();
-
-	for (i = 0; i < 3; i++)
-	{
-		cmd->angles[i] = ANGLE2SHORT(cl.viewangles[i]);
-	}
-
-	cmd->impulse = in_impulse;
-	in_impulse = 0;
-
-	/* send the ambient light level at the player's current position */
-	cmd->lightlevel = (byte)cl_lightlevel->value;
 }
 
 void
@@ -712,7 +654,7 @@ CL_RefreshMove(void)
 	old_sys_frame_time = sys_frame_time;
 }
 
-void
+static void
 CL_FinalizeCmd(void)
 {
 	usercmd_t *cmd;
