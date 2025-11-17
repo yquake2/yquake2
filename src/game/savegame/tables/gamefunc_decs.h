@@ -755,8 +755,6 @@ extern void teleporter_touch ( edict_t * self , edict_t * other , cplane_t * pla
 extern void SP_func_clock ( edict_t * self ) ;
 extern void func_clock_use ( edict_t * self , edict_t * other , edict_t * activator ) ;
 extern void func_clock_think ( edict_t * self ) ;
-extern void func_clock_format_countdown ( edict_t * self ) ;
-extern void func_clock_reset ( edict_t * self ) ;
 extern void SP_target_string ( edict_t * self ) ;
 extern void target_string_use ( edict_t * self , edict_t * other , edict_t * activator ) ;
 extern void SP_target_character ( edict_t * self ) ;

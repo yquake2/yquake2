@@ -754,8 +754,6 @@
 {"SP_func_clock", (byte *)SP_func_clock},
 {"func_clock_use", (byte *)func_clock_use},
 {"func_clock_think", (byte *)func_clock_think},
-{"func_clock_format_countdown", (byte *)func_clock_format_countdown},
-{"func_clock_reset", (byte *)func_clock_reset},
 {"SP_target_string", (byte *)SP_target_string},
 {"target_string_use", (byte *)target_string_use},
 {"SP_target_character", (byte *)SP_target_character},
