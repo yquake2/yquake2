@@ -700,6 +700,12 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
          in 360º, gyro required for looking up/down
   - `5`: *Flick Stick Southpaw*, swapped sticks version of last one
 
+* **joy_forwardsensitivity**: Ramp-up proportion for moving forward and
+  backward; affected axis depends on `joy_layout` value. Default `1.0`.
+
+* **joy_sidesensitivity**: Ramp-up proportion for moving side to side;
+  affected axis depends on `joy_layout` value. Default `1.0`.
+
 * **joy_left_deadzone** / **joy_right_deadzone**: Inner, circular
   deadzone for each stick, where inputs below this radius will be
   ignored. Default is `0.16` (16% of possible stick travel).
@@ -720,8 +726,8 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
 * **joy_outer_threshold**: Defines the outer boundary where stick input
   is considered to be at maximum. A small amount may be needed for some
   controllers. Additionally, this cvar defines the boundary where any
-  extra yaw or pitch speed is applied. Default `0.02`(outer 2% of stick
-  range).
+  extra yaw or pitch speed is applied. Default `0.02` (outer 2% of
+  stick range).
 
 * **joy_trigger**: Trigger pressure required to register it as a
   button press. Default `0.2` (20% of total trigger displacement).
