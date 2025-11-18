@@ -217,7 +217,7 @@ static cvar_t *gyro_accel_multiplier;
 static cvar_t *gyro_accel_lower_thresh;
 static cvar_t *gyro_accel_upper_thresh;
 
-// Gyro is being used in this very moment
+// Gyro is ready to take player inputs
 static qboolean gyro_active = false;
 
 // Controller is connected and supports gyro, gyro is not disabled, game is not
@@ -733,14 +733,6 @@ ImuJoy_PrepareSamples(void)
 #endif // NO_SDL_GYRO
 
 static void
-IN_UpdateGyroEnabled(void)
-{
-	gyro_enabled =
-		(show_gyro && gyro_mode->value > 0.0f && !cl_paused->value
-		 && cls.key_dest == key_game && countdown_reason == REASON_NONE);
-}
-
-static void
 IN_CheckGyroModified(void)
 {
 	qboolean reset_needed = false;
@@ -816,6 +808,10 @@ IN_CheckGyroModified(void)
 	{
 		IN_GYRO_ResetState();
 	}
+
+	// Set if gyro can be used
+	gyro_enabled = (show_gyro && gyro_active && !cl_paused->value
+		&& cls.key_dest == key_game && countdown_reason == REASON_NONE);
 }
 
 static void
@@ -1321,7 +1317,6 @@ IN_Update(void)
 		IN_GamepadTrigger_Changed();
 	}
 	IN_CheckGyroModified();
-	IN_UpdateGyroEnabled();
 }
 
 /*
@@ -1860,7 +1855,7 @@ IN_Move(usercmd_t *cmd)
 		thumbstick_t gyro_in = {0.0f, 0.0f};
 		IN_GYRO_Process(cls.rframetime, &gyro_in.y, &gyro_in.x);
 
-		if (gyro_active && (gyro_in.x || gyro_in.y))
+		if (gyro_in.x || gyro_in.y)
 		{
 			const float factor = cls.rframetime * (float)(180.0 / M_PI);
 
@@ -2447,6 +2442,12 @@ Controller_Rumble(const char *name, vec3_t source, qboolean from_player,
 		dist_prop = (max_distance - dist_prop) / max_distance;
 	}
 
+	if (gyro_enabled)
+	{
+		low_freq *= 0.3;
+		hi_freq *= 0.7;
+	}
+
 	effect_volume = joy_haptic_magnitude->value * intens * dist_prop * volume;
 	low_freq = Q_min(effect_volume * low_freq, USHRT_MAX);
 	hi_freq = Q_min(effect_volume * hi_freq, USHRT_MAX);
@@ -2851,7 +2852,7 @@ IN_Init(void)
 	mouse_x = mouse_y = 0;
 	joystick_left_x = joystick_left_y = joystick_right_x = joystick_right_y = 0;
 	joy_active_layout = LAYOUT_NONE;
-	gyro_enabled = false;
+	gyro_active = gyro_enabled = false;
 
 	exponential_speedup = Cvar_Get("exponential_speedup", "0", CVAR_ARCHIVE);
 	freelook = Cvar_Get("freelook", "1", CVAR_ARCHIVE);
@@ -2958,10 +2959,9 @@ IN_Controller_Shutdown(qboolean notify_user)
 		SDL_GameControllerClose(controller);
 		controller = NULL;
 	}
-	show_gamepad = show_gyro = show_haptic = false;
+	show_gamepad = show_gyro = show_haptic = gyro_active = gyro_enabled = false;
 	joystick_left_x = joystick_left_y = joystick_right_x = joystick_right_y = 0;
 	joy_active_layout = LAYOUT_NONE;
-	gyro_enabled = false;
 
 #ifdef NO_SDL_GYRO
 	if (imu_joystick)
