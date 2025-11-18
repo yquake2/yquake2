@@ -1461,8 +1461,10 @@ IN_FlickStick(thumbstick_t stick, float axial_deadzone)
 
 	if (IN_StickMagnitude(stick) > Q_min(joy_flick_threshold->value, 1.0f))	// flick!
 	{
-		// Make snap-to-axis only if player wasn't already flicking
-		if (!is_flicking || flick_progress < 1.0f)
+		// Snap-to-axis only if player just started to flick. With x < 0.4,
+		// f(x)=1-(1-x)^2 → < 0.64; this might mean a "tap" to the stick, so
+		// treat it as a possible attempt to turn 90º / 180º.
+		if (!is_flicking || flick_progress < 0.64f)
 		{
 			processed = IN_SlopedAxialDeadzone(stick, axial_deadzone);
 		}
@@ -2859,7 +2861,7 @@ IN_Init(void)
 	joy_right_deadzone = Cvar_Get("joy_right_deadzone", "0.16", CVAR_ARCHIVE);
 	joy_trigger = Cvar_Get("joy_trigger", "0.2", CVAR_ARCHIVE);
 	joy_flick_threshold = Cvar_Get("joy_flick_threshold", "0.65", CVAR_ARCHIVE);
-	joy_flick_smoothed = Cvar_Get("joy_flick_smoothed", "8.0", CVAR_ARCHIVE);
+	joy_flick_smoothed = Cvar_Get("joy_flick_smoothed", "16", CVAR_ARCHIVE);
 
 	gyro_mode = Cvar_Get("gyro_mode", "2", CVAR_ARCHIVE);
 	gyro_space = Cvar_Get("gyro_space", "1", CVAR_ARCHIVE);
