@@ -422,8 +422,14 @@ FS_FOpenFile(const char *rawname, fileHandle_t *f, qboolean gamedir_only)
 	// Remove self references and empty dirs from the requested path.
 	// ZIPs and PAKs don't support them, but they may be hardcoded in
 	// some custom maps or models.
-	char name[MAX_QPATH] = {0};
+	char name[MAX_OSPATH] = {0};
 	size_t namelen = strlen(rawname);
+	if (namelen > sizeof(name) - 1)
+	{
+		Com_Printf("%s: used unexpectly long name: %s\n", __func__, rawname);
+		return -1;
+	}
+
 	for (input = 0, output = 0; input < namelen; input++)
 	{
 		// Remove self reference.
@@ -727,6 +733,7 @@ FS_FRead(void *buffer, int size, int count, fileHandle_t f)
 				Com_Error(ERR_FATAL,
 						"%s: -1 bytes read from '%s'",
 						__func__, handle->name);
+				return 0;
 			}
 
 			remaining -= r;
@@ -874,6 +881,7 @@ FS_LoadPAK(const char *packPath)
 	{
 		fclose(handle);
 		Com_Error(ERR_FATAL, "%s: '%s' is not a pack file", __func__, packPath);
+		return NULL;
 	}
 
 	header.dirofs = LittleLong(header.dirofs);
@@ -886,6 +894,7 @@ FS_LoadPAK(const char *packPath)
 		fclose(handle);
 		Com_Error(ERR_FATAL, "%s: '%s' is too short.",
 			__func__, packPath);
+		return NULL;
 	}
 
 	if (numFiles > MAX_FILES_IN_PACK)
@@ -897,8 +906,10 @@ FS_LoadPAK(const char *packPath)
 	info = malloc(header.dirlen);
 	if (!info)
 	{
+		fclose(handle);
 		Com_Error(ERR_FATAL, "%s: '%s' is to big for read %d",
 				__func__, packPath, header.dirlen);
+		return NULL;
 	}
 
 	files = Z_Malloc(numFiles * sizeof(fsPackFile_t));
@@ -937,7 +948,6 @@ FS_LoadPAK(const char *packPath)
 static fsPack_t *
 FS_LoadPK3(const char *packPath)
 {
-	char fileName[MAX_QPATH]; /* File name. */
 	int i = 0; /* Loop counter. */
 	int numFiles; /* Number of files in PK3. */
 	int status; /* Error indicator. */
@@ -982,7 +992,8 @@ FS_LoadPK3(const char *packPath)
 
 	while (status == UNZ_OK)
 	{
-		fileName[0] = '\0';
+		char fileName[MAX_QPATH] = {0}; /* File name. */
+
 		unzGetCurrentFileInfo(handle, &info, fileName, sizeof(fileName),
 				NULL, 0, NULL, 0);
 		Q_strlcpy(files[i].name, fileName, sizeof(files[i].name));
@@ -1846,7 +1857,6 @@ FS_AddDirToSearchPath(char *dir, qboolean create) {
 	Q_strlcpy(search->path, dir, sizeof(search->path));
 	search->next = fs_searchPaths;
 	fs_searchPaths = search;
-
 
 	// Numbered paks contain the official game data, they
 	// need to be added first and are marked protected.

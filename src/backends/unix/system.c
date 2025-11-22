@@ -351,7 +351,8 @@ Sys_FindFirst(const char *path, unsigned musthave, unsigned canhave)
 		{
 			if ((strcmp(d->d_name, ".") != 0) && (strcmp(d->d_name, "..") != 0))
 			{
-				snprintf(findpath, sizeof(findpath), "%s/%s", findbase, d->d_name);
+				Com_sprintf(findpath, sizeof(findpath), "%s/%s", findbase,
+					d->d_name);
 				return findpath;
 			}
 		}
@@ -376,7 +377,7 @@ Sys_FindNext(unsigned musthave, unsigned canhave)
 		{
 			if ((strcmp(d->d_name, ".") != 0) && (strcmp(d->d_name, "..") != 0))
 			{
-				snprintf(findpath, sizeof(findpath), "%s/%s", findbase, d->d_name);
+				Com_sprintf(findpath, sizeof(findpath), "%s/%s", findbase, d->d_name);
 				return findpath;
 			}
 		}
@@ -561,9 +562,9 @@ Sys_GetHomeDir(void)
 	}
 
 #ifndef __HAIKU__
-	snprintf(gdir, sizeof(gdir), "%s/%s/", home, cfgdir);
+	Com_sprintf(gdir, sizeof(gdir), "%s/%s/", home, cfgdir);
 #else
-	snprintf(gdir, sizeof(gdir), "%s/config/settings/%s", home, cfgdir);
+	Com_sprintf(gdir, sizeof(gdir), "%s/config/settings/%s", home, cfgdir);
 #endif
 	Sys_Mkdir(gdir);
 

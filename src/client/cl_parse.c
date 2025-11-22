@@ -381,11 +381,13 @@ CL_ParsePacketEntities(frame_t *oldframe, frame_t *newframe)
 		{
 			Com_Error(ERR_DROP, "%s: bad entity %d >= %d\n",
 				__func__, newnum, MAX_EDICTS);
+			return;
 		}
 
 		if (net_message.readcount > net_message.cursize)
 		{
 			Com_Error(ERR_DROP, "%s: end of message", __func__);
+			return;
 		}
 
 		if (!newnum)
@@ -694,6 +696,7 @@ CL_ShowNetCmd(int cmd)
 	{
 		Com_Error(ERR_DROP, "%3i: unexpected message end",
 			net_message.readcount - 1);
+		return;
 	}
 
 	if (cl_shownet->value >= 2)
@@ -793,6 +796,7 @@ CL_ParseFrame(void)
 	{
 		Com_Error(ERR_DROP, "%s: 0x%X not playerinfo",
 			__func__, cmd);
+		return;
 	}
 
 	CL_ParsePlayerstate(old, &cl.frame);
@@ -805,6 +809,7 @@ CL_ParseFrame(void)
 	{
 		Com_Error(ERR_DROP, "%s: 0x%X not packetentities",
 			__func__, cmd);
+		return;
 	}
 
 	CL_ParsePacketEntities(old, &cl.frame);
@@ -882,6 +887,7 @@ CL_ParseServerData(void)
 	{
 		Com_Error(ERR_DROP, "Server returned version %i, not %i",
 				i, PROTOCOL_VERSION);
+		return;
 	}
 
 	cl.servercount = MSG_ReadLong(&net_message);
@@ -1115,6 +1121,7 @@ CL_ParseConfigString(void)
 	if (length > sizeof(cl.configstrings) - sizeof(cl.configstrings[0]) * i - 1)
 	{
 		Com_Error(ERR_DROP, "%s: oversize configstring", __func__);
+		return;
 	}
 
 	strcpy(cl.configstrings[i], s);
@@ -1294,7 +1301,7 @@ CL_ParseServerMessage(void)
 		if (net_message.readcount > net_message.cursize)
 		{
 			Com_Error(ERR_DROP, "%s: Bad server message", __func__);
-			break;
+			return;
 		}
 
 		cmd = MSG_ReadByte(&net_message);
@@ -1313,14 +1320,14 @@ CL_ParseServerMessage(void)
 			default:
 				Com_Error(ERR_DROP, "%s: Illegible server message\n",
 					__func__);
-				break;
+				return;
 
 			case svc_nop:
 				break;
 
 			case svc_disconnect:
 				Com_Error(ERR_DISCONNECT, "Server disconnected\n");
-				break;
+				return;
 
 			case svc_reconnect:
 				Com_Printf("Server disconnected, reconnecting\n");
@@ -1338,6 +1345,11 @@ CL_ParseServerMessage(void)
 
 			case svc_print:
 				i = MSG_ReadByte(&net_message);
+				if (i < 0)
+				{
+					SHOWNET("END OF MESSAGE");
+					break;
+				}
 
 				if (i == PRINT_CHAT)
 				{
@@ -1409,7 +1421,7 @@ CL_ParseServerMessage(void)
 			case svc_packetentities:
 			case svc_deltapacketentities:
 				Com_Error(ERR_DROP, "Out of place frame data");
-				break;
+				return;
 		}
 	}
 
