@@ -602,19 +602,23 @@ GL3_LoadPic(char *name, byte *pic, int width, int realwidth,
  * Finds or loads the given image or NULL
  */
 gl3image_t *
-GL3_FindImage(const char *name, imagetype_t type)
+GL3_FindImage(const char *originname, imagetype_t type)
 {
+	char namewe[256], name[256] = {0};
 	gl3image_t *image;
+	const char* ext;
 	size_t len;
 	int i;
-	char *ptr;
-	char namewe[256];
-	const char* ext;
 
-	if (!name)
+	if (!originname)
 	{
 		return NULL;
 	}
+
+	Q_strlcpy(name, originname, sizeof(name));
+
+	/* fix backslashes */
+	Q_replacebackslash(name);
 
 	ext = COM_FileExtension(name);
 	if (!ext[0])
@@ -627,17 +631,12 @@ GL3_FindImage(const char *name, imagetype_t type)
 	len = (ext - name) - 1;
 	if ((len < 1) || (len > sizeof(namewe) - 1))
 	{
+		Com_DPrintf("%s: Bad filename %s\n", __func__, name);
 		return NULL;
 	}
 
 	memcpy(namewe, name, len);
 	namewe[len] = 0;
-
-	/* fix backslashes */
-	while ((ptr = strchr(name, '\\')))
-	{
-		*ptr = '/';
-	}
 
 	/* look for it */
 	for (i = 0, image = gl3textures; i < numgl3textures; i++, image++)
