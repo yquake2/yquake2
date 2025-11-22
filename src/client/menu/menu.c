@@ -3962,7 +3962,7 @@ LoadSave_AdjustPage(int dir)
 			break;
 		}
 
-		strcat(m_loadsave_statusbar, str);
+		Q_strlcat(m_loadsave_statusbar, str, sizeof(m_loadsave_statusbar));
 	}
 }
 
@@ -5908,8 +5908,8 @@ IconOfSkinExists(const char* skin, char** pcxfiles, int npcxfiles,
 
 	Q_strlcpy(scratch, skin, sizeof(scratch));
 	*strrchr(scratch, '.') = 0;
-	strcat(scratch, "_i.");
-	strcat(scratch, ext);
+	Q_strlcat(scratch, "_i.", sizeof(scratch));
+	Q_strlcat(scratch, ext, sizeof(scratch));
 
 	for (i = 0; i < npcxfiles; i++)
 	{

@@ -494,25 +494,29 @@ Finds or loads the given image or NULL
 ===============
 */
 image_t	*
-R_FindImage(const char *name, imagetype_t type)
+R_FindImage(const char *originname, imagetype_t type)
 {
-	image_t	*image;
-	size_t len;
-	int	i;
-	char *ptr;
-	char namewe[256];
+	char namewe[256], name[256] = {0};
 	const char* ext;
+	image_t *image;
+	size_t len;
+	int i;
 
-	if (!name)
+	if (!originname)
 	{
 		return NULL;
 	}
+
+	Q_strlcpy(name, originname, sizeof(name));
 
 	/* just return white image if show lightmap only */
 	if ((type == it_wall || type == it_skin) && r_lightmap->value)
 	{
 		return r_whitetexture_mip;
 	}
+
+	/* fix backslashes */
+	Q_replacebackslash(name);
 
 	ext = COM_FileExtension(name);
 	if (!ext[0])
@@ -525,17 +529,12 @@ R_FindImage(const char *name, imagetype_t type)
 	len = (ext - name) - 1;
 	if ((len < 1) || (len > sizeof(namewe) - 1))
 	{
+		Com_DPrintf("%s: Bad filename %s\n", __func__, name);
 		return NULL;
 	}
 
 	memcpy(namewe, name, len);
 	namewe[len] = 0;
-
-	/* fix backslashes */
-	while ((ptr = strchr(name, '\\')))
-	{
-		*ptr = '/';
-	}
 
 	// look for it
 	for (i=0, image=r_images ; i<numr_images ; i++,image++)
