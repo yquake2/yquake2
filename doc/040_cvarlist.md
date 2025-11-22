@@ -204,6 +204,9 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
 * **cl_unpaused_scvis**: If set to `1` (the default) the client unpause
   when the screen becomes visible.
 
+* **cl_centertime**: Time in ms that takes the `centerview` command to
+  finish. `0` is immediate (Vanilla Q2 behaviour). Default `180`.
+
 * **in_grab**: Defines how the mouse is grabbed by Yamagi Quake IIs
   window. If set to `0` the mouse is never grabbed and if set to `1`
   it's always grabbed. If set to `2` (the default) the mouse is grabbed
@@ -697,6 +700,12 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
          in 360º, gyro required for looking up/down
   - `5`: *Flick Stick Southpaw*, swapped sticks version of last one
 
+* **joy_forwardsensitivity**: Ramp-up proportion for moving forward and
+  backward; affected axis depends on `joy_layout` value. Default `1.0`.
+
+* **joy_sidesensitivity**: Ramp-up proportion for moving side to side;
+  affected axis depends on `joy_layout` value. Default `1.0`.
+
 * **joy_left_deadzone** / **joy_right_deadzone**: Inner, circular
   deadzone for each stick, where inputs below this radius will be
   ignored. Default is `0.16` (16% of possible stick travel).
@@ -717,8 +726,8 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
 * **joy_outer_threshold**: Defines the outer boundary where stick input
   is considered to be at maximum. A small amount may be needed for some
   controllers. Additionally, this cvar defines the boundary where any
-  extra yaw or pitch speed is applied. Default `0.02`(outer 2% of stick
-  range).
+  extra yaw or pitch speed is applied. Default `0.02` (outer 2% of
+  stick range).
 
 * **joy_trigger**: Trigger pressure required to register it as a
   button press. Default `0.2` (20% of total trigger displacement).
@@ -728,9 +737,9 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
   or rotate. Default `0.65` (65%).
 
 * **joy_flick_smoothed**: Flick Stick only, rotations below this angle
-  (in degrees) will be smoothed. Reducing this will increase
-  responsiveness at the cost of jittery movement. Most gamepads will work
-  nicely with a value between 4.0 and 8.0. Default `8.0`.
+  (in degrees per frame) will be smoothed. Reducing this will increase
+  responsiveness at the cost of jittery movement. Most gamepads will
+  work nicely with a value between `4` and `16`. Default `16`.
 
 * **gyro_mode**: Operation mode for the gyroscope sensor of the game
   controller. Options are `0` = always off, `1` = off with the
