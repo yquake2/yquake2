@@ -185,10 +185,15 @@ endif
 
 # Root dir names
 override BINROOT :=
-override BUILDROOT := build
+override BUILDROOT := build/
 
-override BINDIR := $(BINROOT)release
-override BUILDDIR := $(BUILDROOT)
+ifdef DEBUG
+	override BINDIR := $(BINROOT)debug
+	override BUILDDIR := $(BUILDROOT)debug
+else
+	override BINDIR := $(BINROOT)release
+	override BUILDDIR := $(BUILDROOT)release
+endif
 
 # ----------
 
