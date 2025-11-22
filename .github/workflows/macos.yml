@@ -30,7 +30,7 @@ jobs:
         brew update
         brew install sdl3 openal-soft make
     - name: Check out repository code
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
     - name: Build
       run: |
         # Public runners come with 3 CPUs.
@@ -78,7 +78,7 @@ jobs:
         hdiutil create -srcfolder build/macos-dmg -layout SPUD -fs HFS+ -volname "Yamagi Quake II" "release/yquake2.dmg"
         cp release/yquake2.dmg publish/quake2-macos-${{github.sha}}/
     - name: Upload testbuild package
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       with:
         name: quake2-macos-${{github.sha}}
         path: publish/

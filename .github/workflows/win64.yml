@@ -44,7 +44,7 @@ jobs:
           mingw-w64-${{matrix.env}}-pkgconf
           mingw-w64-${{matrix.env}}-wget
     - name: Check out repository code
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
     - name: Build
       shell: msys2 {0}
       run: |
@@ -89,7 +89,7 @@ jobs:
         unzip -o curl-mingw-latest.zip
         cp curl-*-win64-mingw/bin/libcurl-x64.dll publish/quake2-win64-${{github.sha}}/curl.dll
     - name: Upload testbuild package
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       with:
         name: quake2-win64-${{github.sha}}
         path: publish/

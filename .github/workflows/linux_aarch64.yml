@@ -31,7 +31,7 @@ jobs:
         sudo apt install libgl1-mesa-dev libsdl2-dev libopenal-dev libcurl4-openssl-dev \
             build-essential
     - name: Check out repository code
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
     - name: Build
       run: |
         # Public runners come with 4 CPUs.
@@ -58,7 +58,7 @@ jobs:
         cp doc/080_contributing.md publish/quake2-linux_aarch64-${{github.sha}}/misc/docs/080_contributing.txt
         cp doc/090_filelists.md publish/quake2-linux_aarch64-${{github.sha}}/misc/docs/090_filelists.md
     - name: Upload testbuild package
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       with:
         name: quake2-linux_aarch64-${{github.sha}}
         path: publish/
