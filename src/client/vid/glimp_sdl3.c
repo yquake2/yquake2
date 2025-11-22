@@ -443,6 +443,12 @@ GLimp_Init(void)
 		{
 			Com_Printf("SDL displays:\n");
 			displayindices = malloc((num_displays + 1) * sizeof(char *));
+			YQ2_COM_CHECK_OOM(displayindices, "malloc()", (num_displays + 1) * sizeof(char *))
+			if (!displayindices)
+			{
+				/* unaware about YQ2_ATTR_NORETURN_FUNCPTR? */
+				return false;
+			}
 
 			// Generate display ID strings for the menu.
 			for ( int i = 0; i < num_displays; i++ )
@@ -450,7 +456,13 @@ GLimp_Init(void)
 				// There are a maximum of 10 digits in 32 bit int + 1 for the NULL terminator.
 				displayindices[ i ] = malloc(11 * sizeof( char ));
 				YQ2_COM_CHECK_OOM(displayindices[i], "malloc()", 11 * sizeof( char ))
-				snprintf( displayindices[ i ], 11, "%d", i );
+				if (!displayindices[i])
+				{
+					/* unaware about YQ2_ATTR_NORETURN_FUNCPTR? */
+					return false;
+				}
+
+				Com_sprintf(displayindices[ i ], 11, "%d", i);
 
 				Com_Printf(" - %d\n", displays[i]);
 			}
