@@ -27,58 +27,79 @@
 
 # Variables
 # ---------
-
-# - ASAN: Builds with address sanitizer, includes DEBUG.
-# - DEBUG: Builds a debug build, forces -O0 and adds debug symbols.
-# - VERBOSE: Prints full compile, linker and misc commands.
-# - UBSAN: Builds with undefined behavior sanitizer, includes DEBUG.
-
+# ASAN
+#   Builds with address sanitizer, includes DEBUG.
+# DEBUG
+#   Builds a debug build, forces -O0 and adds debug symbols.
+# MINGW_CHOST
+#   If you use mingw this can specify architecture.
+#   Available values:
+#   x86_64-w64-mingw32 -> indicates x86_64
+#   i686-w64-mingw32   -> indicates i386
+# UBSAN
+#   Builds with undefined behavior sanitizer.includes DEBUG.
+# VERBOSE
+#   Prints full compile, linker and misc commands.
 # ----------
 
 # User configurable options
 # -------------------------
 
+# WITH_CURL
 # Enables HTTP support through cURL. Used for
 # HTTP download.
 WITH_CURL:=yes
 
+# WITH_EXECINFO
 # Enables backtraces through execinfo on supported platforms.
 # Usefull to get some basic debug information when the game
 # crashes.
 WITH_EXECINFO:=yes
 
+# WITH_OPENAL
 # Enables the optional OpenAL sound system.
 # To use it your system needs libopenal.so.1
 # or openal32.dll (we recommend openal-soft)
 # installed
 WITH_OPENAL:=yes
 
+# WITH_RPATH
 # Sets an RPATH to $ORIGIN/lib. It can be used to
 # inject custom libraries, e.g. a patches libSDL.so
 # or libopenal.so. Not supported on Windows.
 WITH_RPATH:=yes
 
+# WITH_SDL3
 # When disabled SDL 2 is used instead of SDL 3.
 WITH_SDL3:=yes
 
+# WITH_SYSTEMWIDE
 # Enable systemwide installation of game assets.
 WITH_SYSTEMWIDE:=no
 
+# WITH_SYSTEMDIR
 # This will set the default SYSTEMDIR, a non-empty string
 # would actually be used. On Windows normals slashes (/)
 # instead of backslashed (\) should be used! The string
 # MUST NOT be surrounded by quotation marks!
 WITH_SYSTEMDIR:=""
 
+# OSX_APP
 # This will set the build options to create an MacOS .app-bundle.
 # The app-bundle itself will not be created, but the runtime paths
 # will be set to expect the game-data in *.app/
 # Contents/Resources
 OSX_APP:=yes
 
+# CONFIG_FILE
 # This is an optional configuration file, it'll be used in
 # case of presence.
 CONFIG_FILE:=config.mk
+
+# PKG_CONFIG
+# Specify program that configures SDL.
+# Needs to be overridable for cross-compilation.
+PKG_CONFIG ?= pkgconf
 
 # ----------
 
@@ -145,9 +166,6 @@ endif
 ifdef UBSAN
 DEBUG=1
 endif
-
-# Used to detect SDL, needs to be overridable for cross-compilation
-PKG_CONFIG ?= pkgconf
 
 # ----------
 
