@@ -320,3 +320,91 @@ Com_SetServerState(int state)
 	server_state = state;
 }
 
+/* stringlist_t API */
+
+void
+StringList_Free(stringlist_t *sl)
+{
+	char **cs, **end;
+
+	cs = sl->lst;
+
+	if (cs)
+	{
+		end = &sl->lst[sl->cap];
+
+		for (; cs < end; cs++)
+		{
+			if (*cs)
+			{
+				Z_Free(*cs);
+			}
+		}
+
+		Z_Free(sl->lst);
+	}
+
+	sl->lst = NULL;
+	sl->n = 0;
+	sl->cap = 0;
+}
+
+int
+StringList_Find(const stringlist_t *sl, const char *s)
+{
+	char **cs, **end;
+
+	cs = sl->lst;
+
+	if (!cs)
+	{
+		return sl->cap + 1;
+	}
+
+	end = &cs[sl->cap];
+
+	for (; cs < end; cs++)
+	{
+		if ((!s && !(*cs)) || (s && *cs && !strcmp(*cs, s)))
+		{
+			return cs - sl->lst;
+		}
+	}
+
+	return sl->cap + 1;
+}
+
+qboolean
+StringList_IsInList(const stringlist_t *sl, const char *s)
+{
+	return (StringList_Find(sl, s) < sl->cap) ? true : false;
+}
+
+void
+StringList_Add(stringlist_t *sl, const char *s)
+{
+	char **cs;
+	int nf, n;
+
+	nf = StringList_Find(sl, NULL);
+
+	if (nf < sl->cap)
+	{
+		cs = &sl->lst[nf];
+	}
+	else
+	{
+		n = NextPow2gt(sl->cap);
+		sl->lst = Z_Realloc(sl->lst, n * sizeof(*sl->lst));
+
+		cs = &sl->lst[sl->cap];
+
+		sl->cap = n;
+	}
+
+	sl->n++;
+
+	*cs = Z_Malloc(strlen(s) + 1);
+	strcpy(*cs, s);
+}
+

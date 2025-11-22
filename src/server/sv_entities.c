@@ -71,7 +71,7 @@ SV_EmitPacketEntities(client_frame_t *from, client_frame_t *to, sizebuf_t *msg)
 
 		if (newindex >= to->num_entities)
 		{
-			newnum = 9999;
+			newnum = 99999;
 		}
 		else
 		{
@@ -82,7 +82,7 @@ SV_EmitPacketEntities(client_frame_t *from, client_frame_t *to, sizebuf_t *msg)
 
 		if (oldindex >= from_num_entities)
 		{
-			oldnum = 9999;
+			oldnum = 99999;
 		}
 		else
 		{
@@ -108,7 +108,10 @@ SV_EmitPacketEntities(client_frame_t *from, client_frame_t *to, sizebuf_t *msg)
 		if (newnum < oldnum)
 		{
 			/* this is a new entity, send it from the baseline */
-			MSG_WriteDeltaEntity(&sv.baselines[newnum], newent, msg, true, true);
+			MSG_WriteDeltaEntity(
+				(newnum < sv.numbaselines) ? &sv.baselines[newnum] : NULL,
+				newent, msg, true, true);
+
 			newindex++;
 			continue;
 		}
@@ -517,7 +520,7 @@ SV_BuildClientFrame(client_t *client)
 	byte *clientphs;
 	byte *bitvector;
 
-	clent = client->edict;
+	clent = CL_EDICT(client);
 
 	if (!clent->client)
 	{
@@ -657,7 +660,7 @@ SV_BuildClientFrame(client_t *client)
 		*state = ent->s;
 
 		/* don't mark players missiles as solid */
-		if (ent->owner == client->edict)
+		if (ent->owner == clent)
 		{
 			state->solid = 0;
 		}

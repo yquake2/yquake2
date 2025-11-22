@@ -674,18 +674,14 @@ R_Upload32Soft(unsigned *data, int width, int height, qboolean mipmap)
 
 	uploaded_paletted = false;
 
-	for (scaled_width = 1; scaled_width < width; scaled_width <<= 1)
-	{
-	}
+	scaled_width = NextPow2(width);
 
 	if (gl1_round_down->value && (scaled_width > width) && mipmap)
 	{
 		scaled_width >>= 1;
 	}
 
-	for (scaled_height = 1; scaled_height < height; scaled_height <<= 1)
-	{
-	}
+	scaled_height = NextPow2(height);
 
 	if (gl1_round_down->value && (scaled_height > height) && mipmap)
 	{

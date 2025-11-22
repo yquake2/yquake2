@@ -328,8 +328,16 @@ typedef struct
 	float	minlight; /* don't add when contributing less */
 } cdlight_t;
 
-extern	centity_t	cl_entities[MAX_EDICTS];
 extern	cdlight_t	cl_dlights[MAX_DLIGHTS];
+
+extern	centity_t	*cl_entities;
+extern	int			cl_numentities;
+
+/* This limit is due to entnums being sent in signed 16-bit */
+#define MAX_CL_ENTNUM SHRT_MAX
+
+centity_t *CL_AllocEntity(int entnum);
+void CL_ClearEntities(void);
 
 extern	entity_state_t	cl_parse_entities[MAX_PARSE_ENTITIES];
 
