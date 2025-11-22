@@ -42,6 +42,9 @@
 #   Builds with undefined behavior sanitizer.includes DEBUG.
 # VERBOSE
 #   Prints full compile, linker and misc commands.
+# WERR
+#   Treat compiler warnings as errors.
+#   If defined, -Werror is added to compiler flags.
 # ----------
 
 # User configurable options
@@ -191,6 +194,11 @@ override CFLAGS += -fsanitize=undefined -DUSE_SANITIZER
 endif
 else
 CFLAGS ?= -O2 -Wall -pipe -fomit-frame-pointer
+endif
+
+# Treat warnings as errors
+ifdef WERR
+override CFLAGS += -Werror
 endif
 
 # Always needed are:
