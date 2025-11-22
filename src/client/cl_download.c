@@ -652,13 +652,13 @@ CL_CheckOrDownloadFile(const char *filename)
 		}
 	}
 #endif
-	strcpy(cls.downloadname, filename);
+	Q_strlcpy(cls.downloadname, filename, sizeof(cls.downloadname));
 
 	/* download to a temp name, and only rename
 	   to the real name when done, so if interrupted
 	   a runt file wont be left */
 	COM_StripExtension(cls.downloadname, cls.downloadtempname);
-	strcat(cls.downloadtempname, ".tmp");
+	Q_strlcat(cls.downloadtempname, ".tmp", sizeof(cls.downloadtempname));
 
 	/* check to see if we already have a tmp for this
 	   file, if so, try to resume and open the file if
