@@ -2164,13 +2164,7 @@ static void FS_AddDirToRawPath (const char *rawdir, qboolean create, qboolean re
 	}
 
 	// Convert backslashes to forward slashes.
-	for (int i = 0; i < strlen(dir); i++)
-	{
-		if (dir[i] == '\\')
-		{
-			dir[i] = '/';
-		}
-	}
+	Q_replacebackslash(dir);
 
 	// Make sure that the dir doesn't end with a slash.
 	for (size_t s = strlen(dir) - 1; s > 0; s--)

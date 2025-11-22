@@ -249,13 +249,13 @@ extern vec3_t vec3_origin;
 #define VectorNegate(a, b) (b[0] = -a[0], b[1] = -a[1], b[2] = -a[2])
 #define VectorSet(v, x, y, z) (v[0] = (x), v[1] = (y), v[2] = (z))
 
-void VectorMA(vec3_t veca, float scale, vec3_t vecb, vec3_t vecc);
+void VectorMA(const vec3_t veca, float scale, const vec3_t vecb, vec3_t vecc);
 
 /* just in case you do't want to use the macros */
-vec_t _DotProduct(vec3_t v1, vec3_t v2);
-void _VectorSubtract(vec3_t veca, vec3_t vecb, vec3_t out);
-void _VectorAdd(vec3_t veca, vec3_t vecb, vec3_t out);
-void _VectorCopy(vec3_t in, vec3_t out);
+vec_t _DotProduct(const vec3_t v1, const vec3_t v2);
+void _VectorSubtract(const vec3_t veca, const vec3_t vecb, vec3_t out);
+void _VectorAdd(const vec3_t veca, const vec3_t vecb, vec3_t out);
+void _VectorCopy(const vec3_t in, vec3_t out);
 
 void ClearBounds(vec3_t mins, vec3_t maxs);
 void AddPointToBounds(const vec3_t v, vec3_t mins, vec3_t maxs);
@@ -313,19 +313,19 @@ void RotatePointAroundVector(vec3_t dst,
 
 /* ============================================= */
 
-char *COM_SkipPath(char *pathname);
-void COM_StripExtension(char *in, char *out);
+const char *COM_SkipPath(const char *pathname);
+void COM_StripExtension(const char *in, char *out);
 YQ2_ATTR_RETURNS_NONNULL const char *COM_FileExtension(const char *in);
-void COM_FileBase(char *in, char *out);
+void COM_FileBase(const char *in, char *out);
 void COM_FilePath(const char *in, char *out);
 void COM_DefaultExtension(char *path, const char *extension);
 
-char *COM_Parse(char **data_p);
+YQ2_ATTR_RETURNS_NONNULL const char *COM_Parse(char **data_p);
 
 /* data is an in/out parm, returns a parsed out token */
-void Com_sprintf(char *dest, int size, char *fmt, ...);
+void Com_sprintf(char *dest, int size, const char *fmt, ...);
 
-void Com_PageInMemory(byte *buffer, int size);
+void Com_PageInMemory(const byte *buffer, int size);
 
 /* ============================================= */
 
@@ -357,6 +357,9 @@ void Q_strdel(char *s, size_t i, size_t n);
 /* Returns length of src on success, 0 if there is not enough space in dest for src */
 size_t Q_strins(char *dest, const char *src, size_t i, size_t n);
 qboolean Q_strisnum(const char *s);
+
+/* fix backslashes in path */
+void Q_replacebackslash(char *curr);
 
 /* A strchr that can search for multiple characters
  * chrs is a string of characters to search for
