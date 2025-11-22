@@ -187,8 +187,13 @@ endif
 override BINROOT :=
 override BUILDROOT := build
 
-override BINDIR := $(BINROOT)release
-override BUILDDIR := $(BUILDROOT)
+ifdef DEBUG
+	override BINDIR := $(BINROOT)debug
+	override BUILDDIR := $(BUILDROOT)/debug
+else
+	override BINDIR := $(BINROOT)release
+	override BUILDDIR := $(BUILDROOT)/release
+endif
 
 # ----------
 
@@ -502,11 +507,11 @@ endif
 # Cleanup
 clean:
 	@echo "===> CLEAN"
-	${Q}rm -Rf build release/*
+	${Q}rm -Rf build debug/* release/*
 
 cleanall:
 	@echo "===> CLEAN"
-	${Q}rm -Rf build release
+	${Q}rm -Rf build debug release
 
 # ----------
 
