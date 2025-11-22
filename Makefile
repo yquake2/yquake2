@@ -36,6 +36,8 @@
 #   Available values:
 #   x86_64-w64-mingw32 -> indicates x86_64
 #   i686-w64-mingw32   -> indicates i386
+# QUIET
+#   If defined, "===> CC ..." lines are silenced.
 # UBSAN
 #   Builds with undefined behavior sanitizer.includes DEBUG.
 # VERBOSE
@@ -102,6 +104,13 @@ CONFIG_FILE:=config.mk
 PKG_CONFIG ?= pkgconf
 
 # ----------
+
+# Normalize QUIET value to either "x" or ""
+ifdef QUIET
+	override QUIET := "x"
+else
+	override QUIET := ""
+endif
 
 # In case a of a configuration file being present, we'll just use it
 ifeq ($(wildcard $(CONFIG_FILE)), $(CONFIG_FILE))
@@ -492,7 +501,9 @@ client:
 	$(MAKE) release/quake2.exe
 
 build/client/%.o: %.c
-	@echo "===> CC $<"
+	@if [ -z $(QUIET) ]; then\
+		echo "===> CC $<";\
+	fi
 	${Q}mkdir -p $(@D)
 	${Q}$(CC) -c $(CFLAGS) $(SDLCFLAGS) $(ZIPCFLAGS) $(INCLUDE) -o $@ $<
 
@@ -515,12 +526,16 @@ client:
 
 ifeq ($(YQ2_OSTYPE), Darwin)
 build/client/%.o : %.c
-	@echo "===> CC $<"
+	@if [ -z $(QUIET) ]; then\
+		echo "===> CC $<";\
+	fi
 	${Q}mkdir -p $(@D)
 	${Q}$(CC) -arch $(YQ2_ARCH) -x objective-c -c $(CFLAGS) $(SDLCFLAGS) $(ZIPCFLAGS) $(INCLUDE)  $< -o $@
 else
 build/client/%.o: %.c
-	@echo "===> CC $<"
+	@if [ -z $(QUIET) ]; then\
+		echo "===> CC $<";\
+	fi
 	${Q}mkdir -p $(@D)
 	${Q}$(CC) -c $(CFLAGS) $(SDLCFLAGS) $(ZIPCFLAGS) $(INCLUDE) -o $@ $<
 endif
@@ -584,7 +599,9 @@ server:
 	$(MAKE) release/q2ded.exe
 
 build/server/%.o: %.c
-	@echo "===> CC $<"
+	@if [ -z $(QUIET) ]; then\
+		echo "===> CC $<";\
+	fi
 	${Q}mkdir -p $(@D)
 	${Q}$(CC) -c $(CFLAGS) $(ZIPCFLAGS) $(INCLUDE) -o $@ $<
 
@@ -598,7 +615,9 @@ server:
 	$(MAKE) release/q2ded
 
 build/server/%.o: %.c
-	@echo "===> CC $<"
+	@if [ -z $(QUIET) ]; then\
+		echo "===> CC $<";\
+	fi
 	${Q}mkdir -p $(@D)
 	${Q}$(CC) -c $(CFLAGS) $(ZIPCFLAGS) $(INCLUDE) -o $@ $<
 
@@ -645,7 +664,9 @@ release/ref_gl1.so : LDLIBS += -lGL
 endif # OS specific ref_gl1 stuff
 
 build/ref_gl1/%.o: %.c
-	@echo "===> CC $<"
+	@if [ -z $(QUIET) ]; then\
+		echo "===> CC $<";\
+	fi
 	${Q}mkdir -p $(@D)
 	${Q}$(CC) -c $(CFLAGS) $(SDLCFLAGS) $(INCLUDE) -o $@ $<
 
@@ -686,7 +707,9 @@ release/ref_gles1.so : LDFLAGS += -shared
 endif # OS specific ref_gles1 stuff
 
 build/ref_gles1/%.o: %.c
-	@echo "===> CC $<"
+	@if [ -z $(QUIET) ]; then\
+		echo "===> CC $<";\
+	fi
 	${Q}mkdir -p $(@D)
 	${Q}$(CC) -c $(CFLAGS) $(SDLCFLAGS) $(INCLUDE) $(GLAD_INCLUDE) -o $@ $<
 
@@ -725,7 +748,9 @@ release/ref_gl3.so : LDFLAGS += -shared
 endif # OS specific ref_gl3 stuff
 
 build/ref_gl3/%.o: %.c
-	@echo "===> CC $<"
+	@if [ -z $(QUIET) ]; then\
+		echo "===> CC $<";\
+	fi
 	${Q}mkdir -p $(@D)
 	${Q}$(CC) -c $(CFLAGS) $(SDLCFLAGS) $(INCLUDE) $(GLAD_INCLUDE) -o $@ $<
 
@@ -780,7 +805,9 @@ GLAD_INCLUDE = -Isrc/client/refresh/gl3/glad-gles3/include
 endif # OS specific ref_gl3 stuff
 
 build/ref_gles3/%.o: %.c
-	@echo "===> CC $<"
+	@if [ -z $(QUIET) ]; then\
+		echo "===> CC $<";\
+	fi
 	${Q}mkdir -p $(@D)
 	${Q}$(CC) -c $(CFLAGS) $(SDLCFLAGS) $(INCLUDE) $(GLAD_INCLUDE) -o $@ $<
 
@@ -816,7 +843,9 @@ release/ref_soft.so : LDFLAGS += -shared
 endif # OS specific ref_soft stuff
 
 build/ref_soft/%.o: %.c
-	@echo "===> CC $<"
+	@if [ -z $(QUIET) ]; then\
+		echo "===> CC $<";\
+	fi
 	${Q}mkdir -p $(@D)
 	${Q}$(CC) -c $(CFLAGS) $(SDLCFLAGS) $(INCLUDE) -o $@ $<
 
@@ -830,7 +859,9 @@ game:
 	$(MAKE) release/baseq2/game.dll
 
 build/baseq2/%.o: %.c
-	@echo "===> CC $<"
+	@if [ -z $(QUIET) ]; then\
+		echo "===> CC $<";\
+	fi
 	${Q}mkdir -p $(@D)
 	${Q}$(CC) -c $(CFLAGS) $(INCLUDE) -o $@ $<
 
@@ -844,7 +875,9 @@ game:
 	$(MAKE) release/baseq2/game.dylib
 
 build/baseq2/%.o: %.c
-	@echo "===> CC $<"
+	@if [ -z $(QUIET) ]; then\
+		echo "===> CC $<";\
+	fi
 	${Q}mkdir -p $(@D)
 	${Q}$(CC) -c $(CFLAGS) $(INCLUDE) -o $@ $<
 
@@ -859,7 +892,9 @@ game:
 	$(MAKE) release/baseq2/game.so
 
 build/baseq2/%.o: %.c
-	@echo "===> CC $<"
+	@if [ -z $(QUIET) ]; then\
+		echo "===> CC $<";\
+	fi
 	${Q}mkdir -p $(@D)
 	${Q}$(CC) -c $(CFLAGS) $(INCLUDE) -o $@ $<
 
