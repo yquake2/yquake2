@@ -368,11 +368,21 @@ plat_Accelerate(moveinfo_t *moveinfo)
 			float p2_distance;
 			float distance;
 
+			if (!moveinfo->move_speed)
+			{
+				return;
+			}
+
 			p1_distance = moveinfo->remaining_distance -
 						  moveinfo->decel_distance;
 			p2_distance = moveinfo->move_speed *
 						  (1.0 - (p1_distance / moveinfo->move_speed));
 			distance = p1_distance + p2_distance;
+			if (!distance)
+			{
+				return;
+			}
+
 			moveinfo->current_speed = moveinfo->move_speed;
 			moveinfo->next_speed = moveinfo->move_speed - moveinfo->decel *
 								   (p2_distance / distance);

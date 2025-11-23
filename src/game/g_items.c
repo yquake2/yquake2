@@ -158,6 +158,11 @@ DoRespawn(edict_t *ent)
 		}
 	}
 
+	if (!ent)
+	{
+		return;
+	}
+
 	ent->svflags &= ~SVF_NOCLIENT;
 	ent->solid = SOLID_TRIGGER;
 	gi.linkentity(ent);
