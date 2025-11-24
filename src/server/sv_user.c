@@ -111,6 +111,24 @@ SV_New_f(void)
 	}
 }
 
+static qboolean
+_EnoughSpaceInBuffer(const sizebuf_t *msg, size_t datalen, int is_opt)
+{
+	/* original check logic */
+	if (!is_opt && (msg->cursize >= (MAX_MSGLEN / 2)))
+	{
+		return false;
+	}
+
+	if ((msg->cursize + datalen) >
+		(MAX_MSGLEN - (CMD_MARGIN + SAFE_MARGIN)))
+	{
+		return false;
+	}
+
+	return true;
+}
+
 static void
 PrintOverflowConfigstrings(void)
 {
@@ -134,8 +152,10 @@ PrintOverflowConfigstrings(void)
 static void
 SV_Configstrings_f(void)
 {
-	int start;
-	int max_msgutil;
+	const char *cs;
+	sizebuf_t *msg;
+	int i, start;
+	int is_opt;
 
 	Com_DPrintf("Configstrings() from %s\n", sv_client->name);
 
@@ -160,55 +180,59 @@ SV_Configstrings_f(void)
 		start = 0;
 	}
 
-	/* 560 is roughly the legacy safety margin */
-	max_msgutil = (SV_Optimizations() & OPTIMIZE_MSGUTIL) ?
-		SAFE_MARGIN : 560;
+	msg = &sv_client->netchan.message;
+	is_opt = SV_Optimizations() & OPTIMIZE_MSGUTIL;
+	i = start;
 
-	/* write a packet full of data */
-	while (start < MAX_CONFIGSTRINGS)
+	while (i < MAX_CONFIGSTRINGS)
 	{
-		const char *cs;
-
-		cs = sv.configstrings[start];
+		cs = sv.configstrings[i];
 
 		if (*cs != '\0')
 		{
-			if ((sv_client->netchan.message.cursize + MSG_ConfigString_Size(cs))
-				> (MAX_MSGLEN - (CMD_MARGIN + max_msgutil)))
+			if (!_EnoughSpaceInBuffer(msg, MSG_ConfigString_Size(cs), is_opt))
 			{
 				break;
 			}
 
-			MSG_WriteByte(&sv_client->netchan.message, svc_configstring);
-			MSG_WriteConfigString(&sv_client->netchan.message, start, cs);
+			MSG_WriteByte(msg, svc_configstring);
+			MSG_WriteConfigString(msg, i, cs);
 		}
 
-		start++;
+		i++;
+	}
+
+	if ((i == start) && (i < MAX_CONFIGSTRINGS))
+	{
+		Com_Printf("%s: skipping index %i: too big to send\n",
+			__func__, i);
+		i++;
 	}
 
 	/* send next command */
-	if (start == MAX_CONFIGSTRINGS)
+	if (i >= MAX_CONFIGSTRINGS)
 	{
 		PrintOverflowConfigstrings();
 
-		MSG_WriteByte(&sv_client->netchan.message, svc_stufftext);
-		MSG_WriteString(&sv_client->netchan.message,
+		MSG_WriteByte(msg, svc_stufftext);
+		MSG_WriteString(msg,
 				va("cmd baselines %i 0\n", svs.spawncount));
 	}
 	else
 	{
-		MSG_WriteByte(&sv_client->netchan.message, svc_stufftext);
-		MSG_WriteString(&sv_client->netchan.message,
-				va("cmd configstrings %i %i\n", svs.spawncount, start));
+		MSG_WriteByte(msg, svc_stufftext);
+		MSG_WriteString(msg, 
+			va("cmd configstrings %i %i\n", svs.spawncount, i));
 	}
 }
 
 static void
 SV_Baselines_f(void)
 {
-	int start;
-	int max_msgutil;
-	entity_state_t *base;
+	sizebuf_t *msg;
+	int i, start;
+	int is_opt;
+	const entity_state_t *base;
 
 	Com_DPrintf("Baselines() from %s\n", sv_client->name);
 
@@ -233,44 +257,45 @@ SV_Baselines_f(void)
 		start = 0;
 	}
 
-	/* 560 is roughly the legacy safety margin */
-	max_msgutil = (SV_Optimizations() & OPTIMIZE_MSGUTIL) ?
-		SAFE_MARGIN : 560;
+	msg = &sv_client->netchan.message;
+	is_opt = SV_Optimizations() & OPTIMIZE_MSGUTIL;
 
-	/* write a packet full of data */
-	while (start < sv.numbaselines)
+	for (i = start; i < sv.numbaselines; i++)
 	{
-		base = &sv.baselines[start];
+		base = &sv.baselines[i];
 
 		if (base->modelindex || base->sound || base->effects)
 		{
-			if ((sv_client->netchan.message.cursize + MSG_DeltaEntity_Size(NULL, base, true, true))
-				> (MAX_MSGLEN - (CMD_MARGIN + max_msgutil)))
+			if (!_EnoughSpaceInBuffer(msg,
+				MSG_DeltaEntity_Size(NULL, base, true, true), is_opt))
 			{
 				break;
 			}
 
-			MSG_WriteByte(&sv_client->netchan.message, svc_spawnbaseline);
-			MSG_WriteDeltaEntity(NULL, base,
-					&sv_client->netchan.message,
-					true, true);
+			MSG_WriteByte(msg, svc_spawnbaseline);
+			MSG_WriteDeltaEntity(NULL, base, msg, true, true);
 		}
+	}
 
-		start++;
+	if ((i == start) && (i < sv.numbaselines))
+	{
+		Com_Printf("%s: skipping index %i: too big to send\n",
+			__func__, i);
+		i++;
 	}
 
 	/* send next command */
-	if (start == sv.numbaselines)
+	if (i >= sv.numbaselines)
 	{
-		MSG_WriteByte(&sv_client->netchan.message, svc_stufftext);
-		MSG_WriteString(&sv_client->netchan.message,
+		MSG_WriteByte(msg, svc_stufftext);
+		MSG_WriteString(msg,
 				va("precache %i\n", svs.spawncount));
 	}
 	else
 	{
-		MSG_WriteByte(&sv_client->netchan.message, svc_stufftext);
-		MSG_WriteString(&sv_client->netchan.message,
-				va("cmd baselines %i %i\n", svs.spawncount, start));
+		MSG_WriteByte(msg, svc_stufftext);
+		MSG_WriteString(msg,
+				va("cmd baselines %i %i\n", svs.spawncount, i));
 	}
 }
 
