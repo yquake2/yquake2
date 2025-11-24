@@ -149,13 +149,29 @@ PrintOverflowConfigstrings(void)
 	}
 }
 
+/* Wrote this function because the optimizer was replacing
+   strlen(cs) / sizeof(sv.configstrings[i]) with 0
+   which is not the correct result for the statusbar string
+ */
+static int
+_NumIndexSkips(int start, int end)
+{
+	int i;
+
+	for (i = start;
+		i < (end - 1) && sv.configstrings[i][sizeof(sv.configstrings[i]) - 1] != '\0';
+		i++);
+
+	return i - start;
+}
+
 static void
 SV_Configstrings_f(void)
 {
 	const char *cs;
 	sizebuf_t *msg;
 	int i, start;
-	int is_opt;
+	int opt;
 
 	Com_DPrintf("Configstrings() from %s\n", sv_client->name);
 
@@ -181,7 +197,7 @@ SV_Configstrings_f(void)
 	}
 
 	msg = &sv_client->netchan.message;
-	is_opt = SV_Optimizations() & OPTIMIZE_MSGUTIL;
+	opt = SV_Optimizations();
 	i = start;
 
 	while (i < MAX_CONFIGSTRINGS)
@@ -190,7 +206,7 @@ SV_Configstrings_f(void)
 
 		if (*cs != '\0')
 		{
-			if (!_EnoughSpaceInBuffer(msg, MSG_ConfigString_Size(cs), is_opt))
+			if (!_EnoughSpaceInBuffer(msg, MSG_ConfigString_Size(cs), opt & OPTIMIZE_MSGUTIL))
 			{
 				break;
 			}
@@ -199,14 +215,33 @@ SV_Configstrings_f(void)
 			MSG_WriteConfigString(msg, i, cs);
 		}
 
-		i++;
+		/* statusbar code is sent as one big string */
+		if ((opt & OPTIMIZE_HUDSEND) &&
+			(i >= CS_STATUSBAR) && (i < CS_STATUSBAR_END))
+		{
+			i += 1 + _NumIndexSkips(i, CS_STATUSBAR_END);
+		}
+		else
+		{
+			i++;
+		}
 	}
 
 	if ((i == start) && (i < MAX_CONFIGSTRINGS))
 	{
 		Com_Printf("%s: skipping index %i: too big to send\n",
 			__func__, i);
-		i++;
+
+		/* statusbar code is sent as one big string */
+		if ((opt & OPTIMIZE_HUDSEND) &&
+			(i >= CS_STATUSBAR) && (i < CS_STATUSBAR_END))
+		{
+			i += 1 + _NumIndexSkips(i, CS_STATUSBAR_END);
+		}
+		else
+		{
+			i++;
+		}
 	}
 
 	/* send next command */
