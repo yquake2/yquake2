@@ -701,7 +701,7 @@ CL_ShowNetCmd(int cmd)
 
 	if (cl_shownet->value >= 2)
 	{
-		if (cmd >= (sizeof(svc_strings) / sizeof(*svc_strings)))
+		if (cmd >= ARRLEN(svc_strings))
 		{
 			Com_Printf("%3i:BAD CMD %i\n", net_message.readcount - 1, cmd);
 			return;

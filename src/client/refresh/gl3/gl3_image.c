@@ -52,7 +52,7 @@ static int image_max = 0;
 void
 GL3_TextureMode(char *string)
 {
-	const int num_modes = sizeof(modes)/sizeof(modes[0]);
+	const int num_modes = ARRLEN(modes);
 	int i;
 
 	for (i = 0; i < num_modes; i++)

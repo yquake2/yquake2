@@ -78,7 +78,7 @@ glmode_t modes[] = {
 	{"GL_LINEAR_MIPMAP_LINEAR", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR}
 };
 
-#define NUM_GL_MODES (sizeof(modes) / sizeof(glmode_t))
+#define NUM_GL_MODES ARRLEN(modes)
 
 typedef struct
 {
@@ -120,8 +120,8 @@ gltmode_t gl_solid_modes[] = {
 
 #endif
 
-#define NUM_GL_ALPHA_MODES (sizeof(gl_alpha_modes) / sizeof(gltmode_t))
-#define NUM_GL_SOLID_MODES (sizeof(gl_solid_modes) / sizeof(gltmode_t))
+#define NUM_GL_ALPHA_MODES ARRLEN(gl_alpha_modes)
+#define NUM_GL_SOLID_MODES ARRLEN(gl_solid_modes)
 
 typedef struct
 {
