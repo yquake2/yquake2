@@ -61,6 +61,7 @@ SV_AllocBaseline(int entnum)
 static int
 SV_FindIndex(const char *name, int start, int max, qboolean create)
 {
+	size_t len, space;
 	int i;
 
 	if (!name || !name[0])
@@ -96,7 +97,26 @@ SV_FindIndex(const char *name, int start, int max, qboolean create)
 		return 0;
 	}
 
-	Q_strlcpy(sv.configstrings[start + i], name, sizeof(sv.configstrings[start + i]));
+	space = sizeof(sv.configstrings[start + i]);
+	len = Q_strlcpy(sv.configstrings[start + i], name, space);
+
+	if (len >= space)
+	{
+		sv.configstrings[start + i][0] = '\0';
+
+		if (!StringList_IsInList(&sv.configstrings_overflow, name))
+		{
+			if (sv.state != ss_loading)
+			{
+				Com_Printf("Failed to load %s: configstring too long: %u > %u\n",
+					name, len, space - 1);
+			}
+
+			StringList_Add(&sv.configstrings_overflow, name);
+		}
+
+		return 0;
+	}
 
 	if (sv.state != ss_loading)
 	{
