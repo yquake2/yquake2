@@ -118,6 +118,16 @@ typedef unsigned char byte;
 	#define YQ2_ATTR_NORETURN_FUNCPTR  /* nothing */
 #endif
 
+/* Calculate length of a static array
+ * Example: for (i = 0; i < ARRLEN(arr); i++)
+ */
+#define ARRLEN(a) (sizeof(a) / sizeof(*a))
+
+/* Calculate a pointer to the end of a static array
+ * Example: for (i = arr; i < ARREND(arr); i++)
+ */
+#define ARREND(a) &a[ARRLEN(a)]
+
 /* angle indexes */
 #define PITCH 0                     /* up / down */
 #define YAW 1                       /* left / right */
