@@ -140,6 +140,19 @@ CL_ParseEntityBits(unsigned *bits)
 static void
 CL_ParseDelta(const entity_state_t *from, entity_state_t *to, int number, int bits)
 {
+	static const entity_state_t es_nullstate = {0};
+	entity_state_t dummy;
+
+	if (!from)
+	{
+		from = &es_nullstate;
+	}
+
+	if (!to)
+	{
+		to = &dummy;
+	}
+
 	/* set everything to the state we are delta'ing from */
 	*to = *from;
 
@@ -276,16 +289,16 @@ CL_ParseDelta(const entity_state_t *from, entity_state_t *to, int number, int bi
  * the current frame
  */
 static void
-CL_DeltaEntity(frame_t *frame, int newnum, entity_state_t *old, int bits)
+CL_DeltaEntity(frame_t *frame, int newnum, const entity_state_t *old, int bits)
 {
-	centity_t nullstate, *ent;
+	centity_t dummy, *ent;
 	entity_state_t *state;
 
 	ent = CL_AllocEntity(newnum);
 	if (!ent)
 	{
-		memset(&nullstate, 0, sizeof(nullstate));
-		ent = &nullstate;
+		memset(&dummy, 0, sizeof(dummy));
+		ent = &dummy;
 	}
 
 	state = &cl_parse_entities[cl.parse_entities & (MAX_PARSE_ENTITIES - 1)];
@@ -349,7 +362,7 @@ CL_ParsePacketEntities(frame_t *oldframe, frame_t *newframe)
 {
 	unsigned int newnum;
 	unsigned bits;
-	centity_t nullstate, *ent;
+	centity_t *ent;
 	entity_state_t *oldstate = NULL;
 	int oldindex, oldnum;
 
@@ -494,7 +507,7 @@ CL_ParsePacketEntities(frame_t *oldframe, frame_t *newframe)
 			ent = CL_AllocEntity(newnum);
 
 			CL_DeltaEntity(newframe, newnum,
-					ent ? &ent->baseline : &nullstate.baseline,
+					ent ? &ent->baseline : NULL,
 					bits);
 
 			continue;
@@ -940,19 +953,14 @@ CL_ParseServerData(void)
 static void
 CL_ParseBaseline(void)
 {
-	entity_state_t *es;
 	unsigned bits;
 	int newnum;
-	entity_state_t nullstate;
 	centity_t *ent;
-
-	memset(&nullstate, 0, sizeof(nullstate));
 
 	newnum = CL_ParseEntityBits(&bits);
 	ent = CL_AllocEntity(newnum);
-	es = ent ? &ent->baseline : &nullstate;
 
-	CL_ParseDelta(&nullstate, es, newnum, bits);
+	CL_ParseDelta(NULL, ent ? &ent->baseline : NULL, newnum, bits);
 }
 
 void
