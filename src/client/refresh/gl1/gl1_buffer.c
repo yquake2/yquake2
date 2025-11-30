@@ -81,6 +81,7 @@ R_ApplyGLBuffer(void)
 			break;
 		case buf_flash:
 			color = true;
+			/* fall through */
 		case buf_shadow:
 			texture = false;
 			break;

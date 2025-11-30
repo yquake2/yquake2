@@ -355,6 +355,7 @@ CL_RequestNextDownload(void)
 						}
 
 						n++;
+						/* fall through */
 
 					case 1: /* weapon model */
 						Com_sprintf(fn, sizeof(fn), "players/%s/weapon.md2", model);
@@ -366,6 +367,7 @@ CL_RequestNextDownload(void)
 						}
 
 						n++;
+						/* fall through */
 
 					case 2: /* weapon skin */
 						Com_sprintf(fn, sizeof(fn), "players/%s/weapon.pcx", model);
@@ -377,6 +379,7 @@ CL_RequestNextDownload(void)
 						}
 
 						n++;
+						/* fall through */
 
 					case 3: /* skin */
 						Com_sprintf(fn, sizeof(fn), "players/%s/%s.pcx", model, skin);
@@ -388,6 +391,7 @@ CL_RequestNextDownload(void)
 						}
 
 						n++;
+						/* fall through */
 
 					case 4: /* skin_i */
 						Com_sprintf(fn, sizeof(fn), "players/%s/%s_i.pcx", model, skin);
@@ -652,13 +656,13 @@ CL_CheckOrDownloadFile(const char *filename)
 		}
 	}
 #endif
-	strcpy(cls.downloadname, filename);
+	Q_strlcpy(cls.downloadname, filename, sizeof(cls.downloadname));
 
 	/* download to a temp name, and only rename
 	   to the real name when done, so if interrupted
 	   a runt file wont be left */
 	COM_StripExtension(cls.downloadname, cls.downloadtempname);
-	strcat(cls.downloadtempname, ".tmp");
+	Q_strlcat(cls.downloadtempname, ".tmp", sizeof(cls.downloadtempname));
 
 	/* check to see if we already have a tmp for this
 	   file, if so, try to resume and open the file if

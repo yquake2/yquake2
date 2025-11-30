@@ -801,4 +801,3 @@ Con_DrawConsole(float frac)
 	/* draw the input prompt, user text, and cursor if desired */
 	Con_DrawInput();
 }
-

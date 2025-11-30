@@ -188,12 +188,10 @@ SV_WereConnected(const vec3_t origin, const byte *mask, int area1)
 void
 SV_Multicast(vec3_t origin, multicast_t to)
 {
+	int leafnum, cluster, area1 = 0, j;
+	qboolean reliable;
 	client_t *client;
 	byte *mask;
-	int leafnum, cluster;
-	int j;
-	qboolean reliable;
-	int area1;
 
 	reliable = false;
 
@@ -201,11 +199,6 @@ SV_Multicast(vec3_t origin, multicast_t to)
 	{
 		leafnum = CM_PointLeafnum(origin);
 		area1 = CM_LeafArea(leafnum);
-	}
-	else
-	{
-		leafnum = 0;
-		area1 = 0;
 	}
 
 	/* if doing a serverrecord, store everything */

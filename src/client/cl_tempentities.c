@@ -506,7 +506,7 @@ CL_ParseHeatBeam(qboolean is_monster)
 		start, end, ofs, tm);
 }
 
-static int
+static unsigned
 CL_ParseLightning(struct model_s *model)
 {
 	int srcEnt, destEnt;
@@ -514,7 +514,18 @@ CL_ParseLightning(struct model_s *model)
 	beam_t *b;
 
 	srcEnt = MSG_ReadShort(&net_message);
+	if (srcEnt < 0)
+	{
+		Com_Error(ERR_DROP, "%s: unexpected message end", __func__);
+		return 0;
+	}
+
 	destEnt = MSG_ReadShort(&net_message);
+	if (destEnt < 0)
+	{
+		Com_Error(ERR_DROP, "%s: unexpected message end", __func__);
+		return 0;
+	}
 
 	MSG_ReadPos(&net_message, start);
 	MSG_ReadPos(&net_message, end);
