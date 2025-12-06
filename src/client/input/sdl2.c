@@ -2803,7 +2803,7 @@ static const joy_preset_t joy_presets[] = {
 void
 IN_ApplyJoyPreset(void)
 {
-	const int final_preset = sizeof(joy_presets) / sizeof(*joy_presets) - 1;
+	const int final_preset = ARRLEN(joy_presets) - 1;
 	const int i = lroundf(Q_clamp(joy_sensitivity->value, 0, final_preset));
 
 	Cvar_SetValue("joy_yawspeed", joy_presets[i].yawspeed);
@@ -2820,7 +2820,7 @@ IN_ApplyJoyPreset(void)
 qboolean
 IN_MatchJoyPreset(void)
 {
-	const int num_presets = sizeof(joy_presets) / sizeof(*joy_presets);
+	const int num_presets = ARRLEN(joy_presets);
 
 	for (int i = 0; i < num_presets; i++)
 	{

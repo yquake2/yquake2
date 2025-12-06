@@ -173,7 +173,7 @@ OGG_InitTrackList(void)
 		gameType = rogue;
 	}
 
-	for (int potMusicDirIdx = 0; potMusicDirIdx < sizeof(potMusicDirs)/sizeof(potMusicDirs[0]); ++potMusicDirIdx)
+	for (int potMusicDirIdx = 0; potMusicDirIdx < ARRLEN(potMusicDirs); ++potMusicDirIdx)
 	{
 		const char* musicDir = potMusicDirs[potMusicDirIdx];
 
@@ -283,7 +283,7 @@ static OGG_Read(void)
 	float volume = (ogg_mutemusic == true) ? 0.0f : ogg_volume->value;
 
 	int read_samples = stb_vorbis_get_samples_short_interleaved(ogg_file, ogg_file->channels, samples,
-		sizeof(samples) / sizeof(short));
+		ARRLEN(samples));
 
 	if (read_samples > 0)
 	{

@@ -904,7 +904,7 @@ ReadGame(const char *filename)
 		{"YQ2-5", 5},
 	};
 
-	for (i=0; i < sizeof(version_mappings)/sizeof(version_mappings[0]); ++i)
+	for (i=0; i < ARRLEN(version_mappings); ++i)
 	{
 		if (strcmp(version_mappings[i].verstr, sv.ver) == 0)
 		{

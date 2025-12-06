@@ -75,7 +75,7 @@ void VID_WriteScreenshot(int width, int height, int comp, const void* data)
 	char checkname[MAX_OSPATH];
 	int i, success = 0;
 	static const char* supportedFormats[] = { "tga", "bmp", "png", "jpg" };
-	static const int numFormats = sizeof(supportedFormats)/sizeof(supportedFormats[0]);
+	static const int numFormats = ARRLEN(supportedFormats);
 	int format = 0; // 0=tga, 1=bmp, 2=png, 3=jpg
 	int quality = 85;
 	int argc = Cmd_Argc();
@@ -243,7 +243,7 @@ vidmode_t vid_modes[] = {
 	{"Mode 32: 1600x900", 1600, 900, 32},
 };
 
-#define VID_NUM_MODES (sizeof(vid_modes) / sizeof(vid_modes[0]))
+#define VID_NUM_MODES ARRLEN(vid_modes)
 
 /*
  * Callback function for the 'vid_listmodes' cmd.

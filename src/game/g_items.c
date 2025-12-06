@@ -2693,7 +2693,7 @@ InitItems(void)
 
 	memset(itemlist, 0, sizeof(itemlist));
 	memcpy(itemlist, gameitemlist, sizeof(gameitemlist));
-	game.num_items = sizeof(gameitemlist) / sizeof(gameitemlist[0]) - 1;
+	game.num_items = ARRLEN(gameitemlist) - 1;
 }
 
 /*

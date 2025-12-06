@@ -229,7 +229,7 @@ void Qcommon_ExecConfigs(qboolean gameStartUp)
 static qboolean checkForHelp(int argc, char **argv)
 {
 	const char* helpArgs[] = { "--help", "-h", "-help", "-?", "/?" };
-	const int numHelpArgs = sizeof(helpArgs)/sizeof(helpArgs[0]);
+	const int numHelpArgs = ARRLEN(helpArgs);
 
 	for (int i=1; i<argc; ++i)
 	{

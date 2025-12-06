@@ -367,7 +367,7 @@ static EFXEAXREVERBPROPERTIES ReverbPresets[] = {
 	EFX_REVERB_PRESET_SMALLWATERROOM
 };
 
-#define EFX_REVERB_SIZE (sizeof(ReverbPresets) / sizeof(*ReverbPresets))
+#define EFX_REVERB_SIZE ARRLEN(ReverbPresets)
 
 static char ReverbPresetsNames[][32] = {
 	"Generic",

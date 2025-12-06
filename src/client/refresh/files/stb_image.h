@@ -6432,7 +6432,7 @@ static stbi_uc *stbi__pic_load_core(stbi__context *s,int width,int height,int *c
    do {
       stbi__pic_packet *packet;
 
-      if (num_packets==sizeof(packets)/sizeof(packets[0]))
+      if (num_packets == ARRLEN(packets))
          return stbi__errpuc("bad format","too many packets");
 
       packet = &packets[num_packets++];
@@ -7508,7 +7508,7 @@ static int stbi__pic_info(stbi__context *s, int *x, int *y, int *comp)
    do {
       stbi__pic_packet *packet;
 
-      if (num_packets==sizeof(packets)/sizeof(packets[0]))
+      if (num_packets == ARRLEN(packets))
          return 0;
 
       packet = &packets[num_packets++];

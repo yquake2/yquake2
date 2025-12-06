@@ -1569,7 +1569,7 @@ FS_ListMods(int *nummods)
 			numpacksinchilddir = 0;
 
 			// iterate over supported pack types, but ignore ZIP files (they cause false positives)
-			for (int j = 0; j < sizeof(fs_packtypes) / sizeof(fs_packtypes[0]); j++)
+			for (int j = 0; j < ARRLEN(fs_packtypes); j++)
 			{
 				if (strcmp("zip", fs_packtypes[j].suffix) != 0)
 				{
@@ -1737,7 +1737,7 @@ FS_AddPAKFromGamedir(const char *pak)
 	}
 
 	// Depending on filetype we must load it as .pak or .pk3.
-	for (int i = 0; i < sizeof(fs_packtypes) / sizeof(fs_packtypes[0]); i++)
+	for (int i = 0; i < ARRLEN(fs_packtypes); i++)
 	{
 		// Not the current filetype, next one please.
 		if (strncmp(pak + strlen(pak) - strlen(fs_packtypes[i].suffix), fs_packtypes[i].suffix, strlen(fs_packtypes[i].suffix)))
@@ -1862,7 +1862,7 @@ FS_AddDirToSearchPath(char *dir, qboolean create) {
 	// need to be added first and are marked protected.
 	// Files from protected paks are never offered for
 	// download.
-	for (i = 0; i < sizeof(fs_packtypes) / sizeof(fs_packtypes[0]); i++)
+	for (i = 0; i < ARRLEN(fs_packtypes); i++)
 	{
 		for (j = 0; j < MAX_PAKS; j++)
 		{
@@ -1909,7 +1909,7 @@ FS_AddDirToSearchPath(char *dir, qboolean create) {
 	// sequence as they're returned by FS_ListFiles. This is
 	// fragile and file system dependend. We cannot change
 	// this, since it might break existing installations.
-	for (i = 0; i < sizeof(fs_packtypes) / sizeof(fs_packtypes[0]); i++)
+	for (i = 0; i < ARRLEN(fs_packtypes); i++)
 	{
 		Com_sprintf(path, sizeof(path), "%s/*.%s", dir, fs_packtypes[i].suffix);
 
