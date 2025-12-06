@@ -155,7 +155,6 @@ SVC_DirectConnect(void)
 	client_t *cl, *newcl;
 	client_t temp;
 	edict_t *ent;
-	int edictnum;
 	int version;
 	int qport;
 	int challenge;
@@ -273,9 +272,7 @@ gotnewcl:
 	   is the only place a client_t is ever initialized */
 	*newcl = temp;
 	sv_client = newcl;
-	edictnum = (newcl - svs.clients) + 1;
-	ent = EDICT_NUM(edictnum);
-	newcl->edict = ent;
+	ent = CL_EDICT(newcl);
 	newcl->challenge = challenge; /* save challenge for checksumming */
 
 	/* get the game a chance to reject this connection or modify the userinfo */

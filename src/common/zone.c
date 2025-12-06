@@ -26,11 +26,24 @@
 
 #include "header/common.h"
 #include "header/zone.h"
+#include <limits.h>
 
 #define Z_MAGIC 0x1d1d
 
-zhead_t z_chain;
-int z_count, z_bytes;
+static zhead_t z_chain;
+static int z_count, z_bytes;
+
+void
+Z_Init(void)
+{
+	memset(&z_chain, 0, sizeof(z_chain));
+
+	z_chain.prev = &z_chain;
+	z_chain.next = &z_chain;
+
+	z_count = 0;
+	z_bytes = 0;
+}
 
 void
 Z_Free(void *ptr)
@@ -41,8 +54,8 @@ Z_Free(void *ptr)
 
 	if (z->magic != Z_MAGIC)
 	{
-		Com_Printf("ERROR: Z_free(%p) failed: bad magic\n", ptr);
-		abort();
+		Com_Error(ERR_FATAL, "%s: not a valid memory block: %p", __func__, ptr);
+		return;
 	}
 
 	z->prev->next = z->next;
@@ -50,6 +63,7 @@ Z_Free(void *ptr)
 
 	z_count--;
 	z_bytes -= z->size;
+
 	free(z);
 }
 
@@ -80,15 +94,23 @@ Z_TagMalloc(int size, int tag)
 {
 	zhead_t *z;
 
+	if ((size <= 0) || ((INT_MAX - size) < sizeof(zhead_t)))
+	{
+		Com_Error(ERR_FATAL, "%s: bad allocation size: %i", __func__, size);
+		return NULL;
+	}
+
 	size = size + sizeof(zhead_t);
 	z = malloc(size);
 
 	if (!z)
 	{
-		Com_Error(ERR_FATAL, "Z_Malloc: failed on allocation of %i bytes", size);
+		Com_Error(ERR_FATAL, "%s: failed to allocate %i bytes", __func__, size);
+		return NULL;
 	}
 
 	memset(z, 0, size);
+
 	z_count++;
 	z_bytes += size;
 	z->magic = Z_MAGIC;
@@ -107,5 +129,60 @@ void *
 Z_Malloc(int size)
 {
 	return Z_TagMalloc(size, 0);
+}
+
+void *
+Z_TagRealloc(void *ptr, int size, int tag)
+{
+	zhead_t *z, *zr;
+
+	if ((size <= 0) || ((INT_MAX - size) < sizeof(zhead_t)))
+	{
+		Com_Error(ERR_FATAL, "%s: bad allocation size: %i", __func__, size);
+		return NULL;
+	}
+
+	if (!ptr)
+	{
+		return Z_TagMalloc(size, tag);
+	}
+
+	z = (zhead_t *)ptr - 1;
+
+	if (z->magic != Z_MAGIC)
+	{
+		Com_Error(ERR_FATAL, "%s: not a valid memory block: %p", __func__, ptr);
+		return NULL;
+	}
+
+	size = size + sizeof(zhead_t);
+	zr = realloc(z, size);
+
+	if (!zr)
+	{
+		Com_Error(ERR_FATAL, "%s: failed to allocate %i bytes", __func__, size);
+		return NULL;
+	}
+
+	if (size > zr->size)
+	{
+		memset((byte *)zr + zr->size, 0, size - zr->size);
+	}
+
+	z_bytes -= zr->size;
+	z_bytes += size;
+
+	zr->tag = tag;
+	zr->size = size;
+	zr->prev->next = zr;
+	zr->next->prev = zr;
+
+	return zr + 1;
+}
+
+void *
+Z_Realloc(void *ptr, int size)
+{
+	return Z_TagRealloc(ptr, size, 0);
 }
 

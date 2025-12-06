@@ -5855,16 +5855,16 @@ static menuaction_s s_player_download_action;
 
 #define MAX_PLAYERMODELS 1024
 
-typedef struct _stringlist
+typedef struct _strlist
 {
 	char** data;
 	int num;
-} stringlist_t;
+} strlist_t;
 
 // player model info
-static stringlist_t s_skinnames[MAX_PLAYERMODELS];
-static stringlist_t s_modelname;
-static stringlist_t s_directory;
+static strlist_t s_skinnames[MAX_PLAYERMODELS];
+static strlist_t s_modelname;
+static strlist_t s_directory;
 
 static int rate_tbl[] = {2500, 3200, 5000, 10000, 25000, 0};
 static const char *rate_names[] = {"28.8 Modem", "33.6 Modem", "Single ISDN",

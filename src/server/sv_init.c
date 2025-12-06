@@ -25,13 +25,43 @@
  */
 
 #include "header/server.h"
+#include <limits.h>
+
+/* initialize the entities array to at least this many entities */
+#define ALLOC_ENTITIES_MIN 32
+#define MAX_SV_ENTNUM SHRT_MAX
+
+void SV_ClearBaselines(void);
 
 server_static_t svs; /* persistant server info */
 server_t sv; /* local server */
 
+static entity_state_t *
+SV_AllocBaseline(int entnum)
+{
+	int nextpow2;
+
+	if ((entnum < 0) || (entnum > MAX_SV_ENTNUM))
+	{
+		return NULL;
+	}
+
+	if (entnum >= sv.numbaselines)
+	{
+		nextpow2 = (sv.numbaselines || (entnum >= ALLOC_ENTITIES_MIN)) ?
+			(int)NextPow2gt(entnum) : ALLOC_ENTITIES_MIN;
+
+		sv.baselines = Z_Realloc(sv.baselines, nextpow2 * sizeof(entity_state_t));
+		sv.numbaselines = nextpow2;
+	}
+
+	return &sv.baselines[entnum];
+}
+
 static int
 SV_FindIndex(const char *name, int start, int max, qboolean create)
 {
+	size_t len, space;
 	int i;
 
 	if (!name || !name[0])
@@ -54,10 +84,39 @@ SV_FindIndex(const char *name, int start, int max, qboolean create)
 
 	if (i == max)
 	{
-		Com_Error(ERR_DROP, "*Index: overflow");
+		if (!StringList_IsInList(&sv.configstrings_overflow, name))
+		{
+			if (sv.state != ss_loading)
+			{
+				Com_Printf("Failed to load %s: configstrings overflowed\n", name);
+			}
+
+			StringList_Add(&sv.configstrings_overflow, name);
+		}
+
+		return 0;
 	}
 
-	Q_strlcpy(sv.configstrings[start + i], name, sizeof(sv.configstrings[start + i]));
+	space = sizeof(sv.configstrings[start + i]);
+	len = Q_strlcpy(sv.configstrings[start + i], name, space);
+
+	if (len >= space)
+	{
+		sv.configstrings[start + i][0] = '\0';
+
+		if (!StringList_IsInList(&sv.configstrings_overflow, name))
+		{
+			if (sv.state != ss_loading)
+			{
+				Com_Printf("Failed to load %s: configstring too long: %u > %u\n",
+					name, len, space - 1);
+			}
+
+			StringList_Add(&sv.configstrings_overflow, name);
+		}
+
+		return 0;
+	}
 
 	if (sv.state != ss_loading)
 	{
@@ -96,6 +155,7 @@ SV_ImageIndex(char *name)
 static void
 SV_CreateBaseline(void)
 {
+	entity_state_t *es;
 	edict_t *svent;
 	int entnum;
 
@@ -117,12 +177,12 @@ SV_CreateBaseline(void)
 
 		/* take current state as baseline */
 		VectorCopy(svent->s.origin, svent->s.old_origin);
-		if (entnum >= MAX_EDICTS)
+
+		es = SV_AllocBaseline(entnum);
+		if (es)
 		{
-			Com_Error(ERR_DROP, "%s: bad entity %d >= %d\n",
-				__func__, entnum, MAX_EDICTS);
+			*es = svent->s;
 		}
-		sv.baselines[entnum] = svent->s;
 	}
 }
 
@@ -206,6 +266,7 @@ SV_SpawnServer(char *server, char *spawnpoint, server_state_t serverstate,
 	Com_SetServerState(sv.state);
 
 	/* wipe the entire per-level structure */
+	SV_ClearBaselines();
 	memset(&sv, 0, sizeof(sv));
 	svs.realtime = 0;
 	sv.loadgame = loadgame;
@@ -382,7 +443,6 @@ void
 SV_InitGame(void)
 {
 	int i, gamemode;
-	edict_t *ent;
 	char idmaster[32];
 
 	if (svs.initialized)
@@ -464,9 +524,7 @@ SV_InitGame(void)
 
 	for (i = 0; i < maxclients->value; i++)
 	{
-		ent = EDICT_NUM(i + 1);
-		ent->s.number = i + 1;
-		svs.clients[i].edict = ent;
+		CLNUM_EDICT(i)->s.number = i + 1;
 		memset(&svs.clients[i].lastcmd, 0, sizeof(svs.clients[i].lastcmd));
 	}
 }

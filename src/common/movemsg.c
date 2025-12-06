@@ -25,6 +25,7 @@
  */
 
 #include "header/common.h"
+#include <limits.h>
 
 vec3_t bytedirs[NUMVERTEXNORMALS] = {
 	{-0.525731, 0.000000, 0.850651},
@@ -190,6 +191,8 @@ vec3_t bytedirs[NUMVERTEXNORMALS] = {
 	{-0.587785, -0.425325, -0.688191},
 	{-0.688191, -0.587785, -0.425325}
 };
+
+static const entity_state_t es_nullstate = {0};
 
 size_t
 MSG_ConfigString_Size(const char *s)
@@ -370,7 +373,19 @@ MSG_DeltaEntity_Size(const entity_state_t *from, const entity_state_t *to,
 	qboolean force, qboolean newentity)
 {
 	size_t sz;
-	int bits = DeltaEntityBits(from, to, newentity);
+	int bits;
+
+	if (!from)
+	{
+		from = &es_nullstate;
+	}
+
+	if (!to)
+	{
+		to = &es_nullstate;
+	}
+
+	bits = DeltaEntityBits(from, to, newentity);
 
 	if (!bits && !force)
 	{
@@ -780,15 +795,20 @@ MSG_WriteDeltaEntity(const entity_state_t *from,
 {
 	int bits;
 
-	if (!to->number)
+	if (!from)
 	{
-		Com_Error(ERR_FATAL, "Unset entity number");
+		from = &es_nullstate;
 	}
 
-	if (to->number >= MAX_EDICTS)
+	if (!to)
 	{
-		Com_Error(ERR_DROP, "%s: bad entity %d >= %d\n",
-			__func__, to->number, MAX_EDICTS);
+		to = &es_nullstate;
+	}
+
+	/* entnums are sent in 16-bit form */
+	if (to->number > SHRT_MAX)
+	{
+		return;
 	}
 
 	/* send an update */

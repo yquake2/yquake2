@@ -140,6 +140,19 @@ CL_ParseEntityBits(unsigned *bits)
 static void
 CL_ParseDelta(const entity_state_t *from, entity_state_t *to, int number, int bits)
 {
+	static const entity_state_t es_nullstate = {0};
+	entity_state_t dummy;
+
+	if (!from)
+	{
+		from = &es_nullstate;
+	}
+
+	if (!to)
+	{
+		to = &dummy;
+	}
+
 	/* set everything to the state we are delta'ing from */
 	*to = *from;
 
@@ -276,12 +289,17 @@ CL_ParseDelta(const entity_state_t *from, entity_state_t *to, int number, int bi
  * the current frame
  */
 static void
-CL_DeltaEntity(frame_t *frame, int newnum, entity_state_t *old, int bits)
+CL_DeltaEntity(frame_t *frame, int newnum, const entity_state_t *old, int bits)
 {
-	centity_t *ent;
+	centity_t dummy, *ent;
 	entity_state_t *state;
 
-	ent = &cl_entities[newnum];
+	ent = CL_AllocEntity(newnum);
+	if (!ent)
+	{
+		memset(&dummy, 0, sizeof(dummy));
+		ent = &dummy;
+	}
 
 	state = &cl_parse_entities[cl.parse_entities & (MAX_PARSE_ENTITIES - 1)];
 	cl.parse_entities++;
@@ -344,6 +362,7 @@ CL_ParsePacketEntities(frame_t *oldframe, frame_t *newframe)
 {
 	unsigned int newnum;
 	unsigned bits;
+	centity_t *ent;
 	entity_state_t *oldstate = NULL;
 	int oldindex, oldnum;
 
@@ -377,10 +396,10 @@ CL_ParsePacketEntities(frame_t *oldframe, frame_t *newframe)
 	{
 		newnum = CL_ParseEntityBits(&bits);
 
-		if (newnum >= MAX_EDICTS)
+		if (newnum > MAX_CL_ENTNUM)
 		{
-			Com_Error(ERR_DROP, "%s: bad entity %d >= %d\n",
-				__func__, newnum, MAX_EDICTS);
+			Com_Error(ERR_DROP, "%s: bad entity %d > %d\n",
+				__func__, newnum, MAX_CL_ENTNUM);
 			return;
 		}
 
@@ -430,7 +449,7 @@ CL_ParsePacketEntities(frame_t *oldframe, frame_t *newframe)
 
 			if (oldnum != newnum)
 			{
-				Com_Printf("U_REMOVE: oldnum != newnum\n");
+				Com_Printf("U_REMOVE: oldnum != newnum: %d %d\n", oldnum, newnum);
 			}
 
 			oldindex++;
@@ -485,9 +504,12 @@ CL_ParsePacketEntities(frame_t *oldframe, frame_t *newframe)
 				Com_Printf("   baseline: %i\n", newnum);
 			}
 
+			ent = CL_AllocEntity(newnum);
+
 			CL_DeltaEntity(newframe, newnum,
-					&cl_entities[newnum].baseline,
+					ent ? &ent->baseline : NULL,
 					bits);
+
 			continue;
 		}
 	}
@@ -931,16 +953,14 @@ CL_ParseServerData(void)
 static void
 CL_ParseBaseline(void)
 {
-	entity_state_t *es;
 	unsigned bits;
 	int newnum;
-	entity_state_t nullstate;
-
-	memset(&nullstate, 0, sizeof(nullstate));
+	centity_t *ent;
 
 	newnum = CL_ParseEntityBits(&bits);
-	es = &cl_entities[newnum].baseline;
-	CL_ParseDelta(&nullstate, es, newnum, bits);
+	ent = CL_AllocEntity(newnum);
+
+	CL_ParseDelta(NULL, ent ? &ent->baseline : NULL, newnum, bits);
 }
 
 void
@@ -1234,13 +1254,6 @@ CL_ParseStartSoundPacket(void)
 		/* entity reletive */
 		channel = MSG_ReadShort(&net_message);
 		ent = channel >> 3;
-
-		if (ent > MAX_EDICTS)
-		{
-			Com_Error(ERR_DROP, "%s: bad entity %d >= %d\n",
-				__func__, ent, MAX_EDICTS);
-		}
-
 		channel &= 7;
 	}
 	else
