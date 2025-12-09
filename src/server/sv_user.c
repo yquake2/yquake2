@@ -173,7 +173,9 @@ SV_Configstrings_f(void)
 	int i, start;
 	int opt;
 
-	Com_DPrintf("Configstrings() from %s\n", sv_client->name);
+	start = (Cmd_Argc() > 2) ? (int)strtol(Cmd_Argv(2), (char **)NULL, 10) : 0;
+
+	Com_DPrintf("Configstrings(%i) from %s\n", start, sv_client->name);
 
 	if (sv_client->state != cs_connected)
 	{
@@ -182,14 +184,13 @@ SV_Configstrings_f(void)
 	}
 
 	/* handle the case of a level changing while a client was connecting */
-	if ((int)strtol(Cmd_Argv(1), (char **)NULL, 10) != svs.spawncount)
+	if ((Cmd_Argc() <= 1) ||
+		((int)strtol(Cmd_Argv(1), (char **)NULL, 10) != svs.spawncount))
 	{
 		Com_Printf("SV_Configstrings_f from different level\n");
 		SV_New_f();
 		return;
 	}
-
-	start = (int)strtol(Cmd_Argv(2), (char **)NULL, 10);
 
 	if (start < 0)
 	{
@@ -269,7 +270,9 @@ SV_Baselines_f(void)
 	int is_opt;
 	const entity_state_t *base;
 
-	Com_DPrintf("Baselines() from %s\n", sv_client->name);
+	start = (Cmd_Argc() > 2) ? (int)strtol(Cmd_Argv(2), (char **)NULL, 10) : 0;
+
+	Com_DPrintf("Baselines(%i) from %s\n", start, sv_client->name);
 
 	if (sv_client->state != cs_connected)
 	{
@@ -278,14 +281,13 @@ SV_Baselines_f(void)
 	}
 
 	/* handle the case of a level changing while a client was connecting */
-	if ((int)strtol(Cmd_Argv(1), (char **)NULL, 10) != svs.spawncount)
+	if ((Cmd_Argc() <= 1) ||
+		((int)strtol(Cmd_Argv(1), (char **)NULL, 10) != svs.spawncount))
 	{
 		Com_Printf("SV_Baselines_f from different level\n");
 		SV_New_f();
 		return;
 	}
-
-	start = (int)strtol(Cmd_Argv(2), (char **)NULL, 10);
 
 	if (start < 0)
 	{
