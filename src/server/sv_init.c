@@ -108,7 +108,7 @@ SV_FindIndex(const char *name, int start, int max, qboolean create)
 		{
 			if (sv.state != ss_loading)
 			{
-				Com_Printf("Failed to load %s: configstring too long: %u > %u\n",
+				Com_Printf("Failed to load %s: configstring too long: %lu > %lu\n",
 					name, len, space - 1);
 			}
 
