@@ -89,7 +89,7 @@ jobs:
         unzip -o curl-mingw-latest.zip
         cp curl-*-win64-mingw/bin/libcurl-x64.dll publish/quake2-win64-${{github.sha}}/curl.dll
     - name: Upload testbuild package
-      uses: actions/upload-artifact@v5
+      uses: actions/upload-artifact@v6
       with:
         name: quake2-win64-${{github.sha}}
         path: publish/

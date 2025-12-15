@@ -78,7 +78,7 @@ jobs:
         hdiutil create -srcfolder build/macos-dmg -layout SPUD -fs HFS+ -volname "Yamagi Quake II" "release/yquake2.dmg"
         cp release/yquake2.dmg publish/quake2-macos-${{github.sha}}/
     - name: Upload testbuild package
-      uses: actions/upload-artifact@v5
+      uses: actions/upload-artifact@v6
       with:
         name: quake2-macos-${{github.sha}}
         path: publish/

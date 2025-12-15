@@ -83,7 +83,7 @@ jobs:
         wget -c -O libcurl-4.dll "https://github.com/dhewm/dhewm3-libs/raw/refs/heads/master/i686-w64-mingw32/bin/libcurl-4.dll"
         cp libcurl-4.dll publish/quake2-win32-${{github.sha}}/curl.dll
     - name: Upload testbuild package
-      uses: actions/upload-artifact@v5
+      uses: actions/upload-artifact@v6
       with:
         name: quake2-win32-${{github.sha}}
         path: publish/

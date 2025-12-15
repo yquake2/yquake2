@@ -58,7 +58,7 @@ jobs:
         cp doc/080_contributing.md publish/quake2-linux_aarch64-${{github.sha}}/misc/docs/080_contributing.txt
         cp doc/090_filelists.md publish/quake2-linux_aarch64-${{github.sha}}/misc/docs/090_filelists.md
     - name: Upload testbuild package
-      uses: actions/upload-artifact@v5
+      uses: actions/upload-artifact@v6
       with:
         name: quake2-linux_aarch64-${{github.sha}}
         path: publish/
