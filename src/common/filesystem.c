@@ -1700,7 +1700,7 @@ FS_FileInGamedir(const char *file)
 			return false;     /* couldn't find one anywhere */
 		}
 
-		snprintf(name, MAX_OSPATH, "%s/%s", path, file);
+		Com_sprintf(name, MAX_OSPATH, "%s/%s", path, file);
 
 		if ((fd = Q_fopen(name, "rb")) != NULL)
 		{
