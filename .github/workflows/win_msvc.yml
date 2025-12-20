@@ -83,13 +83,13 @@ jobs:
         cp ../dhewm3-libs-master/i686-w64-mingw32/bin/SDL2.dll publish/$PKGDIR/
         cp ../dhewm3-libs-master/i686-w64-mingw32/bin/libcurl-4.dll publish/$PKGDIR/curl.dll
     - name: Upload testbuild package
-      uses: actions/upload-artifact@v5
+      uses: actions/upload-artifact@v6
       with:
         name: ${{ env.pkgname }}
         path: publish/
         if-no-files-found: error
     - name: Upload testbuild debug symbols
-      uses: actions/upload-artifact@v5
+      uses: actions/upload-artifact@v6
       with:
         name: ${{ env.pkgname }}-debugsyms
         path: debug-syms/
@@ -164,13 +164,13 @@ jobs:
         cp ../dhewm3-libs-master/x86_64-w64-mingw32/bin/SDL2.dll publish/$PKGDIR/
         cp ../dhewm3-libs-master/x86_64-w64-mingw32/bin/libcurl-4.dll publish/$PKGDIR/curl.dll
     - name: Upload testbuild package
-      uses: actions/upload-artifact@v5
+      uses: actions/upload-artifact@v6
       with:
         name: ${{ env.pkgname }}
         path: publish/
         if-no-files-found: error
     - name: Upload testbuild debug symbols
-      uses: actions/upload-artifact@v5
+      uses: actions/upload-artifact@v6
       with:
         name: ${{ env.pkgname }}-debugsyms
         path: debug-syms/
