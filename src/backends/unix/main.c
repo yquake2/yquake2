@@ -37,6 +37,7 @@
 #include "../../common/header/common.h"
 
 void registerHandler(void);
+void setCustomCfgDir(const char* dir);
 
 int
 main(int argc, char **argv)
@@ -99,7 +100,7 @@ main(int argc, char **argv)
 			// We need an argument.
 			if (i != (argc - 1))
 			{
-				Q_strlcpy(cfgdir, argv[i + 1], sizeof(cfgdir));
+				setCustomCfgDir(argv[i + 1]);
 			}
 			else
 			{
