@@ -25,8 +25,6 @@
  * =======================================================================
  */
 
-#include <limits.h>
-
 #include "header/client.h"
 #include "input/header/input.h"
 
