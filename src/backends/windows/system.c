@@ -45,7 +45,7 @@ static HANDLE hinput, houtput;
 static HINSTANCE game_library;
 
 // Config dir
-char cfgdir[MAX_OSPATH] = CFGDIR;
+char cfgdir[MAX_OSPATH] = CFGDIRNAME;
 
 // Buffer for the dedicated server console
 static char console_text[256];

@@ -2200,7 +2200,7 @@ static void FS_AddDirToRawPath (const char *rawdir, qboolean create, qboolean re
 static void
 FS_BuildRawPath(void)
 {
-	// Add $HOME/.yq2, MUST be the last dir! Required,
+	// Add homedir, MUST be the last dir! Required,
 	// otherwise the config cannot be written.
 	if (!is_portable) {
 		const char *homedir = Sys_GetHomeDir();

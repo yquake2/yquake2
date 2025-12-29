@@ -155,6 +155,12 @@ Qcommon_Buildstring(void)
 #endif
 #endif
 
+#ifdef USE_XDG
+	printf(" + XDG directory support\n");
+#else
+	printf(" - XDG directory support\n");
+#endif
+
 	printf("Platform: %s\n", YQ2OSTYPE);
 	printf("Architecture: %s\n", YQ2ARCH);
 }

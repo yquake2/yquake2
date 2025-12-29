@@ -57,13 +57,20 @@ qboolean stdin_active = true;
 // Terminal supports colors
 static qboolean color_active = false;
 
-// Config dir
-char cfgdir[MAX_OSPATH] = CFGDIR;
-
 // Console logfile
 extern FILE	*logfile;
 
+// Config dir name
+char cfgdir[MAX_OSPATH] = CFGDIRNAME;
+static qboolean user_cfgdir = false;
+
 /* ================================================================ */
+
+void setCustomCfgDir(const char* dir)
+{
+	Q_strlcpy(cfgdir, dir, MAX_OSPATH);
+	user_cfgdir = true;
+}
 
 void
 Sys_Error(const char *error, ...)
@@ -549,26 +556,53 @@ Sys_IsFile(const char *path)
 }
 
 char *
-Sys_GetHomeDir(void)
+Sys_GetHomeDir()
 {
-	static char gdir[MAX_OSPATH];
-	char *home;
+	static char dir[MAX_OSPATH];
 
-	home = getenv("HOME");
-
-	if (!home)
+	if (!dir[0])
 	{
-		return NULL;
-	}
+		const char* home = getenv("HOME");
+
+		if (!home) {
+			// uh-oh
+			return NULL;
+		}
 
 #ifndef __HAIKU__
-	Com_sprintf(gdir, sizeof(gdir), "%s/%s/", home, cfgdir);
-#else
-	Com_sprintf(gdir, sizeof(gdir), "%s/config/settings/%s", home, cfgdir);
-#endif
-	Sys_Mkdir(gdir);
+		if (user_cfgdir) {
+			// custom cfgdir was set by the user: ~/{cfgdir}
+			Com_sprintf(dir, MAX_OSPATH, "%s/%s/", home, cfgdir);
+			Sys_Mkdir(dir);
+			return dir;
+		}
 
-	return gdir;
+		// hidden dir: ~/.{CFGDIRNAME_SHORT}
+		Com_sprintf(dir, MAX_OSPATH, "%s/.%s/", home, CFGDIRNAME_SHORT);
+
+#ifdef USE_XDG
+		if (Sys_IsDir(dir)) {
+			Com_Printf("%s: Found old home dir, ignoring $XDG_DATA_HOME/%s\n", __func__, cfgdir);
+			return dir;
+		}
+
+		// XDG dir: XDG_DATA_HOME/{cfgdir}
+		const char* datahome = getenv("XDG_DATA_HOME");
+		if (datahome) {
+			Com_sprintf(dir, MAX_OSPATH, "%s/%s/", datahome, cfgdir);
+		} else {
+			Com_sprintf(dir, MAX_OSPATH, "%s/.local/share/%s/", home, cfgdir);
+		}
+#endif
+
+#else // HAIKU
+		Com_sprintf(dir, MAX_OSPATH, "%s/config/settings/%s/", home, cfgdir);
+#endif
+
+	}
+
+	Sys_Mkdir(dir);
+	return dir;
 }
 
 void
