@@ -35,7 +35,6 @@
  */
 
 #include <SDL3/SDL.h>
-#include <limits.h>
 
 #include "SDL3/SDL_gamepad.h"
 #include "SDL3/SDL_properties.h"
@@ -2503,7 +2502,7 @@ static void
 IN_Controller_Init(qboolean notify_user)
 {
 	cvar_t *cvar;
-	int nummappings;
+	int nummappings, numjoysticks, joy_num, i;
 	char controllerdb[MAX_OSPATH] = {0};
 	SDL_Joystick *joystick = NULL;
 	bool is_controller = false;
@@ -2525,7 +2524,8 @@ IN_Controller_Init(qboolean notify_user)
 	}
 
 	cvar = Cvar_Get("in_initjoy", "1", CVAR_NOSET);
-	if (!cvar->value)
+	joy_num = (int)cvar->value;
+	if (joy_num < 1)
 	{
 		return;
 	}
@@ -2544,14 +2544,12 @@ IN_Controller_Init(qboolean notify_user)
 		}
 	}
 
-	int numjoysticks;
 	const SDL_JoystickID *joysticks = SDL_GetJoysticks(&numjoysticks);
 
 	if (joysticks != NULL)
 	{
 		Com_Printf ("%i joysticks were found.\n", numjoysticks);
 	}
-
 
 	if (numjoysticks == 0)
 	{
@@ -2584,7 +2582,10 @@ IN_Controller_Init(qboolean notify_user)
 			Com_Printf ("%d mappings loaded from gamecontrollerdb.txt\n", nummappings);
 	}
 
-	for (int i = 0; i < numjoysticks; i++)
+	if (joy_num > numjoysticks) joy_num = 1;
+	joy_num--;
+	i = joy_num;
+	do
 	{
 		joystick = SDL_OpenJoystick(joysticks[i]);
 		if (!joystick)
@@ -2741,7 +2742,11 @@ IN_Controller_Init(qboolean notify_user)
 			break;
 #endif
 		}
+
+		i++;
+		if (i == numjoysticks) i = 0;
 	}
+	while (i != joy_num);
 
 	SDL_free((void *)joysticks);
 	IN_GamepadLabels_Changed();

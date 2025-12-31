@@ -517,7 +517,7 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
 
 * **vid_renderer**: Selects the renderer library. Possible options are
   `gl3` (the default) for the OpenGL 3.2 renderer, `gles3` for the
-  OpenGL ES3 renderer, gl1 for the original OpenGL 1.4 renderer and
+  OpenGL ES3 renderer, `gl1` for the original OpenGL 1.4 renderer and
   `soft` for the software renderer.
 
 
@@ -648,9 +648,9 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
 
 ## Gamepad
 
-* **in_initjoy**: Toggles initialization of game controller. Default is
-  `1`, which enables gamepad usage; `0` disables its detection at
-  startup. Can only be set from command line.
+* **in_initjoy**: Chooses the preferred gamepad to initialize, starting
+  with `1` (default); `0` disables gamepad usage. Can only be set from
+  command line.
 
 * **joy_escbutton**: Defines which button is used in the gamepad as
   the `Esc` key, to pull the main menu and 'cancel' / 'go back' on its
@@ -670,8 +670,8 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
 * **joy_confirm**: Style of *confirm* and *cancel* buttons in menus. As
   with the previous one, SDL 2.0.12 is required for `-1` to work.
   - `-1`: *Autodetect*, sets to `1` if Nintendo gamepad, `0` otherwise
-  - `0`: *Standard style*: SOUTH to confirm, EAST to cancel
-  - `1`: *Japanese style*: EAST to confirm, SOUTH to cancel
+  - `0`: *Standard style* - SOUTH to confirm, EAST to cancel
+  - `1`: *Japanese style* - EAST to confirm, SOUTH to cancel
 
 * **joy_sensitivity**: Simple sensitivity adjustment for yaw and pitch.
   Changing this applies a preset that adjusts the advanced cvars listed

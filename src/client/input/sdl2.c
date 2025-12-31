@@ -35,7 +35,6 @@
  */
 
 #include <SDL2/SDL.h>
-#include <limits.h>
 
 #include "header/input.h"
 #include "header/gyro.h"
@@ -2522,7 +2521,7 @@ static void
 IN_Controller_Init(qboolean notify_user)
 {
 	cvar_t *cvar;
-	int nummappings;
+	int nummappings, numjoysticks, joy_num, i;
 	char controllerdb[MAX_OSPATH] = {0};
 	SDL_Joystick *joystick = NULL;
 	SDL_bool is_controller = SDL_FALSE;
@@ -2544,7 +2543,8 @@ IN_Controller_Init(qboolean notify_user)
 	}
 
 	cvar = Cvar_Get("in_initjoy", "1", CVAR_NOSET);
-	if (!cvar->value)
+	joy_num = (int)cvar->value;
+	if (joy_num < 1)
 	{
 		return;
 	}
@@ -2574,9 +2574,10 @@ IN_Controller_Init(qboolean notify_user)
 		}
 	}
 
-	Com_Printf ("%i joysticks were found.\n", SDL_NumJoysticks());
+	numjoysticks = SDL_NumJoysticks();
+	Com_Printf ("%i joysticks were found.\n", numjoysticks);
 
-	if (!SDL_NumJoysticks())
+	if (numjoysticks == 0)
 	{
 		joystick_haptic = SDL_HapticOpenFromMouse();
 
@@ -2605,7 +2606,10 @@ IN_Controller_Init(qboolean notify_user)
 			Com_Printf ("%d mappings loaded from gamecontrollerdb.txt\n", nummappings);
 	}
 
-	for (int i = 0; i < SDL_NumJoysticks(); i++)
+	if (joy_num > numjoysticks) joy_num = 1;
+	joy_num--;
+	i = joy_num;
+	do
 	{
 		const char* joystick_name;
 		size_t name_len;
@@ -2771,7 +2775,11 @@ IN_Controller_Init(qboolean notify_user)
 			break;
 #endif
 		}
+
+		i++;
+		if (i == numjoysticks) i = 0;
 	}
+	while (i != joy_num);
 
 	IN_GamepadLabels_Changed();
 	IN_GamepadConfirm_Changed();
