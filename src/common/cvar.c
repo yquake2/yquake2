@@ -94,6 +94,28 @@ static const replacement_t replacements[] = {
 	{"intensity", "gl1_intensity"}
 };
 
+/* An ugly hack to rewrite changed CVARs */
+static const char *
+Cvar_CheckReplacement(const char *var_name, qboolean msg)
+{
+	const replacement_t *r;
+
+	for (r = replacements; r < ARREND(replacements); r++)
+	{
+		if (!strcmp(var_name, r->old))
+		{
+			if (msg)
+			{
+				Com_Printf("cvar %s is deprecated, use %s instead\n",
+					r->old, r->new);
+			}
+
+			return r->new;
+		}
+	}
+
+	return var_name;
+}
 
 static qboolean
 Cvar_InfoValidate(const char *s)
@@ -120,18 +142,8 @@ static cvar_t *
 Cvar_FindVar(const char *var_name)
 {
 	cvar_t *var;
-	int i;
 
-	/* An ugly hack to rewrite changed CVARs */
-	for (i = 0; i < ARRLEN(replacements); i++)
-	{
-		if (!strcmp(var_name, replacements[i].old))
-		{
-			Com_Printf("cvar %s is deprecated, use %s instead\n", replacements[i].old, replacements[i].new);
-
-			var_name = replacements[i].new;
-		}
-	}
+	var_name = Cvar_CheckReplacement(var_name, true);
 
 	for (var = cvar_vars; var; var = var->next)
 	{
@@ -527,8 +539,8 @@ Cvar_Command(void)
 static void
 Cvar_Set_f(void)
 {
-	char *firstarg;
-	int c, i;
+	const char *firstarg;
+	int c;
 
 	c = Cmd_Argc();
 
@@ -538,16 +550,7 @@ Cvar_Set_f(void)
 		return;
 	}
 
-	firstarg = Cmd_Argv(1);
-
-	/* An ugly hack to rewrite changed CVARs */
-	for (i = 0; i < ARRLEN(replacements); i++)
-	{
-		if (!strcmp(firstarg, replacements[i].old))
-		{
-			firstarg = replacements[i].new;
-		}
-	}
+	firstarg = Cvar_CheckReplacement(Cmd_Argv(1), false);
 
 	if (c == 4)
 	{
