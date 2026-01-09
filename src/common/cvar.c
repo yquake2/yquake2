@@ -870,6 +870,8 @@ Cvar_Toggle_f(void)
 void
 Cvar_Init(void)
 {
+	cvar_vars = NULL;
+
 	Cmd_AddCommand("cvarlist", Cvar_List_f);
 	Cmd_AddCommand("dec", Cvar_Inc_f);
 	Cmd_AddCommand("inc", Cvar_Inc_f);
@@ -882,20 +884,32 @@ Cvar_Init(void)
 /*
  * Free list of cvars
  */
-void
-Cvar_Fini(void)
+static void
+Cvar_FreeList(void)
 {
 	cvar_t *var;
 
 	for (var = cvar_vars; var;)
 	{
-		cvar_t *c = var->next;
-		Z_Free(var->string);
+		cvar_t *next;
+
 		Z_Free(var->name);
+		Z_Free(var->string);
 		Z_Free(var->default_string);
+		Z_Free(var->latched_string);
+
+		next = var->next;
 		Z_Free(var);
-		var = c;
+		var = next;
 	}
+
+	cvar_vars = NULL;
+}
+
+void
+Cvar_Fini(void)
+{
+	Cvar_FreeList();
 
 	Cmd_RemoveCommand("cvarlist");
 	Cmd_RemoveCommand("dec");
