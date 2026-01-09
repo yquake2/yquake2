@@ -251,11 +251,41 @@ Cvar_VariableString(const char *var_name)
  * If the variable already exists, the value will not be set
  * The flags will be or'ed in if the variable exists.
  */
-cvar_t *
-Cvar_Get(const char *var_name, const char *var_value, int flags)
+static cvar_t *
+Cvar_AddToList(const char *var_name, const char *var_value, int flags)
 {
 	cvar_t *var;
 	cvar_t **pos;
+
+	var = Z_Malloc(sizeof(*var));
+
+	var->name = CopyString(var_name);
+	var->string = CopyString(var_value);
+	var->default_string = CopyString(var_value);
+	var->flags = flags;
+	var->modified = true;
+	var->value = strtod(var_value, (char **)NULL);
+
+	pos = &cvar_vars;
+
+	while (*pos && strcmp((*pos)->name, var->name) < 0)
+	{
+		pos = &(*pos)->next;
+	}
+
+	var->next = *pos;
+	*pos = var;
+
+	return var;
+}
+
+static cvar_t *
+Cvar_GetNew(const char *var_name, const char *var_value, int flags)
+{
+	if (!var_value)
+	{
+		return NULL;
+	}
 
 	if (flags & (CVAR_USERINFO | CVAR_SERVERINFO))
 	{
@@ -264,17 +294,28 @@ Cvar_Get(const char *var_name, const char *var_value, int flags)
 			Com_Printf("invalid info cvar name\n");
 			return NULL;
 		}
+
+		if (!Cvar_InfoValidate(var_value))
+		{
+			Com_Printf("invalid info cvar value\n");
+			return NULL;
+		}
 	}
 
-	var = Cvar_FindVar(var_name);
-
-	if (var)
+	// if $game is the default one ("baseq2"), then use "" instead because
+	// other code assumes this behavior (e.g. FS_BuildGameSpecificSearchPath())
+	if (strcmp(var_name, "game") == 0 && strcmp(var_value, BASEDIRNAME) == 0)
 	{
-		var->flags |= flags;
-		var->default_string = Cvar_CopyString(var->default_string, var_value);
-
-		return var;
+		var_value = "";
 	}
+
+	return Cvar_AddToList(var_name, var_value, flags);
+}
+
+cvar_t *
+Cvar_Get(const char *var_name, const char *var_value, int flags)
+{
+	cvar_t *var;
 
 	if (!var_value)
 	{
@@ -283,6 +324,12 @@ Cvar_Get(const char *var_name, const char *var_value, int flags)
 
 	if (flags & (CVAR_USERINFO | CVAR_SERVERINFO))
 	{
+		if (!Cvar_InfoValidate(var_name))
+		{
+			Com_Printf("invalid info cvar name\n");
+			return NULL;
+		}
+
 		if (!Cvar_InfoValidate(var_value))
 		{
 			Com_Printf("invalid info cvar value\n");
@@ -297,25 +344,17 @@ Cvar_Get(const char *var_name, const char *var_value, int flags)
 		var_value = "";
 	}
 
-	var = Z_Malloc(sizeof(*var));
-	var->name = CopyString(var_name);
-	var->string = CopyString(var_value);
-	var->default_string = CopyString(var_value);
-	var->modified = true;
-	var->value = strtod(var->string, (char **)NULL);
+	var = Cvar_FindVar(var_name);
 
-	/* link the variable in */
-	pos = &cvar_vars;
-	while (*pos && strcmp((*pos)->name, var->name) < 0)
+	if (var)
 	{
-		pos = &(*pos)->next;
+		var->flags |= flags;
+		var->default_string = Cvar_CopyString(var->default_string, var_value);
+
+		return var;
 	}
-	var->next = *pos;
-	*pos = var;
 
-	var->flags = flags;
-
-	return var;
+	return Cvar_AddToList(var_name, var_value, flags);
 }
 
 static cvar_t *
@@ -327,7 +366,7 @@ Cvar_Set2(const char *var_name, const char *value, qboolean force)
 
 	if (!var)
 	{
-		return Cvar_Get(var_name, value, 0);
+		return Cvar_GetNew(var_name, value, 0);
 	}
 
 	if (var->flags & (CVAR_USERINFO | CVAR_SERVERINFO))
@@ -441,7 +480,7 @@ Cvar_FullSet(const char *var_name, const char *value, int flags)
 
 	if (!var)
 	{
-		return Cvar_Get(var_name, value, flags);
+		return Cvar_GetNew(var_name, value, flags);
 	}
 
 	var->modified = true;
