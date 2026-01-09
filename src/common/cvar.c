@@ -117,6 +117,34 @@ Cvar_CheckReplacement(const char *var_name, qboolean msg)
 	return var_name;
 }
 
+static char *
+Cvar_CopyString(char *old_str, const char *new_value)
+{
+	size_t ol, nl;
+
+	if (!new_value)
+	{
+		new_value = "";
+	}
+
+	if (!old_str)
+	{
+		return CopyString(new_value);
+	}
+
+	ol = Z_BlockSize(old_str);
+	nl = strlen(new_value) + 1;
+
+	if (nl > ol)
+	{
+		old_str = Z_Realloc(old_str, nl);
+	}
+
+	strcpy(old_str, new_value);
+
+	return old_str;
+}
+
 static qboolean
 Cvar_InfoValidate(const char *s)
 {
@@ -243,18 +271,7 @@ Cvar_Get(const char *var_name, const char *var_value, int flags)
 	if (var)
 	{
 		var->flags |= flags;
-
-		if (var->default_string)
-			Z_Free(var->default_string);
-
-		if (!var_value)
-		{
-			var->default_string = CopyString("");
-		}
-		else
-		{
-			var->default_string = CopyString(var_value);
-		}
+		var->default_string = Cvar_CopyString(var->default_string, var_value);
 
 		return var;
 	}
@@ -364,7 +381,7 @@ Cvar_Set2(const char *var_name, const char *value, qboolean force)
 			}
 			else
 			{
-				var->string = CopyString(value);
+				var->string = Cvar_CopyString(var->string, value);
 				var->value = (float)strtod(var->string, (char **)NULL);
 
 				if (!strcmp(var->name, "game"))
@@ -397,9 +414,7 @@ Cvar_Set2(const char *var_name, const char *value, qboolean force)
 		userinfo_modified = true;
 	}
 
-	Z_Free(var->string);
-
-	var->string = CopyString(value);
+	var->string = Cvar_CopyString(var->string, value);
 	var->value = strtod(var->string, (char **)NULL);
 
 	return var;
@@ -443,9 +458,7 @@ Cvar_FullSet(const char *var_name, const char *value, int flags)
 		value = "";
 	}
 
-	Z_Free(var->string);
-
-	var->string = CopyString(value);
+	var->string = Cvar_CopyString(var->string, value);
 	var->value = (float)strtod(var->string, (char **)NULL);
 
 	var->flags = flags;
