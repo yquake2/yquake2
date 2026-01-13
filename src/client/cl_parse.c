@@ -1121,33 +1121,54 @@ CL_ParseClientinfo(int player)
 static void
 CL_ParseConfigString(void)
 {
-	size_t length;
-	int i;
-	char *s;
-	char olds[MAX_QPATH];
+	size_t length, space;
+	int i, cs_changed;
+	char *s, *cs;
 
 	i = MSG_ReadShort(&net_message);
+	s = MSG_ReadString(&net_message);
 
 	if ((i < 0) || (i >= MAX_CONFIGSTRINGS))
 	{
-		Com_Error(ERR_DROP, "%s: configstring > MAX_CONFIGSTRINGS", __func__);
-	}
-
-	s = MSG_ReadString(&net_message);
-
-	Q_strlcpy(olds, cl.configstrings[i], sizeof(olds));
-
-	length = strlen(s);
-	if (length > sizeof(cl.configstrings) - sizeof(cl.configstrings[0]) * i - 1)
-	{
-		Com_Error(ERR_DROP, "%s: oversize configstring", __func__);
+		Com_Printf("%s: bad index: %i\n", __func__, i);
 		return;
 	}
 
-	Q_strlcpy(cl.configstrings[i], s,
-		(MAX_CONFIGSTRINGS - i) * sizeof(*cl.configstrings));
+	cs = cl.configstrings[i];
+	cs_changed = strcmp(s, cs) != 0;
 
-	/* do something apropriate */
+	length = strlen(s);
+
+	/* statusbar code covers several configstring indices */
+	if ((i >= CS_STATUSBAR) && (i < CS_STATUSBAR_END))
+	{
+		space = CS_STATUSBAR_SPACE(i);
+
+		if (length >= space)
+		{
+			Com_Printf("%s: %i: statusbar code too long: " YQ2_COM_PRIdS " > " YQ2_COM_PRIdS "\n",
+				__func__, i, length, space - 1);
+
+			return;
+		}
+
+		memcpy(cs, s, length + 1);
+	}
+	else
+	{
+		space = sizeof(cl.configstrings[i]);
+
+		if (length >= space)
+		{
+			Com_Printf("%s: %i: string too long: " YQ2_COM_PRIdS " > " YQ2_COM_PRIdS "\n",
+				__func__, i, length, space - 1);
+
+			return;
+		}
+
+		strcpy(cs, s);
+	}
+
 	if ((i >= CS_LIGHTS) && (i < CS_LIGHTS + MAX_LIGHTSTYLES))
 	{
 		CL_SetLightstyle(i - CS_LIGHTS);
@@ -1193,7 +1214,7 @@ CL_ParseConfigString(void)
 	}
 	else if ((i >= CS_PLAYERSKINS) && (i < CS_PLAYERSKINS + MAX_CLIENTS))
 	{
-		if (cl.refresh_prepped && strcmp(olds, s))
+		if (cl.refresh_prepped && cs_changed)
 		{
 			CL_ParseClientinfo(i - CS_PLAYERSKINS);
 		}

@@ -603,7 +603,7 @@ SV_Init(void)
 {
 	SV_InitOperatorCommands();
 
-	sv_optimize_sp_loadtime = Cvar_Get("sv_optimize_sp_loadtime", "7", 0);
+	sv_optimize_sp_loadtime = Cvar_Get("sv_optimize_sp_loadtime", "15", 0);
 	sv_optimize_mp_loadtime = Cvar_Get("sv_optimize_mp_loadtime", "0", 0);
 
 	rcon_password = Cvar_Get("rcon_password", "", 0);

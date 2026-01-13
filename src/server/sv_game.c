@@ -195,9 +195,13 @@ PF_setmodel(edict_t *ent, char *name)
 static void
 PF_Configstring(int index, char *val)
 {
+	size_t len, space;
+	char *cs;
+
 	if ((index < 0) || (index >= MAX_CONFIGSTRINGS))
 	{
-		Com_Error(ERR_DROP, "configstring: bad index %i\n", index);
+		Com_Printf("%s: bad index %i\n", __func__, index);
+		return;
 	}
 
 	if (!val)
@@ -205,8 +209,36 @@ PF_Configstring(int index, char *val)
 		val = "";
 	}
 
-	/* change the string in sv */
-	strcpy(sv.configstrings[index], val);
+	len = strlen(val);
+	cs = sv.configstrings[index];
+
+	/* statusbar code covers several configstring indices */
+	if ((index >= CS_STATUSBAR) && (index < CS_STATUSBAR_END))
+	{
+		space = CS_STATUSBAR_SPACE(index);
+
+		if (len >= space)
+		{
+			Com_Printf("%s: statusbar code too big: " YQ2_COM_PRIdS " > " YQ2_COM_PRIdS "\n",
+				__func__, len, space - 1);
+			return;
+		}
+
+		memcpy(cs, val, len + 1);
+	}
+	else
+	{
+		space = sizeof(sv.configstrings[index]);
+
+		if (len >= space)
+		{
+			Com_Printf("%s; value too big: " YQ2_COM_PRIdS " > " YQ2_COM_PRIdS "\n",
+				__func__, len, space - 1);
+			return;
+		}
+
+		strcpy(cs, val);
+	}
 
 	if (sv.state != ss_loading)
 	{

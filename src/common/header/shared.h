@@ -1193,6 +1193,8 @@ typedef enum
 #define CS_SKYAXIS 3                /* %f %f %f format */
 #define CS_SKYROTATE 4
 #define CS_STATUSBAR 5              /* display program string */
+#define CS_STATUSBAR_END 29
+#define CS_STATUSBAR_SPACE(i) ((CS_STATUSBAR_END - (i)) * MAX_QPATH)
 
 #define CS_AIRACCEL 29              /* air acceleration control */
 #define CS_MAXCLIENTS 30
