@@ -171,8 +171,6 @@ Cvar_FindVar(const char *var_name)
 {
 	cvar_t *var;
 
-	var_name = Cvar_CheckReplacement(var_name, true);
-
 	for (var = cvar_vars; var; var = var->next)
 	{
 		if (!strcmp(var_name, var->name))
@@ -220,9 +218,9 @@ Cvar_IsFloat(const char *s)
 float
 Cvar_VariableValue(const char *var_name)
 {
-	cvar_t *var;
+	const cvar_t *var;
 
-	var = Cvar_FindVar(var_name);
+	var = Cvar_FindVar(Cvar_CheckReplacement(var_name, true));
 
 	if (!var)
 	{
@@ -235,16 +233,11 @@ Cvar_VariableValue(const char *var_name)
 const char *
 Cvar_VariableString(const char *var_name)
 {
-	cvar_t *var;
+	const cvar_t *var;
 
-	var = Cvar_FindVar(var_name);
+	var = Cvar_FindVar(Cvar_CheckReplacement(var_name, true));
 
-	if (!var)
-	{
-		return "";
-	}
-
-	return var->string;
+	return var ? var->string : "";
 }
 
 /*
@@ -336,6 +329,8 @@ Cvar_Get(const char *var_name, const char *var_value, int flags)
 			return NULL;
 		}
 	}
+
+	var_name = Cvar_CheckReplacement(var_name, true);
 
 	// if $game is the default one ("baseq2"), then use "" instead because
 	// other code assumes this behavior (e.g. FS_BuildGameSpecificSearchPath())
@@ -453,7 +448,10 @@ Cvar_SetVar(cvar_t *var, const char *value, qboolean force)
 static cvar_t *
 Cvar_Set2(const char *var_name, const char *value, qboolean force)
 {
-	cvar_t *var = Cvar_FindVar(var_name);
+	cvar_t *var;
+
+	var_name = Cvar_CheckReplacement(var_name, true);
+	var = Cvar_FindVar(var_name);
 
 	return (!var) ?
 		Cvar_GetNew(var_name, value, 0) :
@@ -477,6 +475,7 @@ Cvar_FullSet(const char *var_name, const char *value, int flags)
 {
 	cvar_t *var;
 
+	var_name = Cvar_CheckReplacement(var_name, true);
 	var = Cvar_FindVar(var_name);
 
 	if (!var)
@@ -559,7 +558,7 @@ Cvar_Command(void)
 	cvar_t *v;
 
 	/* check variables */
-	v = Cvar_FindVar(Cmd_Argv(0));
+	v = Cvar_FindVar(Cvar_CheckReplacement(Cmd_Argv(0), true));
 
 	if (!v)
 	{
@@ -765,6 +764,7 @@ Cvar_Serverinfo(void)
 static void
 Cvar_Inc_f(void)
 {
+	const char *var_name;
 	char string[MAX_QPATH];
 	cvar_t *var;
 	float value;
@@ -775,11 +775,12 @@ Cvar_Inc_f(void)
 		return;
 	}
 
-	var = Cvar_FindVar(Cmd_Argv(1));
+	var_name = Cvar_CheckReplacement(Cmd_Argv(1), true);
+	var = Cvar_FindVar(var_name);
 
 	if (!var)
 	{
-		Com_Printf("%s is not a cvar\n", Cmd_Argv(1));
+		Com_Printf("%s is not a cvar\n", var_name);
 		return;
 	}
 
@@ -811,6 +812,7 @@ Cvar_Inc_f(void)
 static void
 Cvar_Reset_f(void)
 {
+	const char *var_name;
 	cvar_t *var;
 
 	if (Cmd_Argc() < 2)
@@ -819,11 +821,12 @@ Cvar_Reset_f(void)
 		return;
 	}
 
-	var = Cvar_FindVar(Cmd_Argv(1));
+	var_name = Cvar_CheckReplacement(Cmd_Argv(1), true);
+	var = Cvar_FindVar(var_name);
 
 	if (!var)
 	{
-		Com_Printf("%s is not a cvar\n", Cmd_Argv(1));
+		Com_Printf("%s is not a cvar\n", var_name);
 		return;
 	}
 
@@ -861,6 +864,7 @@ Cvar_ResetAll_f(void)
 static void
 Cvar_Toggle_f(void)
 {
+	const char *var_name;
 	cvar_t *var;
 	int i, argc = Cmd_Argc();
 
@@ -870,11 +874,12 @@ Cvar_Toggle_f(void)
 		return;
 	}
 
-	var = Cvar_FindVar(Cmd_Argv(1));
+	var_name = Cvar_CheckReplacement(Cmd_Argv(1), true);
+	var = Cvar_FindVar(var_name);
 
 	if (!var)
 	{
-		Com_Printf("%s is not a cvar\n", Cmd_Argv(1));
+		Com_Printf("%s is not a cvar\n", var_name);
 		return;
 	}
 
