@@ -358,17 +358,8 @@ Cvar_Get(const char *var_name, const char *var_value, int flags)
 }
 
 static cvar_t *
-Cvar_Set2(const char *var_name, const char *value, qboolean force)
+Cvar_SetVar(cvar_t *var, const char *value, qboolean force)
 {
-	cvar_t *var;
-
-	var = Cvar_FindVar(var_name);
-
-	if (!var)
-	{
-		return Cvar_GetNew(var_name, value, 0);
-	}
-
 	if (var->flags & (CVAR_USERINFO | CVAR_SERVERINFO))
 	{
 		if (!Cvar_InfoValidate(value))
@@ -380,7 +371,7 @@ Cvar_Set2(const char *var_name, const char *value, qboolean force)
 
 	// if $game is the default one ("baseq2"), then use "" instead because
 	// other code assumes this behavior (e.g. FS_BuildGameSpecificSearchPath())
-	if(strcmp(var_name, "game") == 0 && strcmp(value, BASEDIRNAME) == 0)
+	if(strcmp(var->name, "game") == 0 && strcmp(value, BASEDIRNAME) == 0)
 	{
 		value = "";
 	}
@@ -389,7 +380,7 @@ Cvar_Set2(const char *var_name, const char *value, qboolean force)
 	{
 		if (var->flags & CVAR_NOSET)
 		{
-			Com_Printf("%s is write protected.\n", var_name);
+			Com_Printf("%s is write protected.\n", var->name);
 			return var;
 		}
 
@@ -415,7 +406,7 @@ Cvar_Set2(const char *var_name, const char *value, qboolean force)
 
 			if (Com_ServerState())
 			{
-				Com_Printf("%s will be changed for next game.\n", var_name);
+				Com_Printf("%s will be changed for next game.\n", var->name);
 				var->latched_string = CopyString(value);
 			}
 			else
@@ -457,6 +448,16 @@ Cvar_Set2(const char *var_name, const char *value, qboolean force)
 	var->value = strtod(var->string, (char **)NULL);
 
 	return var;
+}
+
+static cvar_t *
+Cvar_Set2(const char *var_name, const char *value, qboolean force)
+{
+	cvar_t *var = Cvar_FindVar(var_name);
+
+	return (!var) ?
+		Cvar_GetNew(var_name, value, 0) :
+		Cvar_SetVar(var, value, force);
 }
 
 cvar_t *
@@ -581,7 +582,7 @@ Cvar_Command(void)
 		Q_strlcpy(userGivenGame, Cmd_Argv(1), sizeof(userGivenGame));
 	}
 
-	Cvar_Set(v->name, Cmd_Argv(1));
+	Cvar_SetVar(v, Cmd_Argv(1), false);
 	return true;
 }
 
@@ -808,7 +809,7 @@ Cvar_Inc_f(void)
     }
 
 	Com_sprintf(string, sizeof(string), "%f", var->value + value);
-    Cvar_Set(var->name, string);
+    Cvar_SetVar(var, string, false);
 }
 
 /*
@@ -834,7 +835,7 @@ Cvar_Reset_f(void)
     }
 
 	Com_Printf("%s: %s\n", var->name, var->default_string);
-    Cvar_Set(var->name, var->default_string);
+    Cvar_SetVar(var, var->default_string, false);
 }
 
 /*
@@ -857,7 +858,7 @@ Cvar_ResetAll_f(void)
             continue;
 		}
 
-        Cvar_Set(var->name, var->default_string);
+        Cvar_SetVar(var, var->default_string, false);
     }
 }
 
@@ -888,11 +889,11 @@ Cvar_Toggle_f(void)
 	{
         if (!strcmp(var->string, "0"))
 		{
-            Cvar_Set(var->name, "1");
+            Cvar_SetVar(var, "1", false);
         }
 		else if (!strcmp(var->string, "1"))
 		{
-            Cvar_Set(var->name, "0");
+            Cvar_SetVar(var, "0", false);
         }
 		else
 		{
@@ -907,7 +908,7 @@ Cvar_Toggle_f(void)
         if (!Q_stricmp(var->string, Cmd_Argv(2 + i)))
 		{
             i = (i + 1) % (argc - 2);
-            Cvar_Set(var->name, Cmd_Argv(2 + i));
+            Cvar_SetVar(var, Cmd_Argv(2 + i), false);
 
             return;
         }
