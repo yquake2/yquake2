@@ -339,7 +339,7 @@ Cvar_Get(const char *var_name, const char *var_value, int flags)
 
 	// if $game is the default one ("baseq2"), then use "" instead because
 	// other code assumes this behavior (e.g. FS_BuildGameSpecificSearchPath())
-	if(strcmp(var_name, "game") == 0 && strcmp(var_value, BASEDIRNAME) == 0)
+	if (strcmp(var_name, "game") == 0 && strcmp(var_value, BASEDIRNAME) == 0)
 	{
 		var_value = "";
 	}
@@ -371,7 +371,7 @@ Cvar_SetVar(cvar_t *var, const char *value, qboolean force)
 
 	// if $game is the default one ("baseq2"), then use "" instead because
 	// other code assumes this behavior (e.g. FS_BuildGameSpecificSearchPath())
-	if(strcmp(var->name, "game") == 0 && strcmp(value, BASEDIRNAME) == 0)
+	if (strcmp(var->name, "game") == 0 && strcmp(value, BASEDIRNAME) == 0)
 	{
 		value = "";
 	}
@@ -493,7 +493,7 @@ Cvar_FullSet(const char *var_name, const char *value, int flags)
 
 	// if $game is the default one ("baseq2"), then use "" instead because
 	// other code assumes this behavior (e.g. FS_BuildGameSpecificSearchPath())
-	if(strcmp(var_name, "game") == 0 && strcmp(value, BASEDIRNAME) == 0)
+	if (strcmp(var_name, "game") == 0 && strcmp(value, BASEDIRNAME) == 0)
 	{
 		value = "";
 	}
@@ -515,7 +515,6 @@ Cvar_SetValue(const char *var_name, float value)
 	{
 		Com_sprintf(val, sizeof(val), "%i", (int)value);
 	}
-
 	else
 	{
 		Com_sprintf(val, sizeof(val), "%f", value);
@@ -613,17 +612,14 @@ Cvar_Set_f(void)
 		{
 			flags = CVAR_ARCHIVE;
 		}
-
 		else if (!strcmp(Cmd_Argv(3), "u"))
 		{
 			flags = CVAR_USERINFO;
 		}
-
 		else if (!strcmp(Cmd_Argv(3), "s"))
 		{
 			flags = CVAR_SERVERINFO;
 		}
-
 		else
 		{
 			Com_Printf("flags can only be 'a', 'u' or 's'\n");
@@ -679,7 +675,6 @@ Cvar_List_f(void)
 		{
 			Com_Printf("*");
 		}
-
 		else
 		{
 			Com_Printf(" ");
@@ -689,7 +684,6 @@ Cvar_List_f(void)
 		{
 			Com_Printf("U");
 		}
-
 		else
 		{
 			Com_Printf(" ");
@@ -699,7 +693,6 @@ Cvar_List_f(void)
 		{
 			Com_Printf("S");
 		}
-
 		else
 		{
 			Com_Printf(" ");
@@ -709,12 +702,10 @@ Cvar_List_f(void)
 		{
 			Com_Printf("-");
 		}
-
 		else if (var->flags & CVAR_LATCH)
 		{
 			Com_Printf("L");
 		}
-
 		else
 		{
 			Com_Printf(" ");
@@ -775,41 +766,43 @@ static void
 Cvar_Inc_f(void)
 {
 	char string[MAX_QPATH];
-    cvar_t *var;
-    float value;
+	cvar_t *var;
+	float value;
 
-    if (Cmd_Argc() < 2)
+	if (Cmd_Argc() < 2)
 	{
-        Com_Printf("Usage: %s <cvar> [value]\n", Cmd_Argv(0));
-        return;
-    }
+		Com_Printf("Usage: %s <cvar> [value]\n", Cmd_Argv(0));
+		return;
+	}
 
-    var = Cvar_FindVar(Cmd_Argv(1));
+	var = Cvar_FindVar(Cmd_Argv(1));
 
-    if (!var)
+	if (!var)
 	{
-        Com_Printf("%s is not a cvar\n", Cmd_Argv(1));
-        return;
-    }
+		Com_Printf("%s is not a cvar\n", Cmd_Argv(1));
+		return;
+	}
 
-    if (!Cvar_IsFloat(var->string))
+	if (!Cvar_IsFloat(var->string))
 	{
-        Com_Printf("\"%s\" is \"%s\", can't %s\n", var->name, var->string, Cmd_Argv(0));
-        return;
-    }
+		Com_Printf("\"%s\" is \"%s\", can't %s\n", var->name, var->string, Cmd_Argv(0));
+		return;
+	}
 
-    value = 1;
+	value = 1;
 
-    if (Cmd_Argc() > 2) {
-        value = atof(Cmd_Argv(2));
-    }
+	if (Cmd_Argc() > 2)
+	{
+		value = atof(Cmd_Argv(2));
+	}
 
-    if (!strcmp(Cmd_Argv(0), "dec")) {
-        value = -value;
-    }
+	if (!strcmp(Cmd_Argv(0), "dec"))
+	{
+		value = -value;
+	}
 
 	Com_sprintf(string, sizeof(string), "%f", var->value + value);
-    Cvar_SetVar(var, string, false);
+	Cvar_SetVar(var, string, false);
 }
 
 /*
@@ -818,24 +811,24 @@ Cvar_Inc_f(void)
 static void
 Cvar_Reset_f(void)
 {
-    cvar_t *var;
+	cvar_t *var;
 
-    if (Cmd_Argc() < 2)
+	if (Cmd_Argc() < 2)
 	{
-        Com_Printf("Usage: %s <cvar>\n", Cmd_Argv(0));
-        return;
-    }
+		Com_Printf("Usage: %s <cvar>\n", Cmd_Argv(0));
+		return;
+	}
 
-    var = Cvar_FindVar(Cmd_Argv(1));
+	var = Cvar_FindVar(Cmd_Argv(1));
 
-    if (!var)
+	if (!var)
 	{
-        Com_Printf("%s is not a cvar\n", Cmd_Argv(1));
-        return;
-    }
+		Com_Printf("%s is not a cvar\n", Cmd_Argv(1));
+		return;
+	}
 
 	Com_Printf("%s: %s\n", var->name, var->default_string);
-    Cvar_SetVar(var, var->default_string, false);
+	Cvar_SetVar(var, var->default_string, false);
 }
 
 /*
@@ -845,21 +838,21 @@ Cvar_Reset_f(void)
 static void
 Cvar_ResetAll_f(void)
 {
-    cvar_t *var;
+	cvar_t *var;
 
-    for (var = cvar_vars; var; var = var->next)
+	for (var = cvar_vars; var; var = var->next)
 	{
-        if ((var->flags & CVAR_NOSET))
+		if ((var->flags & CVAR_NOSET))
 		{
-            continue;
+			continue;
 		}
 		else if (strcmp(var->name, "game") == 0)
 		{
-            continue;
+			continue;
 		}
 
-        Cvar_SetVar(var, var->default_string, false);
-    }
+		Cvar_SetVar(var, var->default_string, false);
+	}
 }
 
 /*
@@ -868,53 +861,53 @@ Cvar_ResetAll_f(void)
 static void
 Cvar_Toggle_f(void)
 {
-    cvar_t *var;
-    int i, argc = Cmd_Argc();
+	cvar_t *var;
+	int i, argc = Cmd_Argc();
 
-    if (argc < 2)
+	if (argc < 2)
 	{
-        Com_Printf("Usage: %s <cvar> [values]\n", Cmd_Argv(0));
-        return;
-    }
+		Com_Printf("Usage: %s <cvar> [values]\n", Cmd_Argv(0));
+		return;
+	}
 
-    var = Cvar_FindVar(Cmd_Argv(1));
+	var = Cvar_FindVar(Cmd_Argv(1));
 
-    if (!var)
+	if (!var)
 	{
-        Com_Printf("%s is not a cvar\n", Cmd_Argv(1));
-        return;
-    }
+		Com_Printf("%s is not a cvar\n", Cmd_Argv(1));
+		return;
+	}
 
-    if (argc < 3)
+	if (argc < 3)
 	{
-        if (!strcmp(var->string, "0"))
+		if (!strcmp(var->string, "0"))
 		{
-            Cvar_SetVar(var, "1", false);
-        }
+			Cvar_SetVar(var, "1", false);
+		}
 		else if (!strcmp(var->string, "1"))
 		{
-            Cvar_SetVar(var, "0", false);
-        }
+			Cvar_SetVar(var, "0", false);
+		}
 		else
 		{
-            Com_Printf("\"%s\" is \"%s\", can't toggle\n", var->name, var->string);
-        }
+			Com_Printf("\"%s\" is \"%s\", can't toggle\n", var->name, var->string);
+		}
 
-        return;
-    }
+		return;
+	}
 
-    for (i = 0; i < argc - 2; i++)
+	for (i = 0; i < argc - 2; i++)
 	{
-        if (!Q_stricmp(var->string, Cmd_Argv(2 + i)))
+		if (!Q_stricmp(var->string, Cmd_Argv(2 + i)))
 		{
-            i = (i + 1) % (argc - 2);
-            Cvar_SetVar(var, Cmd_Argv(2 + i), false);
+			i = (i + 1) % (argc - 2);
+			Cvar_SetVar(var, Cmd_Argv(2 + i), false);
 
-            return;
-        }
-    }
+			return;
+		}
+	}
 
-    Com_Printf("\"%s\" is \"%s\", can't cycle\n", var->name, var->string);
+	Com_Printf("\"%s\" is \"%s\", can't cycle\n", var->name, var->string);
 }
 
 /*
