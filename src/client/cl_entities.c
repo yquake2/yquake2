@@ -632,8 +632,7 @@ CL_AddViewWeapon(player_state_t *ps, player_state_t *ops)
 	{
 		gun.origin[i] = cl.refdef.vieworg[i] + ops->gunoffset[i]
 			+ cl.lerpfrac * (ps->gunoffset[i] - ops->gunoffset[i]);
-		gun.angles[i] = cl.refdef.viewangles[i] + LerpAngle(ops->gunangles[i],
-			ps->gunangles[i], cl.lerpfrac);
+		gun.angles[i] = cl.refdef.viewangles[i];
 	}
 
 	if (gun_frame)
