@@ -183,6 +183,66 @@ RDraw_PicScaled(int x, int y, const char *pic, float factor)
 	glDisableClientState( GL_TEXTURE_COORD_ARRAY );
 }
 
+void
+RDraw_PicScaledCol(int x, int y, const char *pic, float factor, const float color[3])
+{
+	image_t *gl;
+
+	gl = R_FindPic(pic, (findimage_t)R_FindImage);
+
+	if (!gl)
+	{
+		Com_Printf("Can't find pic: %s\n", pic);
+		return;
+	}
+
+	if (scrap_dirty)
+	{
+		Scrap_Upload();
+	}
+
+	R_ApplyGLBuffer();
+
+	R_TexEnv(GL_MODULATE);
+	glColor4f(color[0], color[1], color[2], 1);
+
+	if (gl->texnum == TEXNUM_SCRAPS)
+	{
+		R_Bind(TEXNUM_SCRAPS);
+	}
+	else
+	{
+		R_Bind(gl->texnum);
+	}
+
+	GLfloat vtx[] = {
+		x, y,
+		x + gl->width * factor, y,
+		x + gl->width * factor, y + gl->height * factor,
+		x, y + gl->height * factor
+	};
+
+	GLfloat tex[] = {
+		gl->sl, gl->tl,
+		gl->sh, gl->tl,
+		gl->sh, gl->th,
+		gl->sl, gl->th
+	};
+
+	glEnableClientState( GL_VERTEX_ARRAY );
+	glEnableClientState( GL_TEXTURE_COORD_ARRAY );
+
+	glVertexPointer( 2, GL_FLOAT, 0, vtx );
+	glTexCoordPointer( 2, GL_FLOAT, 0, tex );
+	glDrawArrays( GL_TRIANGLE_FAN, 0, 4 );
+
+	glDisableClientState( GL_VERTEX_ARRAY );
+	glDisableClientState( GL_TEXTURE_COORD_ARRAY );
+
+	glColor4f(1, 1, 1, 1);
+	R_TexEnv(GL_REPLACE);
+}
+
 /*
  * This repeats a 64*64 tile graphic to fill
  * the screen around a sized down

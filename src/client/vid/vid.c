@@ -722,6 +722,22 @@ Draw_PicScaled(int x, int y, const char *pic, float factor)
 }
 
 void
+Draw_PicScaledCol(int x, int y, const char *pic, float factor, const float color[3])
+{
+	if (ref_active)
+	{
+		if (re.DrawPicScaledCol)
+		{
+			re.DrawPicScaledCol(x, y, pic, factor, color);
+		}
+		else
+		{
+			re.DrawPicScaled(x, y, pic, factor);
+		}
+	}
+}
+
+void
 Draw_CharScaled(int x, int y, int num, float scale)
 {
 	if (ref_active)

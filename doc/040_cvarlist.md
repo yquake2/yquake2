@@ -426,6 +426,12 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
   factor for the current resolution. All cvars are set through the
   scaling slider in the video menu.
 
+* **crosshair_color_r** / **crosshair_color_g** / **crosshair_color_b**:
+  Set the red, green and blue color components of the crosshair. Each
+  value is a float between `0` and `1`. Defaults to `1` for all three
+  components (white / no tint). Can also be set through the crosshair
+  color option in the options menu.
+
 * **r_customheight** / **r_customwidth**: Specifies a custom resolution,
   the windows will be *r_customheight* pixels high and *r_customwidth*
   pixels wide. Set *r_mode* to `-1` to use the custom resolution.

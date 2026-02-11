@@ -398,6 +398,112 @@ RE_Draw_PicScaled(int x, int y, const char *name, float scale)
 }
 
 /*
+ * Finds the closest palette index for a given RGB color.
+ */
+static byte
+FindNearestColor(int r, int g, int b)
+{
+	int i;
+	int best_index = 0;
+	int best_dist = 0x7FFFFFFF;
+
+	for (i = 0; i < 255; i++) /* skip index 255 (transparent) */
+	{
+		int dr = (int)d_8to24table[i * 4 + 0] - r;
+		int dg = (int)d_8to24table[i * 4 + 1] - g;
+		int db = (int)d_8to24table[i * 4 + 2] - b;
+		int dist = dr * dr + dg * dg + db * db;
+
+		if (dist < best_dist)
+		{
+			best_dist = dist;
+			best_index = i;
+		}
+	}
+
+	return (byte)best_index;
+}
+
+void
+RE_Draw_PicScaledCol(int x, int y, const char *name, float scale, const float color[3])
+{
+	const image_t *pic;
+	int w, h;
+	int pic_width, pic_height;
+	byte *pic_pixels;
+	pixel_t *dest;
+	int v, u;
+
+	pic = R_FindPic(name, (findimage_t)R_FindImage);
+	if (!pic)
+	{
+		Com_Printf("Can't find pic: %s\n", name);
+		return;
+	}
+
+	/* If no tint needed, fall back to normal draw */
+	if (color[0] >= 1.0f && color[1] >= 1.0f && color[2] >= 1.0f)
+	{
+		RE_Draw_StretchPicImplementation(
+			x, y,
+			scale * pic->asset_width, scale * pic->asset_height,
+			pic);
+		return;
+	}
+
+	w = (int)(scale * pic->asset_width);
+	h = (int)(scale * pic->asset_height);
+
+	if ((x < 0) ||
+		(x + w > vid_buffer_width) ||
+		(y + h > vid_buffer_height))
+	{
+		Com_Printf("%s: bad coordinates %dx%d[%dx%d]",
+			__func__, x, y, w, h);
+		return;
+	}
+
+	VID_DamageBuffer(x, y);
+	VID_DamageBuffer(x + w, y + h);
+
+	dest = vid_buffer + y * vid_buffer_width + x;
+
+	pic_width = w;
+	pic_height = h;
+	pic_pixels = Get_BestImageSize(pic, &pic_width, &pic_height);
+
+	for (v = 0; v < h; v++, dest += vid_buffer_width)
+	{
+		int sv = v * pic_height / h;
+		byte *source = pic_pixels + sv * pic_width;
+		int f = 0;
+		int fstep = (pic_width << SHIFT16XYZ) / w;
+
+		for (u = 0; u < w; u++)
+		{
+			byte idx = source[f >> 16];
+			f += fstep;
+
+			if (idx == TRANSPARENT_COLOR)
+			{
+				continue;
+			}
+
+			/* Look up RGB, apply tint, find nearest palette color */
+			int r = (int)(d_8to24table[idx * 4 + 0] * color[0]);
+			int g = (int)(d_8to24table[idx * 4 + 1] * color[1]);
+			int b = (int)(d_8to24table[idx * 4 + 2] * color[2]);
+
+			if (r > 255) r = 255;
+			if (g > 255) g = 255;
+			if (b > 255) b = 255;
+
+			dest[u] = FindNearestColor(r, g, b);
+		}
+	}
+}
+
+/*
 =============
 RE_Draw_TileClear
 

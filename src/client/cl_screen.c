@@ -66,6 +66,9 @@ static int crosshair_width, crosshair_height;
 
 extern cvar_t *cl_showfps;
 extern cvar_t *crosshair_scale;
+extern cvar_t *crosshair_color_r;
+extern cvar_t *crosshair_color_g;
+extern cvar_t *crosshair_color_b;
 extern cvar_t *cl_showspeed;
 extern float GetPlayerSpeed(float *, float *);
 
@@ -1871,9 +1874,14 @@ SCR_DrawCrosshair(void)
 		scale = SCR_ClampScale(crosshair_scale->value);
 	}
 
-	Draw_PicScaled(scr_vrect.x + (scr_vrect.width - crosshair_width * scale) / 2,
+	float color[3];
+	color[0] = crosshair_color_r->value;
+	color[1] = crosshair_color_g->value;
+	color[2] = crosshair_color_b->value;
+
+	Draw_PicScaledCol(scr_vrect.x + (scr_vrect.width - crosshair_width * scale) / 2,
 			scr_vrect.y + (scr_vrect.height - crosshair_height * scale) / 2,
-			crosshair_pic, scale);
+			crosshair_pic, scale, color);
 }
 
 float

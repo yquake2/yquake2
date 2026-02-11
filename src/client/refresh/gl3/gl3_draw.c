@@ -216,6 +216,28 @@ GL3_Draw_PicScaled(int x, int y, const char *pic, float factor)
 	drawTexturedRectangle(x, y, gl->width*factor, gl->height*factor, gl->sl, gl->tl, gl->sh, gl->th);
 }
 
+void
+GL3_Draw_PicScaledCol(int x, int y, const char *pic, float factor, const float color[3])
+{
+	gl3image_t *gl = R_FindPic(pic, (findimage_t)GL3_FindImage);
+	if (!gl)
+	{
+		Com_Printf("Can't find pic: %s\n", pic);
+		return;
+	}
+
+	gl3state.uniCommonData.color = HMM_Vec4(color[0], color[1], color[2], 1.0f);
+	GL3_UpdateUBOCommon();
+
+	GL3_UseProgram(gl3state.si2Dtinted.shaderProgram);
+	GL3_Bind(gl->texnum);
+
+	drawTexturedRectangle(x, y, gl->width*factor, gl->height*factor, gl->sl, gl->tl, gl->sh, gl->th);
+
+	gl3state.uniCommonData.color = HMM_Vec4(1, 1, 1, 1);
+	GL3_UpdateUBOCommon();
+}
+
 /*
  * This repeats a 64*64 tile graphic to fill
  * the screen around a sized down
