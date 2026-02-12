@@ -124,8 +124,7 @@ typedef enum {
 	RESTART_PARTIAL
 } ref_restart_t;
 
-// FIXME: bump API_VERSION?
-#define	API_VERSION		7
+#define	API_VERSION		8
 #define EXPORT
 #define IMPORT
 
