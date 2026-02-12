@@ -587,6 +587,7 @@ void	RE_Draw_Fill (int x, int y, int w, int h, int c);
 void	RE_Draw_FadeScreen (void);
 
 extern byte d_8to24table[256 * 4];
+extern byte *d_16to8table;
 void	R_InitImages(void);
 void	R_ShutdownImages(void);
 image_t	*R_FindImage(const char *name, imagetype_t type);

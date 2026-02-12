@@ -397,33 +397,6 @@ RE_Draw_PicScaled(int x, int y, const char *name, float scale)
 		pic);
 }
 
-/*
- * Finds the closest palette index for a given RGB color.
- */
-static byte
-FindNearestColor(int r, int g, int b)
-{
-	int i;
-	int best_index = 0;
-	int best_dist = 0x7FFFFFFF;
-
-	for (i = 0; i < 255; i++) /* skip index 255 (transparent) */
-	{
-		int dr = (int)d_8to24table[i * 4 + 0] - r;
-		int dg = (int)d_8to24table[i * 4 + 1] - g;
-		int db = (int)d_8to24table[i * 4 + 2] - b;
-		int dist = dr * dr + dg * dg + db * db;
-
-		if (dist < best_dist)
-		{
-			best_dist = dist;
-			best_index = i;
-		}
-	}
-
-	return (byte)best_index;
-}
-
 void
 RE_Draw_PicScaledCol(int x, int y, const char *name, float scale, const float color[3])
 {
@@ -489,16 +462,20 @@ RE_Draw_PicScaledCol(int x, int y, const char *name, float scale, const float co
 				continue;
 			}
 
-			/* Look up RGB, apply tint, find nearest palette color */
-			int r = (int)(d_8to24table[idx * 4 + 0] * color[0]);
-			int g = (int)(d_8to24table[idx * 4 + 1] * color[1]);
-			int b = (int)(d_8to24table[idx * 4 + 2] * color[2]);
+			/* Look up RGB, apply tint, convert via d_16to8table */
+			unsigned int r = (unsigned int)(d_8to24table[idx * 4 + 0] * color[0]);
+			unsigned int g = (unsigned int)(d_8to24table[idx * 4 + 1] * color[1]);
+			unsigned int b = (unsigned int)(d_8to24table[idx * 4 + 2] * color[2]);
 
 			if (r > 255) r = 255;
 			if (g > 255) g = 255;
 			if (b > 255) b = 255;
 
-			dest[u] = FindNearestColor(r, g, b);
+			r = (r >> 3) & 31;
+			g = (g >> 2) & 63;
+			b = (b >> 3) & 31;
+
+			dest[u] = d_16to8table[r | (g << 5) | (b << 11)];
 		}
 	}
 }
