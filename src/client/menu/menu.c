@@ -2519,7 +2519,7 @@ CrosshairColorFunc(void *unused)
 
 	int idx = s_options_crosshair_color_box.curvalue;
 
-	if (idx < 0 || idx > 7)
+	if (idx < 0 || idx >= (int)ARRLEN(color_values))
 	{
 		idx = 0;
 	}
