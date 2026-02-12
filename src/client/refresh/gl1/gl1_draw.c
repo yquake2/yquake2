@@ -206,14 +206,7 @@ RDraw_PicScaledCol(int x, int y, const char *pic, float factor, const float colo
 	R_TexEnv(GL_MODULATE);
 	glColor4f(color[0], color[1], color[2], 1);
 
-	if (gl->texnum == TEXNUM_SCRAPS)
-	{
-		R_Bind(TEXNUM_SCRAPS);
-	}
-	else
-	{
-		R_Bind(gl->texnum);
-	}
+	R_Bind(gl->texnum);
 
 	GLfloat vtx[] = {
 		x, y,
