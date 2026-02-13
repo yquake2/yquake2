@@ -999,6 +999,39 @@ R_LoadPic(const char *name, byte *pic, int width, int realwidth,
 		R_FloodFillSkin(pic, width, height);
 	}
 
+	/* Normalize crosshair images to white so that color tinting via
+	   GL_MODULATE produces the correct hue regardless of the original
+	   palette color used in the crosshair PCX. */
+	if (bits == 8 && (strcmp(name, "pics/ch1.pcx") == 0 ||
+			strcmp(name, "pics/ch2.pcx") == 0 ||
+			strcmp(name, "pics/ch3.pcx") == 0))
+	{
+		int best = 0;
+		float best_lum = 0;
+
+		for (i = 0; i < 255; i++)
+		{
+			byte r = ((byte *)&d_8to24table[i])[0];
+			byte g = ((byte *)&d_8to24table[i])[1];
+			byte b = ((byte *)&d_8to24table[i])[2];
+			float lum = 0.299f * r + 0.587f * g + 0.114f * b;
+
+			if (lum > best_lum)
+			{
+				best_lum = lum;
+				best = i;
+			}
+		}
+
+		for (i = 0; i < width * height; i++)
+		{
+			if (pic[i] != 255)
+			{
+				pic[i] = (byte)best;
+			}
+		}
+	}
+
 	/* load little pics into the scrap */
 	if (!nolerp && (image->type == it_pic) && (bits == 8) &&
 		(image->width < 64) && (image->height < 64))

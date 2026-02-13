@@ -462,10 +462,18 @@ RE_Draw_PicScaledCol(int x, int y, const char *name, float scale, const float co
 				continue;
 			}
 
-			/* Look up RGB, apply tint, convert via d_16to8table */
-			unsigned int r = (unsigned int)(d_8to24table[idx * 4 + 0] * color[0]);
-			unsigned int g = (unsigned int)(d_8to24table[idx * 4 + 1] * color[1]);
-			unsigned int b = (unsigned int)(d_8to24table[idx * 4 + 2] * color[2]);
+			/* Compute luminance from the original pixel and apply the
+			   tint color at that brightness.  This ensures the desired
+			   hue is produced regardless of the palette color used in
+			   the source image (e.g. crosshair PCX files). */
+			float pr = d_8to24table[idx * 4 + 0];
+			float pg = d_8to24table[idx * 4 + 1];
+			float pb = d_8to24table[idx * 4 + 2];
+			float lum = (0.299f * pr + 0.587f * pg + 0.114f * pb) / 255.0f;
+
+			unsigned int r = (unsigned int)(255.0f * lum * color[0]);
+			unsigned int g = (unsigned int)(255.0f * lum * color[1]);
+			unsigned int b = (unsigned int)(255.0f * lum * color[2]);
 
 			if (r > 255) r = 255;
 			if (g > 255) g = 255;
