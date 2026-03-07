@@ -2773,7 +2773,7 @@ static const joy_preset_t joy_presets[] = {
 void
 IN_ApplyJoyPreset(void)
 {
-	const int final_preset = ARRLEN(joy_presets) - 1;
+	static const int final_preset = ARRLEN(joy_presets) - 1;
 	const int i = lroundf(Q_clamp(joy_sensitivity->value, 0, final_preset));
 
 	joy_sensitivity->modified = false;
@@ -2791,7 +2791,7 @@ IN_ApplyJoyPreset(void)
 qboolean
 IN_MatchJoyPreset(void)
 {
-	const int num_presets = ARRLEN(joy_presets);
+	static const int num_presets = ARRLEN(joy_presets);
 
 	for (int i = 0; i < num_presets; i++)
 	{
