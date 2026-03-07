@@ -167,8 +167,7 @@ static voidpf ZCALLBACK fopen_file_func_utf(voidpf opaque, const char *filename,
 
 	if (!((filename == NULL) || (mode_fopen == NULL)))
 	{
-		MultiByteToWideChar(CP_UTF8, 0, filename, -1, wfilename,
-			sizeof(wfilename) / sizeof(*wfilename));
+		MultiByteToWideChar(CP_UTF8, 0, filename, -1, wfilename, ARRLEN(wfilename));
 		file = _wfopen((const wchar_t *) wfilename, mode_fopen);
 	}
 
@@ -1492,7 +1491,7 @@ static int
 Q_sort_modcmp(const void *p1, const void *p2)
 {
 	static const char *first_mods[] = {BASEDIRNAME, "xatrix", "rogue", "ctf"};
-	static const unsigned short int first_mods_qty = 4;
+	static const unsigned short int first_mods_qty = ARRLEN(first_mods);
 
 	const char * s1 = * (char * const *)p1;
 	const char * s2 = * (char * const *)p2;
