@@ -93,7 +93,6 @@ typedef enum
 // IN_Update() called at the beginning of a frame to the
 // actual movement functions called at a later time.
 static float mouse_x, mouse_y;
-static unsigned char joy_escbutton = SDL_CONTROLLER_BUTTON_START;
 static int joystick_left_x, joystick_left_y, joystick_right_x, joystick_right_y;
 static qboolean mlooking;
 
@@ -1049,12 +1048,10 @@ IN_Update(void)
 			case SDL_CONTROLLERBUTTONUP:
 			case SDL_CONTROLLERBUTTONDOWN:
 			{
-				qboolean down = (event.type == SDL_CONTROLLERBUTTONDOWN);
 				unsigned char btn = event.cbutton.button;
 
-				// Handle Esc button first, to override its original key
-				Key_Event( (btn == joy_escbutton)? K_ESCAPE : K_JOY_FIRST_BTN + btn,
-					down, true );
+				Key_Event( (btn == SDL_CONTROLLER_BUTTON_START)? K_ESCAPE : K_JOY_FIRST_BTN + btn,
+					(event.type == SDL_CONTROLLERBUTTONDOWN), true );
 				break;
 			}
 
@@ -2544,22 +2541,6 @@ IN_Controller_Init(qboolean notify_user)
 	char controllerdb[MAX_OSPATH] = {0};
 	SDL_Joystick *joystick = NULL;
 	SDL_bool is_controller = SDL_FALSE;
-
-	cvar = Cvar_Get("joy_escbutton", "0", CVAR_ARCHIVE);
-	if (cvar)
-	{
-		switch ((int)cvar->value)
-		{
-			case 1:
-				joy_escbutton = SDL_CONTROLLER_BUTTON_BACK;
-				break;
-			case 2:
-				joy_escbutton = SDL_CONTROLLER_BUTTON_GUIDE;
-				break;
-			default:
-				joy_escbutton = SDL_CONTROLLER_BUTTON_START;
-		}
-	}
 
 	cvar = Cvar_Get("in_initjoy", "1", CVAR_NOSET);
 	joy_num = (int)cvar->value;
