@@ -2136,6 +2136,7 @@ GetRefAPI(refimport_t imp)
 	re.DrawGetPicSize = RDraw_GetPicSize;
 	//re.DrawPic = Draw_Pic;
 	re.DrawPicScaled = RDraw_PicScaled;
+	re.DrawPicScaledCol = RDraw_PicScaledCol;
 	re.DrawStretchPic = RDraw_StretchPic;
 	//re.DrawChar = Draw_Char;
 	re.DrawCharScaled = RDraw_CharScaled;

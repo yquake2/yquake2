@@ -124,8 +124,7 @@ typedef enum {
 	RESTART_PARTIAL
 } ref_restart_t;
 
-// FIXME: bump API_VERSION?
-#define	API_VERSION		7
+#define	API_VERSION		8
 #define EXPORT
 #define IMPORT
 
@@ -216,6 +215,8 @@ typedef struct
 	void	(EXPORT *EndFrame) (void);
 	qboolean	(EXPORT *EndWorldRenderpass) (void); // finish world rendering, apply postprocess and switch to UI render pass
 
+	void 	(EXPORT *DrawPicScaledCol) (int x, int y, const char *pic, float factor, const float color[3]);
+
 	//void	(EXPORT *AppActivate)( qboolean activate );
 } refexport_t;
 
@@ -281,6 +282,7 @@ void Draw_GetPicSize(int *w, int *h, const char *name);
 
 void Draw_StretchPic(int x, int y, int w, int h, const char *name);
 void Draw_PicScaled(int x, int y, const char *pic, float factor);
+void Draw_PicScaledCol(int x, int y, const char *pic, float factor, const float color[3]);
 
 void Draw_CharScaled(int x, int y, int num, float scale);
 void Draw_TileClear(int x, int y, int w, int h, const char *name);

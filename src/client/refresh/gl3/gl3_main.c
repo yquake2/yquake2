@@ -2024,6 +2024,7 @@ GetRefAPI(refimport_t imp)
 	re.DrawGetPicSize = GL3_Draw_GetPicSize;
 
 	re.DrawPicScaled = GL3_Draw_PicScaled;
+	re.DrawPicScaledCol = GL3_Draw_PicScaledCol;
 	re.DrawStretchPic = GL3_Draw_StretchPic;
 
 	re.DrawCharScaled = GL3_Draw_CharScaled;

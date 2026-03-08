@@ -397,6 +397,97 @@ RE_Draw_PicScaled(int x, int y, const char *name, float scale)
 		pic);
 }
 
+void
+RE_Draw_PicScaledCol(int x, int y, const char *name, float scale, const float color[3])
+{
+	const image_t *pic;
+	int w, h;
+	int pic_width, pic_height;
+	byte *pic_pixels;
+	pixel_t *dest;
+	int v, u;
+
+	pic = R_FindPic(name, (findimage_t)R_FindImage);
+	if (!pic)
+	{
+		Com_Printf("Can't find pic: %s\n", name);
+		return;
+	}
+
+	/* If no tint needed, fall back to normal draw */
+	if (color[0] >= 1.0f && color[1] >= 1.0f && color[2] >= 1.0f)
+	{
+		RE_Draw_StretchPicImplementation(
+			x, y,
+			scale * pic->asset_width, scale * pic->asset_height,
+			pic);
+		return;
+	}
+
+	w = (int)(scale * pic->asset_width);
+	h = (int)(scale * pic->asset_height);
+
+	if ((x < 0) ||
+		(x + w > vid_buffer_width) ||
+		(y + h > vid_buffer_height))
+	{
+		Com_Printf("%s: bad coordinates %dx%d[%dx%d]",
+			__func__, x, y, w, h);
+		return;
+	}
+
+	VID_DamageBuffer(x, y);
+	VID_DamageBuffer(x + w, y + h);
+
+	dest = vid_buffer + y * vid_buffer_width + x;
+
+	pic_width = w;
+	pic_height = h;
+	pic_pixels = Get_BestImageSize(pic, &pic_width, &pic_height);
+
+	for (v = 0; v < h; v++, dest += vid_buffer_width)
+	{
+		int sv = v * pic_height / h;
+		byte *source = pic_pixels + sv * pic_width;
+		int f = 0;
+		int fstep = (pic_width << SHIFT16XYZ) / w;
+
+		for (u = 0; u < w; u++)
+		{
+			byte idx = source[f >> 16];
+			f += fstep;
+
+			if (idx == TRANSPARENT_COLOR)
+			{
+				continue;
+			}
+
+			/* Compute luminance from the original pixel and apply the
+			   tint color at that brightness.  This ensures the desired
+			   hue is produced regardless of the palette color used in
+			   the source image (e.g. crosshair PCX files). */
+			float pr = d_8to24table[idx * 4 + 0];
+			float pg = d_8to24table[idx * 4 + 1];
+			float pb = d_8to24table[idx * 4 + 2];
+			float lum = (0.299f * pr + 0.587f * pg + 0.114f * pb) / 255.0f;
+
+			unsigned int r = (unsigned int)(255.0f * lum * color[0]);
+			unsigned int g = (unsigned int)(255.0f * lum * color[1]);
+			unsigned int b = (unsigned int)(255.0f * lum * color[2]);
+
+			if (r > 255) r = 255;
+			if (g > 255) g = 255;
+			if (b > 255) b = 255;
+
+			r = (r >> 3) & 31;
+			g = (g >> 2) & 63;
+			b = (b >> 3) & 31;
+
+			dest[u] = d_16to8table[r | (g << 5) | (b << 11)];
+		}
+	}
+}
+
 /*
 =============
 RE_Draw_TileClear

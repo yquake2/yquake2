@@ -36,6 +36,9 @@ cvar_t *crosshair_3d;
 cvar_t *crosshair_3d_glow;
 
 cvar_t *crosshair_scale;
+cvar_t *crosshair_color_r;
+cvar_t *crosshair_color_g;
+cvar_t *crosshair_color_b;
 cvar_t *cl_testparticles;
 cvar_t *cl_testentities;
 cvar_t *cl_testlights;
@@ -642,6 +645,9 @@ V_Init(void)
 
 	crosshair = Cvar_Get("crosshair", "0", CVAR_ARCHIVE);
 	crosshair_scale = Cvar_Get("crosshair_scale", "-1", CVAR_ARCHIVE);
+	crosshair_color_r = Cvar_Get("crosshair_color_r", "1", CVAR_ARCHIVE);
+	crosshair_color_g = Cvar_Get("crosshair_color_g", "1", CVAR_ARCHIVE);
+	crosshair_color_b = Cvar_Get("crosshair_color_b", "1", CVAR_ARCHIVE);
 	cl_testblend = Cvar_Get("cl_testblend", "0", 0);
 	cl_testparticles = Cvar_Get("cl_testparticles", "0", 0);
 	cl_testentities = Cvar_Get("cl_testentities", "0", 0);
