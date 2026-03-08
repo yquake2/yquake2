@@ -108,7 +108,7 @@ static void SetExecutablePath(char* exePath)
 	int name[4] = {CTL_KERN, KERN_PROC_ARGS, -1, KERN_PROC_PATHNAME};
 #endif
 	size_t len = PATH_MAX-1;
-	int ret = sysctl(name, sizeof(name)/sizeof(name[0]), exePath, &len, NULL, 0);
+	int ret = sysctl(name, ARRLEN(name), exePath, &len, NULL, 0);
 	if(ret != 0)
 	{
 		// an error occured, clear exe path

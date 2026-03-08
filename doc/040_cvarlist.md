@@ -667,12 +667,6 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
   with `1` (default); `0` disables gamepad usage. Can only be set from
   command line.
 
-* **joy_escbutton**: Defines which button is used in the gamepad as
-  the `Esc` key, to pull the main menu and 'cancel' / 'go back' on its
-  options. Valid values are `0` = Start / Menu / Plus (default), `1` =
-  Back / Select / Minus, or `2` = Guide / Home / PS. Requires a game
-  restart, or gamepad replug, when changed.
-
 * **joy_labels**: Defines style of button labels in binding menus. Note
   that binding through console only uses the SDL nomenclature (`0`).
   Default is `-1`, which requires at least SDL 2.0.12 to work.
