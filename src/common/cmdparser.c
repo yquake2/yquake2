@@ -999,6 +999,7 @@ Cmd_CompleteMapCommand(const char *partial)
 
 			/* Sort it */
 			qsort(pmatch, nbMatches, sizeof(pmatch[0]), Q_sort_strcomp);
+			size_t pmatchlen = strlen(pmatch[0]);
 
 			for (j = 0; j < nbMatches; j++)
 			{
@@ -1006,7 +1007,7 @@ Cmd_CompleteMapCommand(const char *partial)
 			}
 
 			//partial complete
-			for (j = 0; j < strlen(pmatch[0]); j++)
+			for (j = 0; j < pmatchlen; j++)
 			{
 				for (k = 1; k < nbMatches; k++)
 				{
