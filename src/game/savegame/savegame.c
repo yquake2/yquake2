@@ -643,7 +643,7 @@ ReadField(FILE *f, field_t *field, byte *base)
 		case F_EDICT:
 			index = *(int *)p;
 
-			if (index == -1)
+			if ((index < 0) || (index >= game.maxentities))
 			{
 				*(edict_t **)p = NULL;
 			}
@@ -656,7 +656,7 @@ ReadField(FILE *f, field_t *field, byte *base)
 		case F_CLIENT:
 			index = *(int *)p;
 
-			if (index == -1)
+			if ((index < 0) || (index >= game.maxclients))
 			{
 				*(gclient_t **)p = NULL;
 			}
@@ -669,7 +669,7 @@ ReadField(FILE *f, field_t *field, byte *base)
 		case F_ITEM:
 			index = *(int *)p;
 
-			if (index == -1)
+			if ((index < 0) || (index >= game.num_items))
 			{
 				*(gitem_t **)p = NULL;
 			}
