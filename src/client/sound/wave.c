@@ -147,6 +147,13 @@ GetWavinfo(char *name, byte *wav, int wavlength)
 	data_p += 4 + 2;
 	info.width = GetLittleShort() / 8;
 
+	/* wBitPerSample assumes it's not an uncommon value such as < 8 bits */
+	if (info.width <= 0)
+	{
+		Com_Printf("Invalid bits per sample");
+		return info;
+	}
+
 	/* get cue chunk */
 	FindChunk("cue ");
 
