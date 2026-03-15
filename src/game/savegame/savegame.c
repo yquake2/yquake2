@@ -182,6 +182,26 @@ static field_t clientfields[] = {
 /* ========================================================= */
 
 static void
+sg_fread(void *dest, size_t n, FILE *f)
+{
+	if (!fread(dest, n, 1, f))
+	{
+		fclose(f);
+		gi.error("Error reading " YQ2_COM_PRIdS " bytes from save file", n);
+	}
+}
+
+static void
+sg_fwrite(const void *src, size_t n, FILE *f)
+{
+	if (!fwrite(src, n, 1, f))
+	{
+		fclose(f);
+		gi.error("Error writing " YQ2_COM_PRIdS " bytes to save file", n);
+	}
+}
+
+static void
 InitAllocations(void)
 {
 	int num_c = maxclients->value;
@@ -475,6 +495,7 @@ WriteField1(FILE *f, field_t *field, byte *base)
 
 				if (!func)
 				{
+					fclose(f);
 					gi.error("%s: function not in list, can't save game",
 						__func__);
 					return;
@@ -497,6 +518,7 @@ WriteField1(FILE *f, field_t *field, byte *base)
 
 				if (!mmove)
 				{
+					fclose(f);
 					gi.error("%s: mmove not in list, can't save game",
 						__func__);
 					return;
@@ -508,6 +530,7 @@ WriteField1(FILE *f, field_t *field, byte *base)
 			*(int *)p = len;
 			break;
 		default:
+			fclose(f);
 			gi.error("%s: unknown field type", __func__);
 	}
 }
@@ -534,7 +557,7 @@ WriteField2(FILE *f, field_t *field, byte *base)
 			if (*(char **)p)
 			{
 				len = strlen(*(char **)p) + 1;
-				fwrite(*(char **)p, len, 1, f);
+				sg_fwrite(*(char **)p, len, f);
 			}
 
 			break;
@@ -546,13 +569,14 @@ WriteField2(FILE *f, field_t *field, byte *base)
 
 				if (!func)
 				{
+					fclose(f);
 					gi.error("%s: function not in list, can't save game",
 						__func__);
 					return;
 				}
 
 				len = strlen(func->funcStr)+1;
-				fwrite (func->funcStr, len, 1, f);
+				sg_fwrite(func->funcStr, len, f);
 			}
 
 			break;
@@ -563,13 +587,14 @@ WriteField2(FILE *f, field_t *field, byte *base)
 				mmove = GetMmoveByAddress (*(mmove_t **)p);
 				if (!mmove)
 				{
+					fclose(f);
 					gi.error("%s: mmove not in list, can't save game",
 						__func__);
 					return;
 				}
 
 				len = strlen(mmove->mmoveStr)+1;
-				fwrite (mmove->mmoveStr, len, 1, f);
+				sg_fwrite(mmove->mmoveStr, len, f);
 			}
 
 			break;
@@ -593,7 +618,7 @@ ReadField(FILE *f, field_t *field, byte *base)
 	void *p;
 	int len;
 	int index;
-	char funcStr[2048];
+	char funcStr[128];
 
 	if (field->flags & FFL_SPAWNTEMP)
 	{
@@ -625,15 +650,12 @@ ReadField(FILE *f, field_t *field, byte *base)
 				s = gi.TagMalloc(len + 1, TAG_LEVEL);
 				if (!s)
 				{
+					fclose(f);
 					gi.error("%s: can't allocate string field", __func__);
 					return;
 				}
 
-				if (fread(s, len, 1, f) != 1)
-				{
-					gi.error("%s: can't read string field", __func__);
-					return;
-				}
+				sg_fread(s, len, f);
 
 				s[len] = 0;
 				*(char **)p = s;
@@ -643,7 +665,7 @@ ReadField(FILE *f, field_t *field, byte *base)
 		case F_EDICT:
 			index = *(int *)p;
 
-			if (index == -1)
+			if ((index < 0) || (index >= game.maxentities))
 			{
 				*(edict_t **)p = NULL;
 			}
@@ -656,7 +678,7 @@ ReadField(FILE *f, field_t *field, byte *base)
 		case F_CLIENT:
 			index = *(int *)p;
 
-			if (index == -1)
+			if ((index < 0) || (index >= game.maxclients))
 			{
 				*(gclient_t **)p = NULL;
 			}
@@ -669,7 +691,7 @@ ReadField(FILE *f, field_t *field, byte *base)
 		case F_ITEM:
 			index = *(int *)p;
 
-			if (index == -1)
+			if ((index < 0) || (index >= game.num_items))
 			{
 				*(gitem_t **)p = NULL;
 			}
@@ -688,23 +710,20 @@ ReadField(FILE *f, field_t *field, byte *base)
 			}
 			else
 			{
-				if (len > sizeof(funcStr))
+				if (len >= sizeof(funcStr))
 				{
+					fclose(f);
 					gi.error("%s: function name is longer than buffer (%i chars)",
 							__func__, (int)sizeof(funcStr));
 					return;
 				}
 
-				if (fread (funcStr, len, 1, f) != 1)
-				{
-					gi.error("%s: can't get function name", __func__);
-					return;
-				}
-
-				funcStr[sizeof(funcStr) - 1] = 0;
+				sg_fread(funcStr, len, f);
+				funcStr[len] = 0;
 
 				if ( !(*(byte **)p = FindFunctionByName (funcStr)) )
 				{
+					fclose(f);
 					gi.error("%s: function %s not found in table, can't load game",
 						__func__, funcStr);
 				}
@@ -720,23 +739,20 @@ ReadField(FILE *f, field_t *field, byte *base)
 			}
 			else
 			{
-				if (len > sizeof(funcStr))
+				if (len >= sizeof(funcStr))
 				{
+					fclose(f);
 					gi.error("%s: mmove name is longer than buffer (%i chars)",
 							__func__, (int)sizeof(funcStr));
 					return;
 				}
 
-				if (fread(funcStr, len, 1, f) != 1)
-				{
-					gi.error("%s: can't get move name", __func__);
-					return;
-				}
-
-				funcStr[sizeof(funcStr) - 1] = 0;
+				sg_fread(funcStr, len, f);
+				funcStr[len] = 0;
 
 				if ( !(*(mmove_t **)p = FindMmoveByName (funcStr)) )
 				{
+					fclose(f);
 					gi.error("%s: mmove %s not found in table, can't load game",
 						__func__, funcStr);
 				}
@@ -744,6 +760,7 @@ ReadField(FILE *f, field_t *field, byte *base)
 			break;
 
 		default:
+			fclose(f);
 			gi.error("%s: unknown field type", __func__);
 	}
 }
@@ -769,7 +786,7 @@ WriteClient(FILE *f, gclient_t *client)
 	}
 
 	/* write the block */
-	fwrite(&temp, sizeof(temp), 1, f);
+	sg_fwrite(&temp, sizeof(temp), f);
 
 	/* now write any allocated data following the edict */
 	for (field = clientfields; field->name; field++)
@@ -786,12 +803,7 @@ ReadClient(FILE *f, gclient_t *client, short save_ver)
 {
 	field_t *field;
 
-	if (fread(client, sizeof(*client), 1, f) != 1)
-	{
-		fclose(f);
-		gi.error("%s: can't read client", __func__);
-		return;
-	}
+	sg_fread(client, sizeof(*client), f);
 
 	for (field = clientfields; field->name; field++)
 	{
@@ -847,10 +859,10 @@ WriteGame(const char *filename, qboolean autosave)
 	Q_strlcpy(sv.os, YQ2OSTYPE, sizeof(sv.os) - 1);
 	Q_strlcpy(sv.arch, YQ2ARCH, sizeof(sv.arch) - 1);
 
-	fwrite(&sv, sizeof(sv), 1, f);
+	sg_fwrite(&sv, sizeof(sv), f);
 
 	game.autosaved = autosave;
-	fwrite(&game, sizeof(game), 1, f);
+	sg_fwrite(&game, sizeof(game), f);
 	game.autosaved = false;
 
 	for (i = 0; i < game.maxclients; i++)
@@ -866,32 +878,10 @@ WriteGame(const char *filename, qboolean autosave)
  * a file. Called when ever a
  * savegames is loaded.
  */
-void
-ReadGame(const char *filename)
+static short
+GetSaveVersion(const char *ver)
 {
-	savegameHeader_t sv;
-	FILE *f;
 	int i;
-
-	short save_ver = 0;
-
-	gi.FreeTags(TAG_GAME);
-
-	f = Q_fopen(filename, "rb");
-
-	if (!f)
-	{
-		gi.error("%s: Couldn't open %s", __func__, filename);
-		return;
-	}
-
-	/* Sanity checks */
-	if (fread(&sv, sizeof(sv), 1, f) != 1)
-	{
-		fclose(f);
-		gi.error("%s: can't read save file", __func__);
-		return;
-	}
 
 	static const struct {
 		const char* verstr;
@@ -906,91 +896,117 @@ ReadGame(const char *filename)
 
 	for (i=0; i < ARRLEN(version_mappings); ++i)
 	{
-		if (strcmp(version_mappings[i].verstr, sv.ver) == 0)
+		if (strcmp(version_mappings[i].verstr, ver) == 0)
 		{
-			save_ver = version_mappings[i].vernum;
-			break;
+			return version_mappings[i].vernum;
 		}
 	}
 
+	return 0;
+}
+
+static const char *
+CheckSaveCompatibility(const savegameHeader_t *sv, short save_ver)
+{
 	if (save_ver == 0) // not found in mappings table
 	{
-		fclose(f);
-		gi.error("Savegame from an incompatible version.\n");
-		return;
+		return "Savegame from an incompatible version.";
 	}
-	else if (save_ver == 1)
+
+	if (save_ver == 1)
 	{
-		if (strcmp(sv.game, GAMEVERSION) != 0)
+		if (strcmp(sv->game, GAMEVERSION) != 0)
 		{
-			fclose(f);
-			gi.error("Savegame from another game.so.\n");
-			return;
+			return "Savegame from another game.so.";
 		}
-		else if (strcmp(sv.os, OSTYPE_1) != 0)
+
+		if (strcmp(sv->os, OSTYPE_1) != 0)
 		{
-			fclose(f);
-			gi.error("Savegame from another os.\n");
-			return;
+			return "Savegame from another os.";
 		}
 
 #ifdef _WIN32
 		/* Windows was forced to i386 */
-		if (strcmp(sv.arch, "i386") != 0)
+		if (strcmp(sv->arch, "i386") != 0)
 		{
-			fclose(f);
-			gi.error("Savegame from another architecture.\n");
-			return;
+			return "Savegame from another architecture.";
 		}
 #else
-		if (strcmp(sv.arch, ARCH_1) != 0)
+		if (strcmp(sv->arch, ARCH_1) != 0)
 		{
-			fclose(f);
-			gi.error("Savegame from another architecture.\n");
-			return;
+			return "Savegame from another architecture.";
 		}
 #endif
 	}
 	else // all newer savegame versions
 	{
-		if (strcmp(sv.game, GAMEVERSION) != 0)
+		if (strcmp(sv->game, GAMEVERSION) != 0)
 		{
-			fclose(f);
-			gi.error("Savegame from another game.so.\n");
-			return;
+			return "Savegame from another game.so.";
 		}
-		else if (strcmp(sv.os, YQ2OSTYPE) != 0)
+
+		if (strcmp(sv->os, YQ2OSTYPE) != 0)
 		{
-			fclose(f);
-			gi.error("Savegame from another os.\n");
-			return;
+			return "Savegame from another os.";
 		}
-		else if (strcmp(sv.arch, YQ2ARCH) != 0)
+
+		if (strcmp(sv->arch, YQ2ARCH) != 0)
 		{
 #if defined(_WIN32) && (defined(__i386__) || defined(_M_IX86))
 			// before savegame version "YQ2-4" (and after version 1),
 			// the official Win32 binaries accidentally had the YQ2ARCH "AMD64"
 			// instead of "i386" set due to a bug in the Makefile.
 			// This quirk allows loading those savegames anyway
-			if (save_ver >= 4 || strcmp(sv.arch, "AMD64") != 0)
+			if (save_ver >= 4 || strcmp(sv->arch, "AMD64") != 0)
 #endif
 			{
-				fclose(f);
-				gi.error("Savegame from another architecture.\n");
-				return;
+				return "Savegame from another architecture.";
 			}
 		}
+	}
+
+	return NULL;
+}
+
+void
+ReadGame(const char *filename)
+{
+	savegameHeader_t sv;
+	FILE *f;
+	int i;
+	const char *errmsg;
+	short save_ver;
+
+	gi.FreeTags(TAG_GAME);
+
+	f = Q_fopen(filename, "rb");
+
+	if (!f)
+	{
+		gi.error("%s: Couldn't open %s", __func__, filename);
+		return;
+	}
+
+	/* Sanity checks */
+	sg_fread(&sv, sizeof(sv), f);
+	sv.ver[sizeof(sv.ver) - 1] = 0;
+	sv.game[sizeof(sv.game) - 1] = 0;
+	sv.os[sizeof(sv.os) - 1] = 0;
+	sv.arch[sizeof(sv.arch) - 1] = 0;
+
+	save_ver = GetSaveVersion(sv.ver);
+	errmsg = CheckSaveCompatibility(&sv, save_ver);
+	if (errmsg)
+	{
+		fclose(f);
+		gi.error("%s", errmsg);
+		return;
 	}
 
 	/* we should not trust this value from savegames */
 	int num_items = game.num_items;
 
-	if (fread(&game, sizeof(game), 1, f) != 1)
-	{
-		fclose(f);
-		gi.error("%s: can't read game", __func__);
-		return;
-	}
+	sg_fread(&game, sizeof(game), f);
 
 	/* initialize entities and clients arrays */
 	InitAllocations();
@@ -1028,7 +1044,7 @@ WriteEdict(FILE *f, edict_t *ent)
 	}
 
 	/* write the block */
-	fwrite(&temp, sizeof(temp), 1, f);
+	sg_fwrite(&temp, sizeof(temp), f);
 
 	/* now write any allocated data following the edict */
 	for (field = fields; field->name; field++)
@@ -1058,7 +1074,7 @@ WriteLevelLocals(FILE *f)
 	}
 
 	/* write the block */
-	fwrite(&temp, sizeof(temp), 1, f);
+	sg_fwrite(&temp, sizeof(temp), f);
 
 	/* now write any allocated data following the edict */
 	for (field = levelfields; field->name; field++)
@@ -1088,7 +1104,7 @@ WriteLevel(const char *filename)
 
 	/* write out edict size for checking */
 	i = sizeof(edict_t);
-	fwrite(&i, sizeof(i), 1, f);
+	sg_fwrite(&i, sizeof(i), f);
 
 	/* write out level_locals_t */
 	WriteLevelLocals(f);
@@ -1103,12 +1119,12 @@ WriteLevel(const char *filename)
 			continue;
 		}
 
-		fwrite(&i, sizeof(i), 1, f);
+		sg_fwrite(&i, sizeof(i), f);
 		WriteEdict(f, ent);
 	}
 
 	i = -1;
-	fwrite(&i, sizeof(i), 1, f);
+	sg_fwrite(&i, sizeof(i), f);
 
 	fclose(f);
 }
@@ -1126,12 +1142,7 @@ ReadEdict(FILE *f, edict_t *ent)
 {
 	field_t *field;
 
-	if (fread(ent, sizeof(*ent), 1, f) != 1)
-	{
-		fclose(f);
-		gi.error("%s: can't read edict", __func__);
-		return;
-	}
+	sg_fread(ent, sizeof(*ent), f);
 
 	for (field = fields; field->name; field++)
 	{
@@ -1150,12 +1161,7 @@ ReadLevelLocals(FILE *f)
 {
 	field_t *field;
 
-	if (fread(&level, sizeof(level), 1, f) != 1)
-	{
-		fclose(f);
-		gi.error("%s: can't read level", __func__);
-		return;
-	}
+	sg_fread(&level, sizeof(level), f);
 
 	for (field = levelfields; field->name; field++)
 	{
@@ -1197,12 +1203,7 @@ ReadLevel(const char *filename)
 	globals.num_edicts = maxclients->value + 1;
 
 	/* check edict size */
-	if (fread(&i, sizeof(i), 1, f) != 1)
-	{
-		fclose(f);
-		gi.error("%s: can't read edict size", __func__);
-		return;
-	}
+	sg_fread(&i, sizeof(i), f);
 
 	if (i != sizeof(edict_t))
 	{
@@ -1217,12 +1218,7 @@ ReadLevel(const char *filename)
 	/* load all the entities */
 	while (1)
 	{
-		if (fread(&entnum, sizeof(entnum), 1, f) != 1)
-		{
-			fclose(f);
-			gi.error("%s: failed to read entnum", __func__);
-			break;
-		}
+		sg_fread(&entnum, sizeof(entnum), f);
 
 		if ((entnum < -1) || (entnum >= game.maxentities))
 		{
