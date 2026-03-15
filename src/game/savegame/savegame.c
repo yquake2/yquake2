@@ -878,14 +878,104 @@ WriteGame(const char *filename, qboolean autosave)
  * a file. Called when ever a
  * savegames is loaded.
  */
+static short
+GetSaveVersion(const char *ver)
+{
+	int i;
+
+	static const struct {
+		const char* verstr;
+		int vernum;
+	} version_mappings[] = {
+		{"YQ2-1", 1},
+		{"YQ2-2", 2},
+		{"YQ2-3", 3},
+		{"YQ2-4", 4},
+		{"YQ2-5", 5},
+	};
+
+	for (i=0; i < ARRLEN(version_mappings); ++i)
+	{
+		if (strcmp(version_mappings[i].verstr, ver) == 0)
+		{
+			return version_mappings[i].vernum;
+		}
+	}
+
+	return 0;
+}
+
+static const char *
+CheckSaveCompatibility(const savegameHeader_t *sv, short save_ver)
+{
+	if (save_ver == 0) // not found in mappings table
+	{
+		return "Savegame from an incompatible version.";
+	}
+
+	if (save_ver == 1)
+	{
+		if (strcmp(sv->game, GAMEVERSION) != 0)
+		{
+			return "Savegame from another game.so.";
+		}
+
+		if (strcmp(sv->os, OSTYPE_1) != 0)
+		{
+			return "Savegame from another os.";
+		}
+
+#ifdef _WIN32
+		/* Windows was forced to i386 */
+		if (strcmp(sv->arch, "i386") != 0)
+		{
+			return "Savegame from another architecture.";
+		}
+#else
+		if (strcmp(sv->arch, ARCH_1) != 0)
+		{
+			return "Savegame from another architecture.";
+		}
+#endif
+	}
+	else // all newer savegame versions
+	{
+		if (strcmp(sv->game, GAMEVERSION) != 0)
+		{
+			return "Savegame from another game.so.";
+		}
+
+		if (strcmp(sv->os, YQ2OSTYPE) != 0)
+		{
+			return "Savegame from another os.";
+		}
+
+		if (strcmp(sv->arch, YQ2ARCH) != 0)
+		{
+#if defined(_WIN32) && (defined(__i386__) || defined(_M_IX86))
+			// before savegame version "YQ2-4" (and after version 1),
+			// the official Win32 binaries accidentally had the YQ2ARCH "AMD64"
+			// instead of "i386" set due to a bug in the Makefile.
+			// This quirk allows loading those savegames anyway
+			if (save_ver >= 4 || strcmp(sv->arch, "AMD64") != 0)
+#endif
+			{
+				return "Savegame from another architecture.";
+			}
+		}
+	}
+
+	return NULL;
+}
+
 void
 ReadGame(const char *filename)
 {
 	savegameHeader_t sv;
 	FILE *f;
 	int i;
-
-	short save_ver = 0;
+	const char *errmsg;
+	short save_ver;
 
 	gi.FreeTags(TAG_GAME);
 
@@ -904,93 +994,13 @@ ReadGame(const char *filename)
 	sv.os[sizeof(sv.os) - 1] = 0;
 	sv.arch[sizeof(sv.arch) - 1] = 0;
 
-	static const struct {
-		const char* verstr;
-		int vernum;
-	} version_mappings[] = {
-		{"YQ2-1", 1},
-		{"YQ2-2", 2},
-		{"YQ2-3", 3},
-		{"YQ2-4", 4},
-		{"YQ2-5", 5},
-	};
-
-	for (i=0; i < ARRLEN(version_mappings); ++i)
-	{
-		if (strcmp(version_mappings[i].verstr, sv.ver) == 0)
-		{
-			save_ver = version_mappings[i].vernum;
-			break;
-		}
-	}
-
-	if (save_ver == 0) // not found in mappings table
+	save_ver = GetSaveVersion(sv.ver);
+	errmsg = CheckSaveCompatibility(&sv, save_ver);
+	if (errmsg)
 	{
 		fclose(f);
-		gi.error("Savegame from an incompatible version.\n");
+		gi.error("%s", errmsg);
 		return;
-	}
-	else if (save_ver == 1)
-	{
-		if (strcmp(sv.game, GAMEVERSION) != 0)
-		{
-			fclose(f);
-			gi.error("Savegame from another game.so.\n");
-			return;
-		}
-		else if (strcmp(sv.os, OSTYPE_1) != 0)
-		{
-			fclose(f);
-			gi.error("Savegame from another os.\n");
-			return;
-		}
-
-#ifdef _WIN32
-		/* Windows was forced to i386 */
-		if (strcmp(sv.arch, "i386") != 0)
-		{
-			fclose(f);
-			gi.error("Savegame from another architecture.\n");
-			return;
-		}
-#else
-		if (strcmp(sv.arch, ARCH_1) != 0)
-		{
-			fclose(f);
-			gi.error("Savegame from another architecture.\n");
-			return;
-		}
-#endif
-	}
-	else // all newer savegame versions
-	{
-		if (strcmp(sv.game, GAMEVERSION) != 0)
-		{
-			fclose(f);
-			gi.error("Savegame from another game.so.\n");
-			return;
-		}
-		else if (strcmp(sv.os, YQ2OSTYPE) != 0)
-		{
-			fclose(f);
-			gi.error("Savegame from another os.\n");
-			return;
-		}
-		else if (strcmp(sv.arch, YQ2ARCH) != 0)
-		{
-#if defined(_WIN32) && (defined(__i386__) || defined(_M_IX86))
-			// before savegame version "YQ2-4" (and after version 1),
-			// the official Win32 binaries accidentally had the YQ2ARCH "AMD64"
-			// instead of "i386" set due to a bug in the Makefile.
-			// This quirk allows loading those savegames anyway
-			if (save_ver >= 4 || strcmp(sv.arch, "AMD64") != 0)
-#endif
-			{
-				fclose(f);
-				gi.error("Savegame from another architecture.\n");
-				return;
-			}
-		}
 	}
 
 	/* we should not trust this value from savegames */
