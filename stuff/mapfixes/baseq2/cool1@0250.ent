@@ -1,11 +1,18 @@
 // FIXED ENTITY STRING (by BjossiAlfreds)
 //
-// 1. Fixed monster_gladiator (810) in box being inaccessible on Medium
+// 1. Fixed monster_gladiator (b#11) in box being inaccessible on Medium
 //
-// This gladiator spawns on Medium and above but the trigger_once (784)
+// This gladiator spawns on Medium and above but the trigger_once (b#12)
 // that blows up the box is only spawned on Hard and above, making the
-// monster count off by 1 on Medium. I changed the gladiator's spawnflags
-// from 259 to 771 to fix this inconsistency.
+// monster count off by 1 on Medium.
+//
+// 2. Removed unused entities/fields (b#21, b#22, b#23)
+//
+// 3. Added spawnflag 2048 to a bunch of SP/co-op entities (b#3)
+//
+// 4. Added difficulty spawnflags to monster-related entities (b#4)
+//
+// 5. Added 3x info_player_coop for return exit to power2 (b#5)
 {
 "sky" "unit6_"
 "classname" "worldspawn"
@@ -25,7 +32,7 @@
 }
 {
 "origin" "404 -624 16"
-"spawnflags" "4"
+"spawnflags" "2052" // b#3: was 4
 "target" "t188"
 "classname" "target_crosslevel_target"
 }
@@ -781,7 +788,7 @@
 "light" "130"
 "classname" "light"
 }
-{
+{ // b#12
 "model" "*23"
 "target" "t178"
 "targetname" "t177"
@@ -793,24 +800,25 @@
 "target" "t177"
 "targetname" "t176"
 "classname" "trigger_relay"
+"spawnflags" "2048" // b#3: added this
 }
 {
 "origin" "-248 192 40"
-"spawnflags" "256"
+"spawnflags" "2304" // b#3: was 256
 "target" "t176"
 "targetname" "t133"
 "classname" "trigger_relay"
 }
 {
 "origin" "-304 752 -64"
-"spawnflags" "256"
+"spawnflags" "2304" // b#3: was 256
 "targetname" "t175"
 "classname" "target_explosion"
 }
 {
 "origin" "-384 832 -136"
 "targetname" "t176"
-"spawnflags" "771"
+"spawnflags" "771" // b#11: was 259
 "angle" "315"
 "classname" "monster_gladiator"
 }
@@ -880,6 +888,7 @@
 "targetname" "t157"
 "noise" "world/explod1.wav"
 "classname" "target_speaker"
+"spawnflags" "2048" // b#3: added this
 }
 {
 "spawnflags" "2048"
@@ -1197,11 +1206,12 @@
 "origin" "-960 628 -356"
 }
 {
-"target" "t170"
+//"target" "t170" // never used
 "wait" "16"
 "random" "5"
 "origin" "-1144 824 -368"
 "classname" "func_timer"
+"spawnflags" "3840" // b#21: added this
 }
 {
 "classname" "target_speaker"
@@ -1210,7 +1220,7 @@
 "origin" "-428 604 -352"
 }
 {
-"targetname" "t170"
+//"targetname" "t170" // b#22: never used
 "classname" "target_speaker"
 "noise" "world/drip_amb.wav"
 "spawnflags" "1"
@@ -1421,14 +1431,14 @@
 {
 "targetname" "t168"
 "origin" "-708 -1712 -376"
-"spawnflags" "2"
+"spawnflags" "2050" // b#3: was 2
 "noise" "world/amb12.wav"
 "classname" "target_speaker"
 }
 {
 "targetname" "t168"
 "origin" "-496 -1716 -376"
-"spawnflags" "2"
+"spawnflags" "2050" // b#3: was 2
 "noise" "world/amb12.wav"
 "classname" "target_speaker"
 }
@@ -1436,13 +1446,13 @@
 "targetname" "t168"
 "classname" "target_speaker"
 "noise" "world/amb12.wav"
-"spawnflags" "2"
+"spawnflags" "2050" // b#3: was 2
 "origin" "-496 -1432 -376"
 }
 {
 "targetname" "t168"
 "origin" "-712 -1432 -376"
-"spawnflags" "2"
+"spawnflags" "2050" // b#3: was 2
 "noise" "world/amb12.wav"
 "classname" "target_speaker"
 }
@@ -1450,21 +1460,21 @@
 "targetname" "t168"
 "classname" "target_speaker"
 "noise" "world/force1.wav"
-"spawnflags" "2"
+"spawnflags" "2050" // b#3: was 2
 "origin" "-712 -1432 -456"
 }
 {
 "targetname" "t168"
 "classname" "target_speaker"
 "noise" "world/force1.wav"
-"spawnflags" "2"
+"spawnflags" "2050" // b#3: was 2
 "origin" "-708 -1712 -456"
 }
 {
 "targetname" "t168"
 "classname" "target_speaker"
 "noise" "world/force1.wav"
-"spawnflags" "2"
+"spawnflags" "2050" // b#3: was 2
 "origin" "-496 -1716 -456"
 }
 {
@@ -1524,7 +1534,7 @@
 {
 "targetname" "t168"
 "origin" "-496 -1432 -456"
-"spawnflags" "2"
+"spawnflags" "2050" // b#3: was 2
 "noise" "world/force1.wav"
 "classname" "target_speaker"
 }
@@ -2212,6 +2222,7 @@
 }
 {
 "classname" "target_secret"
+"spawnflags" "2048" // b#3: added this
 "message" "You have found a secret."
 "targetname" "t158"
 "origin" "-352 -1328 -712"
@@ -2219,6 +2230,7 @@
 {
 "model" "*31"
 "classname" "trigger_once"
+"spawnflags" "2048" // b#3: added this
 "target" "t158"
 }
 {
@@ -2230,11 +2242,13 @@
 "delay" ".3"
 "dmg" "10"
 "classname" "target_explosion"
+"spawnflags" "2048" // b#3: added this
 "targetname" "t157"
 "origin" "-392 -1318 -648"
 }
 {
 "classname" "target_explosion"
+"spawnflags" "2048" // b#3: added this
 "dmg" "10"
 "delay" ".6"
 "targetname" "t157"
@@ -3165,6 +3179,7 @@
 {
 "model" "*36"
 "classname" "trigger_once"
+"spawnflags" "2048" // b#3: added this
 "target" "t153"
 }
 {
@@ -3180,7 +3195,7 @@
 {
 "origin" "-152 -1536 -200"
 "targetname" "t36"
-"spawnflags" "2"
+"spawnflags" "2050" // b#3: was 2
 "classname" "target_crosslevel_trigger"
 }
 {
@@ -3309,12 +3324,14 @@
 }
 {
 "classname" "path_corner"
+"spawnflags" "2816" // b#3, b#4: added this
 "target" "t145"
 "targetname" "t146"
 "origin" "-1024 -1456 -712"
 }
 {
 "classname" "path_corner"
+"spawnflags" "2816" // b#3, b#4: added this
 "targetname" "t145"
 "target" "t146"
 "origin" "-1368 -1456 -712"
@@ -3334,11 +3351,11 @@
 "angle" "180"
 "origin" "-1152 992 -264"
 }
-{
+{ // b#23
 "model" "*42"
 "classname" "trigger_once"
-"target" "t143"
-"spawnflags" "2048"
+//"target" "t143" // never used
+"spawnflags" "3840" // was 2048
 }
 {
 "classname" "monster_berserk"
@@ -3349,12 +3366,14 @@
 }
 {
 "classname" "path_corner"
+"spawnflags" "2048" // b#3: added this
 "target" "t141"
 "targetname" "t142"
 "origin" "96 -1116 64"
 }
 {
 "classname" "path_corner"
+"spawnflags" "2048" // b#3: added this
 "targetname" "t141"
 "target" "t142"
 "origin" "-260 -1116 64"
@@ -3432,6 +3451,7 @@
 }
 {
 "classname" "point_combat"
+"spawnflags" "768" // b#4: added this
 "targetname" "t130"
 "origin" "208 -424 256"
 }
@@ -3443,7 +3463,7 @@
 }
 {
 "classname" "point_combat"
-"spawnflags" "0"
+"spawnflags" "768" // b#4: was 0
 "targetname" "t131"
 "origin" "132 -668 256"
 }
@@ -3545,42 +3565,49 @@
 }
 {
 "classname" "path_corner"
+"spawnflags" "2048" // b#3: added this
 "targetname" "t126"
 "target" "t121"
 "origin" "-220 -920 -200"
 }
 {
 "classname" "path_corner"
+"spawnflags" "2048" // b#3: added this
 "targetname" "t125"
 "target" "t126"
 "origin" "-220 -1120 -200"
 }
 {
 "classname" "path_corner"
+"spawnflags" "2048" // b#3: added this
 "targetname" "t124"
 "target" "t125"
 "origin" "36 -1120 -200"
 }
 {
 "classname" "path_corner"
+"spawnflags" "2048" // b#3: added this
 "targetname" "t123"
 "target" "t124"
 "origin" "36 -1120 -200"
 }
 {
 "classname" "path_corner"
+"spawnflags" "2048" // b#3: added this
 "targetname" "t122"
 "target" "t123"
 "origin" "-220 -1120 -200"
 }
 {
 "classname" "path_corner"
+"spawnflags" "2048" // b#3: added this
 "targetname" "t121"
 "target" "t122"
 "origin" "-220 -920 -200"
 }
 {
 "classname" "path_corner"
+"spawnflags" "2048" // b#3: added this
 "targetname" "t120"
 "target" "t121"
 "origin" "-220 -792 -200"
@@ -3643,24 +3670,28 @@
 }
 {
 "classname" "path_corner"
+"spawnflags" "2816" // b#3, b#4: added this
 "target" "t117"
 "targetname" "t118"
 "origin" "-216 -1372 -436"
 }
 {
 "classname" "path_corner"
+"spawnflags" "2816" // b#3, b#4: added this
 "targetname" "t117"
 "target" "t118"
 "origin" "-216 -1736 -436"
 }
 {
 "classname" "path_corner"
+"spawnflags" "2816" // b#3, b#4: added this
 "targetname" "t115"
 "target" "t116"
 "origin" "-312 -1536 -436"
 }
 {
 "classname" "path_corner"
+"spawnflags" "2816" // b#3, b#4: added this
 "target" "t115"
 "targetname" "t116"
 "origin" "-312 -1344 -436"
@@ -3720,12 +3751,14 @@
 }
 {
 "classname" "path_corner"
+"spawnflags" "2048" // b#3: added this
 "target" "t107"
 "targetname" "t108"
 "origin" "-964 -984 -728"
 }
 {
 "classname" "path_corner"
+"spawnflags" "2048" // b#3: added this
 "targetname" "t107"
 "target" "t108"
 "origin" "-1052 -1436 -728"
@@ -3740,24 +3773,28 @@
 }
 {
 "classname" "path_corner"
+"spawnflags" "2048" // b#3: added this
 "target" "t105"
 "targetname" "t106"
 "origin" "-1708 -1316 -732"
 }
 {
 "classname" "path_corner"
+"spawnflags" "2048" // b#3: added this
 "targetname" "t104"
 "target" "t105"
 "origin" "-1744 -1448 -732"
 }
 {
 "classname" "path_corner"
+"spawnflags" "2048" // b#3: added this
 "target" "t104"
 "targetname" "t105"
 "origin" "-1740 -1320 -732"
 }
 {
 "classname" "path_corner"
+"spawnflags" "2048" // b#3: added this
 "targetname" "t105"
 "target" "t104"
 "origin" "-1448 -1448 -732"
@@ -3771,12 +3808,14 @@
 }
 {
 "classname" "path_corner"
+"spawnflags" "2048" // b#3: added this
 "target" "t99"
 "targetname" "t100"
 "origin" "-1948 -860 -956"
 }
 {
 "classname" "path_corner"
+"spawnflags" "2048" // b#3: added this
 "targetname" "t99"
 "target" "t100"
 "origin" "-2200 -860 -956"
@@ -3827,7 +3866,7 @@
 }
 {
 "classname" "point_combat"
-"spawnflags" "1"
+"spawnflags" "769" // b#4: was 1
 "targetname" "t97"
 "origin" "16 1132 -160"
 }
@@ -3896,36 +3935,42 @@
 }
 {
 "classname" "path_corner"
+"spawnflags" "2048" // b#3: added this
 "targetname" "t85"
 "target" "t86"
 "origin" "-2432 -784 -936"
 }
 {
 "classname" "path_corner"
+"spawnflags" "2048" // b#3: added this
 "targetname" "t84"
 "target" "t85"
 "origin" "-2432 -584 -936"
 }
 {
 "classname" "path_corner"
+"spawnflags" "2048" // b#3: added this
 "targetname" "t83"
 "target" "t84"
 "origin" "-2212 -584 -936"
 }
 {
 "classname" "path_corner"
+"spawnflags" "2048" // b#3: added this
 "targetname" "t87"
 "target" "t88"
 "origin" "-2416 -600 -936"
 }
 {
 "classname" "path_corner"
+"spawnflags" "2048" // b#3: added this
 "targetname" "t88"
 "target" "t83"
 "origin" "-2220 -600 -936"
 }
 {
 "classname" "path_corner"
+"spawnflags" "2048" // b#3: added this
 "targetname" "t86"
 "target" "t87"
 "origin" "-2416 -800 -936"
@@ -4191,24 +4236,28 @@
 "target" "t61"
 "targetname" "t60"
 "classname" "path_corner"
+"spawnflags" "2048" // b#3: added this
 }
 {
 "origin" "-1176 -1728 -728"
 "target" "t59"
 "targetname" "t58"
 "classname" "path_corner"
+"spawnflags" "2048" // b#3: added this
 }
 {
 "origin" "-1176 -1864 -728"
 "target" "t60"
 "targetname" "t59"
 "classname" "path_corner"
+"spawnflags" "2048" // b#3: added this
 }
 {
 "origin" "-1392 -1728 -728"
 "targetname" "t61"
 "target" "t58"
 "classname" "path_corner"
+"spawnflags" "2048" // b#3: added this
 }
 {
 "origin" "-1032 -1992 -712"
@@ -4221,12 +4270,14 @@
 "target" "t57"
 "targetname" "t56"
 "classname" "path_corner"
+"spawnflags" "2048" // b#3: added this
 }
 {
 "origin" "-1176 -1992 -728"
 "targetname" "t57"
 "target" "t56"
 "classname" "path_corner"
+"spawnflags" "2048" // b#3: added this
 }
 {
 "origin" "320 -160 24"
@@ -4247,12 +4298,14 @@
 "targetname" "t53"
 "target" "t52"
 "classname" "path_corner"
+"spawnflags" "2048" // b#3: added this
 }
 {
 "origin" "256 -328 8"
 "target" "t53"
 "targetname" "t52"
 "classname" "path_corner"
+"spawnflags" "2048" // b#3: added this
 }
 {
 "targetname" "t96"
@@ -4273,30 +4326,35 @@
 {
 "origin" "-528 1144 -152"
 "classname" "path_corner"
+"spawnflags" "2048" // b#3: added this
 "targetname" "t92"
 "target" "t93"
 }
 {
 "origin" "-384 932 -152"
 "classname" "path_corner"
+"spawnflags" "2048" // b#3: added this
 "targetname" "t94"
 "target" "t91"
 }
 {
 "origin" "-384 1144 -152"
 "classname" "path_corner"
+"spawnflags" "2048" // b#3: added this
 "targetname" "t91"
 "target" "t92"
 }
 {
 "origin" "-384 1208 -152"
 "classname" "path_corner"
+"spawnflags" "2048" // b#3: added this
 "target" "t91"
 "targetname" "t48"
 }
 {
 "origin" "-536 840 -152"
 "classname" "path_corner"
+"spawnflags" "2048" // b#3: added this
 "targetname" "t93"
 "target" "t94"
 }
@@ -4320,12 +4378,14 @@
 "target" "t38"
 "targetname" "t37"
 "classname" "path_corner"
+"spawnflags" "2048" // b#3: added this
 }
 {
 "origin" "-1652 -40 -400"
 "targetname" "t38"
 "target" "t37"
 "classname" "path_corner"
+"spawnflags" "2048" // b#3: added this
 }
 {
 "model" "*51"
@@ -4748,4 +4808,23 @@
 "origin" "-552 604 -412"
 "light" "100"
 "classname" "light"
+}
+// b#5: added these 3 coop spawn points
+{
+"classname" "info_player_coop"
+"origin" "-452 600 -480"
+"angle" "180"
+"targetname" "power2a"
+}
+{
+"classname" "info_player_coop"
+"origin" "-660 562 -480"
+"angle" "180"
+"targetname" "power2a"
+}
+{
+"classname" "info_player_coop"
+"origin" "-660 638 -480"
+"angle" "180"
+"targetname" "power2a"
 }
