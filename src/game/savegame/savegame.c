@@ -899,6 +899,10 @@ ReadGame(const char *filename)
 
 	/* Sanity checks */
 	sg_fread(&sv, sizeof(sv), f);
+	sv.ver[sizeof(sv.ver) - 1] = 0;
+	sv.game[sizeof(sv.game) - 1] = 0;
+	sv.os[sizeof(sv.os) - 1] = 0;
+	sv.arch[sizeof(sv.arch) - 1] = 0;
 
 	static const struct {
 		const char* verstr;
