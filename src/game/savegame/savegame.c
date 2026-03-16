@@ -730,16 +730,7 @@ ReadField(FILE *f, field_t *field, byte *base)
 			break;
 		case F_ITEM:
 			index = *(int *)p;
-
-			if ((index < 0) || (index >= game.num_items))
-			{
-				*(gitem_t **)p = NULL;
-			}
-			else
-			{
-				*(gitem_t **)p = &itemlist[index];
-			}
-
+			*(gitem_t **)p = GetItemByIndex(index);
 			break;
 		case F_FUNCTION:
 			len = *(int *)p;
