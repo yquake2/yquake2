@@ -981,6 +981,15 @@ CheckSaveCompatibility(const savegameHeader_t *sv, short save_ver)
 	return NULL;
 }
 
+static void
+SanitizeGameStruct(void)
+{
+	/* ensure inline strings are null terminated */
+	game.helpmessage1[sizeof(game.helpmessage1) - 1] = 0;
+	game.helpmessage2[sizeof(game.helpmessage2) - 1] = 0;
+	game.spawnpoint[sizeof(game.spawnpoint) - 1] = 0;
+}
+
 void
 ReadGame(const char *filename)
 {
@@ -1020,6 +1029,7 @@ ReadGame(const char *filename)
 	int num_items = game.num_items;
 
 	sg_fread(&game, sizeof(game), f);
+	SanitizeGameStruct();
 
 	/* initialize entities and clients arrays */
 	InitAllocations();
