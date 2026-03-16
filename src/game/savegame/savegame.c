@@ -1252,6 +1252,15 @@ ReadLevel(const char *filename)
 		ent = &g_edicts[entnum];
 		ReadEdict(f, ent);
 
+		/* sanitize certain field values */
+		ent->inuse = true;
+		ent->s.number = ent - g_edicts;
+
+		if (!ent->classname)
+		{
+			ent->classname = "noclass";
+		}
+
 		/* let the server rebuild world links for this ent */
 		memset(&ent->area, 0, sizeof(ent->area));
 		gi.linkentity(ent);
