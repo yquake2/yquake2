@@ -472,13 +472,13 @@ WriteField1(FILE *f, field_t *field, byte *base)
 			break;
 		case F_ITEM:
 
-			if (*(edict_t **)p == NULL)
+			if (*(gitem_t **)p == NULL)
 			{
 				index = -1;
 			}
 			else
 			{
-				index = *(gitem_t **)p - itemlist;
+				index = ITEM_INDEX(*(gitem_t **)p);
 			}
 
 			*(int *)p = index;
@@ -605,13 +605,6 @@ WriteField2(FILE *f, field_t *field, byte *base)
 
 /* ========================================================= */
 
-/*
- * This function does the dirty
- * work to read the data from a
- * file. The processing of the
- * data is done in the functions
- * below
- */
 /* int because that is how it's stored in the file */
 static void
 ReadStringToBuf(FILE *f, int len, char *out, size_t out_sz)
@@ -674,6 +667,13 @@ ReadString(FILE *f, int len, int tag)
 	return s;
 }
 
+/*
+ * This function does the dirty
+ * work to read the data from a
+ * file. The processing of the
+ * data is done in the functions
+ * below
+ */
 static void
 ReadField(FILE *f, field_t *field, byte *base)
 {
