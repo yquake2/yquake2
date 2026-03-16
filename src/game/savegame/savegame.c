@@ -1170,6 +1170,19 @@ ReadEdict(FILE *f, edict_t *ent)
  * Called by ReadLevel.
  */
 static void
+SanitizeLevelStruct(void)
+{
+	/* ensure inline strings are null terminated */
+	level.level_name[sizeof(level.level_name) - 1] = 0;
+	level.mapname[sizeof(level.mapname) - 1] = 0;
+	level.nextmap[sizeof(level.nextmap) - 1] = 0;
+
+	level.pic_health = gi.imageindex("i_health");
+
+	level.body_que %= BODY_QUEUE_SIZE;
+}
+
+static void
 ReadLevelLocals(FILE *f)
 {
 	field_t *field;
@@ -1180,6 +1193,8 @@ ReadLevelLocals(FILE *f)
 	{
 		ReadField(f, field, (byte *)&level);
 	}
+
+	SanitizeLevelStruct();
 }
 
 /*
