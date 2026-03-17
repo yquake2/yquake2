@@ -251,7 +251,7 @@ Drop_General(edict_t *ent, gitem_t *item)
 
 	Drop_Item(ent, item);
 	ent->client->pers.inventory[ITEM_INDEX(item)]--;
-	ValidateSelectedItem(ent);
+	ValidateSelectedItem(ent->client);
 }
 
 /* ====================================================================== */
@@ -521,7 +521,7 @@ Use_Quad(edict_t *ent, gitem_t *item)
 	}
 
 	ent->client->pers.inventory[ITEM_INDEX(item)]--;
-	ValidateSelectedItem(ent);
+	ValidateSelectedItem(ent->client);
 
 	if (quad_drop_timeout_hack)
 	{
@@ -556,7 +556,7 @@ Use_Breather(edict_t *ent, gitem_t *item)
 	}
 
 	ent->client->pers.inventory[ITEM_INDEX(item)]--;
-	ValidateSelectedItem(ent);
+	ValidateSelectedItem(ent->client);
 
 	if (ent->client->breather_framenum > level.framenum)
 	{
@@ -579,7 +579,7 @@ Use_Envirosuit(edict_t *ent, gitem_t *item)
 	}
 
 	ent->client->pers.inventory[ITEM_INDEX(item)]--;
-	ValidateSelectedItem(ent);
+	ValidateSelectedItem(ent->client);
 
 	if (ent->client->enviro_framenum > level.framenum)
 	{
@@ -602,7 +602,7 @@ Use_Invulnerability(edict_t *ent, gitem_t *item)
 	}
 
 	ent->client->pers.inventory[ITEM_INDEX(item)]--;
-	ValidateSelectedItem(ent);
+	ValidateSelectedItem(ent->client);
 
 	if (ent->client->invincible_framenum > level.framenum)
 	{
@@ -627,7 +627,7 @@ Use_Silencer(edict_t *ent, gitem_t *item)
 	}
 
 	ent->client->pers.inventory[ITEM_INDEX(item)]--;
-	ValidateSelectedItem(ent);
+	ValidateSelectedItem(ent->client);
 	ent->client->silencer_shots += 30;
 }
 
@@ -818,7 +818,7 @@ Drop_Ammo(edict_t *ent, gitem_t *item)
 	}
 
 	ent->client->pers.inventory[index] -= dropped->count;
-	ValidateSelectedItem(ent);
+	ValidateSelectedItem(ent->client);
 }
 
 /* ====================================================================== */

@@ -965,8 +965,6 @@
 {"Cmd_Help_f", (byte *)Cmd_Help_f},
 {"Cmd_Score_f", (byte *)Cmd_Score_f},
 {"ValidateSelectedItem", (byte *)ValidateSelectedItem},
-{"SelectPrevItem", (byte *)SelectPrevItem},
-{"SelectNextItem", (byte *)SelectNextItem},
 {"OnSameTeam", (byte *)OnSameTeam},
 {"GetChaseTarget", (byte *)GetChaseTarget},
 {"ChasePrev", (byte *)ChasePrev},
