@@ -377,15 +377,7 @@ ChangeWeapon(edict_t *ent)
 		ent->s.skinnum = (ent - g_edicts - 1) | i;
 	}
 
-	if (ent->client->pers.weapon && ent->client->pers.weapon->ammo)
-	{
-		ent->client->ammo_index =
-			ITEM_INDEX(FindItem(ent->client->pers.weapon->ammo));
-	}
-	else
-	{
-		ent->client->ammo_index = 0;
-	}
+	ent->client->ammo_index = GetWeaponAmmoIndex(ent->client->pers.weapon);
 
 	if (!ent->client->pers.weapon)
 	{
