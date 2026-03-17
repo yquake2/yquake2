@@ -988,6 +988,9 @@ SanitizeGameStruct(void)
 	game.helpmessage1[sizeof(game.helpmessage1) - 1] = 0;
 	game.helpmessage2[sizeof(game.helpmessage2) - 1] = 0;
 	game.spawnpoint[sizeof(game.spawnpoint) - 1] = 0;
+
+	/* no longer using this field for security and stability reasons */
+	game.num_items = 0;
 }
 
 void
@@ -1025,16 +1028,11 @@ ReadGame(const char *filename)
 		return;
 	}
 
-	/* we should not trust this value from savegames */
-	int num_items = game.num_items;
-
 	sg_fread(&game, sizeof(game), f);
 	SanitizeGameStruct();
 
 	/* initialize entities and clients arrays */
 	InitAllocations();
-
-	game.num_items = num_items;
 
 	for (i = 0; i < game.maxclients; i++)
 	{

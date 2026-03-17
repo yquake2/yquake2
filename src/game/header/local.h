@@ -284,7 +284,9 @@ typedef struct
 	/* cross level triggers */
 	int serverflags;
 
-	/* items */
+	/* unused for savegame security and stability reasons
+	   use itemlist_len instead
+	*/
 	int num_items;
 
 	qboolean autosaved;
@@ -597,7 +599,9 @@ typedef struct
 } field_t;
 
 extern field_t fields[];
+
 extern gitem_t itemlist[];
+extern const int itemlist_len;
 
 /* player/client.c */
 void ClientBegin(edict_t *ent);

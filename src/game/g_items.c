@@ -63,7 +63,7 @@ static int quad_drop_timeout_hack;
 gitem_t *
 GetItemByIndex(int index)
 {
-	if ((index <= 0) || (index >= game.num_items))
+	if ((index <= 0) || (index >= itemlist_len))
 	{
 		return NULL;
 	}
@@ -84,7 +84,7 @@ FindItemByClassname(const char *classname)
 
 	it = itemlist;
 
-	for (i = 0; i < game.num_items; i++, it++)
+	for (i = 0; i < itemlist_len; i++, it++)
 	{
 		if (!it->classname)
 		{
@@ -113,7 +113,7 @@ FindItem(const char *pickup_name)
 
 	it = itemlist;
 
-	for (i = 0; i < game.num_items; i++, it++)
+	for (i = 0; i < itemlist_len; i++, it++)
 	{
 		if (!it->pickup_name)
 		{
@@ -2588,6 +2588,8 @@ static const gitem_t gameitemlist[] = {
 
 gitem_t itemlist[MAX_ITEMS];
 
+const int itemlist_len = ARRLEN(gameitemlist) - 1;
+
 /*
  * QUAKED item_health (.3 .3 1) (-16 -16 -16) (16 16 16)
  */
@@ -2693,7 +2695,6 @@ InitItems(void)
 
 	memset(itemlist, 0, sizeof(itemlist));
 	memcpy(itemlist, gameitemlist, sizeof(gameitemlist));
-	game.num_items = ARRLEN(gameitemlist) - 1;
 }
 
 /*
@@ -2705,7 +2706,7 @@ SetItemNames(void)
 	int i;
 	gitem_t *it;
 
-	for (i = 0; i < game.num_items; i++)
+	for (i = 0; i < itemlist_len; i++)
 	{
 		it = &itemlist[i];
 		gi.configstring(CS_ITEMS + i, it->pickup_name);

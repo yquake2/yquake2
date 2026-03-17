@@ -264,7 +264,7 @@ Cmd_Give_f(edict_t *ent)
 
 	if (give_all || (Q_stricmp(name, "weapons") == 0))
 	{
-		for (i = 0; i < game.num_items; i++)
+		for (i = 0; i < itemlist_len; i++)
 		{
 			it = itemlist + i;
 
@@ -289,7 +289,7 @@ Cmd_Give_f(edict_t *ent)
 
 	if (give_all || (Q_stricmp(name, "ammo") == 0))
 	{
-		for (i = 0; i < game.num_items; i++)
+		for (i = 0; i < itemlist_len; i++)
 		{
 			it = itemlist + i;
 
@@ -353,7 +353,7 @@ Cmd_Give_f(edict_t *ent)
 
 	if (give_all)
 	{
-		for (i = 0; i < game.num_items; i++)
+		for (i = 0; i < itemlist_len; i++)
 		{
 			it = itemlist + i;
 

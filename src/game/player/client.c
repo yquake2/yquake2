@@ -776,7 +776,7 @@ player_die(edict_t *self, edict_t *inflictor, edict_t *attacker,
 
 		/* clear inventory: this is kind of ugly, but
 		   it's how we want to handle keys in coop */
-		for (n = 0; n < game.num_items; n++)
+		for (n = 0; n < itemlist_len; n++)
 		{
 			if (coop->value && itemlist[n].flags & IT_KEY)
 			{
