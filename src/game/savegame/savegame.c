@@ -812,6 +812,24 @@ WriteClient(FILE *f, gclient_t *client)
  * Read the client struct from a file
  */
 static void
+SanitizeClientStruct(gclient_t *cl)
+{
+	client_persistant_t *p;
+
+	p = &cl->pers;
+	p->userinfo[sizeof(p->userinfo) - 1] = 0;
+	p->netname[sizeof(p->netname) - 1] = 0;
+
+	p = &cl->resp.coop_respawn;
+	p->userinfo[sizeof(p->userinfo) - 1] = 0;
+	p->netname[sizeof(p->netname) - 1] = 0;
+
+	ValidateSelectedItem(cl);
+	cl->ammo_index = GetWeaponAmmoIndex(cl->pers.weapon);
+	cl->flood_whenhead = 0;
+}
+
+static void
 ReadClient(FILE *f, gclient_t *client, short save_ver)
 {
 	field_t *field;
@@ -825,6 +843,8 @@ ReadClient(FILE *f, gclient_t *client, short save_ver)
 			ReadField(f, field, (byte *)client);
 		}
 	}
+
+	SanitizeClientStruct(client);
 
 	if (save_ver < 3)
 	{
