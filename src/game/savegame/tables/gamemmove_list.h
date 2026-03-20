@@ -300,4 +300,3 @@
 {"berserk_move_walk", &berserk_move_walk},
 {"berserk_move_stand_fidget", &berserk_move_stand_fidget},
 {"berserk_move_stand", &berserk_move_stand},
-{0, 0}
