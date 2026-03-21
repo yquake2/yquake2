@@ -138,64 +138,62 @@ ED_NewString(const char *string)
 static void
 ED_ParseField(const char *key, const char *value, edict_t *ent)
 {
-	field_t *f;
-	byte *b;
-	float v;
-	vec3_t vec;
+	const field_t *f;
+	void *b;
+	vec_t *vec;
 
 	if (!ent || !value || !key)
 	{
 		return;
 	}
 
-	for (f = fields; f->name; f++)
+	f = FindSpawnfield(key);
+	if (!f)
 	{
-		if (!(f->flags & FFL_NOSPAWN) && !Q_strcasecmp(f->name, (char *)key))
-		{
-			/* found it */
-			if (f->flags & FFL_SPAWNTEMP)
-			{
-				b = (byte *)&st;
-			}
-			else
-			{
-				b = (byte *)ent;
-			}
-
-			switch (f->type)
-			{
-				case F_LSTRING:
-					*(char **)(b + f->ofs) = ED_NewString(value);
-					break;
-				case F_VECTOR:
-					sscanf(value, "%f %f %f", &vec[0], &vec[1], &vec[2]);
-					((float *)(b + f->ofs))[0] = vec[0];
-					((float *)(b + f->ofs))[1] = vec[1];
-					((float *)(b + f->ofs))[2] = vec[2];
-					break;
-				case F_INT:
-					*(int *)(b + f->ofs) = (int)strtol(value, (char **)NULL, 10);
-					break;
-				case F_FLOAT:
-					*(float *)(b + f->ofs) = (float)strtod(value, (char **)NULL);
-					break;
-				case F_ANGLEHACK:
-					v = (float)strtod(value, (char **)NULL);
-					((float *)(b + f->ofs))[0] = 0;
-					((float *)(b + f->ofs))[1] = v;
-					((float *)(b + f->ofs))[2] = 0;
-					break;
-				case F_IGNORE:
-					break;
-				default:
-					break;
-			}
-
-			return;
-		}
+		gi.dprintf("'%s' is not a field. Value is '%s'\n", key, value);
+		return;
 	}
 
-	gi.dprintf("'%s' is not a field. Value is '%s'\n", key, value);
+	if (f->flags & FFL_SPAWNTEMP)
+	{
+		b = (byte *)&st + f->ofs;
+	}
+	else
+	{
+		b = (byte *)ent + f->ofs;
+	}
+
+	switch (f->type)
+	{
+		case F_LSTRING:
+			*(char **)b = ED_NewString(value);
+			break;
+		case F_VECTOR:
+			vec = b;
+			if (sscanf(value, "%f %f %f", &vec[0], &vec[1], &vec[2]) != 3)
+			{
+				memset(vec, 0, sizeof(vec3_t));
+				gi.dprintf("%s: entity %d: incomplete '%s' field\n",
+					__func__, ent->s.number, f->name);
+			}
+			break;
+		case F_INT:
+			*(int *)b = (int)strtol(value, (char **)NULL, 10);
+			break;
+		case F_FLOAT:
+			*(float *)b = (float)strtod(value, (char **)NULL);
+			break;
+		case F_ANGLEHACK:
+			vec = b;
+			vec[0] = 0;
+			vec[1] = (vec_t)strtod(value, (char **)NULL);
+			vec[2] = 0;
+			break;
+		case F_IGNORE:
+			break;
+		default:
+			break;
+	}
 }
 
 /*
