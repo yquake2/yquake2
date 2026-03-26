@@ -897,10 +897,40 @@ ReadClient(FILE *f, gclient_t *client, short save_ver)
  * - client states
  * - help computer info
  */
+static void
+WriteSaveHeader(FILE *f)
+{
+	savegameHeader_t sv;
+
+	memset(&sv, 0, sizeof(sv));
+
+	Q_strlcpy(sv.ver, SAVEGAMEVER, sizeof(sv.ver) - 1);
+	Q_strlcpy(sv.game, GAMEVERSION, sizeof(sv.game) - 1);
+	Q_strlcpy(sv.os, YQ2OSTYPE, sizeof(sv.os) - 1);
+	Q_strlcpy(sv.arch, YQ2ARCH, sizeof(sv.arch) - 1);
+
+	sg_fwrite(&sv, sizeof(sv), f);
+}
+
+static void
+WriteGameLocals(FILE *f, qboolean autosave)
+{
+	game_locals_t temp;
+
+	temp = game;
+
+	temp.autosaved = autosave;
+	temp.clients = NULL;
+	temp.maxclients = 0;
+	temp.maxentities = 0;
+	temp.num_items = 0;
+
+	sg_fwrite(&temp, sizeof(temp), f);
+}
+
 void
 WriteGame(const char *filename, qboolean autosave)
 {
-	savegameHeader_t sv;
 	FILE *f;
 	int i;
 
@@ -917,19 +947,8 @@ WriteGame(const char *filename, qboolean autosave)
 		return;
 	}
 
-	/* Savegame identification */
-	memset(&sv, 0, sizeof(sv));
-
-	Q_strlcpy(sv.ver, SAVEGAMEVER, sizeof(sv.ver) - 1);
-	Q_strlcpy(sv.game, GAMEVERSION, sizeof(sv.game) - 1);
-	Q_strlcpy(sv.os, YQ2OSTYPE, sizeof(sv.os) - 1);
-	Q_strlcpy(sv.arch, YQ2ARCH, sizeof(sv.arch) - 1);
-
-	sg_fwrite(&sv, sizeof(sv), f);
-
-	game.autosaved = autosave;
-	sg_fwrite(&game, sizeof(game), f);
-	game.autosaved = false;
+	WriteSaveHeader(f);
+	WriteGameLocals(f, autosave);
 
 	for (i = 0; i < game.maxclients; i++)
 	{
@@ -1037,6 +1056,11 @@ CheckSaveCompatibility(const savegameHeader_t *sv, short save_ver)
 static void
 SanitizeGameStruct(void)
 {
+	/* these values are set by InitAllocations later */
+	game.clients = NULL;
+	game.maxclients = 0;
+	game.maxentities = 0;
+
 	/* ensure inline strings are null terminated */
 	game.helpmessage1[sizeof(game.helpmessage1) - 1] = 0;
 	game.helpmessage2[sizeof(game.helpmessage2) - 1] = 0;
