@@ -198,6 +198,24 @@ SV_WriteLevelFile(void)
 	Sys_SetWorkDir(workdir);
 }
 
+static void
+SV_ReadConfigStrings(fileHandle_t f)
+{
+	int i;
+
+	FS_Read(sv.configstrings, sizeof(sv.configstrings), f);
+
+	/* ensure the configstrings are null terminated */
+	for (i = 0; i < MAX_CONFIGSTRINGS; i++)
+	{
+		/* only null terminate the last index of the statusbar code section */
+		if ((i < CS_STATUSBAR) || (i >= (CS_STATUSBAR_END - 1)))
+		{
+			sv.configstrings[i][sizeof(sv.configstrings[i]) - 1] = '\0';
+		}
+	}
+}
+
 void
 SV_ReadLevelFile(void)
 {
@@ -216,7 +234,7 @@ SV_ReadLevelFile(void)
 		return;
 	}
 
-	FS_Read(sv.configstrings, sizeof(sv.configstrings), f);
+	SV_ReadConfigStrings(f);
 	CM_ReadPortalState(f);
 	FS_FCloseFile(f);
 

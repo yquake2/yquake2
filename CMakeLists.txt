@@ -422,7 +422,7 @@ set(Game-Header
 	${GAME_SRC_DIR}/monster/supertank/supertank.h
 	${GAME_SRC_DIR}/monster/tank/tank.h
 	${GAME_SRC_DIR}/savegame/tables/clientfields.h
-	${GAME_SRC_DIR}/savegame/tables/fields.h
+	${GAME_SRC_DIR}/savegame/tables/entfields.h
 	${GAME_SRC_DIR}/savegame/tables/gamefunc_decs.h
 	${GAME_SRC_DIR}/savegame/tables/gamefunc_list.h
 	${GAME_SRC_DIR}/savegame/tables/gamemmove_decs.h

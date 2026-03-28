@@ -640,8 +640,7 @@ Cvar_Set_f(void)
 void
 Cvar_WriteVariables(const char *path)
 {
-	cvar_t *var;
-	char buffer[1024];
+	const cvar_t *var;
 	FILE *f;
 
 	f = Q_fopen(path, "a");
@@ -650,13 +649,10 @@ Cvar_WriteVariables(const char *path)
 	{
 		if (var->flags & CVAR_ARCHIVE)
 		{
-			Com_sprintf(buffer, sizeof(buffer), "set %s \"%s\"\n",
-					var->name, var->string);
-			fprintf(f, "%s", buffer);
+			fprintf(f, "set %s \"%s\"\n", var->name, var->string);
 		}
 	}
 
-	fflush(f);
 	fclose(f);
 }
 

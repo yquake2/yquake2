@@ -106,4 +106,3 @@
 {"maxpitch", STOFS(maxpitch), F_FLOAT, FFL_SPAWNTEMP},
 {"music", STOFS(music), F_LSTRING, FFL_SPAWNTEMP},
 {"nextmap", STOFS(nextmap), F_LSTRING, FFL_SPAWNTEMP},
-{0, 0, 0, 0}

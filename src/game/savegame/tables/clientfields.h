@@ -30,4 +30,3 @@
 {"newweapon", CLOFS(newweapon), F_ITEM},
 {"resp.coop_respawn.weapon", CLOFS(resp.coop_respawn.weapon), F_ITEM, 0, 3},
 {"resp.coop_respawn.lastweapon", CLOFS(resp.coop_respawn.lastweapon), F_ITEM, 0, 3},
-{NULL, 0, F_INT, 0}
