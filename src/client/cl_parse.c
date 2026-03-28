@@ -1275,6 +1275,14 @@ CL_ParseStartSoundPacket(void)
 		/* entity reletive */
 		channel = MSG_ReadShort(&net_message);
 		ent = channel >> 3;
+
+		if (ent < 0)
+		{
+			Com_Printf("%s: incorrect channel %d\n",
+					__func__, channel);
+			return;
+		}
+
 		channel &= 7;
 	}
 	else
