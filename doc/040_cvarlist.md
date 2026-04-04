@@ -63,9 +63,9 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
   enable/disable optimizations that speed up level load times (or more
   accurately, client connection).  
   sp stands for singleplayer and mp for multiplayer, respectively.  
-  The sp version is enabled by default (value 15) while multiplayer
+  The sp version is enabled by default (value 31) while multiplayer
   is 0.  
-  The cvar value is a bitmask for 4 optimization features:
+  The cvar value is a bitmask for 5 optimization features:
 
   - **1: Message utilization**: When the server sends the client
     configstrings and other data during the connection process, the
@@ -92,10 +92,17 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
     configstring packets by 1. The saving would be bigger in
     multiplayer due to the added networking latency, and mods with
     longer HUD code would also benefit more from this.
+  - **16: Baselines head-start**: When the server is sending the
+    last configstrings data packet, it adds the first baselines
+    command at the end and leaves any remaining space
+    in the packet unused. When this optimization is enabled,
+    the server will try to use that space for the first few
+    entity baselines. In some levels this can avoid an extra
+    roundtrip of client-server packets.
 
   Simply add these flag values together to get the cvar value you want.
   For example, sendrate + reconnect = 2 + 4 = 6.
-  Set to 15 for all optimizations, or 0 to disable them entirely.
+  Set to 31 for all optimizations, or 0 to disable them entirely.
 
 * **cl_maxfps**: The approximate framerate for client/server ("packet")
   frames if *cl_async* is `1`. If set to `-1` (the default), the engine

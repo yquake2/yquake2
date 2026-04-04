@@ -166,6 +166,60 @@ _NumIndexSkips(int start, int end)
 }
 
 static void
+SV_AddBaselines(int start, qboolean allow_zero)
+{
+	sizebuf_t *msg;
+	int i, is_opt;
+
+	if (start < 0)
+	{
+		start = 0;
+	}
+
+	msg = &sv_client->netchan.message;
+	is_opt = SV_Optimizations() & OPTIMIZE_MSGUTIL;
+
+	for (i = start; i < sv.numbaselines; i++)
+	{
+		const entity_state_t *base = &sv.baselines[i];
+
+		if (base->modelindex || base->sound || base->effects)
+		{
+			if (!_EnoughSpaceInBuffer(msg,
+				MSG_DeltaEntity_Size(NULL, base, true, true), is_opt))
+			{
+				break;
+			}
+
+			MSG_WriteByte(msg, svc_spawnbaseline);
+			MSG_WriteDeltaEntity(NULL, base, msg, true, true);
+		}
+	}
+
+	if (!allow_zero &&
+		(i == start) && (i < sv.numbaselines))
+	{
+		Com_Printf("%s: skipping index %i: too big to send\n",
+			__func__, i);
+		i++;
+	}
+
+	/* send next command */
+	if (i >= sv.numbaselines)
+	{
+		MSG_WriteByte(msg, svc_stufftext);
+		MSG_WriteString(msg,
+				va("precache %i\n", svs.spawncount));
+	}
+	else
+	{
+		MSG_WriteByte(msg, svc_stufftext);
+		MSG_WriteString(msg,
+				va("cmd baselines %i %i\n", svs.spawncount, i));
+	}
+}
+
+static void
 SV_Configstrings_f(void)
 {
 	const char *cs;
@@ -250,9 +304,16 @@ SV_Configstrings_f(void)
 	{
 		PrintOverflowConfigstrings();
 
-		MSG_WriteByte(msg, svc_stufftext);
-		MSG_WriteString(msg,
-				va("cmd baselines %i 0\n", svs.spawncount));
+		if (opt & OPTIMIZE_CSBASE)
+		{
+			/* try use remainder of packet for baselines */
+			SV_AddBaselines(0, true);
+		}
+		else
+		{
+			MSG_WriteByte(msg, svc_stufftext);
+			MSG_WriteString(msg, va("cmd baselines %i 0\n", svs.spawncount));
+		}
 	}
 	else
 	{
@@ -265,12 +326,7 @@ SV_Configstrings_f(void)
 static void
 SV_Baselines_f(void)
 {
-	sizebuf_t *msg;
-	int i, start;
-	int is_opt;
-	const entity_state_t *base;
-
-	start = (Cmd_Argc() > 2) ? (int)strtol(Cmd_Argv(2), (char **)NULL, 10) : 0;
+	int start = (Cmd_Argc() > 2) ? (int)strtol(Cmd_Argv(2), (char **)NULL, 10) : 0;
 
 	Com_DPrintf("Baselines(%i) from %s\n", start, sv_client->name);
 
@@ -289,51 +345,7 @@ SV_Baselines_f(void)
 		return;
 	}
 
-	if (start < 0)
-	{
-		start = 0;
-	}
-
-	msg = &sv_client->netchan.message;
-	is_opt = SV_Optimizations() & OPTIMIZE_MSGUTIL;
-
-	for (i = start; i < sv.numbaselines; i++)
-	{
-		base = &sv.baselines[i];
-
-		if (base->modelindex || base->sound || base->effects)
-		{
-			if (!_EnoughSpaceInBuffer(msg,
-				MSG_DeltaEntity_Size(NULL, base, true, true), is_opt))
-			{
-				break;
-			}
-
-			MSG_WriteByte(msg, svc_spawnbaseline);
-			MSG_WriteDeltaEntity(NULL, base, msg, true, true);
-		}
-	}
-
-	if ((i == start) && (i < sv.numbaselines))
-	{
-		Com_Printf("%s: skipping index %i: too big to send\n",
-			__func__, i);
-		i++;
-	}
-
-	/* send next command */
-	if (i >= sv.numbaselines)
-	{
-		MSG_WriteByte(msg, svc_stufftext);
-		MSG_WriteString(msg,
-				va("precache %i\n", svs.spawncount));
-	}
-	else
-	{
-		MSG_WriteByte(msg, svc_stufftext);
-		MSG_WriteString(msg,
-				va("cmd baselines %i %i\n", svs.spawncount, i));
-	}
+	SV_AddBaselines(start, false);
 }
 
 static void
