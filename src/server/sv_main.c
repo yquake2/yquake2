@@ -604,7 +604,7 @@ SV_Init(void)
 	SV_InitOperatorCommands();
 
 	sv_optimize_sp_loadtime = Cvar_Get("sv_optimize_sp_loadtime", "31", 0);
-	sv_optimize_mp_loadtime = Cvar_Get("sv_optimize_mp_loadtime", "0", 0);
+	sv_optimize_mp_loadtime = Cvar_Get("sv_optimize_mp_loadtime", "7", 0);
 
 	rcon_password = Cvar_Get("rcon_password", "", 0);
 	Cvar_Get("skill", "1", 0);

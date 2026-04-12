@@ -63,8 +63,8 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
   enable/disable optimizations that speed up level load times (or more
   accurately, client connection).  
   sp stands for singleplayer and mp for multiplayer, respectively.  
-  The sp version is enabled by default (value 31) while multiplayer
-  is 0.  
+  The sp version is fully enabled by default (value 31) while
+  multiplayer enables a subset (value 7).  
   The cvar value is a bitmask for 5 optimization features:
 
   - **1: Message utilization**: When the server sends the client
