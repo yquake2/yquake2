@@ -2494,7 +2494,6 @@ static menuslider_s s_options_oggvolume_slider;
 static menulist_s s_options_oggenable_box;
 static menulist_s s_options_quality_list;
 static menulist_s s_options_console_action;
-static menulist_s s_options_pauseonfocus_box;
 
 static void
 CrosshairFunc(void *unused)
@@ -2527,12 +2526,6 @@ CrosshairColorFunc(void *unused)
 	Cvar_SetValue("crosshair_color_r", color_values[idx][0]);
 	Cvar_SetValue("crosshair_color_g", color_values[idx][1]);
 	Cvar_SetValue("crosshair_color_b", color_values[idx][2]);
-}
-
-static void
-PauseFocusFunc(void *unused)
-{
-	Cvar_SetValue("vid_pauseonfocuslost", (float)s_options_pauseonfocus_box.curvalue);
 }
 
 static void
@@ -2606,8 +2599,6 @@ ControlsSetMenuItemValues(void)
 
 		s_options_crosshair_color_box.curvalue = best;
 	}
-
-	s_options_pauseonfocus_box.curvalue = ClampCvar(0, 2, Cvar_VariableValue("vid_pauseonfocuslost"));
 }
 
 static void
@@ -2738,14 +2729,6 @@ Options_MenuInit(void)
 		0
 	};
 
-	static const char* pause_names[] =
-	{
-		"yes",
-		"no",
-		"unpause on re-focus",
-		0
-	};
-
 	static const char *crosshair_names[] =
 	{
 		"none",
@@ -2864,13 +2847,6 @@ Options_MenuInit(void)
 	s_options_crosshair_color_box.generic.callback = CrosshairColorFunc;
 	s_options_crosshair_color_box.itemnames = crosshair_color_names;
 
-	s_options_pauseonfocus_box.generic.type = MTYPE_SPINCONTROL;
-	s_options_pauseonfocus_box.generic.x = 0;
-	s_options_pauseonfocus_box.generic.y = (y += 10);
-	s_options_pauseonfocus_box.generic.name = "pause on minimized";
-	s_options_pauseonfocus_box.generic.callback = PauseFocusFunc;
-	s_options_pauseonfocus_box.itemnames = pause_names;
-
 	y += 10;
 	if (show_gamepad)
 	{
@@ -2914,7 +2890,6 @@ Options_MenuInit(void)
 	Menu_AddItem(&s_options_menu, (void *)&s_options_freelook_box);
 	Menu_AddItem(&s_options_menu, (void *)&s_options_crosshair_box);
 	Menu_AddItem(&s_options_menu, (void *)&s_options_crosshair_color_box);
-	Menu_AddItem(&s_options_menu, (void*)&s_options_pauseonfocus_box);
 
 	if (show_gamepad)
 	{
