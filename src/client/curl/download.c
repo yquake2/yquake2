@@ -125,7 +125,7 @@ static size_t CL_HTTP_Recv(void *ptr, size_t size, size_t nmemb, void *stream)
 static size_t CL_HTTP_CurlWriteCB(char* data, size_t size, size_t nmemb, void* userdata)
 {
 	dlhandle_t *dl = (dlhandle_t *)userdata;
-	return fwrite(data, size, nmemb, dl->file);
+	return fwrite(data, size, nmemb, dl->file) * size;
 }
 
 static int CL_HTTP_CurlProgressCB(void* ptr, CL_Progresstype total /* unused */, CL_Progresstype now,
@@ -164,7 +164,7 @@ static void CL_EscapeHTTPPath(const char *filePath, char *escaped)
 			filePath[i] != '.' && filePath[i] != '!' && filePath[i] != '~' && filePath[i] != '*' &&
 			filePath[i] != '\'' && filePath[i] != '(' && filePath[i] != ')')
 		{
-			sprintf(p, "%%%02x", filePath[i]);
+			sprintf(p, "%%%02x", (byte)filePath[i]);
 			p += 3;
 		}
 		else
@@ -320,6 +320,19 @@ static void CL_StartHTTPDownload (dlqueue_t *entry, dlhandle_t *dl)
 	{
 		Com_Printf("HTTP download: cURL error - %s\n", qcurl_easy_strerror(ret));
 		CL_RemoveFromQueue(entry);
+		dl->queueEntry = NULL;
+
+		if (dl->file)
+		{
+			fclose(dl->file);
+			dl->file = NULL;
+			Sys_Remove(dl->filePath);
+		}
+
+		if (pendingCount)
+		{
+			pendingCount--;
+		}
 
 		return;
 	}
