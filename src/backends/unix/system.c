@@ -420,7 +420,7 @@ Sys_UnloadGame(void)
 void *
 Sys_GetGameAPI(void *parms)
 {
-	typedef void *(*fnAPI)(void *);
+	typedef void *(*fnAPI)(const void *);
 	fnAPI GetGameAPI;
 
 	char name[MAX_OSPATH];

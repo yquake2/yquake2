@@ -119,7 +119,7 @@ void MSG_WriteLong(sizebuf_t *sb, int c);
 void MSG_WriteFloat(sizebuf_t *sb, float f);
 void MSG_WriteString(sizebuf_t *sb, const char *s);
 void MSG_WriteCoord(sizebuf_t *sb, float f);
-void MSG_WritePos(sizebuf_t *sb, vec3_t pos);
+void MSG_WritePos(sizebuf_t *sb, const vec3_t pos);
 void MSG_WriteAngle(sizebuf_t *sb, float f);
 void MSG_WriteAngle16(sizebuf_t *sb, float f);
 void MSG_WriteConfigString(sizebuf_t *sb, short index, const char *s);
@@ -344,7 +344,7 @@ void Cbuf_Init(void);
 
 /* allocates an initial text buffer that will grow as needed */
 
-void Cbuf_AddText(char *text);
+void Cbuf_AddText(const char *text);
 
 /* as new commands are generated from the console or keybindings, */
 /* the text is added to the end of the command buffer. */
@@ -465,7 +465,7 @@ cvar_t *Cvar_Set(const char *var_name, const char *value);
 
 /* will create the variable if it doesn't exist */
 
-cvar_t *Cvar_ForceSet(const char *var_name, char *value);
+cvar_t *Cvar_ForceSet(const char *var_name, const char *value);
 
 /* will set the variable even if NOSET or LATCH */
 
@@ -622,7 +622,7 @@ qboolean Netchan_CanReliable(netchan_t *chan);
 
 #include "files.h"
 
-cmodel_t *CM_LoadMap(char *name, qboolean clientload, unsigned *checksum);
+cmodel_t *CM_LoadMap(const char *name, qboolean clientload, unsigned *checksum);
 cmodel_t *CM_InlineModel(const char *name);       /* *1, *2, etc */
 
 int CM_NumClusters(void);
@@ -633,8 +633,8 @@ char *CM_EntityString(void);
 int CM_HeadnodeForBox(vec3_t mins, vec3_t maxs);
 
 /* returns an ORed contents mask */
-int CM_PointContents(vec3_t p, int headnode);
-int CM_TransformedPointContents(vec3_t p, int headnode,
+int CM_PointContents(const vec3_t p, int headnode);
+int CM_TransformedPointContents(const vec3_t p, int headnode,
 		vec3_t origin, vec3_t angles);
 
 trace_t CM_BoxTrace(const vec3_t start, const vec3_t end, const vec3_t mins,
@@ -646,7 +646,7 @@ trace_t CM_TransformedBoxTrace(const vec3_t start, const vec3_t end,
 byte *CM_ClusterPVS(int cluster);
 byte *CM_ClusterPHS(int cluster);
 
-int CM_PointLeafnum(vec3_t p);
+int CM_PointLeafnum(const vec3_t p);
 
 /* call with topnode set to the headnode, returns with topnode */
 /* set to the first node that splits the box */
@@ -661,7 +661,7 @@ void CM_SetAreaPortalState(int portalnum, qboolean open);
 qboolean CM_AreasConnected(int area1, int area2);
 
 int CM_WriteAreaBits(byte *buffer, int area);
-qboolean CM_HeadnodeVisible(int headnode, byte *visbits);
+qboolean CM_HeadnodeVisible(int headnode, const byte *visbits);
 
 void CM_WritePortalState(FILE *f);
 

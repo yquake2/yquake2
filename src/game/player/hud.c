@@ -77,7 +77,7 @@ MoveClientToIntermission(edict_t *ent)
 }
 
 void
-BeginIntermission(edict_t *targ)
+BeginIntermission(const edict_t *targ)
 {
 	int i;
 	edict_t *ent;
