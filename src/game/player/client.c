@@ -29,7 +29,6 @@
 
 void ClientUserinfoChanged(edict_t *ent, char *userinfo);
 void SP_misc_teleporter_dest(edict_t *ent);
-void Touch_Item(edict_t *ent, edict_t *other, cplane_t *plane, csurface_t *surf);
 
 /*
  * The ugly as hell coop spawnpoint fixup function.
@@ -617,7 +616,7 @@ ClientObituary(edict_t *self, edict_t *inflictor /* unused */,
 void
 TossClientWeapon(edict_t *self)
 {
-	gitem_t *item;
+	const gitem_t *item;
 	edict_t *drop;
 	qboolean quad;
 	float spread;
@@ -735,7 +734,7 @@ LookAtKiller(edict_t *self, edict_t *inflictor, edict_t *attacker)
 
 void
 player_die(edict_t *self, edict_t *inflictor, edict_t *attacker,
-		int damage, vec3_t point /* unused */)
+		int damage, const vec3_t point /* unused */)
 {
 	int n;
 
@@ -1137,7 +1136,6 @@ SelectCoopSpawnPoint(edict_t *ent)
 {
 	int index;
 	edict_t *spot = NULL;
-	char *target;
 
 	if (!ent)
 	{
@@ -1157,6 +1155,8 @@ SelectCoopSpawnPoint(edict_t *ent)
 	/* assume there are four coop spots at each spawnpoint */
 	while (1)
 	{
+		const char *target;
+
 		spot = G_Find(spot, FOFS(classname), "info_player_coop");
 
 		if (!spot)
@@ -1316,7 +1316,7 @@ InitBodyQue(void)
 void
 body_die(edict_t *self, edict_t *inflictor /* unused */,
 		edict_t *attacker /* unused */, int damage,
-		vec3_t point /* unused */)
+		const vec3_t point /* unused */)
 {
 	int n;
 

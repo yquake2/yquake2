@@ -59,7 +59,7 @@ floater_idle(edict_t *self)
 
 void floater_dead(edict_t *self);
 void floater_die(edict_t *self, edict_t *inflictor, edict_t *attacker,
-		int damage, vec3_t point);
+		int damage, const vec3_t point);
 void floater_run(edict_t *self);
 void floater_wham(edict_t *self);
 void floater_zap(edict_t *self);
@@ -763,7 +763,7 @@ floater_dead(edict_t *self)
 
 void
 floater_die(edict_t *self, edict_t *inflictor /* unused */, edict_t *attacker /* unused */,
-		int damage /* unused */, vec3_t point /* unused */)
+		int damage /* unused */, const vec3_t point /* unused */)
 {
 	if (!self)
 	{

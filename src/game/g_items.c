@@ -29,22 +29,6 @@
 #define HEALTH_IGNORE_MAX 1
 #define HEALTH_TIMED 2
 
-qboolean Pickup_Weapon(edict_t *ent, edict_t *other);
-void Use_Weapon(edict_t *ent, gitem_t *inv);
-void Drop_Weapon(edict_t *ent, gitem_t *inv);
-
-void Weapon_Blaster(edict_t *ent);
-void Weapon_Shotgun(edict_t *ent);
-void Weapon_SuperShotgun(edict_t *ent);
-void Weapon_Machinegun(edict_t *ent);
-void Weapon_Chaingun(edict_t *ent);
-void Weapon_HyperBlaster(edict_t *ent);
-void Weapon_RocketLauncher(edict_t *ent);
-void Weapon_Grenade(edict_t *ent);
-void Weapon_GrenadeLauncher(edict_t *ent);
-void Weapon_Railgun(edict_t *ent);
-void Weapon_BFG(edict_t *ent);
-
 static gitem_armor_t jacketarmor_info = {25, 50, .30, .00, ARMOR_JACKET};
 static gitem_armor_t combatarmor_info = {50, 100, .60, .30, ARMOR_COMBAT};
 static gitem_armor_t bodyarmor_info = {100, 200, .80, .60, ARMOR_BODY};
@@ -55,7 +39,6 @@ static int body_armor_index;
 static int power_screen_index;
 static int power_shield_index;
 
-void Use_Quad(edict_t *ent, gitem_t *item);
 static int quad_drop_timeout_hack;
 
 /* ====================================================================== */
@@ -242,7 +225,7 @@ Pickup_Powerup(edict_t *ent, edict_t *other)
 }
 
 void
-Drop_General(edict_t *ent, gitem_t *item)
+Drop_General(edict_t *ent, const gitem_t *item)
 {
 	if (!ent || !item)
 	{
@@ -511,7 +494,7 @@ Pickup_Pack(edict_t *ent, edict_t *other)
 /* ====================================================================== */
 
 void
-Use_Quad(edict_t *ent, gitem_t *item)
+Use_Quad(edict_t *ent, const gitem_t *item)
 {
 	int timeout;
 
@@ -548,7 +531,7 @@ Use_Quad(edict_t *ent, gitem_t *item)
 /* ====================================================================== */
 
 void
-Use_Breather(edict_t *ent, gitem_t *item)
+Use_Breather(edict_t *ent, const gitem_t *item)
 {
 	if (!ent || !item || !ent->client)
 	{
@@ -571,7 +554,7 @@ Use_Breather(edict_t *ent, gitem_t *item)
 /* ====================================================================== */
 
 void
-Use_Envirosuit(edict_t *ent, gitem_t *item)
+Use_Envirosuit(edict_t *ent, const gitem_t *item)
 {
 	if (!ent || !item || !ent->client)
 	{
@@ -594,7 +577,7 @@ Use_Envirosuit(edict_t *ent, gitem_t *item)
 /* ====================================================================== */
 
 void
-Use_Invulnerability(edict_t *ent, gitem_t *item)
+Use_Invulnerability(edict_t *ent, const gitem_t *item)
 {
 	if (!ent || !item)
 	{
@@ -619,7 +602,7 @@ Use_Invulnerability(edict_t *ent, gitem_t *item)
 /* ====================================================================== */
 
 void
-Use_Silencer(edict_t *ent, gitem_t *item)
+Use_Silencer(edict_t *ent, const gitem_t *item)
 {
 	if (!ent || !item)
 	{
@@ -675,7 +658,7 @@ Pickup_Key(edict_t *ent, edict_t *other)
 /* ====================================================================== */
 
 qboolean
-Add_Ammo(edict_t *ent, gitem_t *item, int count)
+Add_Ammo(edict_t *ent, const gitem_t *item, int count)
 {
 	int index;
 	int max;
@@ -785,7 +768,7 @@ Pickup_Ammo(edict_t *ent, edict_t *other)
 }
 
 void
-Drop_Ammo(edict_t *ent, gitem_t *item)
+Drop_Ammo(edict_t *ent, const gitem_t *item)
 {
 	edict_t *dropped;
 	int index;
@@ -897,7 +880,7 @@ Pickup_Health(edict_t *ent, edict_t *other)
 /* ====================================================================== */
 
 int
-ArmorIndex(edict_t *ent)
+ArmorIndex(const edict_t *ent)
 {
 	if (!ent || !ent->client)
 	{
@@ -1029,7 +1012,7 @@ Pickup_Armor(edict_t *ent, edict_t *other)
 /* ====================================================================== */
 
 int
-PowerArmorType(edict_t *ent)
+PowerArmorType(const edict_t *ent)
 {
 	if (!ent)
 	{
@@ -1060,10 +1043,8 @@ PowerArmorType(edict_t *ent)
 }
 
 void
-Use_PowerArmor(edict_t *ent, gitem_t *item)
+Use_PowerArmor(edict_t *ent, const gitem_t *item)
 {
-	int index;
-
 	if (!ent || !item)
 	{
 		return;
@@ -1077,6 +1058,8 @@ Use_PowerArmor(edict_t *ent, gitem_t *item)
 	}
 	else
 	{
+		int index;
+
 		index = ITEM_INDEX(FindItem("cells"));
 
 		if (!ent->client->pers.inventory[index])
@@ -1123,7 +1106,7 @@ Pickup_PowerArmor(edict_t *ent, edict_t *other)
 }
 
 void
-Drop_PowerArmor(edict_t *ent, gitem_t *item)
+Drop_PowerArmor(edict_t *ent, const gitem_t *item)
 {
 	if (!ent || !item)
 	{
@@ -1142,7 +1125,8 @@ Drop_PowerArmor(edict_t *ent, gitem_t *item)
 /* ====================================================================== */
 
 void
-Touch_Item(edict_t *ent, edict_t *other, cplane_t *plane /* unused */, csurface_t *surf /* unused */)
+Touch_Item(edict_t *ent, edict_t *other, const cplane_t *plane /* unused */,
+	const csurface_t *surf /* unused */)
 {
 	qboolean taken;
 
@@ -1270,7 +1254,7 @@ Touch_Item(edict_t *ent, edict_t *other, cplane_t *plane /* unused */, csurface_
 /* ====================================================================== */
 
 void
-drop_temp_touch(edict_t *ent, edict_t *other, cplane_t *plane, csurface_t *surf)
+drop_temp_touch(edict_t *ent, edict_t *other, const cplane_t *plane, const csurface_t *surf)
 {
 	if (!ent || !other)
 	{
@@ -1307,11 +1291,10 @@ drop_make_touchable(edict_t *ent)
 }
 
 edict_t *
-Drop_Item(edict_t *ent, gitem_t *item)
+Drop_Item(edict_t *ent, const gitem_t *item)
 {
 	edict_t *dropped;
 	vec3_t forward, right;
-	vec3_t offset;
 
 	if (!ent || !item)
 	{
@@ -1335,8 +1318,8 @@ Drop_Item(edict_t *ent, gitem_t *item)
 		dropped->s.angles[1] -= frandk()*45;
 	}
 
-	VectorSet (dropped->mins, -16, -16, -16);
-	VectorSet (dropped->maxs, 16, 16, 16);
+	VectorSet(dropped->mins, -16, -16, -16);
+	VectorSet(dropped->maxs, 16, 16, 16);
 	gi.setmodel(dropped, dropped->item->world_model);
 	dropped->solid = SOLID_TRIGGER;
 	dropped->movetype = MOVETYPE_TOSS;
@@ -1345,6 +1328,7 @@ Drop_Item(edict_t *ent, gitem_t *item)
 
 	if (ent->client)
 	{
+		vec3_t offset;
 		trace_t trace;
 
 		AngleVectors(ent->client->v_angle, forward, right, NULL);
@@ -1404,7 +1388,7 @@ droptofloor(edict_t *ent)
 {
 	trace_t tr;
 	vec3_t dest;
-	float *v;
+	const float *v;
 
 	if (!ent)
 	{
@@ -1436,7 +1420,9 @@ droptofloor(edict_t *ent)
 
 	if (tr.startsolid)
 	{
-		gi.dprintf("droptofloor: %s startsolid at %s\n", ent->classname,
+		gi.dprintf("%s: %s startsolid at %s\n",
+				__func__,
+				ent->classname,
 				vtos(ent->s.origin));
 		G_FreeEdict(ent);
 		return;
@@ -1484,12 +1470,10 @@ droptofloor(edict_t *ent)
  * and for each item in each client's inventory.
  */
 void
-PrecacheItem(gitem_t *it)
+PrecacheItem(const gitem_t *it)
 {
-	char *s, *start;
+	const char *s;
 	char data[MAX_QPATH];
-	int len;
-	gitem_t *ammo;
 
 	if (!it)
 	{
@@ -1519,6 +1503,8 @@ PrecacheItem(gitem_t *it)
 	/* parse everything for its ammo */
 	if (it->ammo && it->ammo[0])
 	{
+		const gitem_t *ammo;
+
 		ammo = FindItem(it->ammo);
 
 		if (ammo != it)
@@ -1537,6 +1523,9 @@ PrecacheItem(gitem_t *it)
 
 	while (*s)
 	{
+		const char *start;
+		int len;
+
 		start = s;
 
 		while (*s && *s != ' ')

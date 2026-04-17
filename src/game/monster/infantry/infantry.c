@@ -515,7 +515,7 @@ mmove_t infantry_move_death3 =
 void
 infantry_die(edict_t *self, edict_t *inflictor /* unused */,
 		edict_t *attacker /* unused */, int damage,
-		vec3_t point /* unused */)
+		const vec3_t point /* unused */)
 {
 	int n;
 

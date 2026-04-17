@@ -94,7 +94,7 @@ G_Find(edict_t *from, int fieldofs, const char *match)
  * within a spherical area
  */
 edict_t *
-findradius(edict_t *from, vec3_t org, float rad)
+findradius(edict_t *from, const vec3_t org, float rad)
 {
 	vec3_t eorg;
 	int j;
@@ -428,16 +428,16 @@ vectoyaw(vec3_t vec)
 }
 
 void
-vectoangles(vec3_t value1, vec3_t angles)
+vectoangles(const vec3_t value, vec3_t angles)
 {
 	float forward;
 	float yaw, pitch;
 
-	if ((value1[1] == 0) && (value1[0] == 0))
+	if ((value[1] == 0) && (value[0] == 0))
 	{
 		yaw = 0;
 
-		if (value1[2] > 0)
+		if (value[2] > 0)
 		{
 			pitch = 90;
 		}
@@ -448,11 +448,11 @@ vectoangles(vec3_t value1, vec3_t angles)
 	}
 	else
 	{
-		if (value1[0])
+		if (value[0])
 		{
-			yaw = (int)(atan2(value1[1], value1[0]) * 180 / M_PI);
+			yaw = (int)(atan2(value[1], value[0]) * 180 / M_PI);
 		}
-		else if (value1[1] > 0)
+		else if (value[1] > 0)
 		{
 			yaw = 90;
 		}
@@ -466,8 +466,8 @@ vectoangles(vec3_t value1, vec3_t angles)
 			yaw += 360;
 		}
 
-		forward = sqrt(value1[0] * value1[0] + value1[1] * value1[1]);
-		pitch = (int)(atan2(value1[2], forward) * 180 / M_PI);
+		forward = sqrt(value[0] * value[0] + value[1] * value[1]);
+		pitch = (int)(atan2(value[2], forward) * 180 / M_PI);
 
 		if (pitch < 0)
 		{
@@ -481,7 +481,7 @@ vectoangles(vec3_t value1, vec3_t angles)
 }
 
 char *
-G_CopyString(char *in)
+G_CopyString(const char *in)
 {
 	char *out;
 
