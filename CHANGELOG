@@ -1,3 +1,55 @@
+Quake II 8.60 to 8.70:
+- The default SDL version is now 3.0. SDL 2.0 is still supported as an
+  optional build flag. There are no plans to remove SDL 2.0 support in
+  the foreseeable future, however new features may not be implemented
+  for it.
+- The map list maps.lst is now searched in all folders. (by 0lvin)
+- `centerview` was improved to operate more like under Quake I. Instead
+  of snapping back to center immediately, the view now returns to the
+  center in a progressive way. The old behavior can be restored by
+  setting `cl_centertime 0`. (by protocultor)
+- Several improvements to the build system, most notably separate dirs
+  for debug and release builds. (by BjossiAlfreds)
+- Optional support for XDG directories on unixoid platform. If no
+  ~/.yq2/ directory exists, gamedata, savegames, etc are written to
+  $XDG_DATA_HOME/YamagiQ2. (by Pedro Oliva Rodrigues)
+- Most errors regarding sound playback are no longer fatal. The client
+  will survive most broken sound entities sent by the server. (by
+  BjossiAlfreds)
+- Make the entity limit less restrictive. The client and server now
+  support up to 32768 entities. Due to limitations of the network
+  protocol only the entities 4096 and lower can play sounds. The
+  `maxentities` cvar needs to be increased to make use of the raised
+  entity limit in single player or when hosting a server. (by
+  BjossiAlfreds)
+- More load time optimizations were implemented, making level loading
+  times even shorter in single-player mode. In multi-player mode basic
+  load time optimizations are now enabled by default, yielding a huge
+  improvement in loading times. (by BjossiAlfreds)
+- Several improvements to the controller / gamepad support. Rework the
+  gamepad menu, slight reform of Flick Sticks, dampened rumble when
+  using gyro and the gamepad used by the game can be selected with the
+  `in_initjoy` cvar. (by protocultor)
+- The crosshair color can now be configured. Predefined colors can be
+  selected through the options menu, arbitrary colors can be configured
+  with the `crosshair_color_r`, `crosshair_color_g` and
+  `crosshair_color_b` cvars. (by Trung Lê)
+- Fix lerping with lasers. This makes moving lasers much smoother. (by
+  BjossiAlfreds)
+- More mapfixes for cool1. (by BjossiAlfreds)
+- Solve long standing problems with OpenAL HRTF caused by occlusion. (by
+  David Carlier)
+- Huge stability and robustness improvements to the savegame system. (by
+  BjossiAlfreds)
+- The 'pause on focus loss' menu option was removed to free up one menu
+  slot. The setting is still available as the `vid_pauseonfocuslost`
+  cvar.
+- The server can now handle configstring index overflows. Overflows are
+  no longer fatal instead warnings are printed to the console. (by
+  BjossiAlfreds)
+- A lot of smaller bug fixes, code cleanups and robustness improvements.
+  (by 0lvin, ABalfoort, BjossiAlfreds, David Carlier and protocultor)
+
 Quake II 8.51 to 8.60:
 - Vastly improved level loading times in single-player. Set
   sv_optimize_mp_loadtime to 7 to enable in multiplayer. (by
