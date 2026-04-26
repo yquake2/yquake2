@@ -77,7 +77,7 @@ MoveClientToIntermission(edict_t *ent)
 }
 
 void
-BeginIntermission(edict_t *targ)
+BeginIntermission(const edict_t *targ)
 {
 	int i;
 	edict_t *ent;
@@ -600,7 +600,7 @@ G_SetStats(edict_t *ent)
 }
 
 void
-G_CheckChaseStats(edict_t *ent)
+G_CheckChaseStats(const edict_t *ent)
 {
 	int i;
 

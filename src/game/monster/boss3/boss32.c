@@ -27,8 +27,6 @@
 #include "../../header/local.h"
 #include "boss32.h"
 
-qboolean visible(edict_t *self, edict_t *other);
-
 void MakronRailgun(edict_t *self);
 void MakronSaveloc(edict_t *self);
 void MakronHyperblaster(edict_t *self);
@@ -864,7 +862,7 @@ makron_torso_origin(edict_t *self, edict_t *torso)
 
 void
 makron_torso_die(edict_t *self, edict_t *inflictor /* unused */, edict_t *attacker /* unused */,
-		int damage /* unused */, vec3_t point /* unused */)
+		int damage /* unused */, const vec3_t point /* unused */)
 {
 	int n;
 
@@ -946,7 +944,7 @@ makron_dead(edict_t *self)
 
 void
 makron_die(edict_t *self, edict_t *inflictor /* unused */, edict_t *attacker /* unused */,
-		int damage /* unused */, vec3_t point /* unused */)
+		int damage /* unused */, const vec3_t point /* unused */)
 {
 	int n;
 

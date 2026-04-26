@@ -375,7 +375,7 @@ fire_shotgun(edict_t *self, vec3_t start, vec3_t aimdir, int damage,
  * Used by the blaster and hyper blaster.
  */
 void
-blaster_touch(edict_t *self, edict_t *other, cplane_t *plane, csurface_t *surf)
+blaster_touch(edict_t *self, edict_t *other, const cplane_t *plane, const csurface_t *surf)
 {
 	int mod;
 
@@ -596,7 +596,7 @@ Grenade_Explode(edict_t *ent)
 }
 
 void
-Grenade_Touch(edict_t *ent, edict_t *other, cplane_t *plane /* unused */, csurface_t *surf)
+Grenade_Touch(edict_t *ent, edict_t *other, const cplane_t *plane /* unused */, const csurface_t *surf)
 {
 	if (!ent || !other) /* plane is unused, surf can be NULL */
 	{
@@ -744,7 +744,7 @@ fire_grenade2(edict_t *self, vec3_t start, vec3_t aimdir, int damage,
 }
 
 void
-rocket_touch(edict_t *ent, edict_t *other, cplane_t *plane, csurface_t *surf)
+rocket_touch(edict_t *ent, edict_t *other, const cplane_t *plane, const csurface_t *surf)
 {
 	vec3_t origin;
 	int n;
@@ -1015,7 +1015,7 @@ bfg_explode(edict_t *self)
 }
 
 void
-bfg_touch(edict_t *self, edict_t *other, cplane_t *plane, csurface_t *surf)
+bfg_touch(edict_t *self, edict_t *other, const cplane_t *plane, const csurface_t *surf)
 {
 	if (!self || !other) /* plane and surf can be NULL */
 	{

@@ -493,7 +493,7 @@ Think_Weapon(edict_t *ent)
  * Make the weapon ready if there is ammo
  */
 void
-Use_Weapon(edict_t *ent, gitem_t *item)
+Use_Weapon(edict_t *ent, const gitem_t *item)
 {
 	int ammo_index;
 	gitem_t *ammo_item;
@@ -534,7 +534,7 @@ Use_Weapon(edict_t *ent, gitem_t *item)
 }
 
 void
-Drop_Weapon(edict_t *ent, gitem_t *item)
+Drop_Weapon(edict_t *ent, const gitem_t *item)
 {
 	int index;
 
@@ -1358,7 +1358,7 @@ Machinegun_Fire(edict_t *ent)
 			ent->client->machinegun_shots = 9;
 		}
 	}
-	
+
 	/* get start / end positions */
 	VectorAdd(ent->client->v_angle, ent->client->kick_angles, angles);
 	AngleVectors(angles, forward, right, NULL);
@@ -1689,9 +1689,9 @@ weapon_supershotgun_fire(edict_t *ent)
 	v[YAW] = ent->client->v_angle[YAW] - 5;
 	v[ROLL] = ent->client->v_angle[ROLL];
 	AngleVectors(v, forward, NULL, NULL);
-	
+
 	if (aimfix->value)
-	{	
+	{
 		AngleVectors(v, forward, right, NULL);
 
 		VectorScale(forward, -2, ent->client->kick_origin);
@@ -1699,17 +1699,17 @@ weapon_supershotgun_fire(edict_t *ent)
 
 		VectorSet(offset, 0, 8, ent->viewheight - 8);
 		P_ProjectSource(ent, offset, forward, right, start);
-	}	
-	
+	}
+
 	fire_shotgun(ent, start, forward, damage, kick,
 			DEFAULT_SHOTGUN_HSPREAD, DEFAULT_SHOTGUN_VSPREAD,
 			DEFAULT_SSHOTGUN_COUNT / 2, MOD_SSHOTGUN);
-	
+
 	v[YAW] = ent->client->v_angle[YAW] + 5;
 	AngleVectors(v, forward, NULL, NULL);
-	
+
 	if (aimfix->value)
-	{	
+	{
 		AngleVectors(v, forward, right, NULL);
 
 		VectorScale(forward, -2, ent->client->kick_origin);
@@ -1717,8 +1717,8 @@ weapon_supershotgun_fire(edict_t *ent)
 
 		VectorSet(offset, 0, 8, ent->viewheight - 8);
 		P_ProjectSource(ent, offset, forward, right, start);
-	}	
-	
+	}
+
 	fire_shotgun(ent, start, forward, damage, kick,
 			DEFAULT_SHOTGUN_HSPREAD, DEFAULT_SHOTGUN_VSPREAD,
 			DEFAULT_SSHOTGUN_COUNT / 2, MOD_SSHOTGUN);

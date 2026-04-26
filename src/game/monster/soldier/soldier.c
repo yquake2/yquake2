@@ -1504,7 +1504,7 @@ mmove_t soldier_move_death6 =
 void
 soldier_die(edict_t *self, edict_t *inflictor /* unused */,
 		edict_t *attacker /* unused */, int damage,
-		vec3_t point /* unused */)
+		const vec3_t point /* unused */)
 {
 	int n;
 

@@ -37,7 +37,7 @@ game_export_t *ge;
  * Sends the contents of the mutlicast buffer to a single client
  */
 static void
-PF_Unicast(edict_t *ent, qboolean reliable)
+PF_Unicast(const edict_t *ent, qboolean reliable)
 {
 	int p;
 	client_t *client;
@@ -89,7 +89,7 @@ PF_dprintf(const char *fmt, ...)
  * Print to a single client
  */
 static void
-PF_cprintf(edict_t *ent, int level, const char *fmt, ...)
+PF_cprintf(const edict_t *ent, int level, const char *fmt, ...)
 {
 	char msg[1024];
 	va_list argptr;
@@ -125,7 +125,7 @@ PF_cprintf(edict_t *ent, int level, const char *fmt, ...)
  * centerprint to a single client
  */
 static void
-PF_centerprintf(edict_t *ent, const char *fmt, ...)
+PF_centerprintf(const edict_t *ent, const char *fmt, ...)
 {
 	char msg[1024];
 	va_list argptr;
@@ -167,7 +167,7 @@ PF_error(const char *fmt, ...)
  * Also sets mins and maxs for inline bmodels
  */
 static void
-PF_setmodel(edict_t *ent, char *name)
+PF_setmodel(edict_t *ent, const char *name)
 {
 	int i;
 
@@ -194,7 +194,7 @@ PF_setmodel(edict_t *ent, char *name)
 }
 
 static void
-PF_Configstring(int index, char *val)
+PF_Configstring(int index, const char *val)
 {
 	size_t len, space;
 	char *cs;
@@ -283,19 +283,19 @@ PF_WriteFloat(float f)
 }
 
 static void
-PF_WriteString(char *s)
+PF_WriteString(const char *s)
 {
 	MSG_WriteString(&sv.multicast, s);
 }
 
 static void
-PF_WritePos(vec3_t pos)
+PF_WritePos(const vec3_t pos)
 {
 	MSG_WritePos(&sv.multicast, pos);
 }
 
 static void
-PF_WriteDir(vec3_t dir)
+PF_WriteDir(const vec3_t dir)
 {
 	MSG_WriteDir(&sv.multicast, dir);
 }
@@ -379,7 +379,7 @@ PF_inPHS(vec3_t p1, vec3_t p2)
 }
 
 static void
-PF_StartSound(edict_t *entity, int channel, int sound_num,
+PF_StartSound(const edict_t *entity, int channel, int sound_num,
 		float volume, float attenuation, float timeofs)
 {
 	if (!entity)
