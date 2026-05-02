@@ -738,7 +738,7 @@ void ai_walk(edict_t *self, float dist);
 void ai_turn(edict_t *self, float dist);
 void ai_run(edict_t *self, float dist);
 void ai_charge(edict_t *self, float dist);
-int range(edict_t *self, edict_t *other);
+int ai_range(edict_t *self, edict_t *other);
 
 void FoundTarget(edict_t *self);
 qboolean FindTarget(edict_t *self);

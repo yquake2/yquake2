@@ -730,7 +730,7 @@ flyer_check_melee(edict_t *self)
 		return;
 	}
 
-	if (range(self, self->enemy) == RANGE_MELEE)
+	if (ai_range(self, self->enemy) == RANGE_MELEE)
 	{
 		if (random() <= 0.8)
 		{

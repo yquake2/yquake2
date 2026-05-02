@@ -976,7 +976,7 @@ extern qboolean FindTarget ( edict_t * self ) ;
 extern void FoundTarget ( edict_t * self ) ;
 extern qboolean infront ( edict_t * self , edict_t * other ) ;
 extern qboolean visible ( const edict_t * self , const edict_t * other ) ;
-extern int range ( edict_t * self , edict_t * other ) ;
+extern int ai_range ( edict_t * self , edict_t * other ) ;
 extern void ai_turn ( edict_t * self , float dist ) ;
 extern void ai_charge ( edict_t * self , float dist ) ;
 extern void ai_walk ( edict_t * self , float dist ) ;

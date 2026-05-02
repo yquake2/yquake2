@@ -975,7 +975,7 @@
 {"FoundTarget", (byte *)FoundTarget},
 {"infront", (byte *)infront},
 {"visible", (byte *)visible},
-{"range", (byte *)range},
+{"ai_range", (byte *)ai_range},
 {"ai_turn", (byte *)ai_turn},
 {"ai_charge", (byte *)ai_charge},
 {"ai_walk", (byte *)ai_walk},
