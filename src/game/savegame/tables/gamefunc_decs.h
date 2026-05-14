@@ -158,7 +158,6 @@ extern void respawn ( edict_t * self ) ;
 extern void CopyToBodyQue ( edict_t * ent ) ;
 extern void body_die ( edict_t * self , edict_t * inflictor , edict_t * attacker , int damage , const vec3_t point ) ;
 extern void InitBodyQue ( void ) ;
-extern void SelectSpawnPoint ( edict_t * ent , vec3_t origin , vec3_t angles ) ;
 extern edict_t * SelectFarthestDeathmatchSpawnPoint ( void ) ;
 extern edict_t * SelectRandomDeathmatchSpawnPoint ( void ) ;
 extern float PlayersRangeFromSpot ( edict_t * spot ) ;
