@@ -478,6 +478,7 @@ Think_AccelMove(edict_t *ent)
 	ent->think = Think_AccelMove;
 }
 
+/* ->moveinfo.endfunc = plat_hit_top; */
 void
 plat_hit_top(edict_t *ent)
 {
@@ -503,6 +504,7 @@ plat_hit_top(edict_t *ent)
 	ent->nextthink = level.time + 3;
 }
 
+/* ->moveinfo.endfunc = plat_hit_bottom; */
 void
 plat_hit_bottom(edict_t *ent)
 {
@@ -1032,6 +1034,7 @@ SP_func_rotating(edict_t *ent)
  *    4) metallic click
  *    5) in-out
  */
+/* ->moveinfo.endfunc = button_done; */
 void
 button_done(edict_t *self)
 {
@@ -1065,6 +1068,7 @@ button_return(edict_t *self)
 	}
 }
 
+/* ->moveinfo.endfunc = button_wait; */
 void
 button_wait(edict_t *self)
 {
@@ -1303,6 +1307,7 @@ door_use_areaportals(edict_t *self, qboolean open)
 	}
 }
 
+/* ->moveinfo.endfunc = door_hit_top; */
 void
 door_hit_top(edict_t *self)
 {
@@ -1336,6 +1341,7 @@ door_hit_top(edict_t *self)
 	}
 }
 
+/* ->moveinfo.endfunc = door_hit_bottom; */
 void
 door_hit_bottom(edict_t *self)
 {
@@ -2199,6 +2205,7 @@ train_blocked(edict_t *self, edict_t *other)
 			vec3_origin, self->dmg, 1, 0, MOD_CRUSH);
 }
 
+/* ->moveinfo.endfunc = train_wait; */
 void
 train_wait(edict_t *self)
 {
@@ -2774,6 +2781,7 @@ door_secret_use(edict_t *self, edict_t *other /* unused */, edict_t *activator /
 	door_use_areaportals(self, true);
 }
 
+/* ->moveinfo.endfunc = door_secret_move1; */
 void
 door_secret_move1(edict_t *self)
 {
@@ -2797,6 +2805,7 @@ door_secret_move2(edict_t *self)
 	Move_Calc(self, self->pos2, door_secret_move3);
 }
 
+/* ->moveinfo.endfunc = door_secret_move3; */
 void
 door_secret_move3(edict_t *self)
 {
@@ -2825,6 +2834,7 @@ door_secret_move4(edict_t *self)
 	Move_Calc(self, self->pos1, door_secret_move5);
 }
 
+/* ->moveinfo.endfunc = door_secret_move5; */
 void
 door_secret_move5(edict_t *self)
 {
@@ -2848,6 +2858,7 @@ door_secret_move6(edict_t *self)
 	Move_Calc(self, vec3_origin, door_secret_done);
 }
 
+/* ->moveinfo.endfunc = door_secret_done; */
 void
 door_secret_done(edict_t *self)
 {
