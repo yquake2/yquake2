@@ -1,4 +1,6 @@
-FROM ubuntu:18.04 AS build
+# Build `docker build -f stuff/misc/Dockerfile . -t xyz/quake2`
+# Run `docker run -v ~/.yq2:/yquake2/.yq2 -p 27910:27910/udp xyz/quake2`
+FROM ubuntu:24.04 AS build
 
 WORKDIR /yquake2
 RUN apt-get update
@@ -7,11 +9,12 @@ COPY . .
 
 RUN make server game
 
-FROM ubuntu:18.04 AS runtime
+FROM ubuntu:24.04 AS runtime
 
-ENV server_cfg="server.cfg"
+EXPOSE 27910/udp
 
-EXPOSE 27910
+# Remove default ubuntu user
+RUN userdel -r ubuntu
 
 # Add the user UID:1000, GID:1000, home at /yquake2
 RUN groupadd -r yquake2 -g 1000 && useradd -u 1000 -r -g yquake2 -m -d /yquake2 -s /sbin/nologin -c "yquake2 user" yquake2 && \
@@ -24,5 +27,8 @@ COPY --from=build /yquake2/release ./
 USER yquake2
 
 RUN mkdir .yq2
+
 VOLUME ["/yquake2/.yq2"]
-ENTRYPOINT ./q2ded +exec ${server_cfg}
+ENTRYPOINT ["./q2ded"]
+CMD ["+exec", "server.cfg"]
+
