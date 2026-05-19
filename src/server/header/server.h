@@ -209,9 +209,9 @@ extern edict_t *sv_player;
 void SV_FinalMessage(char *message, qboolean reconnect);
 void SV_DropClient(client_t *drop);
 
-int SV_ModelIndex(char *name);
-int SV_SoundIndex(char *name);
-int SV_ImageIndex(char *name);
+int SV_ModelIndex(const char *name);
+int SV_SoundIndex(const char *name);
+int SV_ImageIndex(const char *name);
 
 void SV_WriteClientdataToMessage(client_t *client, sizebuf_t *msg);
 
@@ -238,8 +238,8 @@ void SV_FlushRedirect(int sv_redirected, char *outputbuf);
 void SV_SendClientMessages(void);
 void SV_SendPrepClientMessages(void);
 
-void SV_Multicast(vec3_t origin, multicast_t to);
-void SV_StartSound(vec3_t origin, edict_t *entity, int channel,
+void SV_Multicast(const vec3_t origin, multicast_t to);
+void SV_StartSound(const vec3_t origin, const edict_t *entity, int channel,
 		int soundindex, float volume, float attenuation,
 		float timeofs);
 void SV_ClientPrintf(client_t *cl, int level, const char *fmt, ...);
@@ -283,13 +283,13 @@ void SV_LinkEdict(edict_t *ent);
    or solid. Automatically unlinks if needed. sets ent->v.absmin and
    ent->v.absmax sets ent->leafnums[] for pvs determination even if
    the entity is not solid */
-int SV_AreaEdicts(vec3_t mins, vec3_t maxs, edict_t **list,
+int SV_AreaEdicts(const vec3_t mins, const vec3_t maxs, edict_t **list,
 		int maxcount, int areatype);
 
-int SV_PointContents(vec3_t p);
+int SV_PointContents(const vec3_t p);
 
-trace_t SV_Trace(vec3_t start, vec3_t mins, vec3_t maxs,
-		vec3_t end, edict_t *passedict, int contentmask);
+trace_t SV_Trace(const vec3_t start, const vec3_t mins, const vec3_t maxs,
+		const vec3_t end, const edict_t *passedict, int contentmask);
 
 /* loadtime optimizations */
 

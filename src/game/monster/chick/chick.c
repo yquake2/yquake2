@@ -27,8 +27,6 @@
 #include "../../header/local.h"
 #include "chick.h"
 
-qboolean visible(edict_t *self, edict_t *other);
-
 void chick_stand(edict_t *self);
 void chick_run(edict_t *self);
 void chick_reslash(edict_t *self);
@@ -505,7 +503,7 @@ mmove_t chick_move_death1 =
 void
 chick_die(edict_t *self, edict_t *inflictor /* unused */,
 		edict_t *attacker /* unused */, int damage,
-		vec3_t point /*unused */)
+		const vec3_t point /*unused */)
 {
 	int n;
 
@@ -786,7 +784,7 @@ chick_rerocket(edict_t *self)
 
 	if (self->enemy->health > 0)
 	{
-		if (range(self, self->enemy) > RANGE_MELEE)
+		if (ai_range(self, self->enemy) > RANGE_MELEE)
 		{
 			if (visible(self, self->enemy))
 			{
@@ -858,7 +856,7 @@ chick_reslash(edict_t *self)
 
 	if (self->enemy->health > 0)
 	{
-		if (range(self, self->enemy) == RANGE_MELEE)
+		if (ai_range(self, self->enemy) == RANGE_MELEE)
 		{
 			if (random() <= 0.9)
 			{

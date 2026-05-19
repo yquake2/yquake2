@@ -28,7 +28,6 @@
 #include "boss31.h"
 
 extern void SP_monster_makron(edict_t *self);
-qboolean visible(edict_t *self, edict_t *other);
 
 static int sound_pain1;
 static int sound_pain2;
@@ -752,7 +751,7 @@ jorg_dead(edict_t *self /* unused */)
 
 void
 jorg_die(edict_t *self, edict_t *inflictor /* unused */, edict_t *attacker /* unused */,
-		int damage /* unused */, vec3_t point /* unused */)
+		int damage /* unused */, const vec3_t point /* unused */)
 {
 	if (!self)
 	{
@@ -801,7 +800,7 @@ Jorg_CheckAttack(edict_t *self)
 		}
 	}
 
-	enemy_range = range(self, self->enemy);
+	enemy_range = ai_range(self, self->enemy);
 	VectorSubtract(self->enemy->s.origin, self->s.origin, temp);
 	enemy_yaw = vectoyaw(temp);
 

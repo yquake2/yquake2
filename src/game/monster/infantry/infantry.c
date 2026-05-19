@@ -515,7 +515,7 @@ mmove_t infantry_move_death3 =
 void
 infantry_die(edict_t *self, edict_t *inflictor /* unused */,
 		edict_t *attacker /* unused */, int damage,
-		vec3_t point /* unused */)
+		const vec3_t point /* unused */)
 {
 	int n;
 
@@ -783,7 +783,7 @@ infantry_attack(edict_t *self)
 		return;
 	}
 
-	if (range(self, self->enemy) == RANGE_MELEE)
+	if (ai_range(self, self->enemy) == RANGE_MELEE)
 	{
 		self->monsterinfo.currentmove = &infantry_move_attack2;
 	}

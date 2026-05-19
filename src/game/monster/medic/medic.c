@@ -27,8 +27,6 @@
 #include "../../header/local.h"
 #include "medic.h"
 
-qboolean visible(edict_t *self, edict_t *other);
-
 static int sound_idle1;
 static int sound_pain1;
 static int sound_pain2;
@@ -575,7 +573,7 @@ mmove_t medic_move_death =
 void
 medic_die(edict_t *self, edict_t *inflictor /* unused */,
 		edict_t *attacker /* unused */, int damage,
-		vec3_t point /* unused */)
+		const vec3_t point /* unused */)
 {
 	int n;
 

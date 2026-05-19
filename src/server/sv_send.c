@@ -191,7 +191,7 @@ SV_WereConnected(const vec3_t origin, const byte *mask, int area1)
 }
 
 void
-SV_Multicast(vec3_t origin, multicast_t to)
+SV_Multicast(const vec3_t origin, multicast_t to)
 {
 	int leafnum, cluster, area1 = 0, j;
 	qboolean reliable;
@@ -289,7 +289,7 @@ SV_Multicast(vec3_t origin, multicast_t to)
  * or the midpoint of the entity box for bmodels.
  */
 void
-SV_StartSound(vec3_t origin, edict_t *entity, int channel, int soundindex,
+SV_StartSound(const vec3_t origin, const edict_t *entity, int channel, int soundindex,
 		float volume, float attenuation, float timeofs)
 {
 	int flags;

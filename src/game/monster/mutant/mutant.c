@@ -377,7 +377,7 @@ mutant_check_refire(edict_t *self)
 	}
 
 	if (((skill->value == SKILL_HARDPLUS) &&
-		 (random() < 0.5)) || (range(self, self->enemy) == RANGE_MELEE))
+		 (random() < 0.5)) || (ai_range(self, self->enemy) == RANGE_MELEE))
 	{
 		self->monsterinfo.nextframe = FRAME_attack09;
 	}
@@ -414,7 +414,7 @@ mutant_melee(edict_t *self)
 
 void
 mutant_jump_touch(edict_t *self, edict_t *other,
-		cplane_t *plane /* unused */, csurface_t *surf /* unused */)
+		const cplane_t *plane /* unused */, const csurface_t *surf /* unused */)
 {
 	if (!self)
 	{
@@ -543,7 +543,7 @@ mutant_check_melee(edict_t *self)
 		return false;
 	}
 
-	if (range(self, self->enemy) == RANGE_MELEE)
+	if (ai_range(self, self->enemy) == RANGE_MELEE)
 	{
 		return true;
 	}
@@ -779,7 +779,7 @@ mmove_t mutant_move_death2 =
 void
 mutant_die(edict_t *self, edict_t *inflictor /* unused */,
 		edict_t *attacker /* unused */, int damage,
-		vec3_t point /* unused */)
+		const vec3_t point /* unused */)
 {
 	int n;
 

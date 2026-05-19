@@ -459,7 +459,7 @@ Cvar_Set2(const char *var_name, const char *value, qboolean force)
 }
 
 cvar_t *
-Cvar_ForceSet(const char *var_name, char *value)
+Cvar_ForceSet(const char *var_name, const char *value)
 {
 	return Cvar_Set2(var_name, value, true);
 }

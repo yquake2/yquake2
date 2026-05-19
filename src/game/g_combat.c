@@ -118,7 +118,7 @@ CanDamage(edict_t *targ, edict_t *inflictor)
 	return false;
 }
 
-void
+static void
 Killed(edict_t *targ, edict_t *inflictor, edict_t *attacker,
 		int damage, vec3_t point)
 {
@@ -166,8 +166,8 @@ Killed(edict_t *targ, edict_t *inflictor, edict_t *attacker,
 	targ->die(targ, inflictor, attacker, damage, point);
 }
 
-void
-SpawnDamage(int type, vec3_t origin, vec3_t normal)
+static void
+SpawnDamage(int type, const vec3_t origin, const vec3_t normal)
 {
 	gi.WriteByte(svc_temp_entity);
 	gi.WriteByte(type);
@@ -196,15 +196,14 @@ SpawnDamage(int type, vec3_t origin, vec3_t normal)
  *      DAMAGE_BULLET			damage is from a bullet (used for ricochets)
  *      DAMAGE_NO_PROTECTION	kills godmode, armor, everything
  */
-
-int
-CheckPowerArmor(edict_t *ent, vec3_t point, vec3_t normal, int damage,
-		int dflags)
+static int
+CheckPowerArmor(edict_t *ent, const vec3_t point, const vec3_t normal,
+		int damage, int dflags)
 {
 	gclient_t *client;
 	int save;
 	int power_armor_type;
-	int index;
+	int index = 0;
 	int damagePerCell;
 	int pa_te_type;
 	int power = 0;
@@ -317,14 +316,14 @@ CheckPowerArmor(edict_t *ent, vec3_t point, vec3_t normal, int damage,
 	return save;
 }
 
-int
-CheckArmor(edict_t *ent, vec3_t point, vec3_t normal, int damage,
+static int
+CheckArmor(edict_t *ent, vec3_t point, const vec3_t normal, int damage,
 		int te_sparks, int dflags)
 {
 	gclient_t *client;
 	int save;
 	int index;
-	gitem_t *armor;
+	const gitem_t *armor;
 
 	if (!ent)
 	{
@@ -514,15 +513,15 @@ apply_knockback(edict_t *targ, vec3_t dir, float knockback, float scale)
 
 	mass = (targ->mass < 50) ? 50.0f : (float)targ->mass;
 
-	VectorNormalize2 (dir, kvel);
-	VectorScale (kvel, scale * (knockback / mass), kvel);
-	VectorAdd (targ->velocity, kvel, targ->velocity);
+	VectorNormalize2(dir, kvel);
+	VectorScale(kvel, scale * (knockback / mass), kvel);
+	VectorAdd(targ->velocity, kvel, targ->velocity);
 }
 
 void
-T_Damage(edict_t *targ, edict_t *inflictor, edict_t *attacker,
-		vec3_t dir, vec3_t point, vec3_t normal, int damage,
-		int knockback, int dflags, int mod)
+T_Damage(edict_t *targ, edict_t *inflictor, edict_t *attacker, vec3_t dir,
+		vec3_t point, const vec3_t normal, int damage, int knockback, int dflags,
+		int mod)
 {
 	gclient_t *client;
 	int take;
@@ -714,7 +713,7 @@ T_Damage(edict_t *targ, edict_t *inflictor, edict_t *attacker,
 
 void
 T_RadiusDamage(edict_t *inflictor, edict_t *attacker, float damage,
-		edict_t *ignore, float radius, int mod)
+		const edict_t *ignore, float radius, int mod)
 {
 	float points;
 	edict_t *ent = NULL;

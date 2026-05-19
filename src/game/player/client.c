@@ -29,7 +29,6 @@
 
 void ClientUserinfoChanged(edict_t *ent, char *userinfo);
 void SP_misc_teleporter_dest(edict_t *ent);
-void Touch_Item(edict_t *ent, edict_t *other, cplane_t *plane, csurface_t *surf);
 
 /*
  * The ugly as hell coop spawnpoint fixup function.
@@ -617,7 +616,7 @@ ClientObituary(edict_t *self, edict_t *inflictor /* unused */,
 void
 TossClientWeapon(edict_t *self)
 {
-	gitem_t *item;
+	const gitem_t *item;
 	edict_t *drop;
 	qboolean quad;
 	float spread;
@@ -735,7 +734,7 @@ LookAtKiller(edict_t *self, edict_t *inflictor, edict_t *attacker)
 
 void
 player_die(edict_t *self, edict_t *inflictor, edict_t *attacker,
-		int damage, vec3_t point /* unused */)
+		int damage, const vec3_t point /* unused */)
 {
 	int n;
 
@@ -1133,11 +1132,10 @@ SelectDeathmatchSpawnPoint(void)
 }
 
 static edict_t *
-SelectCoopSpawnPoint(edict_t *ent)
+SelectCoopSpawnPoint(const edict_t *ent)
 {
 	int index;
 	edict_t *spot = NULL;
-	char *target;
 
 	if (!ent)
 	{
@@ -1157,6 +1155,8 @@ SelectCoopSpawnPoint(edict_t *ent)
 	/* assume there are four coop spots at each spawnpoint */
 	while (1)
 	{
+		const char *target;
+
 		spot = G_Find(spot, FOFS(classname), "info_player_coop");
 
 		if (!spot)
@@ -1190,14 +1190,13 @@ SelectCoopSpawnPoint(edict_t *ent)
 /*
  * Chooses a player start, deathmatch start, coop start, etc
  */
-void
-SelectSpawnPoint(edict_t *ent, vec3_t origin, vec3_t angles)
+static void
+SelectSpawnPoint(const edict_t *ent, vec3_t origin, vec3_t angles)
 {
 	edict_t *spot = NULL;
-	edict_t *coopspot = NULL;
-	int index;
-	int counter = 0;
-	vec3_t d;
+
+	VectorClear(origin);
+	VectorClear(angles);
 
 	if (!ent)
 	{
@@ -1257,12 +1256,19 @@ SelectSpawnPoint(edict_t *ent, vec3_t origin, vec3_t angles)
 	   client) use one in 550 units radius. */
 	if (coop->value)
 	{
+		int index;
+
 		index = ent->client - game.clients;
 
 		if (Q_stricmp(spot->classname, "info_player_start") == 0 && index != 0)
 		{
-			while(counter < 3)
+			int counter = 0;
+
+			while (counter < 3)
 			{
+				edict_t *coopspot = NULL;
+				vec3_t d;
+
 				coopspot = G_Find(coopspot, FOFS(classname), "info_player_coop");
 
 				if (!coopspot)
@@ -1316,7 +1322,7 @@ InitBodyQue(void)
 void
 body_die(edict_t *self, edict_t *inflictor /* unused */,
 		edict_t *attacker /* unused */, int damage,
-		vec3_t point /* unused */)
+		const vec3_t point /* unused */)
 {
 	int n;
 

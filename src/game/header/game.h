@@ -107,33 +107,33 @@ typedef struct
 	/* special messages */
 	void (*bprintf)(int printlevel, const char *fmt, ...);
 	void (*dprintf)(const char *fmt, ...);
-	void (*cprintf)(edict_t *ent, int printlevel, const char *fmt, ...);
-	void (*centerprintf)(edict_t *ent, const char *fmt, ...);
-	void (*sound)(edict_t *ent, int channel, int soundindex, float volume,
+	void (*cprintf)(const edict_t *ent, int printlevel, const char *fmt, ...);
+	void (*centerprintf)(const edict_t *ent, const char *fmt, ...);
+	void (*sound)(const edict_t *ent, int channel, int soundindex, float volume,
 			float attenuation, float timeofs);
-	void (*positioned_sound)(vec3_t origin, edict_t *ent, int channel,
+	void (*positioned_sound)(const vec3_t origin, const edict_t *ent, int channel,
 			int soundinedex, float volume, float attenuation, float timeofs);
 
 	/* config strings hold all the index strings, the lightstyles,
 	   and misc data like the sky definition and cdtrack.
 	   All of the current configstrings are sent to clients when
 	   they connect, and changes are sent to all connected clients. */
-	void (*configstring)(int num, char *string);
+	void (*configstring)(int num, const char *string);
 
 	YQ2_ATTR_NORETURN_FUNCPTR void (*error)(const char *fmt, ...);
 
 	/* the *index functions create configstrings
 	   and some internal server state */
-	int (*modelindex)(char *name);
-	int (*soundindex)(char *name);
-	int (*imageindex)(char *name);
+	int (*modelindex)(const char *name);
+	int (*soundindex)(const char *name);
+	int (*imageindex)(const char *name);
 
-	void (*setmodel)(edict_t *ent, char *name);
+	void (*setmodel)(edict_t *ent, const char *name);
 
 	/* collision detection */
-	trace_t (*trace)(vec3_t start, vec3_t mins, vec3_t maxs, vec3_t end,
-			edict_t *passent, int contentmask);
-	int (*pointcontents)(vec3_t point);
+	trace_t (*trace)(const vec3_t start, const vec3_t mins, const vec3_t maxs,
+			const vec3_t end, const edict_t *passent, int contentmask);
+	int (*pointcontents)(const vec3_t point);
 	qboolean (*inPVS)(vec3_t p1, vec3_t p2);
 	qboolean (*inPHS)(vec3_t p1, vec3_t p2);
 	void (*SetAreaPortalState)(int portalnum, qboolean open);
@@ -144,21 +144,21 @@ typedef struct
 	   solidity changes, it must be relinked. */
 	void (*linkentity)(edict_t *ent);
 	void (*unlinkentity)(edict_t *ent); /* call before removing an interactive edict */
-	int (*BoxEdicts)(vec3_t mins, vec3_t maxs, edict_t **list, int maxcount,
+	int (*BoxEdicts)(const vec3_t mins, const vec3_t maxs, edict_t **list, int maxcount,
 			int areatype);
 	void (*Pmove)(pmove_t *pmove); /* player movement code common with client prediction */
 
 	/* network messaging */
-	void (*multicast)(vec3_t origin, multicast_t to);
-	void (*unicast)(edict_t *ent, qboolean reliable);
+	void (*multicast)(const vec3_t origin, multicast_t to);
+	void (*unicast)(const edict_t *ent, qboolean reliable);
 	void (*WriteChar)(int c);
 	void (*WriteByte)(int c);
 	void (*WriteShort)(int c);
 	void (*WriteLong)(int c);
 	void (*WriteFloat)(float f);
-	void (*WriteString)(char *s);
-	void (*WritePosition)(vec3_t pos); /* some fractional bits */
-	void (*WriteDir)(vec3_t pos); /* single byte encoded, very coarse */
+	void (*WriteString)(const char *s);
+	void (*WritePosition)(const vec3_t pos);      /* some fractional bits */
+	void (*WriteDir)(const vec3_t pos);           /* single byte encoded, very coarse */
 	void (*WriteAngle)(float f);
 
 	/* managed memory allocation */
@@ -169,7 +169,7 @@ typedef struct
 	/* console variable interaction */
 	cvar_t *(*cvar)(const char *var_name, const char *value, int flags);
 	cvar_t *(*cvar_set)(const char *var_name, const char *value);
-	cvar_t *(*cvar_forceset)(const char *var_name, char *value);
+	cvar_t *(*cvar_forceset)(const char *var_name, const char *value);
 
 	/* ClientCommand and ServerCommand parameter access */
 	int (*argc)(void);
@@ -178,7 +178,7 @@ typedef struct
 
 	/* add commands to the server console as if
 	   they were typed in for map changing, etc */
-	void (*AddCommandString)(char *text);
+	void (*AddCommandString)(const char *text);
 
 	void (*DebugGraph)(float value, int color);
 } game_import_t;
@@ -195,20 +195,20 @@ typedef struct
 	void (*Shutdown)(void);
 
 	/* each new level entered will cause a call to SpawnEntities */
-	void (*SpawnEntities)(char *mapname, char *entstring, char *spawnpoint);
+	void (*SpawnEntities)(const char *mapname, char *entstring, const char *spawnpoint);
 
 	/* Read/Write Game is for storing persistant cross level information
 	   about the world state and the clients.
 	   WriteGame is called every time a level is exited.
 	   ReadGame is called on a loadgame. */
-	void (*WriteGame)(char *filename, qboolean autosave);
-	void (*ReadGame)(char *filename);
+	void (*WriteGame)(const char *filename, qboolean autosave);
+	void (*ReadGame)(const char *filename);
 
 	/* ReadLevel is called after the default
 	   map information has been loaded with
 	   SpawnEntities */
-	void (*WriteLevel)(char *filename);
-	void (*ReadLevel)(char *filename);
+	void (*WriteLevel)(const char *filename);
+	void (*ReadLevel)(const char *filename);
 
 	qboolean (*ClientConnect)(edict_t *ent, char *userinfo);
 	void (*ClientBegin)(edict_t *ent);
@@ -220,7 +220,7 @@ typedef struct
 	void (*RunFrame)(void);
 
 	/* ServerCommand will be called when an "sv <command>"
-	   command is issued on the  server console. The game can
+	   command is issued on the server console. The game can
 	   issue gi.argc() / gi.argv() commands to get the rest
 	   of the parameters */
 	void (*ServerCommand)(void);

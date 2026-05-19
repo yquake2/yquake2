@@ -297,7 +297,7 @@ ai_turn(edict_t *self, float dist)
  * 3	only triggered by damage
  */
 int
-range(edict_t *self, edict_t *other)
+ai_range(edict_t *self, edict_t *other)
 {
 	vec3_t v;
 	float len;
@@ -333,7 +333,7 @@ range(edict_t *self, edict_t *other)
  * to self, even if not infront
  */
 qboolean
-visible(edict_t *self, edict_t *other)
+visible(const edict_t *self, const edict_t *other)
 {
 	vec3_t spot1;
 	vec3_t spot2;
@@ -608,7 +608,7 @@ FindTarget(edict_t *self)
 
 	if (!heardit)
 	{
-		r = range(self, client);
+		r = ai_range(self, client);
 
 		if (r == RANGE_FAR)
 		{
@@ -717,7 +717,7 @@ FindTarget(edict_t *self)
 /* ============================================================================= */
 
 qboolean
-FacingIdeal(edict_t *self)
+FacingIdeal(const edict_t *self)
 {
 	float delta;
 
@@ -1082,7 +1082,7 @@ ai_checkattack(edict_t *self)
 	if (self->enemy)
 	{
 		enemy_infront = infront(self, self->enemy);
-		enemy_range = range(self, self->enemy);
+		enemy_range = ai_range(self, self->enemy);
 		VectorSubtract(self->enemy->s.origin, self->s.origin, temp);
 		enemy_yaw = vectoyaw(temp);
 	}

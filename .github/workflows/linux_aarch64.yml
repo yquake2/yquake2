@@ -15,7 +15,9 @@ concurrency:
   cancel-in-progress: true
 jobs:
   build_ubuntu_aarch64:
-    runs-on: ubuntu-24.04-arm
+    runs-on: ubuntu-latest
+    container:
+      image: debian:testing
     permissions:
       actions: read
       contents: read
@@ -28,9 +30,9 @@ jobs:
     steps:
     - name: Install build dependencies
       run: |
-        sudo apt update
-        sudo apt install libgl1-mesa-dev libsdl2-dev libopenal-dev libcurl4-openssl-dev \
-            build-essential snapd
+        apt update
+        apt install -y libgl1-mesa-dev libsdl2-dev libopenal-dev libcurl4-openssl-dev \
+            build-essential cppcheck
     - name: Check out repository code
       uses: actions/checkout@v6
     - name: Build
@@ -66,8 +68,7 @@ jobs:
         if-no-files-found: error
     - name: Run Cppcheck
       run: |
-        sudo snap install cppcheck --edge
-        /snap/bin/cppcheck -j 4 --enable=all --output-format=sarif \
+        cppcheck -j 4 --enable=all --output-format=sarif \
           --output-file=cppcheck_results.sarif --inconclusive --library=posix \
           -DYQ2OSTYPE=\"Linux\" src
     - name: Upload SARIF to GitHub Code Scanning

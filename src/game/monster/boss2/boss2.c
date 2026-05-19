@@ -58,7 +58,7 @@ void boss2_attack(edict_t *self);
 void boss2_attack_mg(edict_t *self);
 void boss2_reattack_mg(edict_t *self);
 void boss2_die(edict_t *self, edict_t *inflictor, edict_t *attacker,
-		int damage, vec3_t point);
+		int damage, const vec3_t point);
 
 void
 Boss2Rocket(edict_t *self)
@@ -653,7 +653,7 @@ boss2_dead(edict_t *self)
 
 void
 boss2_die(edict_t *self, edict_t *inflictor /* unused */, edict_t *attacker /* unused */,
-		int damage /* unused */, vec3_t point /* unused */)
+		int damage /* unused */, const vec3_t point /* unused */)
 {
 	if (!self)
 	{
@@ -701,7 +701,7 @@ Boss2_CheckAttack(edict_t *self)
 		}
 	}
 
-	enemy_range = range(self, self->enemy);
+	enemy_range = ai_range(self, self->enemy);
 	VectorSubtract(self->enemy->s.origin, self->s.origin, temp);
 	enemy_yaw = vectoyaw(temp);
 

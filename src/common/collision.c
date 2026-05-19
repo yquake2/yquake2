@@ -140,6 +140,7 @@ FloodArea_r(carea_t *area, int floodnum)
 		}
 
 		Com_Error(ERR_DROP, "%s: reflooded", __func__);
+		return;
 	}
 
 	area->floodnum = floodnum;
@@ -278,7 +279,7 @@ CM_ReadPortalState(fileHandle_t f)
  * is potentially visible
  */
 qboolean
-CM_HeadnodeVisible(int nodenum, byte *visbits)
+CM_HeadnodeVisible(int nodenum, const byte *visbits)
 {
 	const cnode_t *node;
 
@@ -414,7 +415,7 @@ CM_HeadnodeForBox(vec3_t mins, vec3_t maxs)
 }
 
 static int
-CM_PointLeafnum_r(vec3_t p, int num)
+CM_PointLeafnum_r(const vec3_t p, int num)
 {
 	float d;
 	cnode_t *node;
@@ -454,7 +455,7 @@ CM_PointLeafnum_r(vec3_t p, int num)
 }
 
 int
-CM_PointLeafnum(vec3_t p)
+CM_PointLeafnum(const vec3_t p)
 {
 	if (!numplanes)
 	{
@@ -545,7 +546,7 @@ CM_BoxLeafnums(vec3_t mins, vec3_t maxs, int *list, int listsize, int *topnode)
 }
 
 int
-CM_PointContents(vec3_t p, int headnode)
+CM_PointContents(const vec3_t p, int headnode)
 {
 	int l;
 
@@ -564,7 +565,7 @@ CM_PointContents(vec3_t p, int headnode)
  * rotating entities
  */
 int
-CM_TransformedPointContents(vec3_t p, int headnode,
+CM_TransformedPointContents(const vec3_t p, int headnode,
 		vec3_t origin, vec3_t angles)
 {
 	vec3_t p_l;
@@ -594,7 +595,7 @@ CM_TransformedPointContents(vec3_t p, int headnode,
 
 static void
 CM_ClipBoxToBrush(vec3_t mins, vec3_t maxs, vec3_t p1,
-		vec3_t p2, trace_t *trace, cbrush_t *brush)
+		vec3_t p2, trace_t *trace, const cbrush_t *brush)
 {
 	int i, j;
 	cplane_t *plane, *clipplane;
@@ -731,6 +732,7 @@ CM_ClipBoxToBrush(vec3_t mins, vec3_t maxs, vec3_t p1,
 			if (clipplane == NULL)
 			{
 				Com_Error(ERR_FATAL, "%s: clipplane was NULL!\n", __func__);
+				return;
 			}
 
 			trace->fraction = enterfrac;
@@ -1195,6 +1197,7 @@ CMod_LoadSubmodels(const char *name, lump_t *l)
 	if (l->filelen % sizeof(*in))
 	{
 		Com_Error(ERR_DROP, "%s: Map %s has funny lump size", __func__, name);
+		return;
 	}
 
 	count = l->filelen / sizeof(*in);
@@ -1202,11 +1205,13 @@ CMod_LoadSubmodels(const char *name, lump_t *l)
 	if (count < 1)
 	{
 		Com_Error(ERR_DROP, "%s: Map %s with no models", __func__, name);
+		return;
 	}
 
 	if (count > MAX_MAP_MODELS)
 	{
 		Com_Error(ERR_DROP, "%s: Map %s has too many models", __func__, name);
+		return;
 	}
 
 	numcmodels = count;
@@ -1239,6 +1244,7 @@ CMod_LoadSurfaces(lump_t *l)
 	if (l->filelen % sizeof(*in))
 	{
 		Com_Error(ERR_DROP, "%s: funny lump size", __func__);
+		return;
 	}
 
 	count = l->filelen / sizeof(*in);
@@ -1246,6 +1252,7 @@ CMod_LoadSurfaces(lump_t *l)
 	if (count < 1)
 	{
 		Com_Error(ERR_DROP, "%s: Map with no surfaces", __func__);
+		return;
 	}
 
 	if (count > MAX_MAP_TEXINFO)
@@ -1279,6 +1286,7 @@ CMod_LoadNodes(const char *name, lump_t *l)
 	{
 		Com_Error(ERR_DROP, "%s: Map %s funny lump size " YQ2_COM_PRIdS,
 			__func__, name, sizeof(*in));
+		return;
 	}
 
 	count = l->filelen / sizeof(*in);
@@ -1286,6 +1294,7 @@ CMod_LoadNodes(const char *name, lump_t *l)
 	if (count < 1)
 	{
 		Com_Error(ERR_DROP, "%s: Map %s with no nodes", __func__, name);
+		return;
 	}
 
 	if (count > MAX_MAP_NODES)
@@ -1321,6 +1330,7 @@ CMod_LoadBrushes(const char *name, lump_t *l)
 	if (l->filelen % sizeof(*in))
 	{
 		Com_Error(ERR_DROP, "%s: Map %s funny lump size", __func__, name);
+		return;
 	}
 
 	count = l->filelen / sizeof(*in);
@@ -1355,6 +1365,7 @@ CMod_LoadLeafs(lump_t *l)
 	if (l->filelen % sizeof(*in))
 	{
 		Com_Error(ERR_DROP, "%s: funny lump size", __func__);
+		return;
 	}
 
 	count = l->filelen / sizeof(*in);
@@ -1362,6 +1373,7 @@ CMod_LoadLeafs(lump_t *l)
 	if (count < 1)
 	{
 		Com_Error(ERR_DROP, "%s: Map with no leafs", __func__);
+		return;
 	}
 
 	/* need to save space for box planes */
@@ -1703,7 +1715,7 @@ CMod_LoadEntityString(const lump_t *l, const char *name)
  * Loads in the map and all submodels
  */
 cmodel_t *
-CM_LoadMap(char *name, qboolean clientload, unsigned *checksum)
+CM_LoadMap(const char *name, qboolean clientload, unsigned *checksum)
 {
 	unsigned *buf;
 	int i;
@@ -1807,6 +1819,7 @@ CM_InlineModel(const char *name)
 	if (!name || (name[0] != '*'))
 	{
 		Com_Error(ERR_DROP, "%s: bad name", __func__);
+		return NULL;
 	}
 
 	num = (int)strtol(name + 1, (char **)NULL, 10);
@@ -1814,6 +1827,7 @@ CM_InlineModel(const char *name)
 	if ((num < 1) || (num >= numcmodels))
 	{
 		Com_Error(ERR_DROP, "%s: bad number", __func__);
+		return NULL;
 	}
 
 	return &map_cmodels[num];
