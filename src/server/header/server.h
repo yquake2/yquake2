@@ -147,6 +147,13 @@ typedef struct client_s
 	int challenge;                      /* challenge of this user, randomly generated */
 
 	netchan_t netchan;
+
+	/* per-frame caches for SV_Multicast fanout */
+	vec3_t cached_origin;
+	int cached_leafnum;
+	int cached_area;
+	int cached_cluster;
+	int cached_framenum;
 } client_t;
 
 typedef struct
