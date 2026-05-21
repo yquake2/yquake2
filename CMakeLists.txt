@@ -428,6 +428,7 @@ set(Game-Header
 	${GAME_SRC_DIR}/savegame/tables/gamemmove_decs.h
 	${GAME_SRC_DIR}/savegame/tables/gamemmove_list.h
 	${GAME_SRC_DIR}/savegame/tables/levelfields.h
+	${GAME_SRC_DIR}/savegame/tables/stfields.h
 	)
 
 set(Client-Source
