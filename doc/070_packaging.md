@@ -58,6 +58,21 @@ binaries. It allows several Quake2 source ports to share the same game
 data.
 
 
+## The `WITH_SYSTEM_MINIZIP` option
+
+The default is to use an included copy of the `minizip` library,
+which uses an included copy of the `miniz` library as a replacement
+for zlib.
+
+Integrated distribution vendors might prefer to link to a system copy of
+the `minizip` library. This can be done by building with
+`make WITH_SYSTEM_MINIZIP=yes`, or a similar command.
+In this mode, `libminizip` and `libz` headers and shared or static
+libraries are assumed to be available in the compiler's default
+search path, or by adding appropriate `-I` options in `CPPFLAGS`
+and appropriate `-L` options in `LDFLAGS`.
+
+
 ## Alternative startup config
 
 Yamagi Quake II has support for an alternative startup config. That
