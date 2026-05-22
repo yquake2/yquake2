@@ -590,7 +590,6 @@ WriteField1(FILE *f, const field_t *field, void *base, const fptrList_t *fpl)
 			break;
 
 		case F_LSTRING:
-		case F_GSTRING:
 
 			if (*(char **)p)
 			{

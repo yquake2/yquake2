@@ -580,7 +580,6 @@ typedef enum
 	F_INT,
 	F_FLOAT,
 	F_LSTRING, /* string on disk, pointer in memory, TAG_LEVEL */
-	F_GSTRING, /* string on disk, pointer in memory, TAG_GAME */
 	F_VECTOR,
 	F_ANGLEHACK,
 	F_EDICT, /* index on disk, pointer in memory */
