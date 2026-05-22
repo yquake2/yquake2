@@ -82,6 +82,10 @@ WITH_RPATH:=yes
 # When disabled SDL 2 is used instead of SDL 3.
 WITH_SDL3:=yes
 
+# WITH_SYSTEM_MINIZIP
+# When disabled, an included copy of minizip and miniz is used.
+WITH_SYSTEM_MINIZIP:=no
+
 # WITH_SYSTEMWIDE
 # Enable systemwide installation of game assets.
 WITH_SYSTEMWIDE:=no
@@ -1048,11 +1052,6 @@ CLIENT_OBJS_ := \
 	src/common/shared/flash.o \
 	src/common/shared/rand.o \
 	src/common/shared/shared.o \
-	src/common/unzip/ioapi.o \
-	src/common/unzip/unzip.o \
-	src/common/unzip/miniz/miniz.o \
-	src/common/unzip/miniz/miniz_tdef.o \
-	src/common/unzip/miniz/miniz_tinfl.o \
 	src/server/sv_cmd.o \
 	src/server/sv_conless.o \
 	src/server/sv_entities.o \
@@ -1063,6 +1062,18 @@ CLIENT_OBJS_ := \
 	src/server/sv_send.o \
 	src/server/sv_user.o \
 	src/server/sv_world.o
+
+ifeq ($(WITH_SYSTEM_MINIZIP),yes)
+$(BINDIR)/quake2 : CFLAGS += -DUSE_SYSTEM_MINIZIP
+$(BINDIR)/quake2 : LDLIBS += -lminizip -lz
+else
+CLIENT_OBJS_ += \
+	src/common/unzip/ioapi.o \
+	src/common/unzip/unzip.o \
+	src/common/unzip/miniz/miniz.o \
+	src/common/unzip/miniz/miniz_tdef.o \
+	src/common/unzip/miniz/miniz_tinfl.o
+endif
 
 ifeq ($(WITH_SDL3),yes)
 CLIENT_OBJS_ += \
@@ -1226,11 +1237,6 @@ SERVER_OBJS_ := \
 	src/common/zone.o \
 	src/common/shared/rand.o \
 	src/common/shared/shared.o \
-	src/common/unzip/ioapi.o \
-	src/common/unzip/unzip.o \
-	src/common/unzip/miniz/miniz.o \
-	src/common/unzip/miniz/miniz_tdef.o \
-	src/common/unzip/miniz/miniz_tinfl.o \
 	src/server/sv_cmd.o \
 	src/server/sv_conless.o \
 	src/server/sv_entities.o \
@@ -1241,6 +1247,18 @@ SERVER_OBJS_ := \
 	src/server/sv_send.o \
 	src/server/sv_user.o \
 	src/server/sv_world.o
+
+ifeq ($(WITH_SYSTEM_MINIZIP),yes)
+$(BINDIR)/q2ded : CFLAGS += -DUSE_SYSTEM_MINIZIP
+$(BINDIR)/q2ded : LDLIBS += -lminizip
+else
+SERVER_OBJS_ += \
+	src/common/unzip/ioapi.o \
+	src/common/unzip/unzip.o \
+	src/common/unzip/miniz/miniz.o \
+	src/common/unzip/miniz/miniz_tdef.o \
+	src/common/unzip/miniz/miniz_tinfl.o
+endif
 
 ifeq ($(YQ2_OSTYPE), Windows)
 SERVER_OBJS_ += \
