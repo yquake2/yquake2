@@ -819,14 +819,15 @@ R_DrawNullModel(void)
 R_DrawEntitiesOnList
 =============
 */
-static void
+static qboolean
 R_DrawEntitiesOnList (qboolean translucent)
 {
 	int i;
+	qboolean anytranslucent = false;
 
 	if (!r_drawentities->value)
 	{
-		return;
+		return false;
 	}
 
 	if (!translucent)
@@ -838,6 +839,7 @@ R_DrawEntitiesOnList (qboolean translucent)
 
 			if (currententity->flags & RF_TRANSLUCENT)
 			{
+				anytranslucent = true;
 				continue; /* not solid */
 			}
 
@@ -876,7 +878,7 @@ R_DrawEntitiesOnList (qboolean translucent)
 				default:
 					Com_Printf("%s: Bad modeltype %d\n",
 						__func__, currentmodel->type);
-					return;
+					return false;
 				}
 			}
 		}
@@ -927,11 +929,13 @@ R_DrawEntitiesOnList (qboolean translucent)
 				default:
 					Com_Printf("%s: Bad modeltype %d\n",
 						__func__, currentmodel->type);
-					return;
+					return false;
 				}
 			}
 		}
 	}
+
+	return anytranslucent;
 }
 
 
@@ -1343,6 +1347,7 @@ RE_RenderFrame(refdef_t *fd)
 {
 	r_newrefdef = *fd;
 	entity_t	ent;
+	qboolean	anytranslucent = false;
 
 	if (!r_worldmodel && !( r_newrefdef.rdflags & RDF_NOWORLDMODEL ) )
 	{
@@ -1413,7 +1418,7 @@ RE_RenderFrame(refdef_t *fd)
 	}
 	// Draw enemies, barrel etc...
 	// Use Z-Buffer mostly in read mode only.
-	R_DrawEntitiesOnList(false);
+	anytranslucent = R_DrawEntitiesOnList(false);
 
 	if (r_dspeeds->value)
 	{
@@ -1432,7 +1437,10 @@ RE_RenderFrame(refdef_t *fd)
 	// Perform pixel palette blending ia the pics/colormap.pcx lower part lookup table.
 	R_DrawAlphaSurfaces(&ent);
 
-	R_DrawEntitiesOnList(true);
+	if (anytranslucent)
+	{
+		R_DrawEntitiesOnList(true);
+	}
 
 	// Save off light value for server to look at (BIG HACK!)
 	R_SetLightLevel(&ent);
