@@ -615,19 +615,6 @@ WriteField1(FILE *f, const field_t *field, void *base, const fptrList_t *fpl)
 
 			*(int *)p = index;
 			break;
-		case F_CLIENT:
-
-			if (*(gclient_t **)p == NULL)
-			{
-				index = -1;
-			}
-			else
-			{
-				index = *(gclient_t **)p - game.clients;
-			}
-
-			*(int *)p = index;
-			break;
 		case F_ITEM:
 
 			if (*(gitem_t **)p == NULL)
@@ -889,19 +876,6 @@ ReadField(FILE *f, const field_t *field, void *base, const fptrList_t *fpl)
 			else
 			{
 				*(edict_t **)p = &g_edicts[index];
-			}
-
-			break;
-		case F_CLIENT:
-			index = *(int *)p;
-
-			if ((index < 0) || (index >= game.maxclients))
-			{
-				*(gclient_t **)p = NULL;
-			}
-			else
-			{
-				*(gclient_t **)p = &game.clients[index];
 			}
 
 			break;
@@ -1234,6 +1208,7 @@ WriteEdict(FILE *f, const edict_t *ent)
 
 	/* all of the ints, floats, and vectors stay as they are */
 	temp = *ent;
+	temp.client = NULL;
 
 	WriteStruct(f, ent, &temp, &sd_ent);
 }
@@ -1399,6 +1374,7 @@ ReadLevel(const char *filename)
 		ReadStruct(f, ent, &sd_ent, 0);
 
 		/* sanitize certain field values */
+		ent->client = NULL;
 		ent->inuse = true;
 		ent->s.number = ent - g_edicts;
 

@@ -584,7 +584,6 @@ typedef enum
 	F_ANGLEHACK,
 	F_EDICT, /* index on disk, pointer in memory */
 	F_ITEM, /* index on disk, pointer in memory */
-	F_CLIENT, /* index on disk, pointer in memory */
 	F_FUNCTION,
 	F_MMOVE,
 	F_IGNORE
