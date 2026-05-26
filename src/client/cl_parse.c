@@ -331,6 +331,8 @@ CL_DeltaEntity(frame_t *frame, int newnum, const entity_state_t *old, int bits)
 		   lerping doesn't hurt anything */
 		ent->prev = *state;
 
+		ent->serverframe_created = cl.frame.serverframe;
+
 		if (state->event == EV_OTHER_TELEPORT)
 		{
 			VectorCopy(state->origin, ent->prev.origin);
