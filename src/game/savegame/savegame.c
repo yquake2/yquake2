@@ -67,6 +67,7 @@
 #include "../../common/header/common.h" // YQ2ARCH
 #include "../header/local.h"
 #include "savegame.h"
+
 /*
  * When ever the savegame version is changed, q2 will refuse to
  * load older savegames. This should be bumped if the files
@@ -135,9 +136,7 @@
  * to each of the functions
  * prototyped above.
  */
-static const functionList_t functionList[] = {
-	#include "tables/gamefunc_list.h"
-};
+#include "tables/gamefunc_list.h"
 
 /*
  * Prototypes for forward
@@ -157,10 +156,49 @@ static const mmoveList_t mmoveList[] = {
 };
 
 /*
+ * Spawntemp fields for entity spawning
+ */
+static const field_t stfields[] = {
+	#include "tables/stfields.h"
+};
+
+/*
  * Entity fields to be saved
  */
+static const fplist_entry_t fpentries_ent[] =
+{
+	{FOFS(die), &fnlist_die},
+	{FOFS(pain), &fnlist_pain},
+	{FOFS(prethink), &fnlist_prethink},
+	{FOFS(think), &fnlist_think},
+	{FOFS(touch), &fnlist_touch},
+	{FOFS(use), &fnlist_use},
+	{FOFS(blocked), &fnlist_blocked},
+	{FOFS(monsterinfo.sight), &fnlist_mi_sight},
+	{FOFS(monsterinfo.search), &fnlist_mi_search},
+	{FOFS(monsterinfo.stand), &fnlist_mi_stand},
+	{FOFS(monsterinfo.idle), &fnlist_mi_idle},
+	{FOFS(monsterinfo.walk), &fnlist_mi_walk},
+	{FOFS(monsterinfo.run), &fnlist_mi_run},
+	{FOFS(monsterinfo.melee), &fnlist_mi_melee},
+	{FOFS(monsterinfo.attack), &fnlist_mi_attack},
+	{FOFS(monsterinfo.checkattack), &fnlist_mi_checkattack},
+	{FOFS(monsterinfo.dodge), &fnlist_mi_dodge},
+	{FOFS(moveinfo.endfunc), &fnlist_mv_end}
+};
+static const fptrList_t fplist_ent =
+{
+	fpentries_ent, ARREND(fpentries_ent)
+};
+
 static const field_t entfields[] = {
 	#include "tables/entfields.h"
+};
+static const structdef_t sd_ent =
+{
+	entfields, ARREND(entfields),
+	&fplist_ent,
+	sizeof(edict_t)
 };
 
 /*
@@ -169,12 +207,34 @@ static const field_t entfields[] = {
 static const field_t levelfields[] = {
 	#include "tables/levelfields.h"
 };
+static const structdef_t sd_level =
+{
+	levelfields, ARREND(levelfields),
+	NULL,
+	sizeof(level_locals_t)
+};
 
 /*
  * Client fields to be saved
  */
 static const field_t clientfields[] = {
 	#include "tables/clientfields.h"
+};
+static const structdef_t sd_client =
+{
+	clientfields, ARREND(clientfields),
+	NULL,
+	sizeof(gclient_t)
+};
+
+/*
+ * Game struct to be saved
+ */
+static const structdef_t sd_game =
+{
+	NULL, NULL,
+	NULL,
+	sizeof(game_locals_t)
 };
 
 /* ========================================================= */
@@ -197,6 +257,22 @@ sg_fwrite(const void *src, size_t n, FILE *f)
 		fclose(f);
 		gi.error("Error writing " YQ2_COM_PRIdS " bytes to save file", n);
 	}
+}
+
+const field_t *
+FindSpawntempField(const char *key)
+{
+	const field_t *f;
+
+	for (f = stfields; f < ARREND(stfields); f++)
+	{
+		if (!Q_strcasecmp(f->name, key))
+		{
+			return f;
+		}
+	}
+
+	return NULL;
 }
 
 const field_t *
@@ -322,6 +398,27 @@ InitGame(void)
 
 /* ========================================================= */
 
+static const functionList_t *
+GetFunctionList(int field_ofs, const fptrList_t *fpl)
+{
+	const fplist_entry_t *fpe;
+
+	if (!fpl)
+	{
+		return NULL;
+	}
+
+	for (fpe = fpl->start; fpe < fpl->end; fpe++)
+	{
+		if (fpe->ofs == field_ofs)
+		{
+			return fpe->fnlist;
+		}
+	}
+
+	return NULL;
+}
+
 /*
  * Helper function to get
  * the human readable function
@@ -329,16 +426,21 @@ InitGame(void)
  * Called by WriteField1 and
  * WriteField2.
  */
-static const functionList_t *
-GetFunctionByAddress(const byte *adr)
+static const fnlist_entry_t *
+GetFunctionByAddress(const byte *adr, const functionList_t *fnl)
 {
-	const functionList_t *fnl;
+	const fnlist_entry_t *fne;
 
-	for (fnl = functionList; fnl < ARREND(functionList); fnl++)
+	if (!fnl)
 	{
-		if (fnl->funcPtr == adr)
+		return NULL;
+	}
+
+	for (fne = fnl->start; fne < fnl->end; fne++)
+	{
+		if (fne->funcPtr == adr)
 		{
-			return fnl;
+			return fne;
 		}
 	}
 
@@ -353,15 +455,20 @@ GetFunctionByAddress(const byte *adr)
  * WriteField2.
  */
 static byte *
-FindFunctionByName(const char *name)
+FindFunctionByName(const char *name, const functionList_t *fnl)
 {
-	const functionList_t *fnl;
+	const fnlist_entry_t *fne;
 
-	for (fnl = functionList; fnl < ARREND(functionList); fnl++)
+	if (!fnl)
 	{
-		if (!strcmp(name, fnl->funcStr))
+		return NULL;
+	}
+
+	for (fne = fnl->start; fne < fnl->end; fne++)
+	{
+		if (!strcmp(name, fne->funcStr))
 		{
-			return fnl->funcPtr;
+			return fne->funcPtr;
 		}
 	}
 
@@ -414,26 +521,26 @@ FindMmoveByName(const char *name)
 /* ========================================================= */
 
 static int
-GetFuncLength(const byte *fn)
+GetFuncLength(const byte *fn, const functionList_t *fnl)
 {
-	const functionList_t *func;
+	const fnlist_entry_t *fne;
 
 	if (!fn)
 	{
 		return 0;
 	}
 
-	func = GetFunctionByAddress(fn);
+	fne = GetFunctionByAddress(fn, fnl);
 
-	if (!func)
+	if (!fne)
 	{
-		gi.dprintf("%s: function at address %p not found\n",
-			__func__, fn);
+		gi.dprintf("%s: function at address %p not found in %s\n",
+			__func__, fn, fnl ? fnl->name : "unknown list");
 
 		return 0;
 	}
 
-	return strlen(func->funcStr) + 1;
+	return strlen(fne->funcStr) + 1;
 }
 
 static int
@@ -465,18 +572,13 @@ GetMmoveLength(const mmove_t *mm)
  * below this block into files.
  */
 static void
-WriteField1(FILE *f, const field_t *field, byte *base)
+WriteField1(FILE *f, const field_t *field, void *base, const fptrList_t *fpl)
 {
 	void *p;
 	size_t len;
 	int index;
 
-	if (field->flags & FFL_SPAWNTEMP)
-	{
-		return;
-	}
-
-	p = (void *)(base + field->ofs);
+	p = (byte *)base + field->ofs;
 
 	switch (field->type)
 	{
@@ -488,7 +590,6 @@ WriteField1(FILE *f, const field_t *field, byte *base)
 			break;
 
 		case F_LSTRING:
-		case F_GSTRING:
 
 			if (*(char **)p)
 			{
@@ -514,19 +615,6 @@ WriteField1(FILE *f, const field_t *field, byte *base)
 
 			*(int *)p = index;
 			break;
-		case F_CLIENT:
-
-			if (*(gclient_t **)p == NULL)
-			{
-				index = -1;
-			}
-			else
-			{
-				index = *(gclient_t **)p - game.clients;
-			}
-
-			*(int *)p = index;
-			break;
 		case F_ITEM:
 
 			if (*(gitem_t **)p == NULL)
@@ -541,7 +629,7 @@ WriteField1(FILE *f, const field_t *field, byte *base)
 			*(int *)p = index;
 			break;
 		case F_FUNCTION:
-			*(int *)p = GetFuncLength(*(byte **)p);
+			*(int *)p = GetFuncLength(*(byte **)p, GetFunctionList(field->ofs, fpl));
 			break;
 		case F_MMOVE:
 			*(int *)p = GetMmoveLength(*(mmove_t **)p);
@@ -553,21 +641,21 @@ WriteField1(FILE *f, const field_t *field, byte *base)
 }
 
 static void
-WriteFunction(FILE *f, const byte *fn)
+WriteFunction(FILE *f, const byte *fn, const functionList_t *fnl)
 {
-	const functionList_t *func;
+	const fnlist_entry_t *fne;
 
 	if (!fn)
 	{
 		return;
 	}
 
-	func = GetFunctionByAddress(fn);
+	fne = GetFunctionByAddress(fn, fnl);
 
-	if (func)
+	if (fne)
 	{
-		size_t len = strlen(func->funcStr) + 1;
-		sg_fwrite(func->funcStr, len, f);
+		size_t len = strlen(fne->funcStr) + 1;
+		sg_fwrite(fne->funcStr, len, f);
 	}
 }
 
@@ -591,37 +679,51 @@ WriteMmove(FILE *f, const mmove_t *mm)
 }
 
 static void
-WriteField2(FILE *f, const field_t *field, byte *base)
+WriteField2(FILE *f, const field_t *field, const void *base, const fptrList_t *fpl)
 {
-	size_t len;
-	void *p;
+	const void *p;
 
-	if (field->flags & FFL_SPAWNTEMP)
-	{
-		return;
-	}
-
-	p = (void *)(base + field->ofs);
+	p = (const byte *)base + field->ofs;
 
 	switch (field->type)
 	{
 		case F_LSTRING:
-
-			if (*(char **)p)
+			if (*(const char **)p)
 			{
-				len = strlen(*(char **)p) + 1;
-				sg_fwrite(*(char **)p, len, f);
-			}
+				size_t len;
 
+				len = strlen(*(const char **)p) + 1;
+				sg_fwrite(*(const char **)p, len, f);
+			}
 			break;
 		case F_FUNCTION:
-			WriteFunction(f, *(byte **)p);
+			WriteFunction(f, *(const byte **)p, GetFunctionList(field->ofs, fpl));
 			break;
 		case F_MMOVE:
-			WriteMmove(f, *(mmove_t **)p);
+			WriteMmove(f, *(const mmove_t **)p);
 			break;
 		default:
 			break;
+	}
+}
+
+static void
+WriteStruct(FILE *f, const void *base, void *temp, const structdef_t *sd)
+{
+	const field_t *field;
+
+	/* change the pointers to lengths or indexes */
+	for (field = sd->fields_start; field < sd->fields_end; field++)
+	{
+		WriteField1(f, field, temp, sd->fplist);
+	}
+
+	sg_fwrite(temp, sd->size, f);
+
+	/* now write any allocated data following the edict */
+	for (field = sd->fields_start; field < sd->fields_end; field++)
+	{
+		WriteField2(f, field, base, sd->fplist);
 	}
 }
 
@@ -690,7 +792,7 @@ ReadString(FILE *f, int len, int tag)
 }
 
 static byte *
-ReadFunction(FILE *f, int len)
+ReadFunction(FILE *f, int len, const functionList_t *fnl)
 {
 	char funcStr[128];
 	byte *fn;
@@ -702,11 +804,11 @@ ReadFunction(FILE *f, int len)
 
 	ReadStringToBuf(f, len, funcStr, sizeof(funcStr));
 
-	fn = FindFunctionByName(funcStr);
+	fn = FindFunctionByName(funcStr, fnl);
 	if (!fn)
 	{
-		gi.dprintf("%s: function %s not found\n",
-			__func__, funcStr);
+		gi.dprintf("%s: function %s not found in %s\n",
+			__func__, funcStr, fnl ? fnl->name : "unknown list");
 	}
 
 	return fn;
@@ -743,18 +845,13 @@ ReadMmove(FILE *f, int len)
  * below
  */
 static void
-ReadField(FILE *f, const field_t *field, byte *base)
+ReadField(FILE *f, const field_t *field, void *base, const fptrList_t *fpl)
 {
 	void *p;
 	int len;
 	int index;
 
-	if (field->flags & FFL_SPAWNTEMP)
-	{
-		return;
-	}
-
-	p = (void *)(base + field->ofs);
+	p = (byte *)base + field->ofs;
 
 	switch (field->type)
 	{
@@ -782,25 +879,12 @@ ReadField(FILE *f, const field_t *field, byte *base)
 			}
 
 			break;
-		case F_CLIENT:
-			index = *(int *)p;
-
-			if ((index < 0) || (index >= game.maxclients))
-			{
-				*(gclient_t **)p = NULL;
-			}
-			else
-			{
-				*(gclient_t **)p = &game.clients[index];
-			}
-
-			break;
 		case F_ITEM:
 			index = *(int *)p;
 			*(gitem_t **)p = GetItemByIndex(index);
 			break;
 		case F_FUNCTION:
-			*(byte **)p = ReadFunction(f, *(int *)p);
+			*(byte **)p = ReadFunction(f, *(int *)p, GetFunctionList(field->ofs, fpl));
 			break;
 		case F_MMOVE:
 			*(mmove_t **)p = ReadMmove(f, *(int *)p);
@@ -811,34 +895,36 @@ ReadField(FILE *f, const field_t *field, byte *base)
 	}
 }
 
+static void
+ReadStruct(FILE *f, void *base, const structdef_t *sd, short save_ver)
+{
+	const field_t *field;
+
+	sg_fread(base, sd->size, f);
+
+	for (field = sd->fields_start; field < sd->fields_end; field++)
+	{
+		if (field->save_ver <= save_ver)
+		{
+			ReadField(f, field, base, sd->fplist);
+		}
+	}
+}
+
 /* ========================================================= */
 
 /*
  * Write the client struct into a file.
  */
 static void
-WriteClient(FILE *f, gclient_t *client)
+WriteClient(FILE *f, const gclient_t *client)
 {
-	const field_t *field;
 	gclient_t temp;
 
 	/* all of the ints, floats, and vectors stay as they are */
 	temp = *client;
 
-	/* change the pointers to indexes */
-	for (field = clientfields; field < ARREND(clientfields); field++)
-	{
-		WriteField1(f, field, (byte *)&temp);
-	}
-
-	/* write the block */
-	sg_fwrite(&temp, sizeof(temp), f);
-
-	/* now write any allocated data following the edict */
-	for (field = clientfields; field < ARREND(clientfields); field++)
-	{
-		WriteField2(f, field, (byte *)client);
-	}
+	WriteStruct(f, client, &temp, &sd_client);
 }
 
 /*
@@ -865,18 +951,7 @@ SanitizeClientStruct(gclient_t *cl)
 static void
 ReadClient(FILE *f, gclient_t *client, short save_ver)
 {
-	const field_t *field;
-
-	sg_fread(client, sizeof(*client), f);
-
-	for (field = clientfields; field < ARREND(clientfields); field++)
-	{
-		if (field->save_ver <= save_ver)
-		{
-			ReadField(f, field, (byte *)client);
-		}
-	}
-
+	ReadStruct(f, client, &sd_client, save_ver);
 	SanitizeClientStruct(client);
 
 	if (save_ver < 3)
@@ -925,7 +1000,7 @@ WriteGameLocals(FILE *f, qboolean autosave)
 	temp.maxentities = 0;
 	temp.num_items = 0;
 
-	sg_fwrite(&temp, sizeof(temp), f);
+	WriteStruct(f, &game, &temp, &sd_game);
 }
 
 void
@@ -1105,7 +1180,7 @@ ReadGame(const char *filename)
 		return;
 	}
 
-	sg_fread(&game, sizeof(game), f);
+	ReadStruct(f, &game, &sd_game, save_ver);
 	SanitizeGameStruct();
 
 	/* initialize entities and clients arrays */
@@ -1127,28 +1202,15 @@ ReadGame(const char *filename)
  * WriteLevel.
  */
 static void
-WriteEdict(FILE *f, edict_t *ent)
+WriteEdict(FILE *f, const edict_t *ent)
 {
-	const field_t *field;
 	edict_t temp;
 
 	/* all of the ints, floats, and vectors stay as they are */
 	temp = *ent;
+	temp.client = NULL;
 
-	/* change the pointers to lengths or indexes */
-	for (field = entfields; field < ARREND(entfields); field++)
-	{
-		WriteField1(f, field, (byte *)&temp);
-	}
-
-	/* write the block */
-	sg_fwrite(&temp, sizeof(temp), f);
-
-	/* now write any allocated data following the edict */
-	for (field = entfields; field < ARREND(entfields); field++)
-	{
-		WriteField2(f, field, (byte *)ent);
-	}
+	WriteStruct(f, ent, &temp, &sd_ent);
 }
 
 /*
@@ -1159,26 +1221,12 @@ WriteEdict(FILE *f, edict_t *ent)
 static void
 WriteLevelLocals(FILE *f)
 {
-	const field_t *field;
 	level_locals_t temp;
 
 	/* all of the ints, floats, and vectors stay as they are */
 	temp = level;
 
-	/* change the pointers to lengths or indexes */
-	for (field = levelfields; field < ARREND(levelfields); field++)
-	{
-		WriteField1(f, field, (byte *)&temp);
-	}
-
-	/* write the block */
-	sg_fwrite(&temp, sizeof(temp), f);
-
-	/* now write any allocated data following the edict */
-	for (field = levelfields; field < ARREND(levelfields); field++)
-	{
-		WriteField2(f, field, (byte *)&level);
-	}
+	WriteStruct(f, &level, &temp, &sd_level);
 }
 
 /*
@@ -1231,25 +1279,6 @@ WriteLevel(const char *filename)
 
 /*
  * A helper function to
- * read the edict back
- * into the memory. Called
- * by ReadLevel.
- */
-static void
-ReadEdict(FILE *f, edict_t *ent)
-{
-	const field_t *field;
-
-	sg_fread(ent, sizeof(*ent), f);
-
-	for (field = entfields; field < ARREND(entfields); field++)
-	{
-		ReadField(f, field, (byte *)ent);
-	}
-}
-
-/*
- * A helper function to
  * read the level local
  * data from a file.
  * Called by ReadLevel.
@@ -1270,15 +1299,7 @@ SanitizeLevelStruct(void)
 static void
 ReadLevelLocals(FILE *f)
 {
-	const field_t *field;
-
-	sg_fread(&level, sizeof(level), f);
-
-	for (field = levelfields; field < ARREND(levelfields); field++)
-	{
-		ReadField(f, field, (byte *)&level);
-	}
-
+	ReadStruct(f, &level, &sd_level, 0);
 	SanitizeLevelStruct();
 }
 
@@ -1350,9 +1371,10 @@ ReadLevel(const char *filename)
 		}
 
 		ent = &g_edicts[entnum];
-		ReadEdict(f, ent);
+		ReadStruct(f, ent, &sd_ent, 0);
 
 		/* sanitize certain field values */
+		ent->client = NULL;
 		ent->inuse = true;
 		ent->s.number = ent - g_edicts;
 

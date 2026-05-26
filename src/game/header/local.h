@@ -573,20 +573,17 @@ extern cvar_t *g_swap_speed;
 
 /* fields are needed for spawning from the entity
    string and saving / loading games */
-#define FFL_SPAWNTEMP 1
-#define FFL_NOSPAWN 2
+#define FFL_NOSPAWN 1
 
 typedef enum
 {
 	F_INT,
 	F_FLOAT,
 	F_LSTRING, /* string on disk, pointer in memory, TAG_LEVEL */
-	F_GSTRING, /* string on disk, pointer in memory, TAG_GAME */
 	F_VECTOR,
 	F_ANGLEHACK,
 	F_EDICT, /* index on disk, pointer in memory */
 	F_ITEM, /* index on disk, pointer in memory */
-	F_CLIENT, /* index on disk, pointer in memory */
 	F_FUNCTION,
 	F_MMOVE,
 	F_IGNORE
@@ -602,6 +599,7 @@ typedef struct
 } field_t;
 
 const field_t *FindSpawnfield(const char *key);
+const field_t *FindSpawntempField(const char *key);
 
 extern gitem_t itemlist[];
 extern const int itemlist_len;
