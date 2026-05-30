@@ -31,7 +31,12 @@
 
 #include "header/common.h"
 #include "header/glob.h"
+
+#ifdef USE_SYSTEM_MINIZIP
+#include <minizip/unzip.h>
+#else
 #include "unzip/unzip.h"
+#endif
 
 #include "../client/sound/header/vorbis.h"
 
@@ -142,7 +147,12 @@ fsRawPath_t *fs_rawPath;
  */
 
 #include <windows.h>
+
+#ifdef USE_SYSTEM_MINIZIP
+#include <minizip/ioapi.h>
+#else
 #include "unzip/ioapi.h"
+#endif
 
 zlib_filefunc_def zlib_file_api;
 
