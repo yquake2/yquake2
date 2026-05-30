@@ -750,6 +750,10 @@ OGG_Cmd(void)
 	{
 		OGG_Info();
 	}
+	else if (Q_stricmp(Cmd_Argv(1), "mute") == 0)
+	{
+	    ogg_mutemusic = !ogg_mutemusic;
+	}
 	else if (Q_stricmp(Cmd_Argv(1), "play") == 0)
 	{
 		if (Cmd_Argc() != 3)
@@ -760,6 +764,13 @@ OGG_Cmd(void)
 
 		OGG_PlayTrack(Cmd_Argv(2), false, true);
 	}
+	else if (Q_stricmp(Cmd_Argv(1), "skip") == 0)
+	{
+		char curtrack[4];
+		snprintf(curtrack, sizeof(curtrack), "%i", ogg_curfile);
+		OGG_Stop();
+		OGG_PlayTrack(curtrack, false, false);
+	}
 	else if (Q_stricmp(Cmd_Argv(1), "stop") == 0)
 	{
 		OGG_Stop();
@@ -767,10 +778,6 @@ OGG_Cmd(void)
 	else if (Q_stricmp(Cmd_Argv(1), "toggle") == 0)
 	{
 		OGG_TogglePlayback();
-	}
-	else if (Q_stricmp(Cmd_Argv(1), "mute") == 0)
-	{
-	    ogg_mutemusic = !ogg_mutemusic;
 	}
 	else
 	{
