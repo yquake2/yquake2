@@ -33,32 +33,31 @@ jobs:
       run: |
         if [ -z "${{ secrets.COVERITY_SCAN_TOKEN }}" ]; then
           echo "COVERITY_SCAN_TOKEN is not set. Skipping workflow."
+          echo "skip=true" >> $GITHUB_ENV
         else
-            wget https://scan.coverity.com/download/cxx/linux-ARM64 \
-              --post-data "token=${{secrets.COVERITY_SCAN_TOKEN}}&project=${{github.repository}}" \
-              -O coverity_tool.tgz -cq
-            tar -xf coverity_tool.tgz
-            mv -v cov-analysis-linux-arm64-* cov-analysis-linux-arm64
+          if ! wget https://scan.coverity.com/download/cxx/linux-ARM64 \
+            --post-data "token=${{secrets.COVERITY_SCAN_TOKEN}}&project=${{github.repository}}" \
+            -O coverity_tool.tgz -cq; then
+              echo "wget failed. Skipping workflow."
+              echo "skip=true" >> $GITHUB_ENV
+          else
+              tar -xf coverity_tool.tgz
+              mv -v cov-analysis-linux-arm64-* cov-analysis-linux-arm64
+          fi
         fi
     - name: Build
+      if: env.skip != 'true'
       run: |
-        if [ -z "${{ secrets.COVERITY_SCAN_TOKEN }}" ]; then
-          echo "COVERITY_SCAN_TOKEN is not set. Skipping workflow."
-        else
-            rm -rf cov-int
-            make clean
-            cov-analysis-linux-arm64/bin/cov-build --dir cov-int make WITH_SDL3=no -j 4
-        fi
+        rm -rf cov-int
+        make clean
+        cov-analysis-linux-arm64/bin/cov-build --dir cov-int make WITH_SDL3=no -j 4
     - name: Upload result
+      if: env.skip != 'true'
       run: |
-        if [ -z "${{ secrets.COVERITY_SCAN_TOKEN }}" ]; then
-          echo "COVERITY_SCAN_TOKEN is not set. Skipping workflow."
-        else
-            tar -czf cov-int.tgz cov-int
-            curl --form token=${{secrets.COVERITY_SCAN_TOKEN}} \
-              --form email=${{secrets.COVERITY_SCAN_EMAIL}} \
-              --form file=@cov-int.tgz \
-              --form version="${{github.sha}}" \
-              --form description="${{github.sha}}" \
-              https://scan.coverity.com/builds?project=${{github.repository}}
-        fi
+        tar -czf cov-int.tgz cov-int
+        curl --form token=${{secrets.COVERITY_SCAN_TOKEN}} \
+          --form email=${{secrets.COVERITY_SCAN_EMAIL}} \
+          --form file=@cov-int.tgz \
+          --form version="${{github.sha}}" \
+          --form description="${{github.sha}}" \
+          https://scan.coverity.com/builds?project=${{github.repository}}
