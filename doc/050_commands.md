@@ -11,11 +11,6 @@ original clients (Vanilla Quake II) commands are still in place.
   your inventory or you do not have enough ammo to use it.
   By quickly tapping the bound key, you can navigate the list faster.
 
-* **prefweap <weapons>**: Similar to the previous command, this will
-  select the first weapon available in the priority list given. Useful
-  to set a "panic button". E.g. the following will select your best
-  shotgun: `prefweap weapon_supershotgun weapon_shotgun`.
-
 * **gamemode <mode>**: Provides a convenient way to switch the game mode
   between `coop`, `dm` and `sp` without having to set three cvars the
   correct way. `?` prints the current mode.
@@ -26,19 +21,24 @@ original clients (Vanilla Quake II) commands are still in place.
   whitespaces. The special class `all` lists the coordinates of all
   entities.
 
-* **viewpos**: Show player position.
+* **listmaps**: Lists available maps for the player to load. Maps from
+  loaded pak files will be listed first followed by maps placed in 
+  the current game's maps folder.
 
-* **teleport <x y z>**: Teleports the player to the given coordinates.
+* **playermodels**: Lists available multiplayer models.
+
+* **prefweap <weapons>**: Similar to the cycleweap command, this will
+  select the first weapon available in the priority list given. Useful
+  to set a "panic button". E.g. the following will select your best
+  shotgun: `prefweap weapon_supershotgun weapon_shotgun`.
 
 * **spawnentity classname x y z <angle_x angle_y angle_z> <flags>**:
   Spawn new entity of `classname` at `x y z` coordinates.
 
 * **spawnonstart classname**: Spawn new entity of `classname` at start point.
 
-* **listmaps**: Lists available maps for the player to load. Maps from
-  loaded pak files will be listed first followed by maps placed in 
-  the current game's maps folder.
+* **teleport <x y z>**: Teleports the player to the given coordinates.
+
+* **viewpos**: Show player position.
 
 * **vstr**: Inserts the current value of a variable as command text.
-
-* **playermodels**: Lists available multiplayer models.
