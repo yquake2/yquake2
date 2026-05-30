@@ -139,6 +139,17 @@ flipper_run(edict_t *self)
 	self->monsterinfo.currentmove = &flipper_move_run_start;
 }
 
+void
+flipper_search(edict_t *self)
+{
+	if (!self)
+	{
+		return;
+	}
+
+	gi.sound(self, CHAN_VOICE, sound_search, 1, ATTN_NORM, 0);
+}
+
 /* Standard Swimming */
 static mframe_t flipper_frames_walk[] = {
 	{ai_walk, 4, NULL},
@@ -553,6 +564,7 @@ SP_monster_flipper(edict_t *self)
 	self->monsterinfo.run = flipper_start_run;
 	self->monsterinfo.melee = flipper_melee;
 	self->monsterinfo.sight = flipper_sight;
+	self->monsterinfo.search = flipper_search;
 
 	gi.linkentity(self);
 
