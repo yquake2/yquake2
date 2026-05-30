@@ -25,6 +25,16 @@ original clients (Vanilla Quake II) commands are still in place.
   loaded pak files will be listed first followed by maps placed in 
   the current game's maps folder.
 
+* **ogg <cmd>**: Controls OGG/Vobis music playback. Commands are:
+  * **info**: Print informations about the current track.
+  * **mute**: Mute playback.
+  * **play <num>**: Play track number <num>.
+  * **skip**: Depending on the the value of `ogg_shuffle` skip back to
+    the start of the current track, replay the last track or skip to
+    another random track.
+  * **stop**: Stop playback.
+  * **toggle**: Pause or unpause playback.
+
 * **playermodels**: Lists available multiplayer models.
 
 * **prefweap <weapons>**: Similar to the cycleweap command, this will
