@@ -194,13 +194,25 @@ mmove_t brain_move_idle =
 void
 brain_idle(edict_t *self)
 {
+	int n;
+
 	if (!self)
 	{
 		return;
 	}
 
-	gi.sound(self, CHAN_AUTO, sound_idle3, 1, ATTN_IDLE, 0);
-	self->monsterinfo.currentmove = &brain_move_idle;
+	n = randk() & 3;
+
+	if (n <= 1)
+	{
+		self->monsterinfo.currentmove = &brain_move_idle;
+		gi.sound(self, CHAN_AUTO, sound_idle3, 1, ATTN_IDLE, 0);
+	}
+	else
+	{
+		gi.sound(self, CHAN_VOICE,
+			(n == 2) ? sound_idle1 : sound_idle2, 1, ATTN_IDLE, 0);
+	}
 }
 
 static mframe_t brain_frames_walk1[] = {
