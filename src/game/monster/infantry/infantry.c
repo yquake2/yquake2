@@ -185,6 +185,17 @@ infantry_fidget(edict_t *self)
 	gi.sound(self, CHAN_VOICE, sound_idle, 1, ATTN_IDLE, 0);
 }
 
+void
+infantry_search(edict_t *self)
+{
+	if (!self)
+	{
+		return;
+	}
+
+	gi.sound(self, CHAN_VOICE, sound_search, 1, ATTN_NORM, 0);
+}
+
 static mframe_t infantry_frames_walk[] = {
 	{ai_walk, 5, infantry_footstep},
 	{ai_walk, 4, NULL},
@@ -850,6 +861,7 @@ SP_monster_infantry(edict_t *self)
 	self->monsterinfo.melee = NULL;
 	self->monsterinfo.sight = infantry_sight;
 	self->monsterinfo.idle = infantry_fidget;
+	self->monsterinfo.search = infantry_search;
 
 	gi.linkentity(self);
 

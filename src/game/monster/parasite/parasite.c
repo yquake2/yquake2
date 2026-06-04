@@ -120,7 +120,7 @@ parasite_search(edict_t *self)
 		return;
 	}
 
-	gi.sound(self, CHAN_VOICE, sound_search, 1, ATTN_IDLE, 0);
+	gi.sound(self, CHAN_VOICE, sound_search, 1, ATTN_NORM, 0);
 }
 
 static mframe_t parasite_frames_start_fidget[] = {
@@ -784,6 +784,7 @@ SP_monster_parasite(edict_t *self)
 	self->monsterinfo.attack = parasite_attack;
 	self->monsterinfo.sight = parasite_sight;
 	self->monsterinfo.idle = parasite_idle;
+	self->monsterinfo.search = parasite_search;
 
 	gi.linkentity(self);
 
