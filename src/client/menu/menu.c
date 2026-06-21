@@ -3541,7 +3541,20 @@ Mods_MenuInit(void)
 {
 	int currentmod, x = 0, y = 0, i;
 	char modname[MAX_QPATH]; /* TG626 */
-	char **displaynames;
+	char **displaynames, **ptr;
+
+	displaynames = ptr = (char **)s_mods_list.itemnames;
+
+	if (ptr)
+	{
+		while (*ptr)
+		{
+			free(*ptr);
+			ptr ++;
+		}
+
+		free(displaynames);
+	}
 
 	Mods_NamesInit();
 
