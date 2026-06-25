@@ -36,10 +36,11 @@ static void Action_Draw(menuaction_s *a);
 static void Menu_DrawStatusBar(const char *string);
 static void MenuList_Draw(menulist_s *l);
 static void Separator_Draw(menuseparator_s *s);
-static void Slider_DoSlide(menuslider_s *s, int dir);
 static void Slider_Draw(menuslider_s *s);
 static void SpinControl_Draw(menulist_s *s);
-static void SpinControl_DoSlide(menulist_s *s, int dir);
+
+static qboolean Slider_DoSlide(menuslider_s *s, int dir);
+static qboolean SpinControl_DoSlide(menulist_s *s, int dir);
 
 extern viddef_t viddef;
 
@@ -592,23 +593,25 @@ Menu_SetStatusBar(menuframework_s *m, const char *string)
 	m->statusbar = string;
 }
 
-void
+qboolean
 Menu_SlideItem(menuframework_s *s, int dir)
 {
 	menucommon_s *item = (menucommon_s *)Menu_ItemAtCursor(s);
 
-	if (item)
+	if (!item)
 	{
-		switch (item->type)
-		{
-			case MTYPE_SLIDER:
-				Slider_DoSlide((menuslider_s *)item, dir);
-				break;
-			case MTYPE_SPINCONTROL:
-				SpinControl_DoSlide((menulist_s *)item, dir);
-				break;
-		}
+		return false;
 	}
+
+	switch (item->type)
+	{
+		case MTYPE_SLIDER:
+			return Slider_DoSlide((menuslider_s *)item, dir);
+		case MTYPE_SPINCONTROL:
+			return SpinControl_DoSlide((menulist_s *)item, dir);
+	}
+
+	return false;
 }
 
 static void
@@ -656,17 +659,32 @@ Separator_Draw(menuseparator_s *s)
 	}
 }
 
-static void
+static qboolean
 Slider_DoSlide(menuslider_s *s, int dir)
 {
 	const float step = (s->slidestep)? s->slidestep : 0.1f;
-	float value = Cvar_VariableValue(s->cvar);
+	float value;
 	float sign = 1.0f;
+
+	if (!s->cvar)
+	{
+		return false;
+	}
+
+	value = Cvar_VariableValue(s->cvar);
 
 	if (s->abs && value < 0)	// absolute value treatment
 	{
 		value = -value;
 		sign = -1.0f;
+	}
+
+	dir = (dir <= 0) ? -1 : 1;
+
+	if ((value == s->minvalue && dir == -1) ||
+		(value == s->maxvalue && dir == 1))
+	{
+		return false;
 	}
 
 	value += dir * step;
@@ -676,6 +694,8 @@ Slider_DoSlide(menuslider_s *s, int dir)
 	{
 		s->generic.callback(s);
 	}
+
+	return true;
 }
 
 #define SLIDER_RANGE 10
@@ -683,23 +703,20 @@ Slider_DoSlide(menuslider_s *s, int dir)
 static void
 Slider_Draw(menuslider_s *s)
 {
-	const float scale = SCR_GetMenuScale();
-	const int x = s->generic.parent->x + s->generic.x;
-	const int y = s->generic.parent->y + s->generic.y;
-	const int x_rcol = x + (RCOLUMN_OFFSET * scale);
+	float scale;
+	int x, x_rcol, y;
 	int i;
-	char buffer[5];
 
-	float value = Cvar_VariableValue(s->cvar);
-	if (s->abs && value < 0)	// absolute value
+	scale = SCR_GetMenuScale();
+	x = s->generic.parent->x + s->generic.x;
+	x_rcol = x + (RCOLUMN_OFFSET * scale);
+	y = s->generic.parent->y + s->generic.y;
+
+	if (s->generic.name)
 	{
-		value = -value;
+		Menu_DrawStringR2LDark(x + (LCOLUMN_OFFSET * scale),
+			y, s->generic.name);
 	}
-	const float range = (ClampCvar(s->minvalue, s->maxvalue, value) - s->minvalue) /
-			(s->maxvalue - s->minvalue);
-
-	Menu_DrawStringR2LDark(x + (LCOLUMN_OFFSET * scale),
-		y, s->generic.name);
 
 	Draw_CharScaled(x_rcol,
 		y * scale, 128, scale);
@@ -712,34 +729,62 @@ Slider_Draw(menuslider_s *s)
 
 	Draw_CharScaled(x_rcol + (i * 8) + 8,
 		y * scale, 130, scale);
-	Draw_CharScaled(x_rcol + (int)((SLIDER_RANGE * scale - 1) * 8 * range) + 8,
-		y * scale, 131, scale);
 
-	snprintf(buffer, 5, (s->printformat)? s->printformat : "%.1f", value);
-	Menu_DrawString(x_rcol + ((SLIDER_RANGE + 2) * scale * 8),
-		y, buffer);
+	if (s->cvar)
+	{
+		float value, range;
+		char buffer[5];
+
+		value = Cvar_VariableValue(s->cvar);
+		if (s->abs && value < 0)
+		{
+			value = -value;
+		}
+
+		range = (ClampCvar(s->minvalue, s->maxvalue, value) - s->minvalue) /
+			(s->maxvalue - s->minvalue);
+
+		Draw_CharScaled(x_rcol + (int)((SLIDER_RANGE * scale - 1) * 8 * range) + 8,
+			y * scale, 131, scale);
+
+		Com_sprintf(buffer, sizeof(buffer),
+			(s->printformat)? s->printformat : "%.1f", value);
+		Menu_DrawString(x_rcol + ((SLIDER_RANGE + 2) * scale * 8),
+			y, buffer);
+	}
 }
 
-static void
+static qboolean
 SpinControl_DoSlide(menulist_s *s, int dir)
 {
-	s->curvalue += dir;
+	if (!s->itemnames)
+	{
+		return false;
+	}
 
-	if (s->curvalue < 0)
+	if ((s->curvalue < 0) || (!s->itemnames[s->curvalue]))
 	{
 		s->curvalue = 0;
-		return;
 	}
-	else if (s->itemnames[s->curvalue] == 0)
+	else
 	{
-		s->curvalue--;
-		return;
+		dir = (dir <= 0) ? -1 : 1;
+
+		if ((s->curvalue == 0 && dir == -1) ||
+			(!s->itemnames[s->curvalue + 1] && dir == 1))
+		{
+			return false;
+		}
+
+		s->curvalue += dir;
 	}
 
 	if (s->generic.callback)
 	{
 		s->generic.callback(s);
 	}
+
+	return true;
 }
 
 static void
@@ -778,13 +823,13 @@ SpinControl_Draw(menulist_s *s)
 	}
 	else
 	{
-		char *nlb, buffer[100];
+		char buffer[100];
 
-		Q_strlcpy(buffer, item, sizeof(buffer));
-		nlb = strchr(buffer, '\n');
-
-		if (nlb)
+		if (Q_strlcpy(buffer, item, sizeof(buffer)) < sizeof(buffer))
 		{
+			char *nlb;
+
+			nlb = buffer + (nl - item);
 			*nlb = '\0';
 
 			Menu_DrawString(x + (RCOLUMN_OFFSET * scale),
