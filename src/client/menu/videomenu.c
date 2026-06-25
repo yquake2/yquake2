@@ -519,26 +519,26 @@ VID_MenuInit(void)
 		"5x",
 		"6x",
 		"custom",
-		0
+		NULL
 	};
 
 	static const char *onoff_names[] = {
 		"off",
 		"on",
-		0
+		NULL
 	};
 
 	static const char *yesno_names[] = {
 		"no",
 		"yes",
-		0
+		NULL
 	};
 
 	static const char *fullscreen_names[] = {
-			"no",
-			"native fullscreen",
-			"fullscreen window",
-			0
+		"no",
+		"native fullscreen",
+		"fullscreen window",
+		NULL
 	};
 
 	static const char *pow2_names[] = {
@@ -547,7 +547,7 @@ VID_MenuInit(void)
 		"4x",
 		"8x",
 		"16x",
-		0
+		NULL
 	};
 
 	static const char *filter_names[] = {
@@ -555,7 +555,7 @@ VID_MenuInit(void)
 		"standard",
 		"trilinear",
 		"custom",
-		0
+		NULL
 	};
 
 	if (!r_mode)

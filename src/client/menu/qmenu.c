@@ -354,7 +354,7 @@ Menu_AdjustCursor(menuframework_s *m, int dir)
 	/* see if it's in a valid spot */
 	if ((m->cursor >= 0) && (m->cursor < m->nitems))
 	{
-		if ((citem = Menu_ItemAtCursor(m)) != 0)
+		if ((citem = Menu_ItemAtCursor(m)) != NULL)
 		{
 			if (citem->type != MTYPE_SEPARATOR &&
 				(citem->flags & QMF_INACTIVE) != QMF_INACTIVE)
@@ -565,7 +565,7 @@ Menu_ItemAtCursor(menuframework_s *m)
 {
 	if ((m->cursor < 0) || (m->cursor >= m->nitems))
 	{
-		return 0;
+		return NULL;
 	}
 
 	return m->items[m->cursor];
