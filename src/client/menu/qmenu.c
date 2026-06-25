@@ -745,11 +745,11 @@ SpinControl_DoSlide(menulist_s *s, int dir)
 static void
 SpinControl_Draw(menulist_s *s)
 {
-	char buffer[100];
-	float scale = SCR_GetMenuScale();
-	int x = 0;
-	int y = 0;
+	const char *item, *nl;
+	float scale;
+	int x, y;
 
+	scale = SCR_GetMenuScale();
 	x = s->generic.parent->x + s->generic.x;
 	y = s->generic.parent->y + s->generic.y;
 
@@ -759,20 +759,40 @@ SpinControl_Draw(menulist_s *s)
 			y, s->generic.name);
 	}
 
-	if (!strchr(s->itemnames[s->curvalue], '\n'))
+	if (!s->itemnames)
 	{
-		Menu_DrawString(x + (RCOLUMN_OFFSET * scale),
-			y, s->itemnames[s->curvalue]);
+		item = "(empty)";
 	}
 	else
 	{
-		Q_strlcpy(buffer, s->itemnames[s->curvalue], sizeof(buffer));
-		*strchr(buffer, '\n') = 0;
+		item = ((s->curvalue < 0) || (!s->itemnames[s->curvalue])) ?
+			"(invalid)" : s->itemnames[s->curvalue];
+	}
+
+	nl = strchr(item, '\n');
+
+	if (!nl)
+	{
+		Menu_DrawString(x + (RCOLUMN_OFFSET * scale),
+			y, item);
+	}
+	else
+	{
+		char *nlb, buffer[100];
+
+		Q_strlcpy(buffer, item, sizeof(buffer));
+		nlb = strchr(buffer, '\n');
+
+		if (nlb)
+		{
+			*nlb = '\0';
+
+			Menu_DrawString(x + (RCOLUMN_OFFSET * scale),
+				y + 10, nlb + 1);
+		}
+
 		Menu_DrawString(x + (RCOLUMN_OFFSET * scale),
 			y, buffer);
-		strcpy(buffer, strchr(s->itemnames[s->curvalue], '\n') + 1);
-		Menu_DrawString(x + (RCOLUMN_OFFSET * scale),
-			y + 10, buffer);
 	}
 }
 
