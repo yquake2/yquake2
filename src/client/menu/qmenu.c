@@ -79,7 +79,7 @@ Bitmap_Draw(menubitmap_s * item)
 	}
 }
 
-void
+static void
 Action_Draw(menuaction_s *a)
 {
 	float scale = SCR_GetMenuScale();
@@ -493,7 +493,7 @@ Menu_Draw(menuframework_s *menu)
 	}
 }
 
-void
+static void
 Menu_DrawStatusBar(const char *string)
 {
 	float scale = SCR_GetMenuScale();
@@ -611,7 +611,7 @@ Menu_SlideItem(menuframework_s *s, int dir)
 	}
 }
 
-void
+static void
 MenuList_Draw(menulist_s *l)
 {
 	const char **n;
@@ -640,7 +640,7 @@ MenuList_Draw(menulist_s *l)
 	}
 }
 
-void
+static void
 Separator_Draw(menuseparator_s *s)
 {
 	int x = 0;
@@ -656,7 +656,7 @@ Separator_Draw(menuseparator_s *s)
 	}
 }
 
-void
+static void
 Slider_DoSlide(menuslider_s *s, int dir)
 {
 	const float step = (s->slidestep)? s->slidestep : 0.1f;
@@ -680,7 +680,7 @@ Slider_DoSlide(menuslider_s *s, int dir)
 
 #define SLIDER_RANGE 10
 
-void
+static void
 Slider_Draw(menuslider_s *s)
 {
 	const float scale = SCR_GetMenuScale();
@@ -720,7 +720,7 @@ Slider_Draw(menuslider_s *s)
 		y, buffer);
 }
 
-void
+static void
 SpinControl_DoSlide(menulist_s *s, int dir)
 {
 	s->curvalue += dir;
@@ -742,7 +742,7 @@ SpinControl_DoSlide(menulist_s *s, int dir)
 	}
 }
 
-void
+static void
 SpinControl_Draw(menulist_s *s)
 {
 	char buffer[100];
