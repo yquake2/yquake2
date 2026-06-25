@@ -4590,17 +4590,50 @@ RulesChangeFunc(void *self)
 	}
 }
 
+static const char *
+GetStartSpot(const char *startmap)
+{
+	const char **s;
+
+	static const char *spots[] =
+	{
+		"bunk1", "start",
+		"mintro", "start",
+		"fact1", "start",
+		"power1", "pstart",
+		"biggun", "bstart",
+		"hangar1", "unitstart",
+		"city1", "unitstart",
+		"boss1", "bosstart"
+	};
+
+	for (s = spots; s < ARREND(spots); s += 2)
+	{
+		if (!Q_stricmp(startmap, *s))
+		{
+			return *(s + 1);
+		}
+	}
+
+	return NULL;
+}
+
 static void
 StartServerActionFunc(void *self)
 {
-	char startmap[1024];
+	const char *startmap, *spot;
 	float timelimit;
 	float fraglimit;
 	float maxclients;
-	char *spot;
 
-	Q_strlcpy(startmap, strchr(mapnames[s_startmap_list.curvalue], '\n') + 1,
-		sizeof(startmap));
+	startmap = strchr(mapnames[s_startmap_list.curvalue], '\n');
+
+	if (!startmap)
+	{
+		return;
+	}
+
+	startmap++;
 
 	maxclients = (float)strtod(s_maxclients_field.buffer, (char **)NULL);
 	timelimit = (float)strtod(s_timelimit_field.buffer, (char **)NULL);
@@ -4636,45 +4669,7 @@ StartServerActionFunc(void *self)
 
 	if (s_rules_box.curvalue == 1)
 	{
-		if (Q_stricmp(startmap, "bunk1") == 0)
-		{
-			spot = "start";
-		}
-
-		else if (Q_stricmp(startmap, "mintro") == 0)
-		{
-			spot = "start";
-		}
-
-		else if (Q_stricmp(startmap, "fact1") == 0)
-		{
-			spot = "start";
-		}
-
-		else if (Q_stricmp(startmap, "power1") == 0)
-		{
-			spot = "pstart";
-		}
-
-		else if (Q_stricmp(startmap, "biggun") == 0)
-		{
-			spot = "bstart";
-		}
-
-		else if (Q_stricmp(startmap, "hangar1") == 0)
-		{
-			spot = "unitstart";
-		}
-
-		else if (Q_stricmp(startmap, "city1") == 0)
-		{
-			spot = "unitstart";
-		}
-
-		else if (Q_stricmp(startmap, "boss1") == 0)
-		{
-			spot = "bosstart";
-		}
+		spot = GetStartSpot(startmap);
 	}
 
 	if (spot)
