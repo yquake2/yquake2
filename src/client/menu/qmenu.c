@@ -519,7 +519,7 @@ Menu_DrawString(int x, int y, const char *string)
 	unsigned i;
 	float scale = SCR_GetMenuScale();
 
-	for (i = 0; i < strlen(string); i++)
+	for (i = 0; string[i] != '\0'; i++)
 	{
 		Draw_CharScaled(x + i * 8 * scale, y * scale, string[i], scale);
 	}
@@ -531,7 +531,7 @@ Menu_DrawStringDark(int x, int y, const char *string)
 	unsigned i;
 	float scale = SCR_GetMenuScale();
 
-	for (i = 0; i < strlen(string); i++)
+	for (i = 0; string[i] != '\0'; i++)
 	{
 		Draw_CharScaled(x + i * 8 * scale, y * scale, string[i] + 128, scale);
 	}
@@ -540,24 +540,30 @@ Menu_DrawStringDark(int x, int y, const char *string)
 void
 Menu_DrawStringR2L(int x, int y, const char *string)
 {
-	unsigned i;
-	float scale = SCR_GetMenuScale();
+	unsigned i, slen;
+	float scale;
 
-	for (i = 0; i < strlen(string); i++)
+	slen = strlen(string);
+	scale = SCR_GetMenuScale();
+
+	for (i = 0; i < slen; i++)
 	{
-		Draw_CharScaled(x - i * 8 * scale, y * scale, string[strlen(string) - i - 1], scale);
+		Draw_CharScaled(x - i * 8 * scale, y * scale, string[slen - i - 1], scale);
 	}
 }
 
 void
 Menu_DrawStringR2LDark(int x, int y, const char *string)
 {
-	unsigned i;
-	float scale = SCR_GetMenuScale();
+	unsigned i, slen;
+	float scale;
 
-	for (i = 0; i < strlen(string); i++)
+	slen = strlen(string);
+	scale = SCR_GetMenuScale();
+
+	for (i = 0; i < slen; i++)
 	{
-		Draw_CharScaled(x - i * 8 * scale, y * scale, string[strlen(string) - i - 1] + 128, scale);
+		Draw_CharScaled(x - i * 8 * scale, y * scale, string[slen - i - 1] + 128, scale);
 	}
 }
 
