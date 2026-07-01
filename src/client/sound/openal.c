@@ -670,18 +670,6 @@ AL_Spatialize(channel_t *ch)
 			if (!snd_is_underwater)
 				qalSourcei(ch->srcnum, AL_DIRECT_FILTER, 0) ;
 
-			/* Auto reverb */
-			if(s_reverb_preset->value == -2)
-			{
-				AL_ApplyReverb();
-			}
-
-			/* Forsed reverb effect */
-			else if (s_reverb_preset->value >= 0)
-			{
-				AL_SetReverb(s_reverb_preset->value);
-			}
-
 			if(s_reverb_preset->value != -1) /* Non Disabled reverb */
 			{
 				/* Apply reverb effect */
@@ -1130,6 +1118,15 @@ AL_Update(void)
 	qalDistanceModel(AL_LINEAR_DISTANCE_CLAMPED);
 	qalListener3f(AL_POSITION, AL_UnpackVector(listener_origin));
 	qalListenerfv(AL_ORIENTATION, orientation);
+
+	if (s_reverb_preset->value == -2)
+	{
+		AL_ApplyReverb();
+	}
+	else if (s_reverb_preset->value >= 0)
+	{
+		AL_SetReverb(s_reverb_preset->value);
+	}
 
 	if (s_doppler->value) {
 		CL_GetViewVelocity(listener_velocity);
