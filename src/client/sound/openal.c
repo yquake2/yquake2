@@ -1127,7 +1127,6 @@ AL_Update(void)
 	/* set listener (player) parameters */
 	AL_CopyVector(listener_forward, orientation);
 	AL_CopyVector(listener_up, orientation + 3);
-	qalDistanceModel(AL_LINEAR_DISTANCE_CLAMPED);
 	qalListener3f(AL_POSITION, AL_UnpackVector(listener_origin));
 	qalListenerfv(AL_ORIENTATION, orientation);
 
@@ -1440,6 +1439,8 @@ AL_Init(void)
 	if (s_doppler->value) {
 		qalDopplerFactor(2.0f);
 	}
+
+	qalDistanceModel(AL_LINEAR_DISTANCE_CLAMPED);
 
 	return true;
 }
