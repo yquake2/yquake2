@@ -90,7 +90,6 @@ typedef struct
 {
 	menucommon_s    generic;
 	char *          focuspic;	
-	char *          errorpic;
 	int             width;
 	int             height;
 } menubitmap_s;
@@ -148,7 +147,7 @@ void Menu_Draw(menuframework_s *menu);
 void *Menu_ItemAtCursor(menuframework_s *m);
 qboolean Menu_SelectItem(menuframework_s *s);
 void Menu_SetStatusBar(menuframework_s *s, const char *string);
-void Menu_SlideItem(menuframework_s *s, int dir);
+qboolean Menu_SlideItem(menuframework_s *s, int dir);
 
 void Menu_DrawString(int, int, const char *);
 void Menu_DrawStringDark(int, int, const char *);
