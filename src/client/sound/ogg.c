@@ -279,7 +279,7 @@ OGG_InitTrackList(void)
 void
 static OGG_Read(void)
 {
-	short samples[4096] = {0};
+	short samples[4096];
 	float volume = (ogg_mutemusic == true) ? 0.0f : ogg_volume->value;
 
 	int read_samples = stb_vorbis_get_samples_short_interleaved(ogg_file, ogg_file->channels, samples,
