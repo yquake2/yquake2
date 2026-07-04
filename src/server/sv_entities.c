@@ -634,12 +634,10 @@ SV_BuildClientFrame(client_t *client)
 					/* don't send sounds if they
 					   will be attenuated away */
 					vec3_t delta;
-					float len;
 
 					VectorSubtract(org, ent->s.origin, delta);
-					len = VectorLength(delta);
 
-					if (len > 400)
+					if (VectorLengthSquared(delta) > 400.0f * 400.0f)
 					{
 						continue;
 					}
