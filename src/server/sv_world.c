@@ -541,24 +541,19 @@ typedef struct
 static int
 SV_HullForEntity(edict_t *ent)
 {
-	/* decide which clipping hull to use, based on the size */
 	if (ent->solid == SOLID_BSP)
 	{
 		const cmodel_t *model;
+		int mi;
 
-		/* explicit hulls in the BSP model */
-		model = sv.models[ent->s.modelindex];
+		mi = ent->s.modelindex;
 
-		if (!model)
-		{
-			Com_Error(ERR_FATAL, "MOVETYPE_PUSH with a non bsp model");
-			return 0;
-		}
+		model = ((mi >= 0) && (mi < MAX_MODELS)) ?
+			sv.models[mi] : NULL;
 
-		return model->headnode;
+		return model ? model->headnode : 0;
 	}
 
-	/* create a temp hull from bounding box sizes */
 	return CM_HeadnodeForBox(ent->mins, ent->maxs);
 }
 
