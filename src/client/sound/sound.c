@@ -907,6 +907,7 @@ S_PickChannel(int entnum, int entchannel)
 	int first_to_die;
 	int life_left;
 	channel_t *ch;
+	const int plnum = cl.playernum + 1;
 
 	if (entchannel < 0)
 	{
@@ -930,8 +931,8 @@ S_PickChannel(int entnum, int entchannel)
 		}
 
 		/* don't let monster sounds override player sounds */
-		if ((channels[ch_idx].entnum == cl.playernum + 1) &&
-			(entnum != cl.playernum + 1) && channels[ch_idx].sfx)
+		if ((channels[ch_idx].entnum == plnum) &&
+			(entnum != plnum) && channels[ch_idx].sfx)
 		{
 			continue;
 		}
@@ -1278,7 +1279,12 @@ S_StartSound(vec3_t origin, int entnum, int entchannel, sfx_t *sfx,
 		}
 	}
 
-	cvar_t *game = Cvar_Get("game",  "", CVAR_LATCH | CVAR_SERVERINFO);
+	static const cvar_t *game = NULL;
+
+	if (game == NULL)
+	{
+		game = Cvar_Get("game",  "", CVAR_LATCH | CVAR_SERVERINFO);
+	}
 
 	const qboolean is_mission_pack =
 		(strcmp(game->string, "") == 0) ||
@@ -1393,6 +1399,8 @@ void
 S_BuildSoundList(int *sounds)
 {
 	int i;
+	const float ambient = s_ambient->value;
+	const int plnum = cl.playernum + 1;
 
 	for (i = 0; i < cl.frame.num_entities && i <= MAX_CL_ENTNUM; i++)
 	{
@@ -1402,11 +1410,11 @@ S_BuildSoundList(int *sounds)
 		num = (cl.frame.parse_entities + i) & (MAX_PARSE_ENTITIES - 1);
 		ent = &cl_parse_entities[num];
 
-		if ((s_ambient->value == 2) && !ent->modelindex)
+		if ((ambient == 2) && !ent->modelindex)
 		{
 			sounds[i] = 0;
 		}
-		else if ((s_ambient->value == 3) && (ent->number != cl.playernum + 1))
+		else if ((ambient == 3) && (ent->number != plnum))
 		{
 			sounds[i] = 0;
 		}
