@@ -48,7 +48,12 @@ CL_AddPacketEntities(frame_t *frame)
 	unsigned int effects, renderfx;
 
 	/* To distinguish baseq2, xatrix and rogue. */
-	cvar_t *game = Cvar_Get("game",  "", CVAR_LATCH | CVAR_SERVERINFO);
+	static const cvar_t *game = NULL;
+
+	if (game == NULL)
+	{
+		game = Cvar_Get("game",  "", CVAR_LATCH | CVAR_SERVERINFO);
+	}
 
 	/* bonus items rotate at a fixed rate */
 	autorotate = anglemod(cl.time * 0.1f);
