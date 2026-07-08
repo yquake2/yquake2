@@ -1012,12 +1012,16 @@ VID_MenuKey(int key)
 			sound = menu_move_sound;
 			break;
 		case K_LEFTARROW:
-			Menu_SlideItem(m, -1);
-			sound = menu_move_sound;
+			if (Menu_SlideItem(m, -1))
+			{
+				sound = menu_move_sound;
+			}
 			break;
 		case K_RIGHTARROW:
-			Menu_SlideItem(m, 1);
-			sound = menu_move_sound;
+			if (Menu_SlideItem(m, 1))
+			{
+				sound = menu_move_sound;
+			}
 			break;
 		case K_ENTER:
 			Menu_SelectItem(m);

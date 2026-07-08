@@ -383,16 +383,20 @@ Default_MenuKey(menuframework_s *m, int key)
 	case K_LEFTARROW:
 		if (m)
 		{
-			Menu_SlideItem(m, -1);
-			sound = menu_move_sound;
+			if (Menu_SlideItem(m, -1))
+			{
+				sound = menu_move_sound;
+			}
 		}
 		break;
 
 	case K_RIGHTARROW:
 		if (m)
 		{
-			Menu_SlideItem(m, 1);
-			sound = menu_move_sound;
+			if (Menu_SlideItem(m, 1))
+			{
+				sound = menu_move_sound;
+			}
 		}
 		break;
 
