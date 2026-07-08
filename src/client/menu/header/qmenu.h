@@ -27,6 +27,10 @@
 #ifndef CL_MENU_QMENU_H
 #define CL_MENU_QMENU_H
 
+extern const char *menu_in_sound;
+extern const char *menu_move_sound;
+extern const char *menu_out_sound;
+
 #define RCOLUMN_OFFSET  16
 #define LCOLUMN_OFFSET -16
 

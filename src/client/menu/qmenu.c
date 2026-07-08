@@ -47,6 +47,10 @@ extern viddef_t viddef;
 #define VID_WIDTH viddef.width
 #define VID_HEIGHT viddef.height
 
+const char *menu_in_sound = "misc/menu1.wav";
+const char *menu_move_sound = "misc/menu2.wav";
+const char *menu_out_sound = "misc/menu3.wav";
+
 // "Wrapper" for Q_clamp to evaluate parameters just once (TODO: delete?)
 float
 ClampCvar(float min, float max, float value)

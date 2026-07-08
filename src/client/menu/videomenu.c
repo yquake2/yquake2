@@ -993,30 +993,35 @@ VID_MenuKey(int key)
 	extern void M_PopMenu(void);
 
 	menuframework_s *m = &s_opengl_menu;
-	static const char *sound = "misc/menu1.wav";
+	const char *sound = NULL;
 	int menu_key = Key_GetMenuKey(key);
 
 	switch (menu_key)
 	{
 		case K_ESCAPE:
 			M_PopMenu();
-			return NULL;
+			break;
 		case K_UPARROW:
 			m->cursor--;
 			Menu_AdjustCursor(m, -1);
+			sound = menu_move_sound;
 			break;
 		case K_DOWNARROW:
 			m->cursor++;
 			Menu_AdjustCursor(m, 1);
+			sound = menu_move_sound;
 			break;
 		case K_LEFTARROW:
 			Menu_SlideItem(m, -1);
+			sound = menu_move_sound;
 			break;
 		case K_RIGHTARROW:
 			Menu_SlideItem(m, 1);
+			sound = menu_move_sound;
 			break;
 		case K_ENTER:
 			Menu_SelectItem(m);
+			sound = menu_move_sound;
 			break;
 	}
 

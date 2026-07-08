@@ -42,10 +42,6 @@ static int m_cursor_width = 0;
 /* Signals the file system to start the demo loop. */
 qboolean menu_startdemoloop;
 
-static char *menu_in_sound = "misc/menu1.wav";
-static char *menu_move_sound = "misc/menu2.wav";
-static char *menu_out_sound = "misc/menu3.wav";
-
 void M_Menu_Main_f(void);
 static void M_Menu_Game_f(void);
 static void M_Menu_LoadGame_f(void);
@@ -7065,9 +7061,12 @@ M_Keydown(int key)
 	if (m_active.key)
 	{
 		const char *s;
-		if ((s = m_active.key(key)) != 0)
+
+		s = m_active.key(key);
+
+		if (s)
 		{
-			S_StartLocalSound((char *)s);
+			S_StartLocalSound(s);
 		}
 	}
 }
