@@ -760,15 +760,28 @@ Slider_Draw(menuslider_s *s)
 	}
 }
 
+static int
+NumItemNames(const char **items)
+{
+	const char **i;
+
+	for (i = items; *i; i++)
+	{
+	}
+
+	return i - items;
+}
+
 static qboolean
 SpinControl_DoSlide(menulist_s *s, int dir)
 {
-	if (!s->itemnames)
+	if (!s->itemnames || !s->itemnames[0])
 	{
 		return false;
 	}
 
-	if ((s->curvalue < 0) || (!s->itemnames[s->curvalue]))
+	if ((s->curvalue < 0) ||
+		(s->curvalue >= NumItemNames(s->itemnames)))
 	{
 		s->curvalue = 0;
 	}
@@ -793,6 +806,23 @@ SpinControl_DoSlide(menulist_s *s, int dir)
 	return true;
 }
 
+static const char *
+GetSelectedItem(const menulist_s *s)
+{
+	if (!s->itemnames || !s->itemnames[0])
+	{
+		return "(empty)";
+	}
+
+	if ((s->curvalue < 0) ||
+		(s->curvalue >= NumItemNames(s->itemnames)))
+	{
+		return "(invalid)";
+	}
+
+	return s->itemnames[s->curvalue];
+}
+
 static void
 SpinControl_Draw(menulist_s *s)
 {
@@ -810,16 +840,7 @@ SpinControl_Draw(menulist_s *s)
 			y, s->generic.name);
 	}
 
-	if (!s->itemnames)
-	{
-		item = "(empty)";
-	}
-	else
-	{
-		item = ((s->curvalue < 0) || (!s->itemnames[s->curvalue])) ?
-			"(invalid)" : s->itemnames[s->curvalue];
-	}
-
+	item = GetSelectedItem(s);
 	nl = strchr(item, '\n');
 
 	if (!nl)
