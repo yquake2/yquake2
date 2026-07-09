@@ -403,9 +403,11 @@ Default_MenuKey(menuframework_s *m, int key)
 	case K_ENTER:
 		if (m)
 		{
-			Menu_SelectItem(m);
+			if (Menu_SelectItem(m))
+			{
+				sound = menu_move_sound;
+			}
 		}
-		sound = menu_move_sound;
 		break;
 	}
 

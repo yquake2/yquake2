@@ -1024,8 +1024,10 @@ VID_MenuKey(int key)
 			}
 			break;
 		case K_ENTER:
-			Menu_SelectItem(m);
-			sound = menu_move_sound;
+			if (Menu_SelectItem(m))
+			{
+				sound = menu_move_sound;
+			}
 			break;
 	}
 

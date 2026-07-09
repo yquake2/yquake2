@@ -585,10 +585,10 @@ Menu_ItemAtCursor(menuframework_s *m)
 qboolean
 Menu_SelectItem(menuframework_s *s)
 {
-	menucommon_s * item = ( menucommon_s * )Menu_ItemAtCursor(s);
+	menucommon_s *item = (menucommon_s *)Menu_ItemAtCursor(s);
 
-	if (item->callback) {
-
+	if (item->callback)
+	{
 		item->callback(item);
 
 		return true;
