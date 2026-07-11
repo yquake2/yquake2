@@ -39,16 +39,15 @@ jobs:
           mingw-w64-${{matrix.env}}-make
           mingw-w64-${{matrix.env}}-openal
           mingw-w64-${{matrix.env}}-pkgconf
-          mingw-w64-${{matrix.env}}-wget
     - name: Check out repository code
       uses: actions/checkout@v7
     - name: Build
       shell: msys2 {0}
       run: |
         # Download and extract SDL3 devel files.
-        wget -c https://github.com/libsdl-org/SDL/releases/download/release-3.2.24/SDL3-devel-3.2.24-mingw.tar.gz
-        tar xf SDL3-devel-3.2.24-mingw.tar.gz
-        mv SDL3-3.2.24 SDL3
+        curl -o SDL3-devel-3.4.12-mingw.tar.gz -L https://github.com/libsdl-org/SDL/releases/download/release-3.4.12/SDL3-devel-3.4.12-mingw.tar.gz
+        tar xf SDL3-devel-3.4.12-mingw.tar.gz
+        mv SDL3-3.4.12 SDL3
         # Public runners come with 4 CPUs.
         PKG_CONFIG_PATH=SDL3/i686-w64-mingw32/lib/pkgconfig make -j4
         PKG_CONFIG_PATH=SDL3/i686-w64-mingw32/lib/pkgconfig make -j4 ref_gles1
@@ -76,11 +75,11 @@ jobs:
         # SDL3
         cp SDL3/i686-w64-mingw32/bin/SDL3.dll publish/quake2-win32-${{github.sha}}/
         # openal-soft
-        wget -c https://github.com/kcat/openal-soft/releases/download/1.24.3/openal-soft-1.24.3-bin.zip
+        curl -o openal-soft-1.24.3-bin.zip -L https://github.com/kcat/openal-soft/releases/download/1.24.3/openal-soft-1.24.3-bin.zip
         unzip -o openal-soft-1.24.3-bin.zip
         cp openal-soft-1.24.3-bin/bin/Win32/soft_oal.dll publish/quake2-win32-${{github.sha}}/openal32.dll
         # curl (releases use a custom build curl.dll)
-        wget -c -O libcurl-4.dll "https://github.com/dhewm/dhewm3-libs/raw/refs/heads/master/i686-w64-mingw32/bin/libcurl-4.dll"
+        curl -o libcurl-4.dll -L "https://github.com/dhewm/dhewm3-libs/raw/refs/heads/master/i686-w64-mingw32/bin/libcurl-4.dll"
         cp libcurl-4.dll publish/quake2-win32-${{github.sha}}/curl.dll
     - name: Upload testbuild package
       uses: actions/upload-artifact@v7
