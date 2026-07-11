@@ -1237,7 +1237,6 @@ void
 WriteLevel(const char *filename)
 {
 	int i;
-	edict_t *ent;
 	FILE *f;
 
 	f = Q_fopen(filename, "wb");
@@ -1258,6 +1257,8 @@ WriteLevel(const char *filename)
 	/* write out all the entities */
 	for (i = 0; i < globals.num_edicts; i++)
 	{
+		edict_t *ent;
+
 		ent = &g_edicts[i];
 
 		if (!ent->inuse)

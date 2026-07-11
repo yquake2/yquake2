@@ -657,8 +657,8 @@ void G_TouchSolids(edict_t *ent);
 
 char *G_CopyString(const char *in);
 
-float *tv(float x, float y, float z);
-char *vtos(vec3_t v);
+const float *tv(float x, float y, float z);
+const char *vtos(const vec3_t v);
 
 float vectoyaw(vec3_t vec);
 void vectoangles(const vec3_t value, vec3_t angles);
@@ -1152,6 +1152,7 @@ struct edict_s
 #if DEBUG
 #include "../savegame/savegame.h"
 #include "../savegame/tables/gamefunc_decs.h"
+#include "../savegame/tables/spawnfunc_decs.h"
 #endif
 
 #endif /* GAME_LOCAL_H */
