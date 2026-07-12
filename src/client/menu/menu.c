@@ -356,7 +356,7 @@ Default_MenuKey(menuframework_s *m, int key)
 		}
 
 		M_PopMenu();
-		return menu_out_sound;
+		break;
 
 	case K_UPARROW:
 		if (m)
