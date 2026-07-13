@@ -95,7 +95,7 @@ M_IsGame(const char *gamename)
 	return false;
 }
 
-static void
+void
 M_Banner(const char *name)
 {
 	int w, h;
@@ -116,7 +116,7 @@ M_ForceMenuOff(void)
 	Cvar_Set("paused", "0");
 }
 
-void
+static void
 M_PopMenu(void)
 {
 	S_StartLocalSound(menu_out_sound);
@@ -328,87 +328,78 @@ Key_GetMenuKey(int key)
 	return key;
 }
 
-static const char *
+const char *
 Default_MenuKey(menuframework_s *m, int key)
 {
-	const char *sound = NULL;
-	int menu_key = Key_GetMenuKey(key);
+	const char *sound;
+	menucommon_s *item;
+	int menu_key;
 
-	if (m)
+	menu_key = Key_GetMenuKey(key);
+
+	if (!m)
 	{
-		menucommon_s *item = Menu_ItemAtCursor(m);
-
-		if (item && item->type == MTYPE_FIELD)
+		if (menu_key == K_ESCAPE)
 		{
-			if (Field_Key((menufield_s *)item, key))
-			{
-				return NULL;
-			}
+			M_PopMenu();
+		}
+
+		return NULL;
+	}
+
+	item = Menu_ItemAtCursor(m);
+
+	if (item && item->type == MTYPE_FIELD)
+	{
+		if (Field_Key((menufield_s *)item, key))
+		{
+			return NULL;
 		}
 	}
 
+	sound = NULL;
+
 	switch (menu_key)
 	{
-	case K_ESCAPE:
-		if (m)
-		{
+		case K_ESCAPE:
 			Field_ResetCursor(m);
-		}
+			M_PopMenu();
+			break;
 
-		M_PopMenu();
-		break;
-
-	case K_UPARROW:
-		if (m)
-		{
+		case K_UPARROW:
 			Field_ResetCursor(m);
-
 			m->cursor--;
 			Menu_AdjustCursor(m, -1);
 			sound = menu_move_sound;
-		}
-		break;
+			break;
 
-	case K_DOWNARROW:
-		if (m)
-		{
+		case K_DOWNARROW:
 			Field_ResetCursor(m);
-
 			m->cursor++;
 			Menu_AdjustCursor(m, 1);
 			sound = menu_move_sound;
-		}
-		break;
+			break;
 
-	case K_LEFTARROW:
-		if (m)
-		{
+		case K_LEFTARROW:
 			if (Menu_SlideItem(m, -1))
 			{
 				sound = menu_move_sound;
 			}
-		}
-		break;
+			break;
 
-	case K_RIGHTARROW:
-		if (m)
-		{
+		case K_RIGHTARROW:
 			if (Menu_SlideItem(m, 1))
 			{
 				sound = menu_move_sound;
 			}
-		}
-		break;
+			break;
 
-	case K_ENTER:
-		if (m)
-		{
+		case K_ENTER:
 			if (Menu_SelectItem(m))
 			{
 				sound = menu_move_sound;
 			}
-		}
-		break;
+			break;
 	}
 
 	return sound;
