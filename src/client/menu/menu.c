@@ -2252,7 +2252,9 @@ ConfigGyroFunc(void *unused)
 static void
 InvertJoyPitchFunc(void *unused)
 {
-	Cvar_SetValue("joy_pitchspeed", -Cvar_VariableValue("joy_pitchspeed"));
+	float v = fabsf(Cvar_VariableValue("joy_pitchspeed"));
+
+	Cvar_SetValue("joy_pitchspeed", s_joy_invertpitch_box.curvalue ? -v : v);
 }
 
 static void
@@ -2525,13 +2527,13 @@ CustomizeJoyFunc(void *unused)
 static void
 AlwaysRunFunc(void *unused)
 {
-	Cvar_SetValue("cl_run", (float)s_options_alwaysrun_box.curvalue);
+	Cvar_SetValue("cl_run", s_options_alwaysrun_box.curvalue);
 }
 
 static void
 FreeLookFunc(void *unused)
 {
-	Cvar_SetValue("freelook", (float)s_options_freelook_box.curvalue);
+	Cvar_SetValue("freelook", s_options_freelook_box.curvalue);
 }
 
 static void
@@ -2597,13 +2599,15 @@ ControlsResetDefaultsFunc(void *unused)
 static void
 InvertMouseFunc(void *unused)
 {
-	Cvar_SetValue("m_pitch", -m_pitch->value);
+	float v = fabsf(m_pitch->value);
+
+	Cvar_SetValue("m_pitch", s_options_invertmouse_box.curvalue ? -v : v);
 }
 
 static void
 LookstrafeFunc(void *unused)
 {
-	Cvar_SetValue("lookstrafe", (float)!lookstrafe->value);
+	Cvar_SetValue("lookstrafe", s_options_lookstrafe_box.curvalue);
 }
 
 static void
@@ -2615,7 +2619,7 @@ OGGShuffleFunc(void *unused)
 static void
 EnableOGGMusic(void *unused)
 {
-	Cvar_SetValue("ogg_enable", (float)s_options_oggenable_box.curvalue);
+	Cvar_SetValue("ogg_enable", s_options_oggenable_box.curvalue);
 
 	if (s_options_oggenable_box.curvalue)
 	{
