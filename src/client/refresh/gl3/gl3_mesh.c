@@ -323,6 +323,9 @@ DrawAliasFrameLerp(dmdl_t *paliashdr, entity_t* entity, vec3_t shadelight)
 	GL3_BindEBO(gl3state.eboAlias);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, da_count(idxBuf)*sizeof(GLushort), idxBuf.p, GL_STREAM_DRAW);
 	glDrawElements(GL_TRIANGLES, da_count(idxBuf), GL_UNSIGNED_SHORT, NULL);
+	++gl3_num3Ddraws;
+	++gl3_numBufferVtxData;
+	// TODO ++gl3_numBufferIdxData ?
 }
 
 static void
@@ -484,6 +487,9 @@ DrawAliasShadow(gl3_shadowinfo_t* shadowInfo)
 	GL3_BindEBO(gl3state.eboAlias);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, da_count(idxBuf)*sizeof(GLushort), idxBuf.p, GL_STREAM_DRAW);
 	glDrawElements(GL_TRIANGLES, da_count(idxBuf), GL_UNSIGNED_SHORT, NULL);
+	++gl3_num3Ddraws;
+	++gl3_numBufferVtxData;
+	// TODO ++gl3_numBufferIdxData ?
 }
 
 static qboolean

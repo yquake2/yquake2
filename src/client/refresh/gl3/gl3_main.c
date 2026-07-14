@@ -130,6 +130,8 @@ cvar_t *r_palettedtexture;
 cvar_t *r_validation;
 cvar_t *gl3_usefbo;
 
+cvar_t *gl3_show_draw_stats;
+
 static cvar_t *gl_znear;
 
 // Yaw-Pitch-Roll
@@ -268,6 +270,8 @@ GL3_Register(void)
 	gl_znear = ri.Cvar_Get("gl_znear", "4", CVAR_ARCHIVE);
 
 	gl3_usefbo = ri.Cvar_Get("gl3_usefbo", "1", CVAR_ARCHIVE); // use framebuffer object for postprocess effects (water)
+
+	gl3_show_draw_stats = ri.Cvar_Get("gl3_show_draw_stats", "0", CVAR_ARCHIVE);
 
 #if 0 // TODO!
 	//gl_lefthand = ri.Cvar_Get("hand", "0", CVAR_USERINFO | CVAR_ARCHIVE);
@@ -776,6 +780,8 @@ GL3_BufferAndDraw3D(const gl3_3D_vtx_t* verts, int numVerts, GLenum drawMode)
 		gl3state.vbo3DcurOffset = curOffset + neededSize; // TODO: padding or sth needed?
 #endif
 	}
+	++gl3_num3Ddraws;
+	++gl3_numBufferVtxData;
 }
 
 static void
@@ -1063,6 +1069,8 @@ GL3_DrawParticles(void)
 		GL3_BindVBO(gl3state.vboParticle);
 		glBufferData(GL_ARRAY_BUFFER, sizeof(part_vtx)*numParticles, buf, GL_STREAM_DRAW);
 		glDrawArrays(GL_POINTS, 0, numParticles);
+		++gl3_num3Ddraws;
+		++gl3_numBufferVtxData;
 
 		glDisable(GL_BLEND);
 		glDepthMask(GL_TRUE);
