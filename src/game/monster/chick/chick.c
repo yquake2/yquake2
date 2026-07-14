@@ -599,7 +599,7 @@ chick_duck_down(edict_t *self)
 	gi.linkentity(self);
 }
 
-void
+static void
 chick_duck_hold(edict_t *self)
 {
 	if (!self)
