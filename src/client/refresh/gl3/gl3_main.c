@@ -1774,6 +1774,11 @@ GL3_SetLightLevel(entity_t *currententity)
 static void
 GL3_RenderFrame(refdef_t *fd)
 {
+	// in case some batched 2D draws are outstanding, draw them now
+	// to preserve draw order (I think here this is only relevant
+	// for the player model in the multiplayer player setup menu)
+	GL3_DrawCurrent2Dbatch();
+
 	GL3_RenderView(fd);
 	GL3_SetLightLevel(NULL);
 	qboolean usedFBO = gl3state.ppFBObound; // if it was/is used this frame
