@@ -656,6 +656,8 @@ GL3_Init(void)
 
 	registration_sequence = 1; // from R_InitImages() (everything else from there shouldn't be needed anymore)
 
+	GL3_Scrap_Init();
+
 	GL3_Mod_Init();
 
 	GL3_InitParticleTexture();

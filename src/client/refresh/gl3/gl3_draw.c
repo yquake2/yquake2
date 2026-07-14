@@ -115,6 +115,9 @@ GL3_DrawCurrent2Dbatch()
 	if(numVtx == 0)
 		return;
 
+	if(gl3_scrap_dirty)
+		GL3_Scrap_Upload();
+
 	GL3_UseProgram(gl3state.si2D.shaderProgram);
 	GL3_Bind(lastBatchTexture);
 
@@ -192,6 +195,9 @@ drawTexturedRectangleNow(float x, float y, float w, float h,
 	// in case some batched 2D draws are outstanding, draw them now
 	// to preserve draw order
 	GL3_DrawCurrent2Dbatch();
+
+	if (gl3_scrap_dirty)
+		GL3_Scrap_Upload();
 
 	gl3_drawVert2D vBuf[4] = {
 	//    X,   Y,   S,  T
@@ -319,6 +325,9 @@ GL3_Draw_PicScaledCol(int x, int y, const char *pic, float factor, const float c
 		Com_Printf("Can't find pic: %s\n", pic);
 		return;
 	}
+
+	if (gl3_scrap_dirty)
+		GL3_Scrap_Upload();
 
 	gl3state.uniCommonData.color = HMM_Vec4(color[0], color[1], color[2], 1.0f);
 	GL3_UpdateUBOCommon();
