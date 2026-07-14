@@ -1,4 +1,4 @@
-/build/
+/build*/
 /debug/
 /release/
 *.mk
