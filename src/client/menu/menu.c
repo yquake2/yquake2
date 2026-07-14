@@ -759,20 +759,16 @@ static void
 M_Main_Draw(void)
 {
 	const menucommon_s * item = NULL;
-	int x = 0;
-	int y = 0;
 
-	item = ( menucommon_s * )s_main.items[s_main.cursor];
+	Menu_Draw(&s_main);
+
+	item = Menu_ItemAtCursor(&s_main);
 
 	if (item)
 	{
-		x = item->x;
-		y = item->y;
+		M_DrawCursor(item->x - m_cursor_width, item->y,
+			(cls.realtime / 100) % NUM_CURSOR_FRAMES);
 	}
-
-	Menu_Draw(&s_main);
-	M_DrawCursor(x - m_cursor_width, y,
-		( int )(cls.realtime / 100) % NUM_CURSOR_FRAMES);
 }
 
 static const char *
@@ -785,26 +781,10 @@ void
 M_Menu_Main_f(void)
 {
 	InitMainMenu();
-
-	// force first available item to have focus
-	while (s_main.cursor >= 0 && s_main.cursor < s_main.nitems)
-	{
-		const menucommon_s * item = NULL;
-
-		item = ( menucommon_s * )s_main.items[s_main.cursor];
-
-		if ((item->flags & (QMF_INACTIVE)))
-		{
-			s_main.cursor++;
-		}
-		else
-		{
-			break;
-		}
-	}
-
 	s_main.draw = M_Main_Draw;
 	s_main.key  = M_Main_Key;
+
+	Menu_AdjustCursor(&s_main, 1);
 
 	M_PushMenu(&s_main);
 }
@@ -1036,17 +1016,26 @@ M_FindKeysForCommand(char *command, int *twokeys, int scope)
 static void
 KeyCursorDrawFunc(menuframework_s *menu)
 {
-	float scale = SCR_GetMenuScale();
+	float scale;
+	int c;
+
+	if (!Menu_ItemAtCursor(menu))
+	{
+		return;
+	}
 
 	if (menukeyitem_bind)
 	{
-		Draw_CharScaled(menu->x, (menu->y + menu->cursor * 9) * scale, '=', scale);
+		c = '=';
 	}
 	else
 	{
-		Draw_CharScaled(menu->x, (menu->y + menu->cursor * 9) * scale, 12 +
-				  ((int)(Sys_Milliseconds() / 250) & 1), scale);
+		c = 12 + ((int)(Sys_Milliseconds() / 250) & 1);
 	}
+
+	scale = SCR_GetMenuScale();
+
+	Draw_CharScaled(menu->x, (menu->y + menu->cursor * 9) * scale, c, scale);
 }
 
 static void
