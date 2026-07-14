@@ -454,6 +454,8 @@ R_ImageList_f(void)
 
 		texels += image->upload_width * image->upload_height;
 
+		Com_Printf(image->scrap ? "S" : " ");
+
 		switch (image->type)
 		{
 			case it_skin:

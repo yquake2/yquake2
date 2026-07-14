@@ -911,9 +911,10 @@ GL3_ImageList_f(void)
 				imageType = '?';
 				break;
 		}
+		char isScrap = image->scrap ? 'S' : ' ';
 		char isLava = image->is_lava ? 'L' : ' ';
 
-		Com_Printf("%c%c %3i %3i %s %s: %s %s\n", imageType, isLava, w, h,
+		Com_Printf("%c%c%c %3i %3i %s %s: %s %s\n", isScrap, imageType, isLava, w, h,
 		         formatstrings[image->has_alpha], potstrings[isNPOT], image->name, in_use);
 	}
 
