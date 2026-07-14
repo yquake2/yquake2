@@ -33,6 +33,8 @@ gl3image_t *draw_chars;
 
 static GLuint vbo2D = 0, vao2D = 0, vao2Dcolor = 0; // vao2D is for textured rendering, vao2Dcolor for color-only
 
+int gl3_num3Ddraws = 0, gl3_num2Ddraws = 0, gl3_numBufferVtxData = 0, gl3_numBufferUniforms = 0;
+
 void
 GL3_Draw_InitLocal(void)
 {
@@ -116,8 +118,9 @@ drawTexturedRectangle(float x, float y, float w, float h,
 	//       implicitly bind the vbo, so I need to explicitly bind it before glBufferData()
 	GL3_BindVBO(vbo2D);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vBuf), vBuf, GL_STREAM_DRAW);
-
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+	++gl3_numBufferVtxData;
+	++gl3_num2Ddraws;
 
 	//glMultiDrawArrays(mode, first, count, drawcount) ??
 }
@@ -158,6 +161,18 @@ GL3_Draw_CharScaled(int x, int y, int num, float scale)
 	GL3_UseProgram(gl3state.si2D.shaderProgram);
 	GL3_Bind(draw_chars->texnum);
 	drawTexturedRectangle(x, y, scaledSize, scaledSize, fcol, frow, fcol+size, frow+size);
+}
+
+// DG: copy of DrawStringScaled(), so we can draw some stats right here in the render DLL
+void
+GL3_DrawStringScaled(int x, int y, const char *s, float factor)
+{
+	while (*s)
+	{
+		GL3_Draw_CharScaled(x, y, *s ^ 0x80, factor);
+		x += 8*factor;
+		s++;
+	}
 }
 
 gl3image_t *
@@ -246,6 +261,9 @@ GL3_Draw_PicScaledCol(int x, int y, const char *pic, float factor, const float c
 void
 GL3_Draw_TileClear(int x, int y, int w, int h, const char *pic)
 {
+	if(w <= 0 || h <= 0)
+		return;
+
 	gl3image_t *image = R_FindPic(pic, (findimage_t)GL3_FindImage);
 	if (!image)
 	{
@@ -323,6 +341,9 @@ GL3_Draw_Fill(int x, int y, int w, int h, int c)
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vBuf), vBuf, GL_STREAM_DRAW);
 
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+	++gl3_numBufferVtxData;
+	++gl3_num2Ddraws;
 }
 
 // in GL1 this is called R_Flash() (which just calls R_PolyBlend())
@@ -360,6 +381,9 @@ GL3_Draw_Flash(const float color[4], float x, float y, float w, float h)
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vBuf), vBuf, GL_STREAM_DRAW);
 
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+	++gl3_numBufferVtxData;
+	++gl3_num2Ddraws;
 
 	glDisable(GL_BLEND);
 }
@@ -432,4 +456,38 @@ GL3_Draw_StretchRaw(int x, int y, int w, int h, int cols, int rows, const byte *
 	glDeleteTextures(1, &glTex);
 
 	GL3_Bind(0);
+}
+
+/*
+ * Called at the end of the frame, after 2D (UI) rendering is done.
+ * Does some internal housekeeping, then swaps the buffers
+ * and shows the next frame.
+ */
+void GL3_EndFrame(void)
+{
+	if(gl3_show_draw_stats->value)
+	{
+		float factor = 2.0f; // TODO: like SCR_GetConsoleScale()
+		char stbuf[128] = {0};
+		snprintf(stbuf, sizeof(stbuf), "3D drawcalls: %d - 2D drawcalls: %d - buffer vtx data: %d - buffer uniforms: %d",
+		         gl3_num3Ddraws, gl3_num2Ddraws, gl3_numBufferVtxData, gl3_numBufferUniforms);
+
+		GL3_DrawStringScaled(10, 5, stbuf, factor);
+	}
+
+	gl3_num3Ddraws = 0;
+	gl3_num2Ddraws = 0;
+	gl3_numBufferVtxData = 0;
+	gl3_numBufferUniforms = 0;
+
+	if(gl3config.useBigVBO)
+	{
+		// I think this is a good point to orphan the VBO and get a fresh one
+		GL3_BindVAO(gl3state.vao3D);
+		GL3_BindVBO(gl3state.vbo3D);
+		glBufferData(GL_ARRAY_BUFFER, gl3state.vbo3Dsize, NULL, GL_STREAM_DRAW);
+		gl3state.vbo3DcurOffset = 0;
+	}
+
+	GL3_SwapWindow();
 }

@@ -1378,6 +1378,8 @@ updateUBO(GLuint ubo, GLsizeiptr size, void* data)
 		glBindBuffer(GL_UNIFORM_BUFFER, ubo);
 	}
 
+	++gl3_numBufferUniforms;
+
 	// http://docs.gl/gl3/glBufferSubData says  "When replacing the entire data store,
 	// consider using glBufferSubData rather than completely recreating the data store
 	// with glBufferData. This avoids the cost of reallocating the data store."
