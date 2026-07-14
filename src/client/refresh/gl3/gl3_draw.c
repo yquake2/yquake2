@@ -27,13 +27,26 @@
 
 #include "header/local.h"
 
+#include "header/DG_dynarr.h"
+
 unsigned d_8to24table[256];
 
 gl3image_t *draw_chars;
 
-static GLuint vbo2D = 0, vao2D = 0, vao2Dcolor = 0; // vao2D is for textured rendering, vao2Dcolor for color-only
+static GLuint vbo2D = 0, ebo2D = 0, vao2D = 0, vao2Dcolor = 0; // vao2D is for textured rendering, vao2Dcolor for color-only
 
 int gl3_num3Ddraws = 0, gl3_num2Ddraws = 0, gl3_numBufferVtxData = 0, gl3_numBufferUniforms = 0;
+
+typedef struct gl3_drawVert2D_s {
+	float x, y, s, t;
+} gl3_drawVert2D;
+
+DA_TYPEDEF(gl3_drawVert2D, Vtx2DArray_t);
+DA_TYPEDEF(GLushort, UShortArray_t);
+// dynamic arrays to batch all consecutive 2D draws with same texture to reduce drawcalls
+static Vtx2DArray_t vtxBuf = {0};
+static UShortArray_t idxBuf = {0};
+static GLuint lastBatchTexture = 0;
 
 void
 GL3_Draw_InitLocal(void)
@@ -52,6 +65,7 @@ GL3_Draw_InitLocal(void)
 
 	glGenBuffers(1, &vbo2D);
 	GL3_BindVBO(vbo2D);
+	glGenBuffers(1, &ebo2D);
 
 	GL3_UseProgram(gl3state.si2D.shaderProgram);
 
@@ -81,14 +95,47 @@ GL3_Draw_InitLocal(void)
 void
 GL3_Draw_ShutdownLocal(void)
 {
+	glDeleteBuffers(1, &ebo2D);
+	ebo2D = 0;
 	glDeleteBuffers(1, &vbo2D);
 	vbo2D = 0;
 	glDeleteVertexArrays(1, &vao2D);
 	vao2D = 0;
 	glDeleteVertexArrays(1, &vao2Dcolor);
 	vao2Dcolor = 0;
+
+	da_free(vtxBuf);
+	da_free(idxBuf);
 }
 
+void
+GL3_DrawCurrent2Dbatch()
+{
+	int numVtx = da_count(vtxBuf);
+	if(numVtx == 0)
+		return;
+
+	GL3_UseProgram(gl3state.si2D.shaderProgram);
+	GL3_Bind(lastBatchTexture);
+
+	GL3_BindVAO(vao2D);
+
+	// Note: while vao2D "remembers" its vbo for drawing, binding the vao does *not*
+	//       implicitly bind the vbo, so I need to explicitly bind it before glBufferData()
+	GL3_BindVBO(vbo2D);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(gl3_drawVert2D)*numVtx, vtxBuf.p, GL_STREAM_DRAW);
+
+	GL3_BindEBO(ebo2D);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, da_count(idxBuf)*sizeof(GLushort), idxBuf.p, GL_STREAM_DRAW);
+	glDrawElements(GL_TRIANGLES, da_count(idxBuf), GL_UNSIGNED_SHORT, NULL);
+
+	++gl3_numBufferVtxData;
+	++gl3_num2Ddraws;
+
+	lastBatchTexture = 0;
+	da_clear(vtxBuf);
+	da_clear(idxBuf);
+}
 
 static void
 drawTexturedRectangle(GLuint texNum, float x, float y, float w, float h,
@@ -104,28 +151,32 @@ drawTexturedRectangle(GLuint texNum, float x, float y, float w, float h,
 	 *  x,y        x+w,y
 	 */
 
-	GLfloat vBuf[16] = {
-	//  X,   Y,   S,  T
-		x,   y+h, sl, th,
-		x,   y,   sl, tl,
-		x+w, y+h, sh, th,
-		x+w, y,   sh, tl
-	};
+	if((lastBatchTexture != 0 && texNum != lastBatchTexture) || da_count(vtxBuf)+4 > UINT16_MAX)
+		GL3_DrawCurrent2Dbatch();
 
-	// TODO: batch this stuff
+	lastBatchTexture = texNum;
 
-	GL3_UseProgram(gl3state.si2D.shaderProgram);
-	GL3_Bind(texNum);
+	GLushort firstIdx = da_count(vtxBuf);
 
-	GL3_BindVAO(vao2D);
+	gl3_drawVert2D* addVtx = da_addn_uninit(vtxBuf, 4);
+	//                            X,   Y,   S,  T
+	addVtx[0] = (gl3_drawVert2D){ x,   y+h, sl, th };
+	addVtx[1] = (gl3_drawVert2D){ x,   y,   sl, tl };
+	addVtx[2] = (gl3_drawVert2D){ x+w, y+h, sh, th };
+	addVtx[3] = (gl3_drawVert2D){ x+w, y,   sh, tl };
 
-	// Note: while vao2D "remembers" its vbo for drawing, binding the vao does *not*
-	//       implicitly bind the vbo, so I need to explicitly bind it before glBufferData()
-	GL3_BindVBO(vbo2D);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vBuf), vBuf, GL_STREAM_DRAW);
-	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-	++gl3_numBufferVtxData;
-	++gl3_num2Ddraws;
+	GLushort* addIdx = da_addn_uninit(idxBuf, 6);
+	addIdx[0] = firstIdx;  // first triangle of rectangle
+	addIdx[1] = firstIdx+1;
+	addIdx[2] = firstIdx+2;
+	addIdx[3] = firstIdx+1; // second triangle
+	addIdx[4] = firstIdx+3;
+	addIdx[5] = firstIdx+2;
+
+	// FIXME: right now all this is still a bit buggy, e.g. the player model
+	// in the multiplayer menu is hidden when not enabling the next line..
+	// probably need to call drawLastBatch() before several other kinds of drawcalls
+	//drawLastBatch();
 }
 
 // bind the texture before calling this
@@ -143,12 +194,12 @@ drawTexturedRectangleNow(float x, float y, float w, float h,
 	 *  x,y        x+w,y
 	 */
 
-	GLfloat vBuf[16] = {
-	//  X,   Y,   S,  T
-		x,   y+h, sl, th,
-		x,   y,   sl, tl,
-		x+w, y+h, sh, th,
-		x+w, y,   sh, tl
+	gl3_drawVert2D vBuf[4] = {
+	//    X,   Y,   S,  T
+		{ x,   y+h, sl, th },
+		{ x,   y,   sl, tl },
+		{ x+w, y+h, sh, th },
+		{ x+w, y,   sh, tl }
 	};
 
 	GL3_BindVAO(vao2D);
@@ -494,7 +545,7 @@ GL3_Draw_StretchRaw(int x, int y, int w, int h, int cols, int rows, const byte *
  */
 void GL3_EndFrame(void)
 {
-	// TODO: draw last 2D batch
+	GL3_DrawCurrent2Dbatch();
 
 	// by saving those values into a variable and setting them to 0 afterwards,
 	// gl3_show_draw_stats can include its own drawcalls (from previous frame)
@@ -515,6 +566,7 @@ void GL3_EndFrame(void)
 		         num3D, num2D, numBufVtx, numBufUni);
 
 		GL3_DrawStringScaled(10, 5, stbuf, factor);
+		GL3_DrawCurrent2Dbatch();
 	}
 
 	if(gl3config.useBigVBO)
