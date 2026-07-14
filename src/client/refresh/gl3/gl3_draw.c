@@ -496,20 +496,26 @@ void GL3_EndFrame(void)
 {
 	// TODO: draw last 2D batch
 
+	// by saving those values into a variable and setting them to 0 afterwards,
+	// gl3_show_draw_stats can include its own drawcalls (from previous frame)
+	int num3D = gl3_num3Ddraws;
+	int num2D = gl3_num2Ddraws;
+	int numBufVtx = gl3_numBufferVtxData;
+	int numBufUni = gl3_numBufferUniforms;
+	gl3_num3Ddraws = 0;
+	gl3_num2Ddraws = 0;
+	gl3_numBufferVtxData = 0;
+	gl3_numBufferUniforms = 0;
+
 	if(gl3_show_draw_stats->value)
 	{
 		float factor = 2.0f; // TODO: like SCR_GetConsoleScale()
 		char stbuf[128] = {0};
 		snprintf(stbuf, sizeof(stbuf), "3D drawcalls: %d - 2D drawcalls: %d - buffer vtx data: %d - buffer uniforms: %d",
-		         gl3_num3Ddraws, gl3_num2Ddraws, gl3_numBufferVtxData, gl3_numBufferUniforms);
+		         num3D, num2D, numBufVtx, numBufUni);
 
 		GL3_DrawStringScaled(10, 5, stbuf, factor);
 	}
-
-	gl3_num3Ddraws = 0;
-	gl3_num2Ddraws = 0;
-	gl3_numBufferVtxData = 0;
-	gl3_numBufferUniforms = 0;
 
 	if(gl3config.useBigVBO)
 	{
