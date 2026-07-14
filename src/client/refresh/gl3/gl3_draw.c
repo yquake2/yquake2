@@ -172,11 +172,6 @@ drawTexturedRectangle(GLuint texNum, float x, float y, float w, float h,
 	addIdx[3] = firstIdx+1; // second triangle
 	addIdx[4] = firstIdx+3;
 	addIdx[5] = firstIdx+2;
-
-	// FIXME: right now all this is still a bit buggy, e.g. the player model
-	// in the multiplayer menu is hidden when not enabling the next line..
-	// probably need to call drawLastBatch() before several other kinds of drawcalls
-	//drawLastBatch();
 }
 
 // bind the texture before calling this
@@ -193,6 +188,10 @@ drawTexturedRectangleNow(float x, float y, float w, float h,
 	 * sl,tl--------sh,tl
 	 *  x,y        x+w,y
 	 */
+
+	// in case some batched 2D draws are outstanding, draw them now
+	// to preserve draw order
+	GL3_DrawCurrent2Dbatch();
 
 	gl3_drawVert2D vBuf[4] = {
 	//    X,   Y,   S,  T
@@ -388,7 +387,6 @@ GL3_Draw_Fill(int x, int y, int w, int h, int c)
 		unsigned c;
 		byte v[4];
 	} color;
-	int i;
 
 	if ((unsigned)c > 255)
 	{
@@ -396,6 +394,10 @@ GL3_Draw_Fill(int x, int y, int w, int h, int c)
 	}
 
 	color.c = d_8to24table[c];
+
+	// in case some batched 2D draws are outstanding, draw them now
+	// to preserve draw order
+	GL3_DrawCurrent2Dbatch();
 
 	GLfloat vBuf[8] = {
 	//  X,   Y
@@ -405,7 +407,7 @@ GL3_Draw_Fill(int x, int y, int w, int h, int c)
 		x+w, y
 	};
 
-	for(i=0; i<3; ++i)
+	for(int i=0; i<3; ++i)
 	{
 		gl3state.uniCommonData.color.Elements[i] = color.v[i] * (1.0f/255.0f);
 	}
@@ -436,7 +438,9 @@ GL3_Draw_Flash(const float color[4], float x, float y, float w, float h)
 		return;
 	}
 
-	int i=0;
+	// in case some batched 2D draws are outstanding, draw them now
+	// to preserve draw order
+	GL3_DrawCurrent2Dbatch();
 
 	GLfloat vBuf[8] = {
 	//  X,   Y
@@ -448,7 +452,8 @@ GL3_Draw_Flash(const float color[4], float x, float y, float w, float h)
 
 	glEnable(GL_BLEND);
 
-	for(i=0; i<4; ++i)  gl3state.uniCommonData.color.Elements[i] = color[i];
+	for(int i=0; i<4; ++i)
+		gl3state.uniCommonData.color.Elements[i] = color[i];
 
 	GL3_UpdateUBOCommon();
 
