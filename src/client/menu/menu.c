@@ -669,7 +669,9 @@ InitMainMenu(void)
 	x = (viddef.width / scale - widest + 70) / 2;
 	y = (viddef.height / (2 * scale) - 110);
 
+	int tmp = s_main.cursor;
 	memset(&s_main, 0, sizeof( menuframework_s ));
+	s_main.cursor = tmp;
 
 	Draw_GetPicSize(&w, &h, "m_main_plaque");
 
