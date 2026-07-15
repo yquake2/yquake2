@@ -979,12 +979,6 @@ VID_MenuDraw(void)
 	Menu_Draw(&s_opengl_menu);
 }
 
-const char *
-VID_MenuKey(int key)
-{
-	return Default_MenuKey(&s_opengl_menu, key);
-}
-
 /*
  * VIDEO MENU
  */
@@ -994,7 +988,7 @@ M_Menu_Video_f(void)
 {
 	VID_MenuInit();
 	s_opengl_menu.draw = VID_MenuDraw;
-	s_opengl_menu.key  = VID_MenuKey;
+	s_opengl_menu.key  = Default_MenuKey;
 
 	M_PushMenu(&s_opengl_menu);
 }

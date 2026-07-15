@@ -63,8 +63,10 @@ static void M_Menu_Joy_f(void);
 static void M_Menu_ControllerButtons_f(void);
 static void M_Menu_ControllerAltButtons_f(void);
 static void M_Menu_Quit_f(void);
-
 void M_Menu_Credits(void);
+
+static void M_DrawTextBox(int x, int y, int width, int lines);
+static void M_Print(int x, int y, const char *str);
 
 qboolean m_entersound; /* play after drawing a frame, so caching won't disrupt the sound */
 
@@ -73,6 +75,69 @@ qboolean m_entersound; /* play after drawing a frame, so caching won't disrupt t
 
 static menuframework_s *m_layers[MAX_MENU_DEPTH];
 static int m_menudepth;
+
+static const char *m_popup_string;
+static int m_popup_endtime;
+
+static void
+M_Popup(void)
+{
+	int width, lines;
+	int n;
+	const char *str;
+
+	if (!m_popup_string)
+	{
+		return;
+	}
+
+	if (m_popup_endtime && m_popup_endtime < cls.realtime)
+	{
+		m_popup_string = NULL;
+		return;
+	}
+
+	if (!R_EndWorldRenderpass())
+	{
+		return;
+	}
+
+	width = lines = n = 0;
+
+	for (str = m_popup_string; *str; str++)
+	{
+		if (*str == '\n')
+		{
+			lines++;
+			n = 0;
+		}
+		else
+		{
+			n++;
+			if (n > width)
+			{
+				width = n;
+			}
+		}
+	}
+
+	if (n)
+	{
+		lines++;
+	}
+
+	if (width)
+	{
+		int x, y;
+		width += 2;
+
+		x = (320 - (width + 2) * 8) / 2;
+		y = (240 - (lines + 2) * 8) / 3;
+
+		M_DrawTextBox(x, y, width, lines);
+		M_Print(x + 16, y + 8, m_popup_string);
+	}
+}
 
 static menuframework_s *
 M_GetActiveMenu(void)
@@ -308,17 +373,13 @@ Default_MenuKey(menuframework_s *m, int key)
 	menucommon_s *item;
 	int menu_key;
 
-	menu_key = Key_GetMenuKey(key);
-
-	if (!m)
+	if (m_popup_string)
 	{
-		if (menu_key == K_ESCAPE)
-		{
-			M_PopMenu(false);
-		}
-
+		m_popup_string = NULL;
 		return NULL;
 	}
+
+	menu_key = Key_GetMenuKey(key);
 
 	item = Menu_ItemAtCursor(m);
 
@@ -390,7 +451,7 @@ M_DrawCharacter(int cx, int cy, int num)
 }
 
 static void
-M_Print(int x, int y, char *str)
+M_Print(int x, int y, const char *str)
 {
 	int cx, cy;
 	float scale = SCR_GetMenuScale();
@@ -503,67 +564,6 @@ M_DrawTextBox(int x, int y, int width, int lines)
 	}
 
 	M_DrawCharacter(cx * scale, cy * scale + 8 * scale, 9);
-}
-
-static char *m_popup_string;
-static int m_popup_endtime;
-
-static void
-M_Popup(void)
-{
-	int width, lines;
-	int n;
-	char *str;
-
-	if (!m_popup_string)
-	{
-		return;
-	}
-
-	if (m_popup_endtime && m_popup_endtime < cls.realtime)
-	{
-		m_popup_string = NULL;
-		return;
-	}
-
-	if (!R_EndWorldRenderpass())
-	{
-		return;
-	}
-
-	width = lines = n = 0;
-	for (str = m_popup_string; *str; str++)
-	{
-		if (*str == '\n')
-		{
-			lines++;
-			n = 0;
-		}
-		else
-		{
-			n++;
-			if (n > width)
-			{
-				width = n;
-			}
-		}
-	}
-	if (n)
-	{
-		lines++;
-	}
-
-	if (width)
-	{
-		int x, y;
-		width += 2;
-
-		x = (320 - (width + 2) * 8) / 2;
-		y = (240 - (lines + 2) * 8) / 3;
-
-		M_DrawTextBox(x, y, width, lines);
-		M_Print(x + 16, y + 8, m_popup_string);
-	}
 }
 
 /*
@@ -746,18 +746,12 @@ M_Main_Draw(void)
 	}
 }
 
-static const char *
-M_Main_Key(int key)
-{
-	return Default_MenuKey(&s_main, key);
-}
-
 void
 M_Menu_Main_f(void)
 {
 	InitMainMenu();
 	s_main.draw = M_Main_Draw;
-	s_main.key  = M_Main_Key;
+	s_main.key  = Default_MenuKey;
 
 	Menu_AdjustCursor(&s_main, 1);
 
@@ -853,18 +847,12 @@ Multiplayer_MenuInit(void)
 	Menu_Center(&s_multiplayer_menu);
 }
 
-static const char *
-Multiplayer_MenuKey(int key)
-{
-	return Default_MenuKey(&s_multiplayer_menu, key);
-}
-
 static void
 M_Menu_Multiplayer_f(void)
 {
 	Multiplayer_MenuInit();
 	s_multiplayer_menu.draw = Multiplayer_MenuDraw;
-	s_multiplayer_menu.key  = Multiplayer_MenuKey;
+	s_multiplayer_menu.key  = Default_MenuKey;
 
 	M_PushMenu(&s_multiplayer_menu);
 }
@@ -1102,9 +1090,9 @@ Keys_MenuDraw(void)
 }
 
 static const char *
-Keys_MenuKey(int key)
+Keys_MenuKey(menuframework_s *m, int key)
 {
-	menuaction_s *item = (menuaction_s *)Menu_ItemAtCursor(&s_keys_menu);
+	menuaction_s *item = (menuaction_s *)Menu_ItemAtCursor(m);
 
 	if (menukeyitem_bind)
 	{
@@ -1118,7 +1106,7 @@ Keys_MenuKey(int key)
 			Cbuf_InsertText(cmd);
 		}
 
-		Menu_SetStatusBar(&s_keys_menu, "ENTER to change, BACKSPACE to clear");
+		Menu_SetStatusBar(m, "ENTER to change, BACKSPACE to clear");
 		menukeyitem_bind = false;
 		return menu_out_sound;
 	}
@@ -1133,7 +1121,7 @@ Keys_MenuKey(int key)
 		M_UnbindCommand(bindnames[item->generic.localdata[0]][0], KEYS_KEYBOARD_MOUSE);
 		return menu_out_sound;
 	default:
-		return Default_MenuKey(&s_keys_menu, key);
+		return Default_MenuKey(m, key);
 	}
 }
 
@@ -1254,9 +1242,9 @@ MultiplayerKeys_MenuDraw(void)
 }
 
 static const char *
-MultiplayerKeys_MenuKey(int key)
+MultiplayerKeys_MenuKey(menuframework_s *m, int key)
 {
-	menuaction_s *item = (menuaction_s *)Menu_ItemAtCursor(&s_multiplayer_keys_menu);
+	menuaction_s *item = (menuaction_s *)Menu_ItemAtCursor(m);
 
 	if (menukeyitem_bind)
 	{
@@ -1270,7 +1258,7 @@ MultiplayerKeys_MenuKey(int key)
 			Cbuf_InsertText(cmd);
 		}
 
-		Menu_SetStatusBar(&s_multiplayer_keys_menu, "ENTER to change, BACKSPACE to clear");
+		Menu_SetStatusBar(m, "ENTER to change, BACKSPACE to clear");
 		menukeyitem_bind = false;
 		return menu_out_sound;
 	}
@@ -1285,7 +1273,7 @@ MultiplayerKeys_MenuKey(int key)
 		M_UnbindCommand(multiplayer_key_bindnames[item->generic.localdata[0]][0], KEYS_ALL);
 		return menu_out_sound;
 	default:
-		return Default_MenuKey(&s_multiplayer_keys_menu, key);
+		return Default_MenuKey(m, key);
 	}
 }
 
@@ -1451,9 +1439,9 @@ ControllerButtons_MenuDraw(void)
 }
 
 static const char *
-ControllerButtons_MenuKey(int key)
+ControllerButtons_MenuKey(menuframework_s *m, int key)
 {
-	menuaction_s *item = (menuaction_s *)Menu_ItemAtCursor(&s_controller_buttons_menu);
+	menuaction_s *item = (menuaction_s *)Menu_ItemAtCursor(m);
 
 	if (menukeyitem_bind)
 	{
@@ -1467,7 +1455,7 @@ ControllerButtons_MenuKey(int key)
 			Cbuf_InsertText(cmd);
 		}
 
-		GamepadMenu_StatusPrompt(&s_controller_buttons_menu);
+		GamepadMenu_StatusPrompt(m);
 		menukeyitem_bind = false;
 		return menu_out_sound;
 	}
@@ -1482,7 +1470,7 @@ ControllerButtons_MenuKey(int key)
 			M_UnbindCommand(controller_bindnames[item->generic.localdata[0]][0], KEYS_CONTROLLER);
 			return menu_out_sound;
 		default:
-			return Default_MenuKey(&s_controller_buttons_menu, key);
+			return Default_MenuKey(m, key);
 	}
 }
 
@@ -1624,9 +1612,9 @@ ControllerAltButtons_MenuDraw(void)
 }
 
 static const char *
-ControllerAltButtons_MenuKey(int key)
+ControllerAltButtons_MenuKey(menuframework_s *m, int key)
 {
-	menuaction_s *item = (menuaction_s *)Menu_ItemAtCursor(&s_controller_alt_buttons_menu);
+	menuaction_s *item = (menuaction_s *)Menu_ItemAtCursor(m);
 
 	if (menukeyitem_bind)
 	{
@@ -1641,7 +1629,7 @@ ControllerAltButtons_MenuKey(int key)
 			Cbuf_InsertText(cmd);
 		}
 
-		GamepadMenu_StatusPrompt(&s_controller_alt_buttons_menu);
+		GamepadMenu_StatusPrompt(m);
 		menukeyitem_bind = false;
 		return menu_out_sound;
 	}
@@ -1656,7 +1644,7 @@ ControllerAltButtons_MenuKey(int key)
 			M_UnbindCommand(controller_alt_bindnames[item->generic.localdata[0]][0], KEYS_CONTROLLER_ALT);
 			return menu_out_sound;
 		default:
-			return Default_MenuKey(&s_controller_alt_buttons_menu, key);
+			return Default_MenuKey(m, key);
 	}
 }
 
@@ -1822,18 +1810,12 @@ Stick_MenuDraw(void)
 	Menu_Draw(&s_sticks_config_menu);
 }
 
-static const char *
-Stick_MenuKey(int key)
-{
-	return Default_MenuKey(&s_sticks_config_menu, key);
-}
-
 static void
 M_Menu_Stick_f(void)
 {
 	Stick_MenuInit();
 	s_sticks_config_menu.draw = Stick_MenuDraw;
-	s_sticks_config_menu.key  = Stick_MenuKey;
+	s_sticks_config_menu.key  = Default_MenuKey;
 
 	M_PushMenu(&s_sticks_config_menu);
 }
@@ -2142,18 +2124,12 @@ Gyro_MenuDraw(void)
 	M_Popup();
 }
 
-static const char *
-Gyro_MenuKey(int key)
-{
-	return Default_MenuKey(&s_gyro_menu, key);
-}
-
 static void
 M_Menu_Gyro_f(void)
 {
 	Gyro_MenuInit();
 	s_gyro_menu.draw = Gyro_MenuDraw;
-	s_gyro_menu.key  = Gyro_MenuKey;
+	s_gyro_menu.key  = Default_MenuKey;
 
 	M_PushMenu(&s_gyro_menu);
 }
@@ -2416,18 +2392,12 @@ Joy_MenuDraw(void)
 	Menu_Draw(&s_joy_menu);
 }
 
-static const char *
-Joy_MenuKey(int key)
-{
-	return Default_MenuKey(&s_joy_menu, key);
-}
-
 static void
 M_Menu_Joy_f(void)
 {
 	Joy_MenuInit();
 	s_joy_menu.draw = Joy_MenuDraw;
-	s_joy_menu.key  = Joy_MenuKey;
+	s_joy_menu.key  = Default_MenuKey;
 
 	M_PushMenu(&s_joy_menu);
 }
@@ -2870,23 +2840,12 @@ Options_MenuDraw(void)
 	M_Popup();
 }
 
-static const char *
-Options_MenuKey(int key)
-{
-	if (m_popup_string)
-	{
-		m_popup_string = NULL;
-		return NULL;
-	}
-	return Default_MenuKey(&s_options_menu, key);
-}
-
 static void
 M_Menu_Options_f(void)
 {
 	Options_MenuInit();
 	s_options_menu.draw = Options_MenuDraw;
-	s_options_menu.key  = Options_MenuKey;
+	s_options_menu.key  = Default_MenuKey;
 
 	M_PushMenu(&s_options_menu);
 }
@@ -3317,7 +3276,7 @@ M_Credits_Draw(void)
 }
 
 static const char *
-M_Credits_Key(int key)
+M_Credits_Key(menuframework_s *m, int key)
 {
 	key = Key_GetMenuKey(key);
 	if (key == K_ESCAPE)
@@ -3604,18 +3563,12 @@ Mods_MenuDraw(void)
 	M_Popup();
 }
 
-static const char *
-Mods_MenuKey(int key)
-{
-	return Default_MenuKey(&s_mods_menu, key);
-}
-
 static void
 M_Menu_Mods_f(void)
 {
 	Mods_MenuInit();
 	s_mods_menu.draw = Mods_MenuDraw;
-	s_mods_menu.key  = Mods_MenuKey;
+	s_mods_menu.key  = Default_MenuKey;
 
 	M_PushMenu(&s_mods_menu);
 }
@@ -3799,18 +3752,12 @@ Game_MenuDraw(void)
 	Menu_Draw(&s_game_menu);
 }
 
-static const char *
-Game_MenuKey(int key)
-{
-	return Default_MenuKey(&s_game_menu, key);
-}
-
 static void
 M_Menu_Game_f(void)
 {
 	Game_MenuInit();
 	s_game_menu.draw = Game_MenuDraw;
-	s_game_menu.key  = Game_MenuKey;
+	s_game_menu.key  = Default_MenuKey;
 
 	M_PushMenu(&s_game_menu);
 	m_game_cursor = 1;
@@ -4079,9 +4026,8 @@ LoadGame_MenuDraw(void)
 }
 
 static const char *
-LoadGame_MenuKey(int key)
+LoadGame_MenuKey(menuframework_s *m, int key)
 {
-	static menuframework_s *m = &s_loadgame_menu;
 	int menu_key = Key_GetMenuKey(key);
 
 	if (menukeyitem_delete)
@@ -4226,9 +4172,8 @@ SaveGame_MenuInit(void)
 }
 
 static const char *
-SaveGame_MenuKey(int key)
+SaveGame_MenuKey(menuframework_s *m, int key)
 {
-	static menuframework_s *m = &s_savegame_menu;
 	int menu_key = Key_GetMenuKey(key);
 
 	if (m_popup_string)
@@ -4485,23 +4430,12 @@ JoinServer_MenuDraw(void)
 	M_Popup();
 }
 
-static const char *
-JoinServer_MenuKey(int key)
-{
-	if (m_popup_string)
-	{
-		m_popup_string = NULL;
-		return NULL;
-	}
-	return Default_MenuKey(&s_joinserver_menu, key);
-}
-
 static void
 M_Menu_JoinServer_f(void)
 {
 	JoinServer_MenuInit();
 	s_joinserver_menu.draw = JoinServer_MenuDraw;
-	s_joinserver_menu.key  = JoinServer_MenuKey;
+	s_joinserver_menu.key  = Default_MenuKey;
 
 	M_PushMenu(&s_joinserver_menu);
 }
@@ -5107,18 +5041,12 @@ StartServer_MenuDraw(void)
 	Menu_Draw(&s_startserver_menu);
 }
 
-static const char *
-StartServer_MenuKey(int key)
-{
-	return Default_MenuKey(&s_startserver_menu, key);
-}
-
 static void
 M_Menu_StartServer_f(void)
 {
 	StartServer_MenuInit();
 	s_startserver_menu.draw = StartServer_MenuDraw;
-	s_startserver_menu.key  = StartServer_MenuKey;
+	s_startserver_menu.key  = Default_MenuKey;
 
 	M_PushMenu(&s_startserver_menu);
 }
@@ -5595,18 +5523,12 @@ DMOptions_MenuDraw(void)
 	Menu_Draw(&s_dmoptions_menu);
 }
 
-static const char *
-DMOptions_MenuKey(int key)
-{
-	return Default_MenuKey(&s_dmoptions_menu, key);
-}
-
 static void
 M_Menu_DMOptions_f(void)
 {
 	DMOptions_MenuInit();
 	s_dmoptions_menu.draw = DMOptions_MenuDraw;
-	s_dmoptions_menu.key  = DMOptions_MenuKey;
+	s_dmoptions_menu.key  = Default_MenuKey;
 
 	M_PushMenu(&s_dmoptions_menu);
 }
@@ -5763,18 +5685,12 @@ DownloadOptions_MenuDraw(void)
 	Menu_Draw(&s_downloadoptions_menu);
 }
 
-static const char *
-DownloadOptions_MenuKey(int key)
-{
-	return Default_MenuKey(&s_downloadoptions_menu, key);
-}
-
 static void
 M_Menu_DownloadOptions_f(void)
 {
 	DownloadOptions_MenuInit();
 	s_downloadoptions_menu.draw = DownloadOptions_MenuDraw;
-	s_downloadoptions_menu.key  = DownloadOptions_MenuKey;
+	s_downloadoptions_menu.key  = Default_MenuKey;
 
 	M_PushMenu(&s_downloadoptions_menu);
 }
@@ -5826,7 +5742,7 @@ AddressBook_MenuInit(void)
 }
 
 static const char *
-AddressBook_MenuKey(int key)
+AddressBook_MenuKey(menuframework_s *m, int key)
 {
 	if (key == K_ESCAPE)
 	{
@@ -5840,7 +5756,7 @@ AddressBook_MenuKey(int key)
 		}
 	}
 
-	return Default_MenuKey(&s_addressbook_menu, key);
+	return Default_MenuKey(m, key);
 }
 
 static void
@@ -6834,7 +6750,7 @@ PlayerConfig_MenuDraw(void)
 }
 
 static const char *
-PlayerConfig_MenuKey(int key)
+PlayerConfig_MenuKey(menuframework_s *m, int key)
 {
 	key = Key_GetMenuKey(key);
 	if (key == K_ESCAPE)
@@ -6857,7 +6773,7 @@ PlayerConfig_MenuKey(int key)
 		PlayerModelFree();          // free player skins, models and directories
 	}
 
-	return Default_MenuKey(&s_player_config_menu, key);
+	return Default_MenuKey(m, key);
 }
 
 static void
@@ -6883,7 +6799,7 @@ M_Menu_PlayerConfig_f(void)
 menuframework_s s_quit_menu;
 
 static const char *
-M_Quit_Key(int key)
+M_Quit_Key(menuframework_s *m, int key)
 {
 	int menu_key = Key_GetMenuKey(key);
 	switch (menu_key)
@@ -7026,7 +6942,7 @@ M_Draw(void)
 void
 M_Keydown(int key)
 {
-	const menuframework_s *menu;
+	menuframework_s *menu;
 
 	menu = M_GetActiveMenu();
 
@@ -7034,7 +6950,7 @@ M_Keydown(int key)
 	{
 		const char *s;
 
-		s = menu->key(key);
+		s = menu->key(menu, key);
 
 		if (s)
 		{

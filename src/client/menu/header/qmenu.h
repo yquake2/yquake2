@@ -68,7 +68,7 @@ typedef struct _tag_menuframework
 	const char *statusbar;
 
 	void (*draw)(void);
-    	const char *(*key)(int k);
+    	const char *(*key)(struct _tag_menuframework *m, int k);
 	void (*cursordraw)(struct _tag_menuframework *m);
 } menuframework_s;
 
