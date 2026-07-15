@@ -65,9 +65,6 @@ static void M_Menu_ControllerAltButtons_f(void);
 static void M_Menu_Quit_f(void);
 void M_Menu_Credits(void);
 
-static void M_DrawTextBox(int x, int y, int width, int lines);
-static void M_Print(int x, int y, const char *str);
-
 qboolean m_entersound; /* play after drawing a frame, so caching won't disrupt the sound */
 
 /* Maximal number of submenus */
@@ -76,68 +73,7 @@ qboolean m_entersound; /* play after drawing a frame, so caching won't disrupt t
 static menuframework_s *m_layers[MAX_MENU_DEPTH];
 static int m_menudepth;
 
-static const char *m_popup_string;
-static int m_popup_endtime;
-
-static void
-M_Popup(void)
-{
-	int width, lines;
-	int n;
-	const char *str;
-
-	if (!m_popup_string)
-	{
-		return;
-	}
-
-	if (m_popup_endtime && m_popup_endtime < cls.realtime)
-	{
-		m_popup_string = NULL;
-		return;
-	}
-
-	if (!R_EndWorldRenderpass())
-	{
-		return;
-	}
-
-	width = lines = n = 0;
-
-	for (str = m_popup_string; *str; str++)
-	{
-		if (*str == '\n')
-		{
-			lines++;
-			n = 0;
-		}
-		else
-		{
-			n++;
-			if (n > width)
-			{
-				width = n;
-			}
-		}
-	}
-
-	if (n)
-	{
-		lines++;
-	}
-
-	if (width)
-	{
-		int x, y;
-		width += 2;
-
-		x = (320 - (width + 2) * 8) / 2;
-		y = (240 - (lines + 2) * 8) / 3;
-
-		M_DrawTextBox(x, y, width, lines);
-		M_Print(x + 16, y + 8, m_popup_string);
-	}
-}
+static menupopup_s m_popup;
 
 static menuframework_s *
 M_GetActiveMenu(void)
@@ -373,9 +309,9 @@ Default_MenuKey(menuframework_s *m, int key)
 	menucommon_s *item;
 	int menu_key;
 
-	if (m_popup_string)
+	if (Menu_PopupActive(&m_popup))
 	{
-		m_popup_string = NULL;
+		Menu_ClosePopup(&m_popup);
 		return NULL;
 	}
 
@@ -439,41 +375,6 @@ Default_MenuKey(menuframework_s *m, int key)
 	return sound;
 }
 
-/*
- * Draws one solid graphics character cx and cy are in 320*240
- * coordinates, and will be centered on higher res screens.
- */
-static void
-M_DrawCharacter(int cx, int cy, int num)
-{
-	float scale = SCR_GetMenuScale();
-	Draw_CharScaled(cx + ((int)(viddef.width - 320 * scale) >> 1), cy + ((int)(viddef.height - 240 * scale) >> 1), num, scale);
-}
-
-static void
-M_Print(int x, int y, const char *str)
-{
-	int cx, cy;
-	float scale = SCR_GetMenuScale();
-
-	cx = x;
-	cy = y;
-	while (*str)
-	{
-		if (*str == '\n')
-		{
-			cx = x;
-			cy += 8;
-		}
-		else
-		{
-			M_DrawCharacter(cx * scale, cy * scale, (*str) + 128);
-			cx += 8;
-		}
-		str++;
-	}
-}
-
 /* Unsused, left for backward compability */
 void
 M_DrawPic(int x, int y, char *pic)
@@ -524,15 +425,15 @@ M_DrawTextBox(int x, int y, int width, int lines)
 	/* draw left side */
 	cx = x;
 	cy = y;
-	M_DrawCharacter(cx * scale, cy * scale, 1);
+	Menu_DrawCharacter(cx * scale, cy * scale, 1);
 
 	for (n = 0; n < lines; n++)
 	{
 		cy += 8;
-		M_DrawCharacter(cx * scale, cy * scale, 4);
+		Menu_DrawCharacter(cx * scale, cy * scale, 4);
 	}
 
-	M_DrawCharacter(cx * scale, cy * scale + 8 * scale, 7);
+	Menu_DrawCharacter(cx * scale, cy * scale + 8 * scale, 7);
 
 	/* draw middle */
 	cx += 8;
@@ -540,30 +441,30 @@ M_DrawTextBox(int x, int y, int width, int lines)
 	while (width > 0)
 	{
 		cy = y;
-		M_DrawCharacter(cx * scale, cy * scale, 2);
+		Menu_DrawCharacter(cx * scale, cy * scale, 2);
 
 		for (n = 0; n < lines; n++)
 		{
 			cy += 8;
-			M_DrawCharacter(cx * scale, cy * scale, 5);
+			Menu_DrawCharacter(cx * scale, cy * scale, 5);
 		}
 
-		M_DrawCharacter(cx * scale, cy *scale + 8 * scale, 8);
+		Menu_DrawCharacter(cx * scale, cy *scale + 8 * scale, 8);
 		width -= 1;
 		cx += 8;
 	}
 
 	/* draw right side */
 	cy = y;
-	M_DrawCharacter(cx * scale, cy * scale, 3);
+	Menu_DrawCharacter(cx * scale, cy * scale, 3);
 
 	for (n = 0; n < lines; n++)
 	{
 		cy += 8;
-		M_DrawCharacter(cx * scale, cy * scale, 6);
+		Menu_DrawCharacter(cx * scale, cy * scale, 6);
 	}
 
-	M_DrawCharacter(cx * scale, cy * scale + 8 * scale, 9);
+	Menu_DrawCharacter(cx * scale, cy * scale + 8 * scale, 9);
 }
 
 /*
@@ -1854,9 +1755,10 @@ CalibrateGyroFunc(void *unused)
 		return;
 	}
 
-	m_popup_string = "Calibrating, please wait...";
-	m_popup_endtime = cls.realtime + 4650;
-	M_Popup();
+	Menu_StartPopup(&m_popup,
+		"Calibrating, please wait...", 4650);
+
+	Menu_DrawPopup(320, 240, &m_popup);
 	R_EndFrame();
 	StartCalibration();
 }
@@ -1865,9 +1767,8 @@ void
 CalibrationFinishedCallback(void)
 {
 	Menu_SetStatusBar(&s_gyro_menu, NULL);
-	m_popup_string = "Calibration complete!";
-	m_popup_endtime = cls.realtime + 1900;
-	M_Popup();
+	Menu_StartPopup(&m_popup, "Calibration complete!", 1900);
+	Menu_DrawPopup(320, 240, &m_popup);
 	R_EndFrame();
 }
 
@@ -2121,7 +2022,7 @@ Gyro_MenuDraw(void)
 {
 	Menu_AdjustCursor(&s_gyro_menu, 1);
 	Menu_Draw(&s_gyro_menu);
-	M_Popup();
+	Menu_DrawPopup(320, 240, &m_popup);
 }
 
 static void
@@ -2614,11 +2515,12 @@ UpdateSoundBackendFunc(void *unused)
 {
 	Cvar_Set("s_openal", (s_options_quality_list.curvalue == 0)? "1":"0" );
 
-	m_popup_string = "Restarting the sound system. This\n"
-					 "could take up to a minute, so\n"
-					 "please be patient.";
-	m_popup_endtime = cls.realtime + 2000;
-	M_Popup();
+	Menu_StartPopup(&m_popup,
+		"Restarting the sound system. This\n"
+		"could take up to a minute, so\n"
+		"please be patient.",
+		2000);
+	Menu_DrawPopup(320, 240, &m_popup);
 
 	/* the text box won't show up unless we do a buffer swap */
 	R_EndFrame();
@@ -2837,7 +2739,7 @@ Options_MenuDraw(void)
 	M_Banner("m_banner_options");
 	Menu_AdjustCursor(&s_options_menu, 1);
 	Menu_Draw(&s_options_menu);
-	M_Popup();
+	Menu_DrawPopup(320, 240, &m_popup);
 }
 
 static void
@@ -3560,7 +3462,7 @@ Mods_MenuDraw(void)
 {
 	Menu_AdjustCursor(&s_mods_menu, 1);
 	Menu_Draw(&s_mods_menu);
-	M_Popup();
+	Menu_DrawPopup(320, 240, &m_popup);
 }
 
 static void
@@ -4101,20 +4003,23 @@ SaveGameCallback(void *self)
 
 	if (a->generic.localdata[0] == -1)
 	{
-		m_popup_string = "This slot is reserved for\n"
-						 "quicksaving, so please select\n"
-						 "another one.";
-		m_popup_endtime = cls.realtime + 2000;
-		M_Popup();
+		Menu_StartPopup(&m_popup,
+			"This slot is reserved for\n"
+			"quicksaving, so please select\n"
+			"another one.",
+			2000);
+		Menu_DrawPopup(320, 240, &m_popup);
 		return;
 	}
-	else if (a->generic.localdata[0] == 0)
+
+	if (a->generic.localdata[0] == 0)
 	{
-		m_popup_string = "This slot is reserved for\n"
-						 "autosaving, so please select\n"
-						 "another one.";
-		m_popup_endtime = cls.realtime + 2000;
-		M_Popup();
+		Menu_StartPopup(&m_popup,
+			"This slot is reserved for\n"
+			"autosaving, so please select\n"
+			"another one.",
+			2000);
+		Menu_DrawPopup(320, 240, &m_popup);
 		return;
 	}
 
@@ -4128,7 +4033,7 @@ SaveGame_MenuDraw(void)
 	M_Banner("m_banner_save_game");
 	Menu_AdjustCursor(&s_savegame_menu, 1);
 	Menu_Draw(&s_savegame_menu);
-	M_Popup();
+	Menu_DrawPopup(320, 240, &m_popup);
 }
 
 static void
@@ -4176,9 +4081,9 @@ SaveGame_MenuKey(menuframework_s *m, int key)
 {
 	int menu_key = Key_GetMenuKey(key);
 
-	if (m_popup_string)
+	if (Menu_PopupActive(&m_popup))
 	{
-		m_popup_string = NULL;
+		Menu_ClosePopup(&m_popup);
 		return NULL;
 	}
 
@@ -4348,11 +4253,12 @@ SearchLocalGames(void)
 		local_server_netadr_strings[i][0] = '\0';
 	}
 
-	m_popup_string = "Searching for local servers. This\n"
-					 "could take up to a minute, so\n"
-					 "please be patient.";
-	m_popup_endtime = cls.realtime + 2000;
-	M_Popup();
+	Menu_StartPopup(&m_popup,
+		"Searching for local servers. This\n"
+		"could take up to a minute, so\n"
+		"please be patient.",
+		2000);
+	Menu_DrawPopup(320, 240, &m_popup);
 
 	/* the text box won't show up unless we do a buffer swap */
 	R_EndFrame();
@@ -4427,7 +4333,7 @@ JoinServer_MenuDraw(void)
 {
 	M_Banner("m_banner_join_server");
 	Menu_Draw(&s_joinserver_menu);
-	M_Popup();
+	Menu_DrawPopup(320, 240, &m_popup);
 }
 
 static void

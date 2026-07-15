@@ -153,10 +153,25 @@ qboolean Menu_SelectItem(menuframework_s *s);
 void Menu_SetStatusBar(menuframework_s *s, const char *string);
 qboolean Menu_SlideItem(menuframework_s *s, int dir);
 
+void Menu_DrawCharacter(int cx, int cy, int num);
 void Menu_DrawString(int, int, const char *);
 void Menu_DrawStringDark(int, int, const char *);
 void Menu_DrawStringR2L(int, int, const char *);
 void Menu_DrawStringR2LDark(int, int, const char *);
+
+typedef struct
+{
+	const char *string;
+	int endtime;
+} menupopup_s;
+
+void Menu_DrawTextBox(int x, int y, int width, int lines);
+void Menu_DrawText(int x, int y, const char *str);
+void Menu_DrawPopup(int x, int y, const menupopup_s *pup);
+void Menu_StartPopup(menupopup_s *pup, const char *string, int lifetime);
+
+#define Menu_PopupActive(pup) ((pup)->string && ((pup)->endtime <= 0 || (pup)->endtime >= cls.realtime))
+#define Menu_ClosePopup(pup) (pup)->endtime = cls.realtime - 1
 
 float ClampCvar(float min, float max, float value);
 
