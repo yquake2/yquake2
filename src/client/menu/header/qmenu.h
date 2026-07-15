@@ -65,10 +65,11 @@ typedef struct _tag_menuframework
 	int nitems;
 	void *items[64];
 
+	const char *banner;
 	const char *statusbar;
 
-	void (*draw)(void);
-    	const char *(*key)(struct _tag_menuframework *m, int k);
+	void (*draw)(struct _tag_menuframework *m);
+	const char *(*key)(struct _tag_menuframework *m, int k);
 	void (*cursordraw)(struct _tag_menuframework *m);
 } menuframework_s;
 

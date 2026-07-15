@@ -96,11 +96,18 @@ M_IsGame(const char *gamename)
 	return false;
 }
 
-void
+static void
 M_Banner(const char *name)
 {
 	int w, h;
-	float scale = SCR_GetMenuScale();
+	float scale;
+
+	if (!name)
+	{
+		return;
+	}
+
+	scale = SCR_GetMenuScale();
 
 	Draw_GetPicSize(&w, &h, name);
 	Draw_PicScaled(viddef.width / 2 - (w * scale) / 2, viddef.height / 2 - (110 * scale), name, scale);
@@ -375,6 +382,14 @@ Default_MenuKey(menuframework_s *m, int key)
 	return sound;
 }
 
+void
+Default_MenuDraw(menuframework_s *m)
+{
+	M_Banner(m->banner);
+	Menu_Draw(m);
+	Menu_DrawPopup(320, 240, &m_popup);
+}
+
 /* Unsused, left for backward compability */
 void
 M_DrawPic(int x, int y, char *pic)
@@ -632,13 +647,13 @@ InitMainMenu(void)
 
 
 static void
-M_Main_Draw(void)
+M_Main_Draw(menuframework_s *m)
 {
-	const menucommon_s * item = NULL;
+	const menucommon_s *item;
 
-	Menu_Draw(&s_main);
+	Menu_Draw(m);
 
-	item = Menu_ItemAtCursor(&s_main);
+	item = Menu_ItemAtCursor(m);
 
 	if (item)
 	{
@@ -668,15 +683,6 @@ static menuaction_s s_join_network_server_action;
 static menuaction_s s_start_network_server_action;
 static menuaction_s s_player_setup_action;
 static menuaction_s s_customize_options_action;
-
-static void
-Multiplayer_MenuDraw(void)
-{
-	M_Banner("m_banner_multiplayer");
-
-	Menu_AdjustCursor(&s_multiplayer_menu, 1);
-	Menu_Draw(&s_multiplayer_menu);
-}
 
 static void
 PlayerSetupFunc(void *unused)
@@ -709,6 +715,7 @@ Multiplayer_MenuInit(void)
 
 	s_multiplayer_menu.x = (int)(viddef.width * 0.50f) - 64 * scale;
 	s_multiplayer_menu.nitems = 0;
+	s_multiplayer_menu.banner = "m_banner_multiplayer";
 
 	s_join_network_server_action.generic.type = MTYPE_ACTION;
 	s_join_network_server_action.generic.flags = QMF_LEFT_JUSTIFY;
@@ -752,7 +759,7 @@ static void
 M_Menu_Multiplayer_f(void)
 {
 	Multiplayer_MenuInit();
-	s_multiplayer_menu.draw = Multiplayer_MenuDraw;
+	s_multiplayer_menu.draw = Default_MenuDraw;
 	s_multiplayer_menu.key  = Default_MenuKey;
 
 	M_PushMenu(&s_multiplayer_menu);
@@ -983,13 +990,6 @@ Keys_MenuInit(void)
 	Menu_Center(&s_keys_menu);
 }
 
-static void
-Keys_MenuDraw(void)
-{
-	Menu_AdjustCursor(&s_keys_menu, 1);
-	Menu_Draw(&s_keys_menu);
-}
-
 static const char *
 Keys_MenuKey(menuframework_s *m, int key)
 {
@@ -1030,7 +1030,7 @@ static void
 M_Menu_Keys_f(void)
 {
 	Keys_MenuInit();
-	s_keys_menu.draw = Keys_MenuDraw;
+	s_keys_menu.draw = Default_MenuDraw;
 	s_keys_menu.key  = Keys_MenuKey;
 
 	M_PushMenu(&s_keys_menu);
@@ -1135,13 +1135,6 @@ MultiplayerKeys_MenuInit(void)
 	Menu_Center(&s_multiplayer_keys_menu);
 }
 
-static void
-MultiplayerKeys_MenuDraw(void)
-{
-	Menu_AdjustCursor(&s_multiplayer_keys_menu, 1);
-	Menu_Draw(&s_multiplayer_keys_menu);
-}
-
 static const char *
 MultiplayerKeys_MenuKey(menuframework_s *m, int key)
 {
@@ -1182,7 +1175,7 @@ static void
 M_Menu_Multiplayer_Keys_f(void)
 {
 	MultiplayerKeys_MenuInit();
-	s_multiplayer_keys_menu.draw = MultiplayerKeys_MenuDraw;
+	s_multiplayer_keys_menu.draw = Default_MenuDraw;
 	s_multiplayer_keys_menu.key  = MultiplayerKeys_MenuKey;
 
 	M_PushMenu(&s_multiplayer_keys_menu);
@@ -1332,13 +1325,6 @@ ControllerButtons_MenuInit(void)
 	Menu_Center(&s_controller_buttons_menu);
 }
 
-static void
-ControllerButtons_MenuDraw(void)
-{
-	Menu_AdjustCursor(&s_controller_buttons_menu, 1);
-	Menu_Draw(&s_controller_buttons_menu);
-}
-
 static const char *
 ControllerButtons_MenuKey(menuframework_s *m, int key)
 {
@@ -1379,7 +1365,7 @@ static void
 M_Menu_ControllerButtons_f(void)
 {
 	ControllerButtons_MenuInit();
-	s_controller_buttons_menu.draw = ControllerButtons_MenuDraw;
+	s_controller_buttons_menu.draw = Default_MenuDraw;
 	s_controller_buttons_menu.key  = ControllerButtons_MenuKey;
 
 	M_PushMenu(&s_controller_buttons_menu);
@@ -1505,13 +1491,6 @@ ControllerAltButtons_MenuInit(void)
 	Menu_Center(&s_controller_alt_buttons_menu);
 }
 
-static void
-ControllerAltButtons_MenuDraw(void)
-{
-	Menu_AdjustCursor(&s_controller_alt_buttons_menu, 1);
-	Menu_Draw(&s_controller_alt_buttons_menu);
-}
-
 static const char *
 ControllerAltButtons_MenuKey(menuframework_s *m, int key)
 {
@@ -1553,7 +1532,7 @@ static void
 M_Menu_ControllerAltButtons_f(void)
 {
 	ControllerAltButtons_MenuInit();
-	s_controller_alt_buttons_menu.draw = ControllerAltButtons_MenuDraw;
+	s_controller_alt_buttons_menu.draw = Default_MenuDraw;
 	s_controller_alt_buttons_menu.key  = ControllerAltButtons_MenuKey;
 
 	M_PushMenu(&s_controller_alt_buttons_menu);
@@ -1705,17 +1684,10 @@ Stick_MenuInit(void)
 }
 
 static void
-Stick_MenuDraw(void)
-{
-	Menu_AdjustCursor(&s_sticks_config_menu, 1);
-	Menu_Draw(&s_sticks_config_menu);
-}
-
-static void
 M_Menu_Stick_f(void)
 {
 	Stick_MenuInit();
-	s_sticks_config_menu.draw = Stick_MenuDraw;
+	s_sticks_config_menu.draw = Default_MenuDraw;
 	s_sticks_config_menu.key  = Default_MenuKey;
 
 	M_PushMenu(&s_sticks_config_menu);
@@ -2018,18 +1990,10 @@ Gyro_MenuInit(void)
 }
 
 static void
-Gyro_MenuDraw(void)
-{
-	Menu_AdjustCursor(&s_gyro_menu, 1);
-	Menu_Draw(&s_gyro_menu);
-	Menu_DrawPopup(320, 240, &m_popup);
-}
-
-static void
 M_Menu_Gyro_f(void)
 {
 	Gyro_MenuInit();
-	s_gyro_menu.draw = Gyro_MenuDraw;
+	s_gyro_menu.draw = Default_MenuDraw;
 	s_gyro_menu.key  = Default_MenuKey;
 
 	M_PushMenu(&s_gyro_menu);
@@ -2287,17 +2251,10 @@ Joy_MenuInit(void)
 }
 
 static void
-Joy_MenuDraw(void)
-{
-	Menu_AdjustCursor(&s_joy_menu, 1);
-	Menu_Draw(&s_joy_menu);
-}
-
-static void
 M_Menu_Joy_f(void)
 {
 	Joy_MenuInit();
-	s_joy_menu.draw = Joy_MenuDraw;
+	s_joy_menu.draw = Default_MenuDraw;
 	s_joy_menu.key  = Default_MenuKey;
 
 	M_PushMenu(&s_joy_menu);
@@ -2590,6 +2547,7 @@ Options_MenuInit(void)
 	/* configure controls menu and menu items */
 	s_options_menu.x = viddef.width / 2;
 	s_options_menu.y = viddef.height / (2 * scale) - 58;
+	s_options_menu.banner = "m_banner_options";
 	s_options_menu.nitems = 0;
 
 	s_options_sfxvolume_slider.generic.type = MTYPE_SLIDER;
@@ -2734,19 +2692,10 @@ Options_MenuInit(void)
 }
 
 static void
-Options_MenuDraw(void)
-{
-	M_Banner("m_banner_options");
-	Menu_AdjustCursor(&s_options_menu, 1);
-	Menu_Draw(&s_options_menu);
-	Menu_DrawPopup(320, 240, &m_popup);
-}
-
-static void
 M_Menu_Options_f(void)
 {
 	Options_MenuInit();
-	s_options_menu.draw = Options_MenuDraw;
+	s_options_menu.draw = Default_MenuDraw;
 	s_options_menu.key  = Default_MenuKey;
 
 	M_PushMenu(&s_options_menu);
@@ -3120,7 +3069,7 @@ static const char *roguecredits[] =
 };
 
 static void
-M_Credits_Draw(void)
+M_Credits_Draw(menuframework_s *m)
 {
 	int i, y;
 	float scale = SCR_GetMenuScale();
@@ -3458,18 +3407,10 @@ Mods_MenuInit(void)
 }
 
 static void
-Mods_MenuDraw(void)
-{
-	Menu_AdjustCursor(&s_mods_menu, 1);
-	Menu_Draw(&s_mods_menu);
-	Menu_DrawPopup(320, 240, &m_popup);
-}
-
-static void
 M_Menu_Mods_f(void)
 {
 	Mods_MenuInit();
-	s_mods_menu.draw = Mods_MenuDraw;
+	s_mods_menu.draw = Default_MenuDraw;
 	s_mods_menu.key  = Default_MenuKey;
 
 	M_PushMenu(&s_mods_menu);
@@ -3569,6 +3510,7 @@ Game_MenuInit(void)
 
 	s_game_menu.x = (int)(viddef.width * 0.50f);
 	s_game_menu.nitems = 0;
+	s_game_menu.banner = "m_banner_game";
 
 	s_easy_game_action.generic.type = MTYPE_ACTION;
 	s_easy_game_action.generic.flags = QMF_LEFT_JUSTIFY;
@@ -3647,18 +3589,10 @@ Game_MenuInit(void)
 }
 
 static void
-Game_MenuDraw(void)
-{
-	M_Banner("m_banner_game");
-	Menu_AdjustCursor(&s_game_menu, 1);
-	Menu_Draw(&s_game_menu);
-}
-
-static void
 M_Menu_Game_f(void)
 {
 	Game_MenuInit();
-	s_game_menu.draw = Game_MenuDraw;
+	s_game_menu.draw = Default_MenuDraw;
 	s_game_menu.key  = Default_MenuKey;
 
 	M_PushMenu(&s_game_menu);
@@ -3871,6 +3805,7 @@ LoadGame_MenuInit(void)
 
 	s_loadgame_menu.x = viddef.width / 2 - (120 * scale);
 	s_loadgame_menu.y = viddef.height / (2 * scale) - 58;
+	s_loadgame_menu.banner = "m_banner_load_game";
 	s_loadgame_menu.nitems = 0;
 
 	Create_Savestrings();
@@ -3917,14 +3852,6 @@ LoadGame_MenuInit(void)
 	}
 
 	Menu_SetStatusBar(&s_loadgame_menu, m_loadsave_statusbar);
-}
-
-static void
-LoadGame_MenuDraw(void)
-{
-	M_Banner("m_banner_load_game");
-	Menu_AdjustCursor(&s_loadgame_menu, 1);
-	Menu_Draw(&s_loadgame_menu);
 }
 
 static const char *
@@ -3986,7 +3913,7 @@ M_Menu_LoadGame_f(void)
 {
 	LoadSave_AdjustPage(0);
 	LoadGame_MenuInit();
-	s_loadgame_menu.draw = LoadGame_MenuDraw;
+	s_loadgame_menu.draw = Default_MenuDraw;
 	s_loadgame_menu.key  = LoadGame_MenuKey;
 
 	M_PushMenu(&s_loadgame_menu);
@@ -4028,15 +3955,6 @@ SaveGameCallback(void *self)
 }
 
 static void
-SaveGame_MenuDraw(void)
-{
-	M_Banner("m_banner_save_game");
-	Menu_AdjustCursor(&s_savegame_menu, 1);
-	Menu_Draw(&s_savegame_menu);
-	Menu_DrawPopup(320, 240, &m_popup);
-}
-
-static void
 SaveGame_MenuInit(void)
 {
 	int i;
@@ -4044,6 +3962,7 @@ SaveGame_MenuInit(void)
 
 	s_savegame_menu.x = viddef.width / 2 - (120 * scale);
 	s_savegame_menu.y = viddef.height / (2 * scale) - 58;
+	s_savegame_menu.banner = "m_banner_save_game";
 	s_savegame_menu.nitems = 0;
 
 	Create_Savestrings();
@@ -4146,7 +4065,7 @@ M_Menu_SaveGame_f(void)
 
 	LoadSave_AdjustPage(0);
 	SaveGame_MenuInit();
-	s_savegame_menu.draw = SaveGame_MenuDraw;
+	s_savegame_menu.draw = Default_MenuDraw;
 	s_savegame_menu.key  = SaveGame_MenuKey;
 
 	M_PushMenu(&s_savegame_menu);
@@ -4281,6 +4200,7 @@ JoinServer_MenuInit(void)
 
 	s_joinserver_menu.x = (int)(viddef.width * 0.50f) - 120 * scale;
 	s_joinserver_menu.nitems = 0;
+	s_joinserver_menu.banner = "m_banner_join_server";
 
 	s_joinserver_address_book_action.generic.type = MTYPE_ACTION;
 	s_joinserver_address_book_action.generic.name = "address book";
@@ -4329,18 +4249,10 @@ JoinServer_MenuInit(void)
 }
 
 static void
-JoinServer_MenuDraw(void)
-{
-	M_Banner("m_banner_join_server");
-	Menu_Draw(&s_joinserver_menu);
-	Menu_DrawPopup(320, 240, &m_popup);
-}
-
-static void
 M_Menu_JoinServer_f(void)
 {
 	JoinServer_MenuInit();
-	s_joinserver_menu.draw = JoinServer_MenuDraw;
+	s_joinserver_menu.draw = Default_MenuDraw;
 	s_joinserver_menu.key  = Default_MenuKey;
 
 	M_PushMenu(&s_joinserver_menu);
@@ -4942,16 +4854,10 @@ StartServer_MenuInit(void)
 }
 
 static void
-StartServer_MenuDraw(void)
-{
-	Menu_Draw(&s_startserver_menu);
-}
-
-static void
 M_Menu_StartServer_f(void)
 {
 	StartServer_MenuInit();
-	s_startserver_menu.draw = StartServer_MenuDraw;
+	s_startserver_menu.draw = Default_MenuDraw;
 	s_startserver_menu.key  = Default_MenuKey;
 
 	M_PushMenu(&s_startserver_menu);
@@ -5424,16 +5330,10 @@ DMOptions_MenuInit(void)
 }
 
 static void
-DMOptions_MenuDraw(void)
-{
-	Menu_Draw(&s_dmoptions_menu);
-}
-
-static void
 M_Menu_DMOptions_f(void)
 {
 	DMOptions_MenuInit();
-	s_dmoptions_menu.draw = DMOptions_MenuDraw;
+	s_dmoptions_menu.draw = Default_MenuDraw;
 	s_dmoptions_menu.key  = Default_MenuKey;
 
 	M_PushMenu(&s_dmoptions_menu);
@@ -5586,16 +5486,10 @@ DownloadOptions_MenuInit(void)
 }
 
 static void
-DownloadOptions_MenuDraw(void)
-{
-	Menu_Draw(&s_downloadoptions_menu);
-}
-
-static void
 M_Menu_DownloadOptions_f(void)
 {
 	DownloadOptions_MenuInit();
-	s_downloadoptions_menu.draw = DownloadOptions_MenuDraw;
+	s_downloadoptions_menu.draw = Default_MenuDraw;
 	s_downloadoptions_menu.key  = Default_MenuKey;
 
 	M_PushMenu(&s_downloadoptions_menu);
@@ -5616,6 +5510,7 @@ AddressBook_MenuInit(void)
 
 	s_addressbook_menu.x = viddef.width / 2 - (142 * scale);
 	s_addressbook_menu.y = viddef.height / (2 * scale) - 58;
+	s_addressbook_menu.banner = "m_banner_addressbook";
 	s_addressbook_menu.nitems = 0;
 
 	for (i = 0; i < NUM_ADDRESSBOOK_ENTRIES; i++)
@@ -5666,17 +5561,10 @@ AddressBook_MenuKey(menuframework_s *m, int key)
 }
 
 static void
-AddressBook_MenuDraw(void)
-{
-	M_Banner("m_banner_addressbook");
-	Menu_Draw(&s_addressbook_menu);
-}
-
-static void
 M_Menu_AddressBook_f(void)
 {
 	AddressBook_MenuInit();
-	s_addressbook_menu.draw = AddressBook_MenuDraw;
+	s_addressbook_menu.draw = Default_MenuDraw;
 	s_addressbook_menu.key  = AddressBook_MenuKey;
 
 	M_PushMenu(&s_addressbook_menu);
@@ -6554,7 +6442,7 @@ PlayerConfig_AnimateModel(entity_t *entity, int count, int curTime)
 }
 
 static void
-PlayerConfig_MenuDraw(void)
+PlayerConfig_MenuDraw(menuframework_s *m)
 {
 	refdef_t refdef;
 	float scale = SCR_GetMenuScale();
@@ -6644,7 +6532,7 @@ PlayerConfig_MenuDraw(void)
 		// icon bitmap to draw
 		s_player_icon_bitmap.generic.name = scratch;
 
-		Menu_Draw(&s_player_config_menu);
+		Menu_Draw(m);
 
 		M_DrawTextBox(((int)(refdef.x) * (320.0F / viddef.width) - 8),
 					  (int)((viddef.height / 2) * (240.0F / viddef.height) - 77),
@@ -6731,7 +6619,7 @@ M_Quit_Key(menuframework_s *m, int key)
 }
 
 static void
-M_Quit_Draw(void)
+M_Quit_Draw(menuframework_s *m)
 {
 	int w, h;
 	float scale = SCR_GetMenuScale();
@@ -6808,7 +6696,7 @@ M_Init(void)
 void
 M_Draw(void)
 {
-	const menuframework_s *menu;
+	menuframework_s *menu;
 
 	if (cls.key_dest != key_menu)
 	{
@@ -6832,7 +6720,7 @@ M_Draw(void)
 	menu = M_GetActiveMenu();
 	if (menu && menu->draw)
 	{
-		menu->draw();
+		menu->draw(menu);
 	}
 
 	/* delay playing the enter sound until after the
