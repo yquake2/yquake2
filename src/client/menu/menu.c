@@ -42,10 +42,6 @@ static int m_cursor_width = 0;
 /* Signals the file system to start the demo loop. */
 qboolean menu_startdemoloop;
 
-static char *menu_in_sound = "misc/menu1.wav";
-static char *menu_move_sound = "misc/menu2.wav";
-static char *menu_out_sound = "misc/menu3.wav";
-
 void M_Menu_Main_f(void);
 static void M_Menu_Game_f(void);
 static void M_Menu_LoadGame_f(void);
@@ -99,7 +95,7 @@ M_IsGame(const char *gamename)
 	return false;
 }
 
-static void
+void
 M_Banner(const char *name)
 {
 	int w, h;
@@ -120,7 +116,7 @@ M_ForceMenuOff(void)
 	Cvar_Set("paused", "0");
 }
 
-void
+static void
 M_PopMenu(void)
 {
 	S_StartLocalSound(menu_out_sound);
@@ -332,81 +328,78 @@ Key_GetMenuKey(int key)
 	return key;
 }
 
-static const char *
+const char *
 Default_MenuKey(menuframework_s *m, int key)
 {
-	const char *sound = NULL;
-	int menu_key = Key_GetMenuKey(key);
+	const char *sound;
+	menucommon_s *item;
+	int menu_key;
 
-	if (m)
+	menu_key = Key_GetMenuKey(key);
+
+	if (!m)
 	{
-		menucommon_s *item = Menu_ItemAtCursor(m);
-
-		if (item && item->type == MTYPE_FIELD)
+		if (menu_key == K_ESCAPE)
 		{
-			if (Field_Key((menufield_s *)item, key))
-			{
-				return NULL;
-			}
+			M_PopMenu();
+		}
+
+		return NULL;
+	}
+
+	item = Menu_ItemAtCursor(m);
+
+	if (item && item->type == MTYPE_FIELD)
+	{
+		if (Field_Key((menufield_s *)item, key))
+		{
+			return NULL;
 		}
 	}
 
+	sound = NULL;
+
 	switch (menu_key)
 	{
-	case K_ESCAPE:
-		if (m)
-		{
+		case K_ESCAPE:
 			Field_ResetCursor(m);
-		}
+			M_PopMenu();
+			break;
 
-		M_PopMenu();
-		return menu_out_sound;
-
-	case K_UPARROW:
-		if (m)
-		{
+		case K_UPARROW:
 			Field_ResetCursor(m);
-
 			m->cursor--;
 			Menu_AdjustCursor(m, -1);
 			sound = menu_move_sound;
-		}
-		break;
+			break;
 
-	case K_DOWNARROW:
-		if (m)
-		{
+		case K_DOWNARROW:
 			Field_ResetCursor(m);
-
 			m->cursor++;
 			Menu_AdjustCursor(m, 1);
 			sound = menu_move_sound;
-		}
-		break;
+			break;
 
-	case K_LEFTARROW:
-		if (m)
-		{
-			Menu_SlideItem(m, -1);
-			sound = menu_move_sound;
-		}
-		break;
+		case K_LEFTARROW:
+			if (Menu_SlideItem(m, -1))
+			{
+				sound = menu_move_sound;
+			}
+			break;
 
-	case K_RIGHTARROW:
-		if (m)
-		{
-			Menu_SlideItem(m, 1);
-			sound = menu_move_sound;
-		}
-		break;
+		case K_RIGHTARROW:
+			if (Menu_SlideItem(m, 1))
+			{
+				sound = menu_move_sound;
+			}
+			break;
 
-	case K_ENTER:
-		if (m)
-		{
-			Menu_SelectItem(m);
-		}
-		sound = menu_move_sound;
-		break;
+		case K_ENTER:
+			if (Menu_SelectItem(m))
+			{
+				sound = menu_move_sound;
+			}
+			break;
 	}
 
 	return sound;
@@ -676,7 +669,9 @@ InitMainMenu(void)
 	x = (viddef.width / scale - widest + 70) / 2;
 	y = (viddef.height / (2 * scale) - 110);
 
+	int tmp = s_main.cursor;
 	memset(&s_main, 0, sizeof( menuframework_s ));
+	s_main.cursor = tmp;
 
 	Draw_GetPicSize(&w, &h, "m_main_plaque");
 
@@ -766,20 +761,16 @@ static void
 M_Main_Draw(void)
 {
 	const menucommon_s * item = NULL;
-	int x = 0;
-	int y = 0;
 
-	item = ( menucommon_s * )s_main.items[s_main.cursor];
+	Menu_Draw(&s_main);
+
+	item = Menu_ItemAtCursor(&s_main);
 
 	if (item)
 	{
-		x = item->x;
-		y = item->y;
+		M_DrawCursor(item->x - m_cursor_width, item->y,
+			(cls.realtime / 100) % NUM_CURSOR_FRAMES);
 	}
-
-	Menu_Draw(&s_main);
-	M_DrawCursor(x - m_cursor_width, y,
-		( int )(cls.realtime / 100) % NUM_CURSOR_FRAMES);
 }
 
 static const char *
@@ -792,26 +783,10 @@ void
 M_Menu_Main_f(void)
 {
 	InitMainMenu();
-
-	// force first available item to have focus
-	while (s_main.cursor >= 0 && s_main.cursor < s_main.nitems)
-	{
-		const menucommon_s * item = NULL;
-
-		item = ( menucommon_s * )s_main.items[s_main.cursor];
-
-		if ((item->flags & (QMF_INACTIVE)))
-		{
-			s_main.cursor++;
-		}
-		else
-		{
-			break;
-		}
-	}
-
 	s_main.draw = M_Main_Draw;
 	s_main.key  = M_Main_Key;
+
+	Menu_AdjustCursor(&s_main, 1);
 
 	M_PushMenu(&s_main);
 }
@@ -1043,17 +1018,26 @@ M_FindKeysForCommand(char *command, int *twokeys, int scope)
 static void
 KeyCursorDrawFunc(menuframework_s *menu)
 {
-	float scale = SCR_GetMenuScale();
+	float scale;
+	int c;
+
+	if (!Menu_ItemAtCursor(menu))
+	{
+		return;
+	}
 
 	if (menukeyitem_bind)
 	{
-		Draw_CharScaled(menu->x, (menu->y + menu->cursor * 9) * scale, '=', scale);
+		c = '=';
 	}
 	else
 	{
-		Draw_CharScaled(menu->x, (menu->y + menu->cursor * 9) * scale, 12 +
-				  ((int)(Sys_Milliseconds() / 250) & 1), scale);
+		c = 12 + ((int)(Sys_Milliseconds() / 250) & 1);
 	}
+
+	scale = SCR_GetMenuScale();
+
+	Draw_CharScaled(menu->x, (menu->y + menu->cursor * 9) * scale, c, scale);
 }
 
 static void
@@ -2270,7 +2254,9 @@ ConfigGyroFunc(void *unused)
 static void
 InvertJoyPitchFunc(void *unused)
 {
-	Cvar_SetValue("joy_pitchspeed", -Cvar_VariableValue("joy_pitchspeed"));
+	float v = fabsf(Cvar_VariableValue("joy_pitchspeed"));
+
+	Cvar_SetValue("joy_pitchspeed", s_joy_invertpitch_box.curvalue ? -v : v);
 }
 
 static void
@@ -2543,13 +2529,13 @@ CustomizeJoyFunc(void *unused)
 static void
 AlwaysRunFunc(void *unused)
 {
-	Cvar_SetValue("cl_run", (float)s_options_alwaysrun_box.curvalue);
+	Cvar_SetValue("cl_run", s_options_alwaysrun_box.curvalue);
 }
 
 static void
 FreeLookFunc(void *unused)
 {
-	Cvar_SetValue("freelook", (float)s_options_freelook_box.curvalue);
+	Cvar_SetValue("freelook", s_options_freelook_box.curvalue);
 }
 
 static void
@@ -2615,13 +2601,15 @@ ControlsResetDefaultsFunc(void *unused)
 static void
 InvertMouseFunc(void *unused)
 {
-	Cvar_SetValue("m_pitch", -m_pitch->value);
+	float v = fabsf(m_pitch->value);
+
+	Cvar_SetValue("m_pitch", s_options_invertmouse_box.curvalue ? -v : v);
 }
 
 static void
 LookstrafeFunc(void *unused)
 {
-	Cvar_SetValue("lookstrafe", (float)!lookstrafe->value);
+	Cvar_SetValue("lookstrafe", s_options_lookstrafe_box.curvalue);
 }
 
 static void
@@ -2633,7 +2621,7 @@ OGGShuffleFunc(void *unused)
 static void
 EnableOGGMusic(void *unused)
 {
-	Cvar_SetValue("ogg_enable", (float)s_options_oggenable_box.curvalue);
+	Cvar_SetValue("ogg_enable", s_options_oggenable_box.curvalue);
 
 	if (s_options_oggenable_box.curvalue)
 	{
@@ -7065,9 +7053,12 @@ M_Keydown(int key)
 	if (m_active.key)
 	{
 		const char *s;
-		if ((s = m_active.key(key)) != 0)
+
+		s = m_active.key(key);
+
+		if (s)
 		{
-			S_StartLocalSound((char *)s);
+			S_StartLocalSound(s);
 		}
 	}
 }

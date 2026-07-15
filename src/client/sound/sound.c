@@ -1328,7 +1328,7 @@ S_StartSound(vec3_t origin, int entnum, int entchannel, sfx_t *sfx,
  * system.
  */
 void
-S_StartLocalSound(char *sound)
+S_StartLocalSound(const char *sound)
 {
 	sfx_t *sfx;
 
