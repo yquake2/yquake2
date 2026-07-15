@@ -35,7 +35,11 @@
 // Screenshots
 // -----------
 
+#ifdef USE_SYSTEM_MINIZIP
+#include <zlib.h>
+#else
 #include "../../common/unzip/miniz/miniz.h"
+#endif
 
 static unsigned char*
 compress_for_stbiw(unsigned char *data, int data_len, int *out_len, int quality)
