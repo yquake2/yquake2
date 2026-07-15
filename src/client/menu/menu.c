@@ -71,15 +71,15 @@ qboolean m_entersound; /* play after drawing a frame, so caching won't disrupt t
 /* Maximal number of submenus */
 #define MAX_MENU_DEPTH 8
 
-typedef struct
-{
-	void (*draw)(void);
-	const char *(*key)(int k);
-} menulayer_t;
-
-static menulayer_t m_layers[MAX_MENU_DEPTH];
-static menulayer_t m_active;		/* active menu layer */
+static menuframework_s *m_layers[MAX_MENU_DEPTH];
 static int m_menudepth;
+
+static menuframework_s *
+M_GetActiveMenu(void)
+{
+	return ((m_menudepth > 0) && (m_menudepth < MAX_MENU_DEPTH)) ?
+		m_layers[m_menudepth - 1] : NULL;
+}
 
 static qboolean
 M_IsGame(const char *gamename)
@@ -109,62 +109,39 @@ void
 M_ForceMenuOff(void)
 {
 	cls.key_dest = key_game;
-	m_active.draw = NULL;
-	m_active.key  = NULL;
 	m_menudepth = 0;
 	Key_MarkAllUp();
 	Cvar_Set("paused", "0");
 }
 
 static void
-M_PopMenu(void)
+M_PopMenu(qboolean silent)
 {
-	S_StartLocalSound(menu_out_sound);
-
-	if (m_menudepth < 1)
+	if (m_menudepth <= 0)
 	{
-		Com_Error(ERR_FATAL, "%s: depth < 1", __func__);
+		M_ForceMenuOff();
 		return;
 	}
 
 	m_menudepth--;
 
-	m_active.draw = m_layers[m_menudepth].draw;
-	m_active.key  = m_layers[m_menudepth].key;
+	if (silent)
+	{
+		return;
+	}
+
+	S_StartLocalSound(menu_out_sound);
 
 	if (!m_menudepth)
 	{
 		M_ForceMenuOff();
+
 		/* play music */
 		if (Cvar_VariableValue("ogg_pausewithgame") == 1 &&
 				OGG_Status() == PAUSE && cl.attractloop == false)
 		{
 			Cbuf_AddText("ogg toggle\n");
 		}
-	}
-}
-
-// Similar to M_PopMenu but silent and doesn't toggle music or paused state
-static void
-M_PopMenuSilent(void)
-{
-	if (m_menudepth < 1)
-	{
-		Com_Error(ERR_FATAL, "%s: depth < 1", __func__);
-		return;
-	}
-
-	m_menudepth--;
-
-	if (m_menudepth)
-	{
-		m_active.draw = m_layers[m_menudepth].draw;
-		m_active.key  = m_layers[m_menudepth].key;
-	}
-	else
-	{
-		m_active.draw = NULL;
-		m_active.key  = NULL;
 	}
 }
 
@@ -219,9 +196,9 @@ M_PushMenu(menuframework_s* menu)
 
 	/* if this menu is already open (and on top),
 	   close it => toggling behaviour */
-	if ((m_active.draw == menu->draw) && (m_active.key  == menu->key))
+	if (M_GetActiveMenu() == menu)
 	{
-		M_PopMenu();
+		M_PopMenu(false);
 		return;
 	}
 
@@ -229,7 +206,7 @@ M_PushMenu(menuframework_s* menu)
 	   that level to avoid stacking menus by hotkeys */
 	for (i = 0; i < m_menudepth; i++)
 	{
-		if ((m_layers[i].draw == menu->draw) && (m_layers[i].key  == menu->key))
+		if (m_layers[i] == menu)
 		{
 			alreadyPresent = 1;
 			break;
@@ -239,7 +216,7 @@ M_PushMenu(menuframework_s* menu)
 	/* menu was already opened further down the stack */
 	while (alreadyPresent && i <= m_menudepth)
 	{
-		M_PopMenu(); /* decrements m_menudepth */
+		M_PopMenu(false);
 	}
 
 	if (m_menudepth >= MAX_MENU_DEPTH)
@@ -248,12 +225,8 @@ M_PushMenu(menuframework_s* menu)
 		return;
 	}
 
-	m_layers[m_menudepth].draw = m_active.draw;
-	m_layers[m_menudepth].key  = m_active.key;
+	m_layers[m_menudepth] = menu;
 	m_menudepth++;
-
-	m_active.draw = menu->draw;
-	m_active.key  = menu->key;
 
 	m_entersound = true;
 
@@ -341,7 +314,7 @@ Default_MenuKey(menuframework_s *m, int key)
 	{
 		if (menu_key == K_ESCAPE)
 		{
-			M_PopMenu();
+			M_PopMenu(false);
 		}
 
 		return NULL;
@@ -363,7 +336,7 @@ Default_MenuKey(menuframework_s *m, int key)
 	{
 		case K_ESCAPE:
 			Field_ResetCursor(m);
-			M_PopMenu();
+			M_PopMenu(false);
 			break;
 
 		case K_UPARROW:
@@ -1928,7 +1901,7 @@ GyroSpaceFunc(void *unused)
 	Cvar_SetValue("gyro_space", s_gyro_space_box.curvalue);
 
 	// Force the menu to refresh.
-	M_PopMenuSilent();
+	M_PopMenu(true);
 	M_Menu_Gyro_f();
 }
 
@@ -1944,7 +1917,7 @@ GyroAccelerationFunc(void *unused)
 	Cvar_SetValue("gyro_acceleration", s_gyro_acceleration_box.curvalue);
 
 	// Force the menu to refresh.
-	M_PopMenuSilent();
+	M_PopMenu(true);
 	M_Menu_Gyro_f();
 }
 
@@ -2209,7 +2182,7 @@ extern qboolean IN_MatchJoyPreset(void);
 static void
 RefreshJoyMenuFunc(void *unused)
 {
-	M_PopMenuSilent();
+	M_PopMenu(true);
 	M_Menu_Joy_f();
 }
 
@@ -3353,7 +3326,7 @@ M_Credits_Key(int key)
 		{
 			FS_FreeFile(creditsBuffer);
 		}
-		M_PopMenu();
+		M_PopMenu(false);
 	}
 
 	return menu_out_sound;
@@ -6918,7 +6891,7 @@ M_Quit_Key(int key)
 	case K_ESCAPE:
 	case 'n':
 	case 'N':
-		M_PopMenu();
+		M_PopMenu(false);
 		break;
 
 	case K_ENTER:
@@ -7013,6 +6986,8 @@ M_Init(void)
 void
 M_Draw(void)
 {
+	const menuframework_s *menu;
+
 	if (cls.key_dest != key_menu)
 	{
 		return;
@@ -7032,9 +7007,10 @@ M_Draw(void)
 		Draw_FadeScreen();
 	}
 
-	if (m_active.draw)
+	menu = M_GetActiveMenu();
+	if (menu && menu->draw)
 	{
-		m_active.draw();
+		menu->draw();
 	}
 
 	/* delay playing the enter sound until after the
@@ -7050,11 +7026,15 @@ M_Draw(void)
 void
 M_Keydown(int key)
 {
-	if (m_active.key)
+	const menuframework_s *menu;
+
+	menu = M_GetActiveMenu();
+
+	if (menu && menu->key)
 	{
 		const char *s;
 
-		s = m_active.key(key);
+		s = menu->key(key);
 
 		if (s)
 		{
