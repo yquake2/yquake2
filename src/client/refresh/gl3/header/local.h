@@ -58,6 +58,9 @@
 
 #include "HandmadeMath.h"
 
+#define DG_DYNARR_ASSERT(cond, msg) \
+	((cond) ? (void)0 : Com_Error(ERR_FATAL, "DG_dynarr.h error: %s\n", msg))
+
 #if 0 // only use this for development ..
 #define STUB_ONCE(msg) do { \
 		static int show=1; \
