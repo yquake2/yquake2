@@ -310,7 +310,12 @@ qboolean R_ImageHasFreeSpace(void);
 
 void R_TextureAlphaMode(const char *string);
 void R_TextureSolidMode(const char *string);
-int Scrap_AllocBlock(int w, int h, int *x, int *y);
+int Scrap_AllocBlock(unsigned w, unsigned h, int *x, int *y, const unsigned *pic,
+	int scrap_offset);
+unsigned *Scrap_Upload(int texnum);
+void Scrap_Init(void);
+
+qboolean R_Upload32(unsigned *data, int width, int height, qboolean mipmap);
 
 // GL buffer operations
 

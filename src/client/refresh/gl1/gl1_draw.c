@@ -28,9 +28,6 @@
 
 image_t *draw_chars = NULL;
 
-extern qboolean scrap_dirty;
-void Scrap_Upload(void);
-
 extern unsigned r_rawpalette[256];
 
 void
@@ -42,6 +39,32 @@ Draw_InitLocal(void)
 	{
 		Com_Error(ERR_FATAL, "%s: Couldn't load pics/conchars.pcx",
 			__func__);
+	}
+}
+
+static void
+Scrap_Update(void)
+{
+	int texnum;
+
+	for (texnum = 0; texnum < MAX_SCRAPS; texnum++)
+	{
+		unsigned *scrap_texels;
+
+		scrap_texels = Scrap_Upload(texnum);
+		if (scrap_texels)
+		{
+			R_Bind(TEXNUM_SCRAPS + texnum);
+
+			if (!texnum)
+			{
+				/* nolerp textures*/
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+			}
+
+			R_Upload32(scrap_texels, SCRAP_WIDTH, SCRAP_HEIGHT, false);
+		}
 	}
 }
 
@@ -77,9 +100,9 @@ RDraw_CharScaled(int x, int y, int num, float scale)
 
 	scaledSize = 8 * scale;
 
-	if (scrap_dirty)
+	if (draw_chars->scrap)
 	{
-		Scrap_Upload();
+		Scrap_Update();
 	}
 
 	R_UpdateGLBuffer(buf_2d, draw_chars->texnum, 0, 0, 1);
@@ -127,9 +150,9 @@ RDraw_StretchPic(int x, int y, int w, int h, const char *pic)
 		return;
 	}
 
-	if (scrap_dirty)
+	if (gl->scrap)
 	{
-		Scrap_Upload();
+		Scrap_Update();
 	}
 
 	R_UpdateGLBuffer(buf_2d, gl->texnum, 0, 0, 1);
@@ -151,17 +174,22 @@ RDraw_PicScaled(int x, int y, const char *pic, float factor)
 		return;
 	}
 
-	if (scrap_dirty)
+	if (gl->scrap)
 	{
-		Scrap_Upload();
+		Scrap_Update();
 	}
 
-	if (gl->texnum == TEXNUM_SCRAPS)
+	if (gl->texnum >= TEXNUM_SCRAPS && gl->texnum < TEXNUM_IMAGES)
 	{
-		R_UpdateGLBuffer(buf_2d, TEXNUM_SCRAPS, 0, 0, 1);
+		R_UpdateGLBuffer(buf_2d, gl->texnum, 0, 0, 1);
 		R_Buffer2DQuad(x, y, x + gl->width * factor, y + gl->height * factor,
 			gl->sl, gl->tl, gl->sh, gl->th);
 		return;
+	}
+
+	if (gl->scrap)
+	{
+		Scrap_Update();
 	}
 
 	R_Bind(gl->texnum);
@@ -204,9 +232,9 @@ RDraw_PicScaledCol(int x, int y, const char *pic, float factor, const float colo
 		return;
 	}
 
-	if (scrap_dirty)
+	if (gl->scrap)
 	{
-		Scrap_Upload();
+		Scrap_Update();
 	}
 
 	R_ApplyGLBuffer();
@@ -260,6 +288,11 @@ RDraw_TileClear(int x, int y, int w, int h, const char *pic)
 	{
 		Com_Printf("%s(): Can't find pic: %s\n", __func__, pic);
 		return;
+	}
+
+	if (image->scrap)
+	{
+		Scrap_Update();
 	}
 
 	R_UpdateGLBuffer(buf_2d, image->texnum, 0, 0, 1);
