@@ -101,7 +101,10 @@ R_DrawParticle(particle_t *pparticle, int level)
 	** render the appropriate pixels
 	*/
 	count = pix;
-	if ((pz[(vid_buffer_width * count / 2) + (count / 2)]) > izi)
+
+	int half_count = count / 2;
+
+	if (pz[(vid_buffer_width * half_count) + half_count] > izi)
 	{
 		// looks like under some object
 		return;
