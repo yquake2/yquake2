@@ -164,7 +164,6 @@ GL3_DrawGLPoly(msurface_t *fa, gl3drawCmd_t drawCmd)
 {
 	glpoly_t *p = fa->polys;
 
-
 	GL3_BufferAndDraw3D(p->vertices, p->numverts, GL_TRIANGLE_FAN, drawCmd);
 }
 
@@ -296,7 +295,7 @@ GL3_DrawAlphaSurfaces(void)
 	msurface_t *s;
 
 	/* go back to the world matrix */
-	gl3drawCmd_t drawCmd = GL3_CreateDrawCmd(true);
+	gl3drawCmd_t drawCmd = GL3_CreateDrawCmd();
 	drawCmd.flags |= DCFlag_Blend;
 
 	for (s = gl3_alpha_surfaces; s != NULL; s = s->texturechain)
@@ -344,7 +343,7 @@ DrawTextureChains(entity_t *currententity)
 
 	c_visible_textures = 0;
 
-	gl3drawCmd_t drawCmd = GL3_CreateDrawCmd(true);
+	gl3drawCmd_t drawCmd = GL3_CreateDrawCmd();
 
 	for (i = 0, image = gl3textures; i < numgl3textures; i++, image++)
 	{
@@ -477,7 +476,7 @@ GL3_DrawBrushModel(entity_t *e, gl3model_t *currentmodel)
 		return;
 	}
 
-	gl3drawCmd_t drawCmd = GL3_CreateDrawCmd(false);
+	gl3drawCmd_t drawCmd = GL3_CreateDrawCmd();
 	if(e->flags & RF_TRANSLUCENT)
 		drawCmd.flags |= DCFlag_DisableDepthMask;
 
@@ -527,7 +526,7 @@ GL3_DrawBrushModel(entity_t *e, gl3model_t *currentmodel)
 
 	e->angles[0] = -e->angles[0];
 	e->angles[2] = -e->angles[2];
-	GL3_RotateForEntity(e, &drawCmd, true);
+	GL3_RotateForEntity(e, &drawCmd);
 	e->angles[0] = -e->angles[0];
 	e->angles[2] = -e->angles[2];
 
