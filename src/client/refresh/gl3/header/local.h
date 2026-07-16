@@ -279,8 +279,8 @@ typedef struct
 // drawcommands using gl3_3D_vtx_t, for batching
 typedef struct gl3drawCmd_s {
 	GLuint		texnum;
-	char		lmtexnum;
-	char		shaderIdx;
+	signed char	lmtexnum;
+	signed char	shaderIdx;
 
 	// index into gl3_main.c transModelMats; 0 always is identity matrix
 	unsigned short transModelMatIdx;
