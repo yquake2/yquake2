@@ -26,7 +26,7 @@
 
 #include "header/local.h"
 
-image_t *draw_chars;
+image_t *draw_chars = NULL;
 
 extern qboolean scrap_dirty;
 void Scrap_Upload(void);
@@ -77,10 +77,18 @@ RDraw_CharScaled(int x, int y, int num, float scale)
 
 	scaledSize = 8 * scale;
 
+	if (scrap_dirty)
+	{
+		Scrap_Upload();
+	}
+
 	R_UpdateGLBuffer(buf_2d, draw_chars->texnum, 0, 0, 1);
 
 	R_Buffer2DQuad(x, y, x + scaledSize, y + scaledSize,
-		fcol, frow, fcol + size, frow + size);
+		draw_chars->sl + fcol * (draw_chars->sh - draw_chars->sl),
+		draw_chars->tl + frow * (draw_chars->th - draw_chars->tl),
+		draw_chars->sl + (fcol + size) * (draw_chars->sh - draw_chars->sl),
+		draw_chars->tl + (frow + size) * (draw_chars->th - draw_chars->tl));
 }
 
 image_t *
@@ -115,7 +123,7 @@ RDraw_StretchPic(int x, int y, int w, int h, const char *pic)
 
 	if (!gl)
 	{
-		Com_Printf("Can't find pic: %s\n", pic);
+		Com_Printf("%s(): Can't find pic: %s\n", __func__, pic);
 		return;
 	}
 
@@ -250,7 +258,7 @@ RDraw_TileClear(int x, int y, int w, int h, const char *pic)
 
 	if (!image)
 	{
-		Com_Printf("Can't find pic: %s\n", pic);
+		Com_Printf("%s(): Can't find pic: %s\n", __func__, pic);
 		return;
 	}
 
@@ -275,6 +283,7 @@ RDraw_Fill(int x, int y, int w, int h, int c)
 	if ((unsigned)c > 255)
 	{
 		Com_Error(ERR_FATAL, "%s: bad color", __func__);
+		return;
 	}
 
 	glDisable(GL_TEXTURE_2D);
@@ -334,12 +343,12 @@ RDraw_StretchRaw(int x, int y, int w, int h, int cols, int rows, const byte *dat
 	GLfloat tex[8];
 	float hscale = 1.0f;
 	int frac, fracstep;
-	int i, j, trows;
+	int i, j;
 	int row;
 
 	R_Bind(0);
 
-	if(gl_config.npottextures || rows <= 256 || bits == 32)
+	if (gl_config.npottextures || rows <= 256 || bits == 32)
 	{
 		// X, X
 		tex[0] = 0;
@@ -361,7 +370,6 @@ RDraw_StretchRaw(int x, int y, int w, int h, int cols, int rows, const byte *dat
 	{
 		// Scale params
 		hscale = rows / 256.0;
-		trows = 256;
 
 		// X, X
 		tex[0] = 1.0 / 512.0;
@@ -400,22 +408,30 @@ RDraw_StretchRaw(int x, int y, int w, int h, int cols, int rows, const byte *dat
 					cols, rows, 0, GL_RGBA, GL_UNSIGNED_BYTE,
 					data);
 		}
-		else if(gl_config.npottextures || rows <= 256)
+		else if (gl_config.npottextures || rows <= 256)
 		{
 			unsigned image32[320*240]; /* was 256 * 256, but we want a bit more space */
 			unsigned* img = image32;
 
-			if(cols*rows > 320*240)
+			if (cols*rows > 320*240)
 			{
 				/* in case there is a bigger video after all,
 				 * malloc enough space to hold the frame */
-				img = (unsigned*)malloc(cols*rows*4);
+				img = (unsigned*)malloc(cols * rows * 4);
+
+				YQ2_COM_CHECK_OOM(img, "malloc()",
+					cols * rows * 4)
+				if (!img)
+				{
+					/* unaware about YQ2_ATTR_NORETURN_FUNCPTR? */
+					return;
+				}
 			}
 
-			for(i=0; i<rows; ++i)
+			for (i=0; i<rows; ++i)
 			{
 				int rowOffset = i*cols;
-				for(j=0; j<cols; ++j)
+				for (j=0; j<cols; ++j)
 				{
 					byte palIdx = data[rowOffset+j];
 					img[rowOffset+j] = r_rawpalette[palIdx];
@@ -426,7 +442,7 @@ RDraw_StretchRaw(int x, int y, int w, int h, int cols, int rows, const byte *dat
 								cols, rows, 0, GL_RGBA, GL_UNSIGNED_BYTE,
 								img);
 
-			if(img != image32)
+			if (img != image32)
 			{
 				free(img);
 			}
@@ -434,6 +450,7 @@ RDraw_StretchRaw(int x, int y, int w, int h, int cols, int rows, const byte *dat
 		else
 		{
 			unsigned int image32[320*240];
+			int trows = 256;
 
 			for (i = 0; i < trows; i++)
 			{
@@ -466,11 +483,12 @@ RDraw_StretchRaw(int x, int y, int w, int h, int cols, int rows, const byte *dat
 	}
 	else
 	{
-		unsigned char image8[256 * 256];
+		byte image8[256 * 256];
+		int trows = 256;
 
 		for (i = 0; i < trows; i++)
 		{
-			unsigned char *dest;
+			byte *dest;
 			const byte *source;
 
 			row = (int)(i * hscale);
