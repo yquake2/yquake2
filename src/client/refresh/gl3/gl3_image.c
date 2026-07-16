@@ -563,7 +563,8 @@ GL3_LoadPic(char *name, byte *pic, int width, int realwidth,
 	{
 		int x=0, y=0;
 
-		if (GL3_Scrap_AllocBlock(image->width, image->height, &x, &y) == -1)
+		if (strcmp(name, "pics/conchars.pcx") == 0
+		    || GL3_Scrap_AllocBlock(image->width, image->height, &x, &y) == -1)
 		{
 			goto nonscrap;
 		}
