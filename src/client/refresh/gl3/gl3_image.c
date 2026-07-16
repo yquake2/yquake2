@@ -54,16 +54,16 @@ enum {
 	SCRAP_HEIGHT = 1024
 };
 
-static int scrap_allocated[SCRAP_WIDTH]; // FIXME: why not short
+static short scrap_allocated[SCRAP_WIDTH];
 static GLuint gl3_scrap_texnum = 0;
-static byte scrap_texels[SCRAP_WIDTH * SCRAP_HEIGHT]; // FIXME: [4] ?
+static unsigned scrap_texels[SCRAP_WIDTH * SCRAP_HEIGHT];
 qboolean gl3_scrap_dirty = false;
 
 void
 GL3_Scrap_Init(void)
 {
 	memset (scrap_allocated, 0, sizeof(scrap_allocated));	// empty
-	memset (scrap_texels, 255, sizeof(scrap_texels));	// transparent
+	memset (scrap_texels, 0, sizeof(scrap_texels));	// transparent
 
 	glGenTextures(1, &gl3_scrap_texnum);
 }
@@ -301,7 +301,6 @@ GL3_Upload32(unsigned *data, int width, int height, qboolean mipmap)
 	return res;
 }
 
-
 /*
  * Returns has_alpha
  */
@@ -358,7 +357,7 @@ GL3_Scrap_Upload(void)
 {
 	GL3_Bind(gl3_scrap_texnum);
 
-	GL3_Upload8(scrap_texels, SCRAP_WIDTH, SCRAP_HEIGHT, false, false);
+	GL3_Upload32(scrap_texels, SCRAP_WIDTH, SCRAP_HEIGHT, false);
 	if (r_2D_unfiltered->value != 0)
 	{
 		// 2D textures shouldn't be filtered by default (r_2D_unfiltered),
@@ -558,7 +557,7 @@ GL3_LoadPic(char *name, byte *pic, int width, int realwidth,
 	}
 
 	/* load little pics into the scrap */
-	if (nolerp == default2Dnolerp && (image->type == it_pic) && (bits == 8) &&
+	if (nolerp == default2Dnolerp && (image->type == it_pic) &&
 		(image->width <= 128) && (image->height <= 128))
 	{
 		int x=0, y=0;
@@ -573,14 +572,65 @@ GL3_LoadPic(char *name, byte *pic, int width, int realwidth,
 
 		/* copy the texels into the scrap block */
 		int k = 0;
-
-		for (int i = 0; i < image->height; i++)
+		int s = height * width;
+		if(bits == 8)
 		{
-			for (int j = 0; j < image->width; j++, k++)
+			for(int i=0; i < height; i++)
 			{
-				// TODO: could do 8->32 conversion here
-				scrap_texels[(y + i) * SCRAP_WIDTH + x + j] = pic[k];
+				for(int j=0; j < width; j++, k++)
+				{
+					unsigned* scrap_texel = &scrap_texels[(y + i) * SCRAP_WIDTH + x + j];
+					int p = pic[k];
+
+					if (p != 255)
+					{
+						*scrap_texel = d_8to24table[p];
+					}
+					else /* transparent, so scan around for another color to avoid alpha fringes */
+					{
+						if ((k > width) && (pic[k - width] != 255))
+						{
+							p = pic[k - width];
+						}
+						else if ((k < s - width) && (pic[k + width] != 255))
+						{
+							p = pic[k + width];
+						}
+						else if ((k > 0) && (pic[k - 1] != 255))
+						{
+							p = pic[k - 1];
+						}
+						else if ((k < s - 1) && (pic[k + 1] != 255))
+						{
+							p = pic[k + 1];
+						}
+						else
+						{
+							p = 0;
+						}
+
+						/* copy rgb components */
+						((byte *)scrap_texel)[0] = ((byte *)&d_8to24table[p])[0];
+						((byte *)scrap_texel)[1] = ((byte *)&d_8to24table[p])[1];
+						((byte *)scrap_texel)[2] = ((byte *)&d_8to24table[p])[2];
+					}
+				}
 			}
+		}
+		else if(bits == 32)
+		{
+			unsigned* pic32 = (unsigned*)pic;
+			for(int i=0; i < height; i++)
+			{
+				for(int j=0; j < width; j++, k++)
+				{
+					scrap_texels[(y + i) * SCRAP_WIDTH + x + j] = pic32[k];
+				}
+			}
+		}
+		else
+		{
+			Sys_Error("Error: texture '%s' has %d bits per pixel, only 8 and 32 supported!\n", name, bits);
 		}
 
 		image->texnum = gl3_scrap_texnum;
