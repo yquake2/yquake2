@@ -278,11 +278,12 @@ typedef struct
 
 // drawcommands using gl3_3D_vtx_t, for batching
 typedef struct gl3drawCmd_s {
-	hmm_mat4	transModelMat;
-
 	GLuint		texnum;
 	char		lmtexnum;
 	char		shaderIdx;
+
+	// index into gl3_main.c transModelMats; 0 always is identity matrix
+	unsigned short transModelMatIdx;
 
 	float		scroll; // for gl3state.uni3DData.scroll
 	float		lightScaleForTurb; // for gl3state.uni3DData.lightScaleForTurb
@@ -305,20 +306,15 @@ enum gl3drawCmd_Flags {
 	DCFlag_UseScroll        = 16,
 	DCFlag_UseLmStyles      = 32,
 	DCFlag_UseLightScaleForTurb = 64,
-	DCFlag_IsIdentityMat    = 128, // avoids comparing the matrix in many cases
 
 	// TODO: DCFlag_SameAsPrevious = 255 for "don't check, just merge into previous command"?
 };
 
 // create an "empty" gl3drawCmd_t with sane defaults
 static inline gl3drawCmd_t
-GL3_CreateDrawCmd(qboolean identityTrans)
+GL3_CreateDrawCmd(void)
 {
 	gl3drawCmd_t ret = {0};
-	if(identityTrans) {
-		ret.transModelMat = gl3_identityMat4;
-		ret.flags = DCFlag_IsIdentityMat;
-	}
 	ret.alpha = 1.0f;
 	ret.styles[0] = 255;
 	ret.lmtexnum = -1;
@@ -468,9 +464,10 @@ GL3_BindEBO(GLuint ebo)
 
 extern void GL3_BufferAndDraw3D(const gl3_3D_vtx_t* verts, int numVerts, GLenum drawMode, gl3drawCmd_t drawCmd);
 extern void GL3_Draw3DBatchesNow(void);
+extern void GL3_SetDrawCmdTransMatrix(gl3drawCmd_t* drawCmd, hmm_mat4 mat);
 
 extern void GL3_RotateUni3DforEntity(entity_t *e);
-extern void GL3_RotateForEntity(entity_t *e, gl3drawCmd_t* drawCmd, qboolean replaceTransModelMat);
+extern void GL3_RotateForEntity(entity_t *e, gl3drawCmd_t* drawCmd);
 
 // gl3_sdl.c
 extern int GL3_InitContext(void* win);

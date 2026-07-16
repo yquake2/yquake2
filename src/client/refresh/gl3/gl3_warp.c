@@ -253,8 +253,6 @@ GL3_EmitWaterPolys(msurface_t *fa, gl3drawCmd_t drawCmd)
 	drawCmd.lightScaleForTurb = fa->texinfo->image->is_lava ? 1.0f : 0.5f;
 	drawCmd.flags |= DCFlag_UseLightScaleForTurb;
 
-
-
 	GL3_SetDrawCmdShader(&drawCmd, &gl3state.si3Dturb);
 
 	for (bp = fa->polys; bp != NULL; bp = bp->next)
@@ -684,7 +682,7 @@ GL3_DrawSkyBox(void)
 		}
 	}
 
-	gl3drawCmd_t drawCmd = GL3_CreateDrawCmd(false);
+	gl3drawCmd_t drawCmd = GL3_CreateDrawCmd();
 
 	// glPushMatrix();
 
@@ -697,7 +695,8 @@ GL3_DrawSkyBox(void)
 		hmm_vec3 rotAxis = HMM_Vec3(skyaxis[0], skyaxis[1], skyaxis[2]);
 		modMVmat = HMM_MultiplyMat4(modMVmat, HMM_Rotate(r_newrefdef.time * skyrotate, rotAxis));
 	}
-	drawCmd.transModelMat = modMVmat;
+
+	GL3_SetDrawCmdTransMatrix(&drawCmd, modMVmat);
 
 	GL3_SetDrawCmdShader(&drawCmd, &gl3state.si3Dsky);
 
