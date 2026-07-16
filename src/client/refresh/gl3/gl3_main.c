@@ -773,6 +773,8 @@ void GL3_Draw3DBatchesNow()
 	curState.scroll = gl3state.uni3DData.scroll;
 	curState.lightScaleForTurb = gl3state.uni3DData.lightScaleForTurb;
 
+	gl3ShaderInfo_t* shader = NULL;
+
 	// .. but at least set the identity mat so DCFlag_IsIdentityMat can be set
 	// as a sane default
 	curState.flags |= DCFlag_IsIdentityMat;
@@ -787,7 +789,11 @@ void GL3_Draw3DBatchesNow()
 		int curFlags = curState.flags;
 		qboolean updateUni3D = false;
 
-		GL3_UseProgram(cmd->shader->shaderProgram);
+		if(cmd->shaderIdx != curState.shaderIdx)
+		{
+			shader = GL3_GetDrawCmdShader(cmd);
+			GL3_UseProgram( shader->shaderProgram );
+		}
 		if(cmd->texnum != gl3state.currenttexture)
 			GL3_Bind(cmd->texnum);
 		if(cmd->lmtexnum >= 0)
@@ -836,7 +842,7 @@ void GL3_Draw3DBatchesNow()
 				lmScales[map].B = r_newrefdef.lightstyles[cmd->styles[map]].rgb[2];
 				lmScales[map].A = 1.0f;
 			}
-			UpdateLMscales(lmScales, cmd->shader);
+			UpdateLMscales(lmScales, shader);
 		}
 
 		if(flags & DCFlag_UseColor)
@@ -903,7 +909,7 @@ void GL3_Draw3DBatchesNow()
 
 static qboolean drawStateEqual(const gl3drawCmd_t* a, const gl3drawCmd_t* b)
 {
-	if( a->flags != b->flags || a->shader != b->shader
+	if( a->flags != b->flags || a->shaderIdx != b->shaderIdx
 	   || a->texnum != b->texnum || a->lmtexnum != b->lmtexnum )
 		return false;
 
@@ -952,7 +958,7 @@ GL3_BufferAndDraw3D(const gl3_3D_vtx_t* verts, int numVerts, GLenum drawMode, gl
 
 	GLushort nextVtxIdx = da_count(vtxBuf);
 	drawCmd.idxBufOffset = da_count(idxBuf);
-	assert(drawCmd.shader != NULL);
+	assert(drawCmd.shaderIdx != -1);
 
 	// translate triangle fan/strip to just triangle indices
 	if(drawMode == GL_TRIANGLE_FAN)
@@ -1068,7 +1074,7 @@ GL3_DrawBeam(entity_t *e)
 	//glDisable(GL_TEXTURE_2D);
 	drawCmd.flags |= (DCFlag_Blend | DCFlag_DisableDepthMask | DCFlag_UseColor);
 
-	drawCmd.shader = &gl3state.si3DcolorOnly;
+	GL3_SetDrawCmdShader(&drawCmd, &gl3state.si3DcolorOnly);
 
 	drawCmd.color[0] = (LittleLong(d_8to24table[e->skinnum & 0xFF])) & 0xFF;
 	drawCmd.color[1] = (LittleLong(d_8to24table[e->skinnum & 0xFF]) >> 8) & 0xFF;
@@ -1135,13 +1141,13 @@ GL3_DrawSpriteModel(entity_t *e, gl3model_t *currentmodel)
 	if (alpha == 1.0)
 	{
 		// use shader with alpha test
-		drawCmd.shader = &gl3state.si3DspriteAlpha;
+		GL3_SetDrawCmdShader(&drawCmd, &gl3state.si3DspriteAlpha);
 	}
 	else
 	{
 		drawCmd.flags |= DCFlag_Blend;
 
-		drawCmd.shader = &gl3state.si3Dsprite;
+		GL3_SetDrawCmdShader(&drawCmd, &gl3state.si3Dsprite);
 	}
 
 	verts[0].texCoord[0] = 0;
@@ -1198,8 +1204,7 @@ GL3_DrawNullModel(entity_t *currententity)
 	}
 	drawCmd.flags |= DCFlag_UseColor;
 
-	drawCmd.shader = &gl3state.si3DcolorOnly;
-
+	GL3_SetDrawCmdShader(&drawCmd, &gl3state.si3DcolorOnly);
 
 	gl3_3D_vtx_t vtxA[6] = {
 		{{0, 0, -16}, {0,0}, {0,0}},

@@ -270,16 +270,15 @@ RenderBrushPoly(entity_t *currententity, msurface_t *fa, gl3drawCmd_t drawCmd)
 	//       and put fa->styles[] into the 3d draw vertex?
 	memcpy(drawCmd.styles, fa->styles, sizeof(fa->styles));
 	drawCmd.flags |= DCFlag_UseLmStyles;
-	static_assert(sizeof(fa->styles) == 4, "asd"); // TODO: remove
 
 	if (fa->texinfo->flags & SURF_FLOWING)
 	{
-		drawCmd.shader = &gl3state.si3DlmFlow;
+		GL3_SetDrawCmdShader(&drawCmd, &gl3state.si3DlmFlow);
 		GL3_DrawGLFlowingPoly(fa, drawCmd);
 	}
 	else
 	{
-		drawCmd.shader = &gl3state.si3Dlm;
+		GL3_SetDrawCmdShader(&drawCmd, &gl3state.si3Dlm);
 		GL3_DrawGLPoly(fa, drawCmd);
 	}
 
@@ -323,12 +322,12 @@ GL3_DrawAlphaSurfaces(void)
 		}
 		else if (s->texinfo->flags & SURF_FLOWING)
 		{
-			drawCmd.shader = &gl3state.si3DtransFlow;
+			GL3_SetDrawCmdShader(&drawCmd, &gl3state.si3DtransFlow);
 			GL3_DrawGLFlowingPoly(s, drawCmd);
 		}
 		else
 		{
-			drawCmd.shader = &gl3state.si3Dtrans;
+			GL3_SetDrawCmdShader(&drawCmd, &gl3state.si3Dtrans);
 			GL3_DrawGLPoly(s, drawCmd);
 		}
 	}
@@ -395,12 +394,12 @@ RenderLightmappedPoly(entity_t *currententity, msurface_t *surf, gl3drawCmd_t dr
 
 	if (surf->texinfo->flags & SURF_FLOWING)
 	{
-		drawCmd.shader = &gl3state.si3DlmFlow;
+		GL3_SetDrawCmdShader(&drawCmd, &gl3state.si3DlmFlow);
 		GL3_DrawGLFlowingPoly(surf, drawCmd);
 	}
 	else
 	{
-		drawCmd.shader = &gl3state.si3Dlm;
+		GL3_SetDrawCmdShader(&drawCmd, &gl3state.si3Dlm);
 		GL3_DrawGLPoly(surf, drawCmd);
 	}
 }
