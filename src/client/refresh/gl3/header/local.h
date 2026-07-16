@@ -56,6 +56,8 @@
 
 #include "../../ref_shared.h"
 
+#include <stddef.h> // offsetof()
+
 #include "HandmadeMath.h"
 
 #define DG_DYNARR_ASSERT(cond, msg) \
@@ -231,7 +233,7 @@ typedef struct
 	GLuint currentShaderProgram;
 	GLuint currentUBO;
 
-	// NOTE: make sure si2D is always the first shaderInfo (or adapt GL3_ShutdownShaders())
+	// NOTE: make sure si2D is always the first shaderInfo (or adapt GL3_ShutdownShaders() and GL3_SetDrawCmdShader())
 	gl3ShaderInfo_t si2D;      // shader for rendering 2D with textures
 	gl3ShaderInfo_t si2Dtinted; // shader for rendering 2D with textures and color tinting
 	gl3ShaderInfo_t si2Dcolor; // shader for rendering 2D with flat colors
@@ -277,10 +279,10 @@ typedef struct
 // drawcommands using gl3_3D_vtx_t, for batching
 typedef struct gl3drawCmd_s {
 	hmm_mat4	transModelMat;
-	gl3ShaderInfo_t* shader;
 
 	GLuint		texnum;
-	int			lmtexnum;
+	char		lmtexnum;
+	char		shaderIdx;
 
 	float		scroll; // for gl3state.uni3DData.scroll
 	float		lightScaleForTurb; // for gl3state.uni3DData.lightScaleForTurb
@@ -320,15 +322,47 @@ GL3_CreateDrawCmd(qboolean identityTrans)
 	ret.alpha = 1.0f;
 	ret.styles[0] = 255;
 	ret.lmtexnum = -1;
+	ret.shaderIdx = -1;
 	// the other values can remain 0/NULL
 
 	return ret;
 }
 
-
-
 extern gl3config_t gl3config;
 extern gl3state_t gl3state;
+
+enum {
+	_gl3_numShaders = 1 + ((offsetof(gl3state_t, siParticle) - offsetof(gl3state_t, si2D)) / sizeof(gl3ShaderInfo_t))
+};
+
+static inline void
+GL3_SetDrawCmdShader(gl3drawCmd_t* drawCmd, const gl3ShaderInfo_t* shader)
+{
+	if(shader == NULL)
+	{
+		drawCmd->shaderIdx = -1;
+		return;
+	}
+	ptrdiff_t offset = shader - &gl3state.si2D;
+	if( offset >= 0 && offset < _gl3_numShaders)
+	{
+		drawCmd->shaderIdx = offset;
+	}
+	else
+	{
+		assert(0 && "invalid shader!");
+		drawCmd->shaderIdx = -1;
+	}
+}
+
+static inline gl3ShaderInfo_t*
+GL3_GetDrawCmdShader(const gl3drawCmd_t* drawCmd)
+{
+	unsigned shaderIdx = drawCmd->shaderIdx;
+	if(shaderIdx >= _gl3_numShaders) // because it's unsigned this also handles shaderIdx -1
+		return NULL;
+	return &gl3state.si2D + shaderIdx;
+}
 
 extern int gl3_visframecount; /* bumped when going to a new PVS */
 extern int gl3_framecount; /* used for dlight push checking */
