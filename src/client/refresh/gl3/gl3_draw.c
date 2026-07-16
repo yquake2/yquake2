@@ -583,16 +583,5 @@ void GL3_EndFrame(void)
 		GL3_DrawCurrent2Dbatch();
 	}
 
-#if 0
-	if(gl3config.useBigVBO)
-	{
-		// I think this is a good point to orphan the VBO and get a fresh one
-		GL3_BindVAO(gl3state.vao3D);
-		GL3_BindVBO(gl3state.vbo3D);
-		glBufferData(GL_ARRAY_BUFFER, gl3state.vbo3Dsize, NULL, GL_STREAM_DRAW);
-		gl3state.vbo3DcurOffset = 0;
-	}
-#endif
-
 	GL3_SwapWindow();
 }
