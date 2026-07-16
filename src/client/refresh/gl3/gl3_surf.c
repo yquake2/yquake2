@@ -53,15 +53,6 @@ void GL3_SurfInit(void)
 	glGenBuffers(1, &gl3state.vbo3D);
 	GL3_BindVBO(gl3state.vbo3D);
 
-#if 0
-	if(gl3config.useBigVBO)
-	{
-		gl3state.vbo3Dsize = 5*1024*1024; // a 5MB buffer seems to work well?
-		gl3state.vbo3DcurOffset = 0;
-		glBufferData(GL_ARRAY_BUFFER, gl3state.vbo3Dsize, NULL, GL_STREAM_DRAW); // allocate/reserve that data
-	}
-#endif
-
 	glEnableVertexAttribArray(GL3_ATTRIB_POSITION);
 	qglVertexAttribPointer(GL3_ATTRIB_POSITION, 3, GL_FLOAT, GL_FALSE, sizeof(gl3_3D_vtx_t), 0);
 
@@ -193,15 +184,6 @@ GL3_DrawGLFlowingPoly(msurface_t *fa, gl3drawCmd_t drawCmd)
 	}
 	drawCmd.scroll = scroll;
 	drawCmd.flags |= DCFlag_UseScroll;
-
-#if 0
-	if(gl3state.uni3DData.scroll != scroll)
-	{
-		gl3state.uni3DData.scroll = scroll;
-		GL3_UpdateUBO3D();
-	}
-#endif
-
 
 	GL3_BufferAndDraw3D(p->vertices, p->numverts, GL_TRIANGLE_FAN, drawCmd);
 }
