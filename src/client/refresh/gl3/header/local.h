@@ -254,11 +254,9 @@ typedef struct
 	// NOTE: make sure siParticle is always the last shaderInfo (or adapt GL3_ShutdownShaders())
 	gl3ShaderInfo_t siParticle; // for particles. surprising, right?
 
-	GLuint vao3D, vbo3D; // for brushes etc, using 10 floats and one uint as vertex input (x,y,z, s,t, lms,lmt, normX,normY,normZ ; lightFlags)
+	GLuint vao3D, vbo3D, ebo3D; // for brushes etc, using 10 floats and one uint as vertex input (x,y,z, s,t, lms,lmt, normX,normY,normZ ; lightFlags)
 
 	// the next two are for gl3config.useBigVBO == true
-	int vbo3Dsize;
-	int vbo3DcurOffset;
 
 	GLuint vaoAlias, vboAlias, eboAlias; // for models, using 9 floats as (x,y,z, s,t, r,g,b,a)
 	GLuint vaoParticle, vboParticle; // for particles, using 9 floats (x,y,z, size,distance, r,g,b,a)
@@ -276,6 +274,60 @@ typedef struct
 	hmm_mat4 projMat3D;
 	hmm_mat4 viewMat3D;
 } gl3state_t;
+
+
+// drawcommands using gl3_3D_vtx_t, for batching
+typedef struct gl3drawCmd_s {
+	hmm_mat4	transModelMat;
+	gl3ShaderInfo_t* shader;
+
+	GLuint		texnum;
+	int			lmtexnum;
+
+	float		scroll; // for gl3state.uni3DData.scroll
+	float		lightScaleForTurb; // for gl3state.uni3DData.lightScaleForTurb
+	float		alpha; // either part of color or for gl3state.uni3DData.alpha
+	byte		color[3]; // for uniCommonData.color; its alpha chan is in .alpha
+	byte		flags;    // gl3drawCmd_Flags
+	byte		styles[MAXLIGHTMAPS]; // indexes into r_newrefdef.lightstyles[]; 255 means "ignore"
+
+	// the following are set in GL3_BufferAndDraw3D()
+	int			idxBufOffset;
+	int			numElements; // in index buffer
+} gl3drawCmd_t;
+
+// for gl3drawCmd_t::flags
+enum gl3drawCmd_Flags {
+	DCFlag_DisableDepthMask =  1, // glDepthMask() - GL_FALSE if bit is set
+	DCFlag_Blend            =  2, // GL_BLEND (glEnable/glDisable)
+	DCFlag_PolyOffsetFill   =  4, // GL_POLYGON_OFFSET_FILL (glEnable/glDisable) - for gl_zfix
+	DCFlag_UseColor         =  8,
+	DCFlag_UseScroll        = 16,
+	DCFlag_UseLmStyles      = 32,
+	DCFlag_UseLightScaleForTurb = 64,
+	DCFlag_IsIdentityMat    = 128, // avoids comparing the matrix in many cases
+
+	// TODO: DCFlag_SameAsPrevious = 255 for "don't check, just merge into previous command"?
+};
+
+// create an "empty" gl3drawCmd_t with sane defaults
+static inline gl3drawCmd_t
+GL3_CreateDrawCmd(qboolean identityTrans)
+{
+	gl3drawCmd_t ret = {0};
+	if(identityTrans) {
+		ret.transModelMat = gl3_identityMat4;
+		ret.flags = DCFlag_IsIdentityMat;
+	}
+	ret.alpha = 1.0f;
+	ret.styles[0] = 255;
+	ret.lmtexnum = -1;
+	// the other values can remain 0/NULL
+
+	return ret;
+}
+
+
 
 extern gl3config_t gl3config;
 extern gl3state_t gl3state;
@@ -382,9 +434,11 @@ GL3_BindEBO(GLuint ebo)
 	}
 }
 
-extern void GL3_BufferAndDraw3D(const gl3_3D_vtx_t* verts, int numVerts, GLenum drawMode);
+extern void GL3_BufferAndDraw3D(const gl3_3D_vtx_t* verts, int numVerts, GLenum drawMode, gl3drawCmd_t drawCmd);
+extern void GL3_Draw3DBatchesNow(void);
 
-extern void GL3_RotateForEntity(entity_t *e);
+extern void GL3_RotateUni3DforEntity(entity_t *e);
+extern void GL3_RotateForEntity(entity_t *e, gl3drawCmd_t* drawCmd, qboolean replaceTransModelMat);
 
 // gl3_sdl.c
 extern int GL3_InitContext(void* win);
@@ -480,7 +534,7 @@ extern void GL3_LM_BeginBuildingLightmaps(gl3model_t *m);
 extern void GL3_LM_EndBuildingLightmaps(void);
 
 // gl3_warp.c
-extern void GL3_EmitWaterPolys(msurface_t *fa);
+extern void GL3_EmitWaterPolys(msurface_t *fa, gl3drawCmd_t drawCmd);
 extern void GL3_SubdivideSurface(msurface_t *fa, gl3model_t* loadmodel);
 
 extern void GL3_SetSky(const char *name, float rotate, vec3_t axis);
@@ -492,8 +546,8 @@ extern void GL3_AddSkySurface(msurface_t *fa);
 // gl3_surf.c
 extern void GL3_SurfInit(void);
 extern void GL3_SurfShutdown(void);
-extern void GL3_DrawGLPoly(msurface_t *fa);
-extern void GL3_DrawGLFlowingPoly(msurface_t *fa);
+extern void GL3_DrawGLPoly(msurface_t *fa, gl3drawCmd_t drawCmd);
+extern void GL3_DrawGLFlowingPoly(msurface_t *fa, gl3drawCmd_t drawCmd);
 extern void GL3_DrawTriangleOutlines(void);
 extern void GL3_DrawAlphaSurfaces(void);
 extern void GL3_DrawBrushModel(entity_t *e, gl3model_t *currentmodel);

@@ -849,7 +849,7 @@ GL3_DrawAliasModel(entity_t *entity)
 	origModelMat = gl3state.uni3DData.transModelMat4;
 
 	entity->angles[PITCH] = -entity->angles[PITCH];
-	GL3_RotateForEntity(entity);
+	GL3_RotateUni3DforEntity(entity);
 	entity->angles[PITCH] = -entity->angles[PITCH];
 
 
@@ -908,17 +908,16 @@ GL3_DrawAliasModel(entity_t *entity)
 
 	DrawAliasFrameLerp(paliashdr, entity, shadelight);
 
-	//glPopMatrix();
-	gl3state.uni3DData.transModelMat4 = origModelMat;
-	GL3_UpdateUBO3D();
-
 	if (entity->flags & RF_WEAPONMODEL)
 	{
 		gl3state.uni3DData.transProjViewMat4 = origProjViewMat;
-		GL3_UpdateUBO3D();
 		if(gl_lefthand->value == 1.0F)
 			glCullFace(GL_FRONT);
 	}
+
+	//glPopMatrix();
+	gl3state.uni3DData.transModelMat4 = origModelMat;
+	GL3_UpdateUBO3D();
 
 	if (entity->flags & RF_TRANSLUCENT)
 	{

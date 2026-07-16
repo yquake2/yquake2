@@ -793,7 +793,8 @@ static const char* fragmentSrc3DspriteAlpha = MULTILINE_STRING(
 			// apply gamma correction and intensity
 			texel.rgb *= intensity;
 			outColor.rgb = pow(texel.rgb, vec3(gamma));
-			outColor.a = texel.a*alpha; // I think alpha shouldn't be modified by gamma and intensity
+			//outColor.a = texel.a*alpha; // I think alpha shouldn't be modified by gamma and intensity
+			outColor.a = texel.a; // I think in this case alpha from uni3d shouldn't be used
 		}
 );
 

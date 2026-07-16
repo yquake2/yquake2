@@ -134,6 +134,15 @@ cvar_t *gl3_show_draw_stats;
 
 static cvar_t *gl_znear;
 
+DA_TYPEDEF(gl3_3D_vtx_t, Vtx3DArray_t);
+DA_TYPEDEF(GLushort, UShortArray_t);
+DA_TYPEDEF(gl3drawCmd_t, DrawCommandArray_t);
+// dynamic arrays to batch all consecutive 3D draws (with gl3_3D_vtx_t) with same texture to reduce drawcalls
+static Vtx3DArray_t vtxBuf = {0};
+static UShortArray_t idxBuf = {0};
+static DrawCommandArray_t drawCmds = {0};
+
+
 // Yaw-Pitch-Roll
 // equivalent to R_z * R_y * R_x where R_x is the trans matrix for rotating around X axis for aroundXdeg
 static hmm_mat4 rotAroundAxisZYX(float aroundZdeg, float aroundYdeg, float aroundXdeg)
@@ -163,7 +172,7 @@ static hmm_mat4 rotAroundAxisZYX(float aroundZdeg, float aroundYdeg, float aroun
 }
 
 void
-GL3_RotateForEntity(entity_t *e)
+GL3_RotateUni3DforEntity(entity_t *e)
 {
 	// angles: pitch (around y), yaw (around z), roll (around x)
 	// rot matrices to be multiplied in order Z, Y, X (yaw, pitch, roll)
@@ -177,6 +186,29 @@ GL3_RotateForEntity(entity_t *e)
 	gl3state.uni3DData.transModelMat4 = HMM_MultiplyMat4(gl3state.uni3DData.transModelMat4, transMat);
 
 	GL3_UpdateUBO3D();
+}
+
+// if replaceTransModelMat is true, the existing value of drawCmd->transModelMat
+// is ignored and it's replaced with the one calculated here (otherwise they're multiplied)
+void
+GL3_RotateForEntity(entity_t *e, gl3drawCmd_t* drawCmd, qboolean replaceTransModelMat)
+{
+	// TODO: shortcut for "not rotated at all"?
+
+	// angles: pitch (around y), yaw (around z), roll (around x)
+	// rot matrices to be multiplied in order Z, Y, X (yaw, pitch, roll)
+	hmm_mat4 transMat = rotAroundAxisZYX(e->angles[1], -e->angles[0], -e->angles[2]);
+
+	for(int i=0; i<3; ++i)
+	{
+		transMat.Elements[3][i] = e->origin[i]; // set translation
+	}
+
+	if (replaceTransModelMat)
+		drawCmd->transModelMat = transMat;
+	else
+		drawCmd->transModelMat = HMM_MultiplyMat4(drawCmd->transModelMat, transMat);
+	drawCmd->flags &= ~DCFlag_IsIdentityMat;
 }
 
 
@@ -599,6 +631,7 @@ GL3_Init(void)
 	}
 
 	gl3config.useBigVBO = false;
+#if 0 // TODO: hopefully we can get rid of all this big vbo nonsense when doing more batching
 	if(gl3_usebigvbo->value == 1.0f)
 	{
 		Com_Printf("Enabling useBigVBO workaround because gl3_usebigvbo = 1\n");
@@ -638,6 +671,7 @@ GL3_Init(void)
 		}
 #endif
 	}
+#endif
 
 	// generate texture handles for all possible lightmaps
 	glGenTextures(MAX_LIGHTMAPS*MAX_LIGHTMAPS_PER_SURFACE, gl3state.lightmap_textureIDs[0]);
@@ -706,16 +740,337 @@ GL3_Shutdown(void)
 		gl3state.ppFBtexWidth = gl3state.ppFBtexHeight = -1;
 	}
 
+	da_free(vtxBuf);
+	da_free(idxBuf);
+	da_free(drawCmds);
+
 	/* shutdown OS specific OpenGL stuff like contexts, etc.  */
 	GL3_ShutdownContext();
+}
+
+static inline qboolean
+colorsEqual(const byte c1[3], const byte c2[3])
+{
+	return c1[0] == c2[0] && c1[1] == c2[1] && c1[2] == c2[2];
+}
+
+static inline qboolean
+lmstylesEqual(const byte st1[MAXLIGHTMAPS], const byte st2[MAXLIGHTMAPS])
+{
+	for(int i=0; i<MAXLIGHTMAPS; ++i)
+	{
+		byte astyle = st1[i];
+		if(astyle != st2[i])
+			return false;
+		// 255 indicates that this and the remaining styles can be ignored
+		// (still needed to check first if a and b agree about ignoring it)
+		if(astyle == 255)
+			break;
+	}
+	return true;
+}
+
+static void
+UpdateLMscales(const hmm_vec4 lmScales[MAX_LIGHTMAPS_PER_SURFACE], gl3ShaderInfo_t* si)
+{
+	int i;
+	qboolean hasChanged = false;
+
+	for(i=0; i<MAX_LIGHTMAPS_PER_SURFACE; ++i)
+	{
+		if(hasChanged)
+		{
+			si->lmScales[i] = lmScales[i];
+		}
+		else if(   si->lmScales[i].R != lmScales[i].R
+		        || si->lmScales[i].G != lmScales[i].G
+		        || si->lmScales[i].B != lmScales[i].B
+		        || si->lmScales[i].A != lmScales[i].A )
+		{
+			si->lmScales[i] = lmScales[i];
+			hasChanged = true;
+		}
+	}
+
+	if(hasChanged)
+	{
+		glUniform4fv(si->uniLmScalesOrTime, MAX_LIGHTMAPS_PER_SURFACE, si->lmScales[0].Elements);
+	}
+}
+
+void GL3_Draw3DBatchesNow()
+{
+	if(da_count(drawCmds) == 0)
+		return;
+
+	GL3_BindVAO(gl3state.vao3D);
+	GL3_BindVBO(gl3state.vbo3D);
+	GL3_BindEBO(gl3state.ebo3D);
+
+	glBufferData(GL_ARRAY_BUFFER, da_count(vtxBuf)*sizeof(gl3_3D_vtx_t), vtxBuf.p, GL_STREAM_DRAW);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, da_count(idxBuf)*sizeof(GLushort), idxBuf.p, GL_STREAM_DRAW);
+
+	++gl3_numBufferVtxData;
+
+	// set curState to something that reflects the actual state, as far as possible,
+	// and otherwise makes sure it'll be set in the loop
+	gl3drawCmd_t curState = GL3_CreateDrawCmd(true);
+	curState.flags = ~drawCmds.p[0].flags; // just the opposite flags of the first element
+	curState.texnum = gl3state.currenttexture;
+	curState.lmtexnum = gl3state.currentlightmap;
+	curState.alpha = gl3state.uni3DData.alpha;
+	curState.scroll = gl3state.uni3DData.scroll;
+	curState.lightScaleForTurb = gl3state.uni3DData.lightScaleForTurb;
+
+	// .. but at least set the identity mat so DCFlag_IsIdentityMat can be set
+	// as a sane default
+	curState.flags |= DCFlag_IsIdentityMat;
+	gl3state.uni3DData.transModelMat4 = gl3_identityMat4;
+	GL3_UpdateUBO3D();
+
+	for(int i=0, n=da_count(drawCmds); i < n; ++i)
+	{
+		gl3drawCmd_t* cmd = da_getptr(drawCmds, i);
+
+		int flags = cmd->flags;
+		int curFlags = curState.flags;
+		qboolean updateUni3D = false;
+
+		GL3_UseProgram(cmd->shader->shaderProgram);
+		if(cmd->texnum != gl3state.currenttexture)
+			GL3_Bind(cmd->texnum);
+		if(cmd->lmtexnum >= 0)
+			GL3_BindLightmap(cmd->lmtexnum);
+
+		if((flags & DCFlag_DisableDepthMask) != (curFlags & DCFlag_DisableDepthMask))
+			glDepthMask((flags & DCFlag_DisableDepthMask) == 0);
+
+		if((flags & DCFlag_Blend) != (curFlags & DCFlag_Blend))
+		{
+			if(flags & DCFlag_Blend)
+				glEnable(GL_BLEND);
+			else
+				glDisable(GL_BLEND);
+		}
+
+		if((flags & DCFlag_PolyOffsetFill) != (curFlags & DCFlag_PolyOffsetFill))
+		{
+			if(flags & DCFlag_PolyOffsetFill)
+				glEnable(GL_POLYGON_OFFSET_FILL);
+			else
+				glDisable(GL_POLYGON_OFFSET_FILL);
+		}
+
+		if((flags & DCFlag_UseScroll) && cmd->scroll != gl3state.uni3DData.scroll)
+		{
+			gl3state.uni3DData.scroll = cmd->scroll;
+			updateUni3D = true;
+		}
+
+		if((flags & DCFlag_UseLightScaleForTurb)
+		   && cmd->lightScaleForTurb != gl3state.uni3DData.lightScaleForTurb)
+		{
+			gl3state.uni3DData.lightScaleForTurb = cmd->lightScaleForTurb;
+			updateUni3D = true;
+		}
+
+		if((flags & DCFlag_UseLmStyles) && !lmstylesEqual(cmd->styles, curState.styles))
+		{
+			hmm_vec4 lmScales[MAX_LIGHTMAPS_PER_SURFACE] = {0};
+			lmScales[0] = HMM_Vec4(1.0f, 1.0f, 1.0f, 1.0f);
+			for(int map = 0; map < MAX_LIGHTMAPS_PER_SURFACE && cmd->styles[map] != 255; map++)
+			{
+				lmScales[map].R = r_newrefdef.lightstyles[cmd->styles[map]].rgb[0];
+				lmScales[map].G = r_newrefdef.lightstyles[cmd->styles[map]].rgb[1];
+				lmScales[map].B = r_newrefdef.lightstyles[cmd->styles[map]].rgb[2];
+				lmScales[map].A = 1.0f;
+			}
+			UpdateLMscales(lmScales, cmd->shader);
+		}
+
+		if(flags & DCFlag_UseColor)
+		{
+			if(cmd->alpha != curState.alpha || !colorsEqual(cmd->color, curState.color))
+			{
+				gl3state.uniCommonData.color.R = cmd->color[0] * (1.0f/255.0f);
+				gl3state.uniCommonData.color.G = cmd->color[1] * (1.0f/255.0f);
+				gl3state.uniCommonData.color.B = cmd->color[2] * (1.0f/255.0f);
+				gl3state.uniCommonData.color.A = cmd->alpha;
+				GL3_UpdateUBOCommon();
+			}
+		}
+		else if((flags & DCFlag_Blend) && cmd->alpha != gl3state.uni3DData.alpha)
+		{
+			gl3state.uni3DData.alpha = cmd->alpha;
+			updateUni3D = true;
+		}
+
+		if((flags & DCFlag_IsIdentityMat) != (curFlags & DCFlag_IsIdentityMat))
+		{
+			// one is the identity matrix, the other isn't => we need to update
+			gl3state.uni3DData.transModelMat4 = cmd->transModelMat;
+			updateUni3D = true;
+		}
+		else if( !(flags & DCFlag_IsIdentityMat) )
+		{
+			// neither is an identity matrix
+			// TODO: could check if they're identical and only update if not
+			gl3state.uni3DData.transModelMat4 = cmd->transModelMat;
+			updateUni3D = true;
+		}
+		// else both are the identity matrix - nothing to do
+
+		if(updateUni3D)
+			GL3_UpdateUBO3D();
+
+		uintptr_t elemOffset = cmd->idxBufOffset * sizeof(GLushort);
+		glDrawElements(GL_TRIANGLES, cmd->numElements, GL_UNSIGNED_SHORT, (void*)elemOffset);
+		curState = *cmd;
+
+		++gl3_num3Ddraws;
+	}
+
+	da_clear(vtxBuf);
+	da_clear(idxBuf);
+	da_clear(drawCmds);
+
+	// restore sane default for other draw operations (models, particles, 2D)
+	int curFlags = curState.flags;
+	if( !(curFlags & DCFlag_IsIdentityMat) )
+	{
+		gl3state.uni3DData.transModelMat4 = gl3_identityMat4;
+		GL3_UpdateUBO3D();
+	}
+	if(curFlags & DCFlag_Blend)
+		glDisable(GL_BLEND);
+	if(curFlags & DCFlag_DisableDepthMask)
+		glDepthMask(GL_TRUE);
+
+	if(curFlags & DCFlag_PolyOffsetFill)
+		glDisable(GL_POLYGON_OFFSET_FILL);
+}
+
+static qboolean drawStateEqual(const gl3drawCmd_t* a, const gl3drawCmd_t* b)
+{
+	if( a->flags != b->flags || a->shader != b->shader
+	   || a->texnum != b->texnum || a->lmtexnum != b->lmtexnum )
+		return false;
+
+	int flags = a->flags; // at this point we know the flags are identical
+
+	if((flags & DCFlag_UseScroll) && a->scroll != b->scroll)
+		return false;
+
+	if((flags & DCFlag_UseLightScaleForTurb) && a->lightScaleForTurb != b->lightScaleForTurb)
+		return false;
+
+	if( (flags & DCFlag_UseColor) && !colorsEqual(a->color, b->color) )
+		return false;
+
+	if(a->alpha != b->alpha)
+		return false;
+
+	if((flags & DCFlag_UseLmStyles) && !lmstylesEqual(a->styles, b->styles))
+	{
+		return false;
+	}
+
+	if( !(flags & DCFlag_IsIdentityMat) )
+	{
+		const float* atm = a->transModelMat.Elements[0];
+		const float* btm = b->transModelMat.Elements[0];
+		for(int i=0; i<16; ++i)
+		{
+			if(atm[i] != btm[i]) // TODO: tolerance?
+				return false;
+		}
+	}
+
+	return true;
 }
 
 // assumes gl3state.v[ab]o3D are bound
 // buffers and draws gl3_3D_vtx_t vertices
 // drawMode is something like GL_TRIANGLE_STRIP or GL_TRIANGLE_FAN or whatever
 void
-GL3_BufferAndDraw3D(const gl3_3D_vtx_t* verts, int numVerts, GLenum drawMode)
+GL3_BufferAndDraw3D(const gl3_3D_vtx_t* verts, int numVerts, GLenum drawMode, gl3drawCmd_t drawCmd)
 {
+	if(da_count(vtxBuf)+numVerts > UINT16_MAX) {
+		GL3_Draw3DBatchesNow();
+	}
+
+	GLushort nextVtxIdx = da_count(vtxBuf);
+	drawCmd.idxBufOffset = da_count(idxBuf);
+	assert(drawCmd.shader != NULL);
+
+	// translate triangle fan/strip to just triangle indices
+	if(drawMode == GL_TRIANGLE_FAN)
+	{
+		for(GLushort i=1; i < numVerts-1; ++i)
+		{
+			GLushort* add = da_addn_uninit(idxBuf, 3);
+
+			add[0] = nextVtxIdx;
+			add[1] = nextVtxIdx+i;
+			add[2] = nextVtxIdx+i+1;
+		}
+	}
+	else if(drawMode == GL_TRIANGLE_STRIP)
+	{
+		GLushort i;
+		for(i=1; i < numVerts-2; i+=2)
+		{
+			// add two triangles at once, because the vertex order is different
+			// for odd vs even triangles
+			GLushort* add = da_addn_uninit(idxBuf, 6);
+
+			add[0] = nextVtxIdx + i-1;
+			add[1] = nextVtxIdx + i;
+			add[2] = nextVtxIdx + i+1;
+
+			add[3] = nextVtxIdx + i;
+			add[4] = nextVtxIdx + i+2;
+			add[5] = nextVtxIdx + i+1;
+		}
+		// add remaining triangle, if any
+		if(i < numVerts-1)
+		{
+			GLushort* add = da_addn_uninit(idxBuf, 3);
+
+			add[0] = nextVtxIdx + i-1;
+			add[1] = nextVtxIdx + i;
+			add[2] = nextVtxIdx + i+1;
+		}
+	}
+	else if(drawMode == GL_TRIANGLES)
+	{
+		GLushort* add = da_addn_uninit(idxBuf, numVerts);
+		for(GLushort i=0; i<numVerts; ++i)
+			add[i] = nextVtxIdx + i;
+	}
+	else
+	{
+		Com_Printf("GL3_BufferAndDraw3D(): WARNING: Unsupported drawmode 0x%x\n", drawMode);
+		return;
+	}
+
+	da_addn(vtxBuf, verts, numVerts);
+
+	int numAddedIndices = da_count(idxBuf) - drawCmd.idxBufOffset;
+
+	gl3drawCmd_t* lastDrawCmd = da_lastptr(drawCmds);
+	if(lastDrawCmd != NULL && drawStateEqual(lastDrawCmd, &drawCmd))
+	{
+		lastDrawCmd->numElements += numAddedIndices;
+	}
+	else
+	{
+		drawCmd.numElements = numAddedIndices;
+		da_add(drawCmds, drawCmd);
+	}
+
+
+#if 0 // let's get rid of useBigVBO etc
 	if(!gl3config.useBigVBO)
 	{
 		glBufferData( GL_ARRAY_BUFFER, sizeof(gl3_3D_vtx_t)*numVerts, verts, GL_STREAM_DRAW );
@@ -784,15 +1139,16 @@ GL3_BufferAndDraw3D(const gl3_3D_vtx_t* verts, int numVerts, GLenum drawMode)
 	}
 	++gl3_num3Ddraws;
 	++gl3_numBufferVtxData;
+#endif
 }
 
 static void
 GL3_DrawBeam(entity_t *e)
 {
 	int i;
-	float r, g, b;
-
 	enum { NUM_BEAM_SEGS = 6 };
+
+	gl3drawCmd_t drawCmd = GL3_CreateDrawCmd(true);
 
 	vec3_t perpvec;
 	vec3_t direction, normalized_direction;
@@ -831,21 +1187,16 @@ GL3_DrawBeam(entity_t *e)
 	}
 
 	//glDisable(GL_TEXTURE_2D);
-	glEnable(GL_BLEND);
-	glDepthMask(GL_FALSE);
+	drawCmd.flags |= (DCFlag_Blend | DCFlag_DisableDepthMask | DCFlag_UseColor);
 
-	GL3_UseProgram(gl3state.si3DcolorOnly.shaderProgram);
+	drawCmd.shader = &gl3state.si3DcolorOnly;
 
-	r = (LittleLong(d_8to24table[e->skinnum & 0xFF])) & 0xFF;
-	g = (LittleLong(d_8to24table[e->skinnum & 0xFF]) >> 8) & 0xFF;
-	b = (LittleLong(d_8to24table[e->skinnum & 0xFF]) >> 16) & 0xFF;
+	drawCmd.color[0] = (LittleLong(d_8to24table[e->skinnum & 0xFF])) & 0xFF;
+	drawCmd.color[1] = (LittleLong(d_8to24table[e->skinnum & 0xFF]) >> 8) & 0xFF;
+	drawCmd.color[2] = (LittleLong(d_8to24table[e->skinnum & 0xFF]) >> 16) & 0xFF;
+	drawCmd.alpha = e->alpha;
 
-	r *= 1 / 255.0F;
-	g *= 1 / 255.0F;
-	b *= 1 / 255.0F;
 
-	gl3state.uniCommonData.color = HMM_Vec4(r, g, b, e->alpha);
-	GL3_UpdateUBOCommon();
 
 	for ( i = 0; i < NUM_BEAM_SEGS; i++ )
 	{
@@ -858,13 +1209,9 @@ GL3_DrawBeam(entity_t *e)
 		VectorCopy(end_points[pointb], verts[4*i+3].pos);
 	}
 
-	GL3_BindVAO(gl3state.vao3D);
-	GL3_BindVBO(gl3state.vbo3D);
 
-	GL3_BufferAndDraw3D(verts, NUM_BEAM_SEGS*4, GL_TRIANGLE_STRIP);
+	GL3_BufferAndDraw3D(verts, NUM_BEAM_SEGS*4, GL_TRIANGLE_STRIP, drawCmd);
 
-	glDisable(GL_BLEND);
-	glDepthMask(GL_TRUE);
 }
 
 static void
@@ -876,6 +1223,8 @@ GL3_DrawSpriteModel(entity_t *e, gl3model_t *currentmodel)
 	float *up, *right;
 	dsprite_t *psprite;
 	gl3image_t *skin;
+
+	gl3drawCmd_t drawCmd = GL3_CreateDrawCmd(true);
 
 	/* don't even bother culling, because it's just
 	   a single polygon without a surface cache */
@@ -890,14 +1239,11 @@ GL3_DrawSpriteModel(entity_t *e, gl3model_t *currentmodel)
 
 	if (e->flags & RF_TRANSLUCENT)
 	{
+		drawCmd.flags |= DCFlag_DisableDepthMask;
 		alpha = e->alpha;
 	}
 
-	if (alpha != gl3state.uni3DData.alpha)
-	{
-		gl3state.uni3DData.alpha = alpha;
-		GL3_UpdateUBO3D();
-	}
+	drawCmd.alpha = alpha;
 
 	skin = currentmodel->skins[e->frame];
 	if (!skin)
@@ -905,18 +1251,18 @@ GL3_DrawSpriteModel(entity_t *e, gl3model_t *currentmodel)
 		skin = gl3_notexture; /* fallback... */
 	}
 
-	GL3_Bind(skin->texnum);
+	drawCmd.texnum = skin->texnum;
 
 	if (alpha == 1.0)
 	{
 		// use shader with alpha test
-		GL3_UseProgram(gl3state.si3DspriteAlpha.shaderProgram);
+		drawCmd.shader = &gl3state.si3DspriteAlpha;
 	}
 	else
 	{
-		glEnable(GL_BLEND);
+		drawCmd.flags |= DCFlag_Blend;
 
-		GL3_UseProgram(gl3state.si3Dsprite.shaderProgram);
+		drawCmd.shader = &gl3state.si3Dsprite;
 	}
 
 	verts[0].texCoord[0] = 0;
@@ -940,23 +1286,19 @@ GL3_DrawSpriteModel(entity_t *e, gl3model_t *currentmodel)
 	VectorMA( e->origin, -frame->origin_y, up, verts[3].pos );
 	VectorMA( verts[3].pos, frame->width - frame->origin_x, right, verts[3].pos );
 
-	GL3_BindVAO(gl3state.vao3D);
-	GL3_BindVBO(gl3state.vbo3D);
 
-	GL3_BufferAndDraw3D(verts, 4, GL_TRIANGLE_FAN);
+	GL3_BufferAndDraw3D(verts, 4, GL_TRIANGLE_FAN, drawCmd);
 
-	if (alpha != 1.0F)
-	{
-		glDisable(GL_BLEND);
-		gl3state.uni3DData.alpha = 1.0f;
-		GL3_UpdateUBO3D();
-	}
 }
 
 static void
 GL3_DrawNullModel(entity_t *currententity)
 {
 	vec3_t shadelight;
+	gl3drawCmd_t drawCmd = GL3_CreateDrawCmd(true);
+
+	if(currententity->flags & RF_TRANSLUCENT)
+		drawCmd.flags |= DCFlag_DisableDepthMask;
 
 	if (currententity->flags & RF_FULLBRIGHT)
 	{
@@ -967,16 +1309,18 @@ GL3_DrawNullModel(entity_t *currententity)
 		GL3_LightPoint(currententity, currententity->origin, shadelight);
 	}
 
-	hmm_mat4 origModelMat = gl3state.uni3DData.transModelMat4;
-	GL3_RotateForEntity(currententity);
+	GL3_RotateForEntity(currententity, &drawCmd, true);
 
-	gl3state.uniCommonData.color = HMM_Vec4( shadelight[0], shadelight[1], shadelight[2], 1 );
-	GL3_UpdateUBOCommon();
+	drawCmd.alpha = 1.0f;
+	for(int i=0; i<3; ++i)
+	{
+		int c = shadelight[i] * 255.0f;
+		drawCmd.color[i] = c & 255;
+	}
+	drawCmd.flags |= DCFlag_UseColor;
 
-	GL3_UseProgram(gl3state.si3DcolorOnly.shaderProgram);
+	drawCmd.shader = &gl3state.si3DcolorOnly;
 
-	GL3_BindVAO(gl3state.vao3D);
-	GL3_BindVBO(gl3state.vbo3D);
 
 	gl3_3D_vtx_t vtxA[6] = {
 		{{0, 0, -16}, {0,0}, {0,0}},
@@ -987,17 +1331,15 @@ GL3_DrawNullModel(entity_t *currententity)
 		{{16 * cos( 4 * M_PI / 2 ), 16 * sin( 4 * M_PI / 2 ), 0}, {0,0}, {0,0}}
 	};
 
-	GL3_BufferAndDraw3D(vtxA, 6, GL_TRIANGLE_FAN);
+	GL3_BufferAndDraw3D(vtxA, 6, GL_TRIANGLE_FAN, drawCmd);
 
 	gl3_3D_vtx_t vtxB[6] = {
 		{{0, 0, 16}, {0,0}, {0,0}},
 		vtxA[5], vtxA[4], vtxA[3], vtxA[2], vtxA[1]
 	};
 
-	GL3_BufferAndDraw3D(vtxB, 6, GL_TRIANGLE_FAN);
+	GL3_BufferAndDraw3D(vtxB, 6, GL_TRIANGLE_FAN, drawCmd);
 
-	gl3state.uni3DData.transModelMat4 = origModelMat;
-	GL3_UpdateUBO3D();
 }
 
 static void
@@ -1144,6 +1486,10 @@ GL3_DrawEntitiesOnList(void)
 	/* draw transparent entities
 	   we could sort these if it ever
 	   becomes a problem... */
+
+	// make sure that drawing the solid entities is done first
+	GL3_Draw3DBatchesNow();
+
 	glDepthMask(GL_FALSE);
 
 	for (i = 0; i < r_newrefdef.num_entities; i++)
@@ -1186,6 +1532,11 @@ GL3_DrawEntitiesOnList(void)
 			}
 		}
 	}
+
+	// make sure that drawing the entities is done before drawing the shadows
+	GL3_Draw3DBatchesNow();
+
+	glDepthMask(GL_FALSE);
 
 	GL3_DrawAliasShadows();
 
@@ -1527,7 +1878,7 @@ SetupGL(void)
 extern int c_visible_lightmaps, c_visible_textures;
 
 /*
- * r_newrefdef must be set before the first call
+ * r_newrefdef must be set before the first call - FIXME: ?! it is set right here
  */
 static void
 GL3_RenderView(refdef_t *fd)
@@ -1686,6 +2037,9 @@ GL3_RenderView(refdef_t *fd)
 	GL3_DrawParticles();
 
 	GL3_DrawAlphaSurfaces();
+
+	// make sure all remaining batched 3D stuff is drawn
+	GL3_Draw3DBatchesNow();
 
 	// Note: R_Flash() is now GL3_Draw_Flash() and called from GL3_RenderFrame()
 

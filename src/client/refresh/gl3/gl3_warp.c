@@ -228,7 +228,7 @@ GL3_SubdivideSurface(msurface_t *fa, gl3model_t* loadmodel)
  * Does a water warp on the pre-fragmented glpoly_t chain
  */
 void
-GL3_EmitWaterPolys(msurface_t *fa)
+GL3_EmitWaterPolys(msurface_t *fa, gl3drawCmd_t drawCmd)
 {
 	glpoly_t *bp;
 	float scroll = 0.0f;
@@ -241,37 +241,25 @@ GL3_EmitWaterPolys(msurface_t *fa)
 			scroll = -64.0f;
 		}
 	}
+	// set this even if scroll is 0, because the shader uses scroll
+	// so the uniform must be set either way
+	drawCmd.scroll = scroll;
+	drawCmd.flags |= DCFlag_UseScroll;
 
-	qboolean updateUni3D = false;
-	if(gl3state.uni3DData.scroll != scroll)
-	{
-		gl3state.uni3DData.scroll = scroll;
-		updateUni3D = true;
-	}
 	// these surfaces (mostly water and lava, I think?) don't have a lightmap.
 	// rendering water at full brightness looks bad (esp. for water in dark environments)
 	// so default use a factor of 0.5 (ontop of intensity)
 	// but lava should be bright and glowing, so use full brightness there
-	float lightScale = fa->texinfo->image->is_lava ? 1.0f : 0.5f;
-	if(lightScale != gl3state.uni3DData.lightScaleForTurb)
-	{
-		gl3state.uni3DData.lightScaleForTurb = lightScale;
-		updateUni3D = true;
-	}
+	drawCmd.lightScaleForTurb = fa->texinfo->image->is_lava ? 1.0f : 0.5f;
+	drawCmd.flags |= DCFlag_UseLightScaleForTurb;
 
-	if(updateUni3D)
-	{
-		GL3_UpdateUBO3D();
-	}
 
-	GL3_UseProgram(gl3state.si3Dturb.shaderProgram);
 
-	GL3_BindVAO(gl3state.vao3D);
-	GL3_BindVBO(gl3state.vbo3D);
+	drawCmd.shader = &gl3state.si3Dturb;
 
 	for (bp = fa->polys; bp != NULL; bp = bp->next)
 	{
-		GL3_BufferAndDraw3D(bp->vertices, bp->numverts, GL_TRIANGLE_FAN);
+		GL3_BufferAndDraw3D(bp->vertices, bp->numverts, GL_TRIANGLE_FAN, drawCmd);
 	}
 }
 
@@ -696,26 +684,25 @@ GL3_DrawSkyBox(void)
 		}
 	}
 
+	gl3drawCmd_t drawCmd = GL3_CreateDrawCmd(false);
+
 	// glPushMatrix();
-	hmm_mat4 origModelMat = gl3state.uni3DData.transModelMat4;
 
 	// glTranslatef(gl3_origin[0], gl3_origin[1], gl3_origin[2]);
 	hmm_vec3 transl = HMM_Vec3(gl3_origin[0], gl3_origin[1], gl3_origin[2]);
-	hmm_mat4 modMVmat = HMM_MultiplyMat4(origModelMat, HMM_Translate(transl));
+	hmm_mat4 modMVmat = HMM_Translate(transl);
 	if(skyrotate != 0.0f)
 	{
 		// glRotatef(r_newrefdef.time * skyrotate, skyaxis[0], skyaxis[1], skyaxis[2]);
 		hmm_vec3 rotAxis = HMM_Vec3(skyaxis[0], skyaxis[1], skyaxis[2]);
 		modMVmat = HMM_MultiplyMat4(modMVmat, HMM_Rotate(r_newrefdef.time * skyrotate, rotAxis));
 	}
-	gl3state.uni3DData.transModelMat4 = modMVmat;
-	GL3_UpdateUBO3D();
+	drawCmd.transModelMat = modMVmat;
 
-	GL3_UseProgram(gl3state.si3Dsky.shaderProgram);
-	GL3_BindVAO(gl3state.vao3D);
-	GL3_BindVBO(gl3state.vbo3D);
+	drawCmd.shader = &gl3state.si3Dsky;
 
 	// TODO: this could all be done in one drawcall.. but.. whatever, it's <= 6 drawcalls/frame
+	//       also, they use different textures..
 
 	gl3_3D_vtx_t skyVertices[4];
 
@@ -735,17 +722,15 @@ GL3_DrawSkyBox(void)
 			continue;
 		}
 
-		GL3_Bind(sky_images[skytexorder[i]]->texnum);
+		drawCmd.texnum = sky_images[skytexorder[i]]->texnum;
 
 		MakeSkyVec( skymins [ 0 ] [ i ], skymins [ 1 ] [ i ], i, &skyVertices[0] );
 		MakeSkyVec( skymins [ 0 ] [ i ], skymaxs [ 1 ] [ i ], i, &skyVertices[1] );
 		MakeSkyVec( skymaxs [ 0 ] [ i ], skymaxs [ 1 ] [ i ], i, &skyVertices[2] );
 		MakeSkyVec( skymaxs [ 0 ] [ i ], skymins [ 1 ] [ i ], i, &skyVertices[3] );
 
-		GL3_BufferAndDraw3D(skyVertices, 4, GL_TRIANGLE_FAN);
+		GL3_BufferAndDraw3D(skyVertices, 4, GL_TRIANGLE_FAN, drawCmd);
 	}
 
 	// glPopMatrix();
-	gl3state.uni3DData.transModelMat4 = origModelMat;
-	GL3_UpdateUBO3D();
 }
