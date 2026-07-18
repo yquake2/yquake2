@@ -695,21 +695,6 @@ GL3_LoadPic(char *name, byte *pic, int width, int realwidth,
 						(image->type != it_pic && image->type != it_sky));
 		}
 
-		if (realwidth && realheight)
-		{
-			if ((realwidth <= image->width) && (realheight <= image->height))
-			{
-				image->width = realwidth;
-				image->height = realheight;
-			}
-			else
-			{
-				Com_DPrintf(
-						"Warning, image '%s' has hi-res replacement smaller than the original! (%d x %d) < (%d x %d)\n",
-						name, image->width, image->height, realwidth, realheight);
-			}
-		}
-
 		image->sl = 0;
 		image->sh = 1;
 		image->tl = 0;
@@ -719,6 +704,21 @@ GL3_LoadPic(char *name, byte *pic, int width, int realwidth,
 		{
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		}
+	}
+
+	if (realwidth && realheight)
+	{
+		if ((realwidth <= image->width) && (realheight <= image->height))
+		{
+			image->width = realwidth;
+			image->height = realheight;
+		}
+		else
+		{
+			Com_DPrintf(
+					"Warning, image '%s' has hi-res replacement smaller than the original! (%d x %d) < (%d x %d)\n",
+					name, image->width, image->height, realwidth, realheight);
 		}
 	}
 
