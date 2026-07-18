@@ -271,7 +271,7 @@ R_EnableMultitexture(qboolean enable)
 void
 R_TextureMode(const char *string)
 {
-	int i;
+	int i, texnum;
 	image_t *glt;
 
 	for (i = 0; i < NUM_GL_MODES; i++)
@@ -357,6 +357,26 @@ R_TextureMode(const char *string)
 			}
 		}
 	}
+
+	for (texnum = 0; texnum < MAX_SCRAPS; texnum++)
+	{
+		R_Bind(TEXNUM_SCRAPS + texnum);
+
+		if (unfiltered2D || (texnum < MAX_SCRAPS_NOLERP))
+		{
+			// 2D textures shouldn't be filtered by default (r_2D_unfiltered),
+			// so the scrap shouldn't be filtered
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		}
+		else // 2D textures should be filtered by default => filter the scrap
+		{
+			// we can't use gl_filter_min which might be GL_*_MIPMAP_*
+			// also, there's no anisotropic filtering for textures w/o mipmaps
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gl_filter_max);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gl_filter_max);
+		}
+	}
 }
 
 void
@@ -421,7 +441,8 @@ R_ImageList_f(void)
 	for (i = 0, image = gltextures; i < numgltextures; i++, image++)
 	{
 		int w, h;
-		const char *in_use = "", *scrap = "";
+		const char *in_use = "";
+		char isScrap = image->scrap ? 'S' : ' ';
 
 		if (image->texnum <= 0)
 		{
@@ -434,17 +455,13 @@ R_ImageList_f(void)
 			used++;
 		}
 
-		if (image->scrap)
-		{
-			scrap = "scrap";
-		}
-
 		w = image->upload_width;
 		h = image->upload_height;
 
 		texels += w * h;
 
 		char imageType = '?';
+
 		switch (image->type)
 		{
 			case it_skin:
@@ -467,10 +484,10 @@ R_ImageList_f(void)
 				break;
 		}
 
-		Com_Printf("%c %3i %3i %s: %s (%dx%d) %s %s\n",
-				imageType, image->upload_width, image->upload_height,
+		Com_Printf("%c%c %3i %3i %s: %s (%dx%d) %s\n",
+				isScrap, imageType, image->upload_width, image->upload_height,
 				palstrings[image->paletted], image->name,
-				image->width, image->height, in_use, scrap);
+				image->width, image->height, in_use);
 	}
 
 	Com_Printf("Total texel count (not counting mipmaps): %i\n",
@@ -934,10 +951,12 @@ R_LoadPic(const char *name, byte *pic, int width, int realwidth,
 		int height, int realheight, size_t data_size, imagetype_t type, int bits)
 {
 	image_t *image;
+	qboolean nolerp = false;
 	int i;
 
-	qboolean nolerp = false;
-	if (r_2D_unfiltered->value && type == it_pic)
+
+	qboolean default2Dnolerp = r_2D_unfiltered->value != 0.0f;
+	if (default2Dnolerp && type == it_pic)
 	{
 		// if r_2D_unfiltered is true(ish), nolerp should usually be true,
 		// *unless* the texture is on the r_lerp_list
@@ -1028,23 +1047,33 @@ R_LoadPic(const char *name, byte *pic, int width, int realwidth,
 
 		if (bits == 32)
 		{
-			texnum = Scrap_AllocBlock(width, height, &x, &y, (unsigned*)pic, nolerp ? 0 : 1);
+			texnum = Scrap_AllocBlock(width, height, &x, &y, (unsigned*)pic, (nolerp || default2Dnolerp) ? 0 : MAX_SCRAPS_NOLERP);
 		}
-		else
+		else if (bits == 8)
 		{
 			unsigned *trans;
 
 			trans = R_Convert8to32(pic, width, height, d_8to24table);
 			if (trans)
 			{
-				texnum = Scrap_AllocBlock(width, height, &x, &y, trans, nolerp ? 0 : 1);
+				texnum = Scrap_AllocBlock(width, height, &x, &y, trans, (nolerp || default2Dnolerp) ? 0 : MAX_SCRAPS_NOLERP);
 				free(trans);
 			}
+		}
+		else
+		{
+			Sys_Error("Error: texture '%s' has %d bits per pixel, only 8 and 32 supported!\n",
+				name, bits);
 		}
 
 		if (texnum == -1)
 		{
 			goto nonscrap;
+		}
+
+		if ((nolerp || default2Dnolerp) && texnum >= MAX_SCRAPS_NOLERP)
+		{
+			Com_Printf("%s: Nolerp image stored to lerp\n", name);
 		}
 
 		image->texnum = TEXNUM_SCRAPS + texnum;
