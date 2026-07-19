@@ -4731,10 +4731,8 @@ StartServer_MenuInit(void)
 		s_capturelimit_field.generic.x = 0;
 		s_capturelimit_field.generic.y = 18;
 		s_capturelimit_field.generic.statusbar = "0 = no limit";
-		s_capturelimit_field.length = 3;
-		s_capturelimit_field.visible_length = 3;
-		Q_strlcpy(s_capturelimit_field.buffer, Cvar_VariableString("capturelimit"),
-			sizeof(s_capturelimit_field.buffer));
+		Field_InitState(&s_capturelimit_field,
+			Cvar_VariableString("capturelimit"), 3, 3);
 	}
 	else
 	{
@@ -4771,10 +4769,8 @@ StartServer_MenuInit(void)
 	s_timelimit_field.generic.x = 0;
 	s_timelimit_field.generic.y = 36;
 	s_timelimit_field.generic.statusbar = "0 = no limit";
-	s_timelimit_field.length = 3;
-	s_timelimit_field.visible_length = 3;
-	Q_strlcpy(s_timelimit_field.buffer, Cvar_VariableString("timelimit"),
-		sizeof(s_timelimit_field.buffer));
+	Field_InitState(&s_timelimit_field,
+		Cvar_VariableString("timelimit"), 3, 3);
 
 	s_fraglimit_field.generic.type = MTYPE_FIELD;
 	s_fraglimit_field.generic.name = "frag limit";
@@ -4782,10 +4778,8 @@ StartServer_MenuInit(void)
 	s_fraglimit_field.generic.x = 0;
 	s_fraglimit_field.generic.y = 54;
 	s_fraglimit_field.generic.statusbar = "0 = no limit";
-	s_fraglimit_field.length = 3;
-	s_fraglimit_field.visible_length = 3;
-	Q_strlcpy(s_fraglimit_field.buffer, Cvar_VariableString("fraglimit"),
-		sizeof(s_fraglimit_field.buffer));
+	Field_InitState(&s_fraglimit_field,
+		Cvar_VariableString("fraglimit"), 3, 3);
 
 	/* maxclients determines the maximum number of players that can join
 	   the game. If maxclients is only "1" then we should default the menu
@@ -4797,18 +4791,8 @@ StartServer_MenuInit(void)
 	s_maxclients_field.generic.x = 0;
 	s_maxclients_field.generic.y = 72;
 	s_maxclients_field.generic.statusbar = NULL;
-	s_maxclients_field.length = 3;
-	s_maxclients_field.visible_length = 3;
-
-	if (Cvar_VariableValue("maxclients") == 1)
-	{
-		strcpy(s_maxclients_field.buffer, "8");
-	}
-	else
-	{
-		Q_strlcpy(s_maxclients_field.buffer, Cvar_VariableString("maxclients"),
-			sizeof(s_maxclients_field.buffer));
-	}
+	Field_InitState(&s_maxclients_field,
+		Cvar_VariableValue("maxclients") == 1 ? "8" : Cvar_VariableString("maxclients"), 3, 3);
 
 	s_hostname_field.generic.type = MTYPE_FIELD;
 	s_hostname_field.generic.name = "hostname";
@@ -4816,11 +4800,8 @@ StartServer_MenuInit(void)
 	s_hostname_field.generic.x = 0;
 	s_hostname_field.generic.y = 90;
 	s_hostname_field.generic.statusbar = NULL;
-	s_hostname_field.length = 12;
-	s_hostname_field.visible_length = 12;
-	Q_strlcpy(s_hostname_field.buffer, Cvar_VariableString("hostname"),
-		sizeof(s_hostname_field.buffer));
-	s_hostname_field.cursor = strlen(s_hostname_field.buffer);
+	Field_InitState(&s_hostname_field,
+		Cvar_VariableString("hostname"), 12, 12);
 
 	s_startserver_dmoptions_action.generic.type = MTYPE_ACTION;
 	s_startserver_dmoptions_action.generic.name = " deathmatch flags";
@@ -5539,12 +5520,7 @@ AddressBook_MenuInit(void)
 		f->generic.x = 0;
 		f->generic.y = i * 18 + 0;
 		f->generic.localdata[0] = i;
-
-		f->length = 60;
-		f->visible_length = 30;
-
-		Q_strlcpy(f->buffer, adr->string, f->length);
-		f->cursor = strlen(f->buffer);
+		Field_InitState(f, adr->string, 60, 30);
 
 		Menu_AddItem(&s_addressbook_menu, f);
 	}
@@ -6316,11 +6292,7 @@ PlayerConfig_MenuInit(void)
 	s_player_name_field.generic.callback = NULL;
 	s_player_name_field.generic.x = 0;
 	s_player_name_field.generic.y = 0;
-	s_player_name_field.length = 20;
-	s_player_name_field.visible_length = 20;
-	Q_strlcpy(s_player_name_field.buffer, name->string,
-		sizeof(s_player_name_field.buffer));
-	s_player_name_field.cursor = strlen(name->string);
+	Field_InitState(&s_player_name_field, name->string, 20, 20);
 
 	s_player_icon_bitmap.generic.type = MTYPE_BITMAP;
 	s_player_icon_bitmap.generic.flags = QMF_INACTIVE;

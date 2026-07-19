@@ -129,6 +129,43 @@ Action_Draw(menuaction_s *a)
 	}
 }
 
+void
+Field_InitState(menufield_s *f, const char *s, int len, int vislen)
+{
+	if (len < 1)
+	{
+		len = 1;
+	}
+	else if (len > sizeof(f->buffer))
+	{
+		len = sizeof(f->buffer);
+	}
+
+	if (vislen < 1)
+	{
+		vislen = 1;
+	}
+	else if (vislen > len)
+	{
+		vislen = len;
+	}
+
+	*f->buffer = '\0';
+
+	if (s)
+	{
+		if (((f->generic.flags & QMF_NUMBERSONLY) && !Q_strisnum(s)) ||
+			Q_strlcpy(f->buffer, s, len) >= len)
+		{
+			*f->buffer = '\0';
+		}
+	}
+
+	f->length = len;
+	f->visible_length = vislen;
+	f->cursor = strlen(f->buffer);
+}
+
 static void
 Field_Draw(menufield_s *f)
 {

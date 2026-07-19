@@ -142,6 +142,7 @@ typedef struct
 
 void M_PushMenu(menuframework_s* menu);
 
+void Field_InitState(menufield_s *f, const char *s, int len, int vislen);
 void Field_ResetCursor(menuframework_s *m);
 qboolean Field_Key(menufield_s *field, int key);
 
