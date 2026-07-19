@@ -112,6 +112,7 @@ cvar_t *r_lerp_list;
 cvar_t *r_2D_unfiltered;
 cvar_t *r_videos_unfiltered;
 cvar_t *gl_nobind;
+cvar_t *gl_showtris;
 cvar_t *r_lockpvs;
 cvar_t *r_novis;
 cvar_t *r_speeds;
@@ -267,6 +268,7 @@ GL3_Register(void)
 	/* don't bilerp videos */
 	r_videos_unfiltered = ri.Cvar_Get("r_videos_unfiltered", "0", CVAR_ARCHIVE);
 	gl_nobind = ri.Cvar_Get("gl_nobind", "0", 0);
+	gl_showtris = ri.Cvar_Get("gl_showtris", "0", 0);
 
 	gl_texturemode = ri.Cvar_Get("gl_texturemode", "GL_LINEAR_MIPMAP_NEAREST", CVAR_ARCHIVE);
 	gl_anisotropic = ri.Cvar_Get("r_anisotropic", "0", CVAR_ARCHIVE);
@@ -322,7 +324,7 @@ GL3_Register(void)
 	//gl_lightmap = ri.Cvar_Get("r_lightmap", "0", 0);
 	//gl_shadows = ri.Cvar_Get("r_shadows", "0", CVAR_ARCHIVE);
 	//gl_nobind = ri.Cvar_Get("gl_nobind", "0", 0);
-	gl_showtris = ri.Cvar_Get("gl_showtris", "0", 0);
+
 	gl_showbbox = Cvar_Get("gl_showbbox", "0", 0);
 	//gl1_ztrick = ri.Cvar_Get("gl1_ztrick", "0", 0); NOTE: dump this.
 	//gl_zfix = ri.Cvar_Get("gl_zfix", "0", 0);

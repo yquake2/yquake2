@@ -615,6 +615,7 @@ extern cvar_t *r_videos_unfiltered;
 extern cvar_t *gl_nolerp_list;
 extern cvar_t *r_lerp_list;
 extern cvar_t *gl_nobind;
+extern cvar_t *gl_showtris;
 extern cvar_t *r_lockpvs;
 extern cvar_t *r_novis;
 

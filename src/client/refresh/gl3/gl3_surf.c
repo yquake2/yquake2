@@ -187,62 +187,82 @@ GL3_DrawGLFlowingPoly(msurface_t *fa, gl3drawCmd_t drawCmd)
 	GL3_BufferAndDraw3D(p->vertices, p->numverts, GL_TRIANGLE_FAN, drawCmd);
 }
 
+#define LINE_VTX_COUNT (256 * 6)
+
 static void
 DrawTriangleOutlines(void)
 {
-	STUB_ONCE("TODO: Implement for gl_showtris support!");
-#if 0
-	int i, j;
-	glpoly_t *p;
+	static gl3_3D_vtx_t vtx[LINE_VTX_COUNT];
+	const msurface_t *surf;
+	size_t i, curr_vtx;
 
 	if (!gl_showtris->value)
 	{
 		return;
 	}
 
-	glDisable(GL_TEXTURE_2D);
+	GL3_Draw3DBatchesNow();
+
 	glDisable(GL_DEPTH_TEST);
-	glColor4f(1, 1, 1, 1);
+	glUseProgram(gl3state.si3DcolorOnly.shaderProgram);
 
-	for (i = 0; i < MAX_LIGHTMAPS; i++)
+	gl3state.uniCommonData.color = HMM_Vec4(1.0f, 1.0f, 1.0f, 1.0f);
+	GL3_UpdateUBOCommon();
+	GL3_BindVAO(gl3state.vao3D);
+	GL3_BindVBO(gl3state.vbo3D);
+
+	curr_vtx = 0;
+
+	memset(vtx, 0, sizeof(vtx));
+	for (i = 0, surf = gl3_worldmodel->surfaces; i < gl3_worldmodel->numsurfaces; i++, surf++)
 	{
-		msurface_t *surf;
+		const glpoly_t *p;
 
-		for (surf = gl3_lms.lightmap_surfaces[i];
-				surf != 0;
-				surf = surf->lightmapchain)
+		if (surf->visframe != gl3_framecount)
 		{
-			p = surf->polys;
+			continue;
+		}
 
-			for ( ; p; p = p->chain)
+		for (p = surf->polys; p != NULL; p = p->chain)
+		{
+			size_t j;
+
+			for (j = 2; j < p->numverts; j++)
 			{
-				for (j = 2; j < p->numverts; j++)
+				size_t k;
+
+				if (curr_vtx > (LINE_VTX_COUNT - 6))
 				{
-					GLfloat vtx[12];
-					unsigned int k;
-
-					for (k=0; k<3; k++)
-					{
-						vtx[0+k] = p->vertices [ 0 ][ k ];
-						vtx[3+k] = p->vertices [ j - 1 ][ k ];
-						vtx[6+k] = p->vertices [ j ][ k ];
-						vtx[9+k] = p->vertices [ 0 ][ k ];
-					}
-
-					glEnableClientState( GL_VERTEX_ARRAY );
-
-					glVertexPointer( 3, GL_FLOAT, 0, vtx );
-					glDrawArrays( GL_LINE_STRIP, 0, 4 );
-
-					glDisableClientState( GL_VERTEX_ARRAY );
+					glBufferData(GL_ARRAY_BUFFER, sizeof(vtx), vtx, GL_STREAM_DRAW);
+					glDrawArrays(GL_LINES, 0, curr_vtx);
+					curr_vtx = 0;
+					memset(vtx, 0, sizeof(vtx));
 				}
+
+				for (k = 0; k < 3; k++)
+				{
+					vtx[curr_vtx + 0].pos[k] = p->vertices[0].pos[k];
+					vtx[curr_vtx + 1].pos[k] = p->vertices[j - 1].pos[k];
+
+					vtx[curr_vtx + 2].pos[k] = p->vertices[j - 1].pos[k];
+					vtx[curr_vtx + 3].pos[k] = p->vertices[j].pos[k];
+
+					vtx[curr_vtx + 4].pos[k] = p->vertices[j].pos[k];
+					vtx[curr_vtx + 5].pos[k] = p->vertices[0].pos[k];
+				}
+
+				curr_vtx += 6;
 			}
 		}
 	}
 
+	if (curr_vtx)
+	{
+		glBufferData(GL_ARRAY_BUFFER, sizeof(vtx), vtx, GL_STREAM_DRAW);
+		glDrawArrays(GL_LINES, 0, curr_vtx);
+	}
+
 	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_TEXTURE_2D);
-#endif // 0
 }
 
 static void
