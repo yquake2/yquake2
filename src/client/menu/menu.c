@@ -287,8 +287,10 @@ Key_GetMenuKey(int key)
 
 		case K_KP_DEL:
 			if (IN_NumpadIsOn() == true) { break; }
-		case K_BACKSPACE:
 		case K_DEL:
+			return K_DEL;
+
+		case K_BACKSPACE:
 		case K_BTN_NORTH:
 			return K_BACKSPACE;
 
@@ -1018,6 +1020,7 @@ Keys_MenuKey(menuframework_s *m, int key)
 	case K_ENTER:
 		KeyBindingFunc(item);
 		return menu_in_sound;
+	case K_DEL:
 	case K_BACKSPACE: /* delete bindings */
 		M_UnbindCommand(bindnames[item->generic.localdata[0]][0], KEYS_KEYBOARD_MOUSE);
 		return menu_out_sound;
@@ -1163,6 +1166,7 @@ MultiplayerKeys_MenuKey(menuframework_s *m, int key)
 	case K_ENTER:
 		MultiplayerKeyBindingFunc(item);
 		return menu_in_sound;
+	case K_DEL:
 	case K_BACKSPACE: /* delete bindings */
 		M_UnbindCommand(multiplayer_key_bindnames[item->generic.localdata[0]][0], KEYS_ALL);
 		return menu_out_sound;
@@ -1353,6 +1357,7 @@ ControllerButtons_MenuKey(menuframework_s *m, int key)
 		case K_ENTER:
 			ControllerButtonBindingFunc(item);
 			return menu_in_sound;
+		case K_DEL:
 		case K_BACKSPACE:
 			M_UnbindCommand(controller_bindnames[item->generic.localdata[0]][0], KEYS_CONTROLLER);
 			return menu_out_sound;
@@ -1520,6 +1525,7 @@ ControllerAltButtons_MenuKey(menuframework_s *m, int key)
 		case K_ENTER:
 			ControllerAltButtonBindingFunc(item);
 			return menu_in_sound;
+		case K_DEL:
 		case K_BACKSPACE:
 			M_UnbindCommand(controller_alt_bindnames[item->generic.localdata[0]][0], KEYS_CONTROLLER_ALT);
 			return menu_out_sound;
@@ -3896,6 +3902,7 @@ LoadGame_MenuKey(menuframework_s *m, int key)
 		LoadGame_MenuInit();
 		return menu_move_sound;
 
+	case K_DEL:
 	case K_BACKSPACE:
 		PromptDeleteSaveFunc(m);
 		return menu_move_sound;
@@ -4043,6 +4050,7 @@ SaveGame_MenuKey(menuframework_s *m, int key)
 		SaveGame_MenuInit();
 		return menu_move_sound;
 
+	case K_DEL:
 	case K_BACKSPACE:
 		PromptDeleteSaveFunc(m);
 		return menu_move_sound;
