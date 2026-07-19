@@ -87,7 +87,7 @@ Scrap_AllocBlock(unsigned w, unsigned h, int *x, int *y, const unsigned *pic,
 	w += 2;	// add an empty border to all sides
 	h += 2;
 
-	for (texnum = 0; texnum < MAX_SCRAPS; texnum++)
+	for (texnum = scrap_offset; texnum < MAX_SCRAPS; texnum++)
 	{
 		if (CommonAllocBlock(scrap_allocated[texnum], SCRAP_WIDTH, SCRAP_HEIGHT,
 			w, h, x, y))
