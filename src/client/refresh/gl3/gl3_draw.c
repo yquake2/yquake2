@@ -251,7 +251,11 @@ GL3_Draw_CharScaled(int x, int y, int num, float scale)
 
 	scaledSize = 8*scale;
 
-	drawTexturedRectangle(draw_chars->texnum, x, y, scaledSize, scaledSize, fcol, frow, fcol+size, frow+size);
+	drawTexturedRectangle( draw_chars->texnum, x, y, scaledSize, scaledSize,
+	                       draw_chars->sl + fcol * (draw_chars->sh - draw_chars->sl),
+	                       draw_chars->tl + frow * (draw_chars->th - draw_chars->tl),
+	                       draw_chars->sl + (fcol + size) * (draw_chars->sh - draw_chars->sl),
+	                       draw_chars->tl + (frow + size) * (draw_chars->th - draw_chars->tl) );
 }
 
 // DG: copy of DrawStringScaled(), so we can draw some stats right here in the render DLL
