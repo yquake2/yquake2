@@ -164,7 +164,7 @@ GL3_DrawGLPoly(msurface_t *fa, gl3drawCmd_t drawCmd)
 {
 	glpoly_t *p = fa->polys;
 
-	GL3_BufferAndDraw3D(p->vertices, p->numverts, GL_TRIANGLE_FAN, drawCmd);
+	GL3_Add3DdrawCmdToBatch(p->vertices, p->numverts, GL_TRIANGLE_FAN, drawCmd);
 }
 
 void
@@ -184,7 +184,7 @@ GL3_DrawGLFlowingPoly(msurface_t *fa, gl3drawCmd_t drawCmd)
 	drawCmd.scroll = scroll;
 	drawCmd.flags |= DCFlag_UseScroll;
 
-	GL3_BufferAndDraw3D(p->vertices, p->numverts, GL_TRIANGLE_FAN, drawCmd);
+	GL3_Add3DdrawCmdToBatch(p->vertices, p->numverts, GL_TRIANGLE_FAN, drawCmd);
 }
 
 #define LINE_VTX_COUNT (256 * 6)
