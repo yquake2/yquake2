@@ -3168,12 +3168,13 @@ static const char *
 M_Credits_Key(menuframework_s *m, int key)
 {
 	key = Key_GetMenuKey(key);
+
 	if (key == K_ESCAPE)
 	{
 		M_PopMenu(false);
 	}
 
-	return menu_out_sound;
+	return NULL;
 }
 
 static void
