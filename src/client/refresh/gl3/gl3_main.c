@@ -965,9 +965,16 @@ GL3_SetDrawCmdTransMatrix(gl3drawCmd_t* drawCmd, hmm_mat4 mat)
 // buffers and draws gl3_3D_vtx_t vertices
 // drawMode is something like GL_TRIANGLE_STRIP or GL_TRIANGLE_FAN or whatever
 void
-GL3_BufferAndDraw3D(const gl3_3D_vtx_t* verts, int numVerts, GLenum drawMode, gl3drawCmd_t drawCmd)
+GL3_Add3DdrawCmdToBatch(const gl3_3D_vtx_t* verts, int numVerts, GLenum drawMode, gl3drawCmd_t drawCmd)
 {
-	if(da_count(vtxBuf)+numVerts > UINT16_MAX) {
+	if(numVerts > UINT16_MAX)
+	{
+		Com_Printf("WARNING: Discarding a draw command with %d vertices (max %d allowed)!\n", numVerts, UINT16_MAX);
+		return;
+	}
+
+	if(da_count(vtxBuf)+numVerts > UINT16_MAX)
+	{
 		GL3_Draw3DBatchesNow();
 	}
 
@@ -1110,7 +1117,7 @@ GL3_DrawBeam(entity_t *e)
 	}
 
 
-	GL3_BufferAndDraw3D(verts, NUM_BEAM_SEGS*4, GL_TRIANGLE_STRIP, drawCmd);
+	GL3_Add3DdrawCmdToBatch(verts, NUM_BEAM_SEGS*4, GL_TRIANGLE_STRIP, drawCmd);
 
 }
 
@@ -1187,7 +1194,7 @@ GL3_DrawSpriteModel(entity_t *e, gl3model_t *currentmodel)
 	VectorMA( verts[3].pos, frame->width - frame->origin_x, right, verts[3].pos );
 
 
-	GL3_BufferAndDraw3D(verts, 4, GL_TRIANGLE_FAN, drawCmd);
+	GL3_Add3DdrawCmdToBatch(verts, 4, GL_TRIANGLE_FAN, drawCmd);
 
 }
 
@@ -1230,14 +1237,14 @@ GL3_DrawNullModel(entity_t *currententity)
 		{{16 * cos( 4 * M_PI / 2 ), 16 * sin( 4 * M_PI / 2 ), 0}, {0,0}, {0,0}}
 	};
 
-	GL3_BufferAndDraw3D(vtxA, 6, GL_TRIANGLE_FAN, drawCmd);
+	GL3_Add3DdrawCmdToBatch(vtxA, 6, GL_TRIANGLE_FAN, drawCmd);
 
 	gl3_3D_vtx_t vtxB[6] = {
 		{{0, 0, 16}, {0,0}, {0,0}},
 		vtxA[5], vtxA[4], vtxA[3], vtxA[2], vtxA[1]
 	};
 
-	GL3_BufferAndDraw3D(vtxB, 6, GL_TRIANGLE_FAN, drawCmd);
+	GL3_Add3DdrawCmdToBatch(vtxB, 6, GL_TRIANGLE_FAN, drawCmd);
 
 }
 
