@@ -116,8 +116,21 @@ M_Banner(const char *name)
 void
 M_ForceMenuOff(void)
 {
-	cls.key_dest = key_game;
+	int i;
+
+	for (i = m_menudepth - 1; i >= 0; i--)
+	{
+		menuframework_s *menu = m_layers[i];
+
+		if (menu && menu->close)
+		{
+			menu->close(menu);
+		}
+	}
+
 	m_menudepth = 0;
+
+	cls.key_dest = key_game;
 	Key_MarkAllUp();
 	Cvar_Set("paused", "0");
 }
@@ -125,10 +138,19 @@ M_ForceMenuOff(void)
 static void
 M_PopMenu(qboolean silent)
 {
+	menuframework_s *menu;
+
 	if (m_menudepth <= 0)
 	{
 		M_ForceMenuOff();
 		return;
+	}
+
+	menu = M_GetActiveMenu();
+
+	if (menu && menu->close)
+	{
+		menu->close(menu);
 	}
 
 	m_menudepth--;
@@ -3132,16 +3154,22 @@ M_Credits_Draw(menuframework_s *m)
 	}
 }
 
+static void
+M_Credits_Close(menuframework_s *m)
+{
+	if (creditsBuffer)
+	{
+		FS_FreeFile(creditsBuffer);
+		creditsBuffer = NULL;
+	}
+}
+
 static const char *
 M_Credits_Key(menuframework_s *m, int key)
 {
 	key = Key_GetMenuKey(key);
 	if (key == K_ESCAPE)
 	{
-		if (creditsBuffer)
-		{
-			FS_FreeFile(creditsBuffer);
-		}
 		M_PopMenu(false);
 	}
 
@@ -3221,8 +3249,9 @@ M_Menu_Credits_f(void)
 
 	credits_start_time = cls.realtime;
 
-	s_credits.draw = M_Credits_Draw;
-	s_credits.key  = M_Credits_Key;
+	s_credits.draw  = M_Credits_Draw;
+	s_credits.key   = M_Credits_Key;
+	s_credits.close = M_Credits_Close;
 
 	M_PushMenu(&s_credits);
 }
@@ -5526,30 +5555,27 @@ AddressBook_MenuInit(void)
 	}
 }
 
-static const char *
-AddressBook_MenuKey(menuframework_s *m, int key)
+static void
+AddressBook_MenuClose(menuframework_s *m)
 {
-	if (key == K_ESCAPE)
+	int index;
+
+	for (index = 0; index < NUM_ADDRESSBOOK_ENTRIES; index++)
 	{
-		int index;
 		char buffer[20];
 
-		for (index = 0; index < NUM_ADDRESSBOOK_ENTRIES; index++)
-		{
-			Com_sprintf(buffer, sizeof(buffer), "adr%d", index);
-			Cvar_Set(buffer, s_addressbook_fields[index].buffer);
-		}
+		Com_sprintf(buffer, sizeof(buffer), "adr%d", index);
+		Cvar_Set(buffer, s_addressbook_fields[index].buffer);
 	}
-
-	return Default_MenuKey(m, key);
 }
 
 static void
 M_Menu_AddressBook_f(void)
 {
 	AddressBook_MenuInit();
-	s_addressbook_menu.draw = Default_MenuDraw;
-	s_addressbook_menu.key  = AddressBook_MenuKey;
+	s_addressbook_menu.draw  = Default_MenuDraw;
+	s_addressbook_menu.key   = Default_MenuKey;
+	s_addressbook_menu.close = AddressBook_MenuClose;
 
 	M_PushMenu(&s_addressbook_menu);
 }
@@ -6523,31 +6549,25 @@ PlayerConfig_MenuDraw(menuframework_s *m)
 	}
 }
 
-static const char *
-PlayerConfig_MenuKey(menuframework_s *m, int key)
+static void
+PlayerConfig_MenuClose(menuframework_s *m)
 {
-	key = Key_GetMenuKey(key);
-	if (key == K_ESCAPE)
-	{
-		const char* name = NULL;
-		char skin[MAX_QPATH];
-		char* mdl = NULL;
-		char* img = NULL;
+	const char* name = NULL;
+	char skin[MAX_QPATH];
+	char* mdl = NULL;
+	char* img = NULL;
 
-		name = s_player_name_field.buffer;
-		mdl = s_modelname.data[s_player_model_box.curvalue];
-		img = s_skinnames[s_player_model_box.curvalue].data[s_player_skin_box.curvalue];
+	name = s_player_name_field.buffer;
+	mdl = s_modelname.data[s_player_model_box.curvalue];
+	img = s_skinnames[s_player_model_box.curvalue].data[s_player_skin_box.curvalue];
 
-		Com_sprintf(skin, MAX_QPATH, "%s/%s", mdl, img);
+	Com_sprintf(skin, MAX_QPATH, "%s/%s", mdl, img);
 
-		// set <name> and <model dir>/<skin>
-		Cvar_Set("name", name);
-		Cvar_Set("skin", skin);
+	// set <name> and <model dir>/<skin>
+	Cvar_Set("name", name);
+	Cvar_Set("skin", skin);
 
-		PlayerModelFree();          // free player skins, models and directories
-	}
-
-	return Default_MenuKey(m, key);
+	PlayerModelFree();          // free player skins, models and directories
 }
 
 static void
@@ -6560,8 +6580,9 @@ M_Menu_PlayerConfig_f(void)
 	}
 
 	Menu_SetStatusBar(&s_multiplayer_menu, NULL);
-	s_player_config_menu.draw = PlayerConfig_MenuDraw;
-	s_player_config_menu.key  = PlayerConfig_MenuKey;
+	s_player_config_menu.draw  = PlayerConfig_MenuDraw;
+	s_player_config_menu.key   = Default_MenuKey;
+	s_player_config_menu.close = PlayerConfig_MenuClose;
 
 	M_PushMenu(&s_player_config_menu);
 }

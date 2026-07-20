@@ -70,6 +70,7 @@ typedef struct _tag_menuframework
 
 	void (*draw)(struct _tag_menuframework *m);
 	const char *(*key)(struct _tag_menuframework *m, int k);
+	void (*close)(struct _tag_menuframework *m);
 	void (*cursordraw)(struct _tag_menuframework *m);
 } menuframework_s;
 
