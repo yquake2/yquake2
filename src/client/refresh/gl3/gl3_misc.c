@@ -33,7 +33,6 @@ gl3image_t *gl3_particletexture; /* little dot for particles */
 void
 GL3_SetDefaultState(void)
 {
-	glClearColor(1, 0, 0.5, 0.5);
 #ifndef YQ2_GL3_GLES
 	// in GLES this is only supported with an extension:
 	// https://www.khronos.org/registry/OpenGL/extensions/EXT/EXT_multisample_compatibility.txt
