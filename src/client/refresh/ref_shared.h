@@ -195,7 +195,7 @@ extern struct image_s *GetSkyImage(const char *skyname, const char* surfname,
 	qboolean palettedtexture, findimage_t find_image);
 extern struct image_s *GetTexImage(const char *name, findimage_t find_image);
 extern struct image_s *R_FindPic(const char *name, findimage_t find_image);
-unsigned *R_Convert8to32(const byte *data, int width, int height, const unsigned *table_8to24);
+unsigned *R_Convert8to32(const byte *data, size_t width, size_t height, const unsigned *table_8to24);
 extern struct image_s *R_LoadImage(const char *name, const char* namewe, const char *ext,
 	imagetype_t type, qboolean r_retexturing, loadimage_t load_image);
 extern void Mod_LoadNodes(const char *name, cplane_t *planes, int numplanes,

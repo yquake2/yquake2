@@ -673,7 +673,7 @@ R_FindPic(const char *name, findimage_t find_image)
 }
 
 unsigned *
-R_Convert8to32(const byte *data, int width, int height, const unsigned *table_8to24)
+R_Convert8to32(const byte *data, size_t width, size_t height, const unsigned *table_8to24)
 {
 	unsigned *trans;
 	size_t i, s;

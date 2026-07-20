@@ -316,7 +316,7 @@ int Scrap_AllocBlock(unsigned w, unsigned h, int *x, int *y, const unsigned *pic
 unsigned *Scrap_Upload(int texnum);
 void Scrap_Init(void);
 
-qboolean R_Upload32(unsigned *data, int width, int height, qboolean mipmap);
+qboolean R_Upload32(unsigned *data, size_t width, size_t height, qboolean mipmap);
 
 // GL buffer operations
 
@@ -440,7 +440,7 @@ typedef struct
 
 	int prev_mode;
 
-	unsigned char *d_16to8table;
+	byte *d_16to8table;
 
 	int lightmap_textures;
 
