@@ -375,10 +375,10 @@ Field_Key(menufield_s *f, int key)
 void
 Menu_AddItem(menuframework_s *menu, void *item)
 {
-	if (menu->nitems < MAXMENUITEMS)
+	if ((menu->nitems >= 0) && (menu->nitems < MAXMENUITEMS))
 	{
 		menu->items[menu->nitems] = item;
-		((menucommon_s *)menu->items[menu->nitems])->parent = menu;
+		((menucommon_s *)item)->parent = menu;
 		menu->nitems++;
 	}
 }
