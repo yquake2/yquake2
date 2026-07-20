@@ -587,5 +587,21 @@ void GL3_EndFrame(void)
 		GL3_DrawCurrent2Dbatch();
 	}
 
-	GL3_SwapWindow();
+#ifdef YQ2_GL3_GLES
+	if(gl3config.discardfb && gl_discardfb->value != 0.0f)
+	{
+		static const GLenum attachments[] = { GL_COLOR, GL_DEPTH, GL_STENCIL };
+		// depth and stencil buffer can be discarded now (and that seems to be fastest)
+		glDiscardFramebufferEXT(GL_FRAMEBUFFER, 3, &attachments[1]);
+
+		GL3_SwapWindow();
+		// ... but the color buffer must be discarded after swapping buffers
+		// probably because it is what's getting rendered
+		glDiscardFramebufferEXT(GL_FRAMEBUFFER, 1, attachments);
+	}
+	else
+#endif
+	{
+		GL3_SwapWindow();
+	}
 }

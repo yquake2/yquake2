@@ -404,6 +404,7 @@ int GL3_InitContext(void* win)
 
 #ifdef YQ2_GL3_GLES
 	gl3config.debug_output = GLAD_GL_KHR_debug != 0;
+	gl3config.discardfb = GLAD_GL_EXT_discard_framebuffer != 0;
 #else // Desktop GL
 	gl3config.debug_output = GLAD_GL_ARB_debug_output != 0;
 #endif
