@@ -26,10 +26,7 @@
 
 #include "header/local.h"
 
-image_t *draw_chars;
-
-extern qboolean scrap_dirty;
-void Scrap_Upload(void);
+image_t *draw_chars = NULL;
 
 extern unsigned r_rawpalette[256];
 
@@ -42,6 +39,42 @@ Draw_InitLocal(void)
 	{
 		Com_Error(ERR_FATAL, "%s: Couldn't load pics/conchars.pcx",
 			__func__);
+	}
+}
+
+static void
+Scrap_Update(void)
+{
+	qboolean default2Dnolerp;
+	int texnum;
+
+	default2Dnolerp = r_2D_unfiltered->value != 0.0f;
+
+	for (texnum = 0; texnum < MAX_SCRAPS; texnum++)
+	{
+		unsigned *scrap_texels;
+
+		scrap_texels = Scrap_Upload(texnum);
+		if (scrap_texels)
+		{
+			R_Bind(TEXNUM_SCRAPS + texnum);
+			R_Upload32(scrap_texels, SCRAP_WIDTH, SCRAP_HEIGHT, false);
+
+			if (default2Dnolerp || (texnum < MAX_SCRAPS_NOLERP))
+			{
+				// 2D textures shouldn't be filtered by default (r_2D_unfiltered),
+				// so the scrap shouldn't be filtered
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+			}
+			else // 2D textures should be filtered by default => filter the scrap
+			{
+				// we can't use gl_filter_min which might be GL_*_MIPMAP_*
+				// also, there's no anisotropic filtering for textures w/o mipmaps
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gl_filter_max);
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gl_filter_max);
+			}
+		}
 	}
 }
 
@@ -77,10 +110,18 @@ RDraw_CharScaled(int x, int y, int num, float scale)
 
 	scaledSize = 8 * scale;
 
+	if (draw_chars->scrap)
+	{
+		Scrap_Update();
+	}
+
 	R_UpdateGLBuffer(buf_2d, draw_chars->texnum, 0, 0, 1);
 
 	R_Buffer2DQuad(x, y, x + scaledSize, y + scaledSize,
-		fcol, frow, fcol + size, frow + size);
+		draw_chars->sl + fcol * (draw_chars->sh - draw_chars->sl),
+		draw_chars->tl + frow * (draw_chars->th - draw_chars->tl),
+		draw_chars->sl + (fcol + size) * (draw_chars->sh - draw_chars->sl),
+		draw_chars->tl + (frow + size) * (draw_chars->th - draw_chars->tl));
 }
 
 image_t *
@@ -115,13 +156,13 @@ RDraw_StretchPic(int x, int y, int w, int h, const char *pic)
 
 	if (!gl)
 	{
-		Com_Printf("Can't find pic: %s\n", pic);
+		Com_Printf("%s(): Can't find pic: %s\n", __func__, pic);
 		return;
 	}
 
-	if (scrap_dirty)
+	if (gl->scrap)
 	{
-		Scrap_Upload();
+		Scrap_Update();
 	}
 
 	R_UpdateGLBuffer(buf_2d, gl->texnum, 0, 0, 1);
@@ -143,17 +184,22 @@ RDraw_PicScaled(int x, int y, const char *pic, float factor)
 		return;
 	}
 
-	if (scrap_dirty)
+	if (gl->scrap)
 	{
-		Scrap_Upload();
+		Scrap_Update();
 	}
 
-	if (gl->texnum == TEXNUM_SCRAPS)
+	if (gl->texnum >= TEXNUM_SCRAPS && gl->texnum < TEXNUM_IMAGES)
 	{
-		R_UpdateGLBuffer(buf_2d, TEXNUM_SCRAPS, 0, 0, 1);
+		R_UpdateGLBuffer(buf_2d, gl->texnum, 0, 0, 1);
 		R_Buffer2DQuad(x, y, x + gl->width * factor, y + gl->height * factor,
 			gl->sl, gl->tl, gl->sh, gl->th);
 		return;
+	}
+
+	if (gl->scrap)
+	{
+		Scrap_Update();
 	}
 
 	R_Bind(gl->texnum);
@@ -196,9 +242,9 @@ RDraw_PicScaledCol(int x, int y, const char *pic, float factor, const float colo
 		return;
 	}
 
-	if (scrap_dirty)
+	if (gl->scrap)
 	{
-		Scrap_Upload();
+		Scrap_Update();
 	}
 
 	R_ApplyGLBuffer();
@@ -250,8 +296,13 @@ RDraw_TileClear(int x, int y, int w, int h, const char *pic)
 
 	if (!image)
 	{
-		Com_Printf("Can't find pic: %s\n", pic);
+		Com_Printf("%s(): Can't find pic: %s\n", __func__, pic);
 		return;
+	}
+
+	if (image->scrap)
+	{
+		Scrap_Update();
 	}
 
 	R_UpdateGLBuffer(buf_2d, image->texnum, 0, 0, 1);
@@ -275,6 +326,7 @@ RDraw_Fill(int x, int y, int w, int h, int c)
 	if ((unsigned)c > 255)
 	{
 		Com_Error(ERR_FATAL, "%s: bad color", __func__);
+		return;
 	}
 
 	glDisable(GL_TEXTURE_2D);
@@ -334,12 +386,11 @@ RDraw_StretchRaw(int x, int y, int w, int h, int cols, int rows, const byte *dat
 	GLfloat tex[8];
 	float hscale = 1.0f;
 	int frac, fracstep;
-	int i, j, trows;
 	int row;
 
 	R_Bind(0);
 
-	if(gl_config.npottextures || rows <= 256 || bits == 32)
+	if (gl_config.npottextures || rows <= 256 || bits == 32)
 	{
 		// X, X
 		tex[0] = 0;
@@ -361,7 +412,6 @@ RDraw_StretchRaw(int x, int y, int w, int h, int cols, int rows, const byte *dat
 	{
 		// Scale params
 		hscale = rows / 256.0;
-		trows = 256;
 
 		// X, X
 		tex[0] = 1.0 / 512.0;
@@ -400,22 +450,33 @@ RDraw_StretchRaw(int x, int y, int w, int h, int cols, int rows, const byte *dat
 					cols, rows, 0, GL_RGBA, GL_UNSIGNED_BYTE,
 					data);
 		}
-		else if(gl_config.npottextures || rows <= 256)
+		else if (gl_config.npottextures || rows <= 256)
 		{
 			unsigned image32[320*240]; /* was 256 * 256, but we want a bit more space */
 			unsigned* img = image32;
+			size_t i;
 
-			if(cols*rows > 320*240)
+			if (cols * rows > 320 * 240)
 			{
+				size_t img_size = (size_t)cols * rows * 4;
+
 				/* in case there is a bigger video after all,
 				 * malloc enough space to hold the frame */
-				img = (unsigned*)malloc(cols*rows*4);
+				img = (unsigned*)malloc(img_size);
+
+				YQ2_COM_CHECK_OOM(img, "malloc()", img_size)
+				if (!img)
+				{
+					/* unaware about YQ2_ATTR_NORETURN_FUNCPTR? */
+					return;
+				}
 			}
 
-			for(i=0; i<rows; ++i)
+			for (i = 0; i < rows; ++i)
 			{
-				int rowOffset = i*cols;
-				for(j=0; j<cols; ++j)
+				size_t j, rowOffset = i * cols;
+
+				for (j = 0; j < cols; ++j)
 				{
 					byte palIdx = data[rowOffset+j];
 					img[rowOffset+j] = r_rawpalette[palIdx];
@@ -426,19 +487,22 @@ RDraw_StretchRaw(int x, int y, int w, int h, int cols, int rows, const byte *dat
 								cols, rows, 0, GL_RGBA, GL_UNSIGNED_BYTE,
 								img);
 
-			if(img != image32)
+			if (img != image32)
 			{
 				free(img);
 			}
 		}
 		else
 		{
-			unsigned int image32[320*240];
+			unsigned int image32[320 * 240];
+			int trows = 256;
+			size_t i;
 
 			for (i = 0; i < trows; i++)
 			{
 				const byte *source;
 				unsigned *dest;
+				size_t j;
 
 				row = (int)(i * hscale);
 
@@ -466,12 +530,15 @@ RDraw_StretchRaw(int x, int y, int w, int h, int cols, int rows, const byte *dat
 	}
 	else
 	{
-		unsigned char image8[256 * 256];
+		byte image8[256 * 256];
+		int trows = 256;
+		size_t i;
 
 		for (i = 0; i < trows; i++)
 		{
-			unsigned char *dest;
 			const byte *source;
+			byte *dest;
+			size_t j;
 
 			row = (int)(i * hscale);
 

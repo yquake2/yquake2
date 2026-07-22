@@ -110,17 +110,20 @@ ResizeSTB(const byte *input_pixels, int input_width, int input_height,
 {
 	if (stbir_resize_uint8(input_pixels, input_width, input_height, 0,
 			       output_pixels, output_width, output_height, 0, 4))
+	{
 		return true;
+	}
+
 	return false;
 }
 
-// We have 16 color palette, 256 / 16 should be enough
-#define COLOR_DISTANCE 16
+/* 8 looks good for smoothed textures with whole width as rstep */
+#define COLOR_DISTANCE 8
 
 void
 SmoothColorImage(unsigned *dst, size_t size, size_t rstep)
 {
-	unsigned *full_size;
+	const unsigned *full_size;
 	unsigned last_color;
 	unsigned *last_diff;
 
@@ -159,7 +162,7 @@ SmoothColorImage(unsigned *dst, size_t size, size_t rstep)
 				}
 
 				// compare next pixels
-				for(k = 1; k <= step; k ++)
+				for (k = 1; k <= step; k ++)
 				{
 					if (dst[k] != dst[0])
 					{
@@ -199,11 +202,17 @@ SmoothColorImage(unsigned *dst, size_t size, size_t rstep)
 				c_step = c_end - c_beg;
 				d_step = d_end - d_beg;
 
-				if ((abs(a_step) <= COLOR_DISTANCE) &&
-				    (abs(b_step) <= COLOR_DISTANCE) &&
-				    (abs(c_step) <= COLOR_DISTANCE) &&
-				    (abs(d_step) <= COLOR_DISTANCE) &&
-				    step > 0)
+				if (step > 0 &&
+					(abs(a_step) < COLOR_DISTANCE) &&
+					(abs(b_step) < COLOR_DISTANCE) &&
+					(abs(c_step) < COLOR_DISTANCE) &&
+					(abs(d_step) < COLOR_DISTANCE) &&
+					(
+						abs(a_step) > 1 ||
+						abs(b_step) > 1 ||
+						abs(c_step) > 1 ||
+						abs(d_step) > 1
+					))
 				{
 					// generate color change steps
 					a_step = (a_step << 16) / step;
@@ -212,7 +221,7 @@ SmoothColorImage(unsigned *dst, size_t size, size_t rstep)
 					d_step = (d_step << 16) / step;
 
 					// apply color changes
-					for (k=0; k < step; k++)
+					for (k = 0; k < step; k++)
 					{
 						*last_diff = (((a_beg + ((a_step * k) >> 16)) << 0) & 0x000000ff) |
 									 (((b_beg + ((b_step * k) >> 16)) << 8) & 0x0000ff00) |
@@ -250,7 +259,8 @@ scale2x(const byte *src, byte *dst, int width, int height)
 	{
 		const byte *in_buff = src;
 		byte *out_buff = dst;
-		byte *out_buff_full = dst + ((width * height) << 2);
+		const byte *out_buff_full = dst + ((width * height) << 2);
+
 		while (out_buff < out_buff_full)
 		{
 			int x;
@@ -337,7 +347,8 @@ scale3x(const byte *src, byte *dst, int width, int height)
 	{
 		const byte *in_buff = src;
 		byte *out_buff = dst;
-		byte *out_buff_full = dst + ((width * height) * 9);
+		const byte *out_buff_full = dst + ((width * height) * 9);
+
 		while (out_buff < out_buff_full)
 		{
 			int x;
@@ -565,8 +576,8 @@ struct image_s*
 GetSkyImage(const char *skyname, const char* surfname, qboolean palettedtexture,
 	findimage_t find_image)
 {
-	struct image_s	*image = NULL;
-	char	pathname[MAX_QPATH];
+	struct image_s *image = NULL;
+	char pathname[MAX_QPATH];
 
 	/* Quake 2 */
 	if (palettedtexture)
@@ -604,8 +615,8 @@ GetSkyImage(const char *skyname, const char* surfname, qboolean palettedtexture,
 struct image_s *
 GetTexImage(const char *name, findimage_t find_image)
 {
-	struct image_s	*image = NULL;
-	char	pathname[MAX_QPATH];
+	struct image_s *image = NULL;
+	char pathname[MAX_QPATH];
 
 	/* Quake 2 */
 	Com_sprintf(pathname, sizeof(pathname), "textures/%s.wal", name);
@@ -659,4 +670,67 @@ R_FindPic(const char *name, findimage_t find_image)
 	}
 
 	return image;
+}
+
+unsigned *
+R_Convert8to32(const byte *data, size_t width, size_t height, const unsigned *table_8to24)
+{
+	unsigned *trans;
+	size_t i, s;
+
+	if (height == 0 || width > INT_MAX / sizeof(*trans) / height)
+	{
+		Com_Error(ERR_DROP, "%s: invalid dimensions", __func__);
+		return NULL;
+	}
+
+	s = width * height;
+
+	trans = malloc(s * sizeof(unsigned));
+	YQ2_COM_CHECK_OOM(trans, "malloc()",
+		s * sizeof(unsigned))
+	if (!trans)
+	{
+		/* unaware about YQ2_ATTR_NORETURN_FUNCPTR? */
+		return NULL;
+	}
+
+	for (i = 0; i < s; i++)
+	{
+		byte p = data[i];
+		trans[i] = table_8to24[p];
+
+		/* transparent, so scan around for
+		   another color to avoid alpha fringes */
+		if (p == 255)
+		{
+			if ((i > width) && (data[i - width] != 255))
+			{
+				p = data[i - width];
+			}
+			else if ((i < s - width) && (data[i + width] != 255))
+			{
+				p = data[i + width];
+			}
+			else if ((i > 0) && (data[i - 1] != 255))
+			{
+				p = data[i - 1];
+			}
+			else if ((i < s - 1) && (data[i + 1] != 255))
+			{
+				p = data[i + 1];
+			}
+			else
+			{
+				p = 0;
+			}
+
+			/* copy rgb components */
+			((byte *)&trans[i])[0] = ((byte *)&table_8to24[p])[0];
+			((byte *)&trans[i])[1] = ((byte *)&table_8to24[p])[1];
+			((byte *)&trans[i])[2] = ((byte *)&table_8to24[p])[2];
+		}
+	}
+
+	return trans;
 }

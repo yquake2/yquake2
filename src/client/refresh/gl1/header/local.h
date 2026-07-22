@@ -47,7 +47,8 @@
 
 #define MAX_LIGHTMAPS 128
 #define MAX_LIGHTMAP_COPIES 3	// Meant for tile / deferred rendering platforms
-#define MAX_SCRAPS 1
+#define MAX_SCRAPS_NOLERP 2
+#define MAX_SCRAPS 4
 #define TEXNUM_LIGHTMAPS 1024
 #define TEXNUM_SCRAPS (TEXNUM_LIGHTMAPS + MAX_LIGHTMAPS * MAX_LIGHTMAP_COPIES)
 #define TEXNUM_IMAGES (TEXNUM_SCRAPS + MAX_SCRAPS)
@@ -310,7 +311,12 @@ qboolean R_ImageHasFreeSpace(void);
 
 void R_TextureAlphaMode(const char *string);
 void R_TextureSolidMode(const char *string);
-int Scrap_AllocBlock(int w, int h, int *x, int *y);
+int Scrap_AllocBlock(unsigned w, unsigned h, int *x, int *y, const unsigned *pic,
+	int scrap_offset);
+unsigned *Scrap_Upload(int texnum);
+void Scrap_Init(void);
+
+qboolean R_Upload32(unsigned *data, size_t width, size_t height, qboolean mipmap);
 
 // GL buffer operations
 
@@ -434,7 +440,7 @@ typedef struct
 
 	int prev_mode;
 
-	unsigned char *d_16to8table;
+	byte *d_16to8table;
 
 	int lightmap_textures;
 
