@@ -4707,6 +4707,8 @@ GetCombinedMapsList(int *nummaps)
 static void
 StartServer_MenuInit(void)
 {
+	int y;
+
 	static const char *dm_coop_names[] =
 	{
 		"deathmatch",
@@ -4740,35 +4742,34 @@ StartServer_MenuInit(void)
 
 	/* initialize the menu stuff */
 	s_startserver_menu.x = (int)(viddef.width * 0.50f);
+	s_startserver_menu.banner = "m_banner_start_server";
 	s_startserver_menu.nitems = 0;
 
+	y = 18;
 	s_startmap_list.generic.type = MTYPE_SPINCONTROL;
 	s_startmap_list.generic.x = 0;
-
-	if (M_IsGame("ctf"))
-		s_startmap_list.generic.y = -8;
-	else
-		s_startmap_list.generic.y = 0;
-
+	s_startmap_list.generic.y = y;
 	s_startmap_list.generic.name = "initial map";
 	s_startmap_list.itemnames = (const char **)mapnames;
 
 	if (M_IsGame("ctf"))
 	{
+		y += 26;
 		s_capturelimit_field.generic.type = MTYPE_FIELD;
 		s_capturelimit_field.generic.name = "capture limit";
 		s_capturelimit_field.generic.flags = QMF_NUMBERSONLY;
 		s_capturelimit_field.generic.x = 0;
-		s_capturelimit_field.generic.y = 18;
+		s_capturelimit_field.generic.y = y;
 		s_capturelimit_field.generic.statusbar = "0 = no limit";
 		Field_InitState(&s_capturelimit_field,
 			Cvar_VariableString("capturelimit"), 3, 3);
 	}
 	else
 	{
+		y += 20;
 		s_rules_box.generic.type = MTYPE_SPINCONTROL;
 		s_rules_box.generic.x = 0;
-		s_rules_box.generic.y = 20;
+		s_rules_box.generic.y = y;
 		s_rules_box.generic.name = "rules";
 
 		/* Ground Zero games only available with rogue game */
@@ -4793,20 +4794,22 @@ StartServer_MenuInit(void)
 		s_rules_box.generic.callback = RulesChangeFunc;
 	}
 
+	y += 18;
 	s_timelimit_field.generic.type = MTYPE_FIELD;
 	s_timelimit_field.generic.name = "time limit";
 	s_timelimit_field.generic.flags = QMF_NUMBERSONLY;
 	s_timelimit_field.generic.x = 0;
-	s_timelimit_field.generic.y = 36;
+	s_timelimit_field.generic.y = y;
 	s_timelimit_field.generic.statusbar = "0 = no limit";
 	Field_InitState(&s_timelimit_field,
 		Cvar_VariableString("timelimit"), 3, 3);
 
+	y += 18;
 	s_fraglimit_field.generic.type = MTYPE_FIELD;
 	s_fraglimit_field.generic.name = "frag limit";
 	s_fraglimit_field.generic.flags = QMF_NUMBERSONLY;
 	s_fraglimit_field.generic.x = 0;
-	s_fraglimit_field.generic.y = 54;
+	s_fraglimit_field.generic.y = y;
 	s_fraglimit_field.generic.statusbar = "0 = no limit";
 	Field_InitState(&s_fraglimit_field,
 		Cvar_VariableString("fraglimit"), 3, 3);
@@ -4815,37 +4818,41 @@ StartServer_MenuInit(void)
 	   the game. If maxclients is only "1" then we should default the menu
 	   option to 8 players, otherwise use whatever its current value is.
 	   Clamping will be done when the server is actually started. */
+	y += 18;
 	s_maxclients_field.generic.type = MTYPE_FIELD;
 	s_maxclients_field.generic.name = "max players";
 	s_maxclients_field.generic.flags = QMF_NUMBERSONLY;
 	s_maxclients_field.generic.x = 0;
-	s_maxclients_field.generic.y = 72;
+	s_maxclients_field.generic.y = y;
 	s_maxclients_field.generic.statusbar = NULL;
 	Field_InitState(&s_maxclients_field,
 		Cvar_VariableValue("maxclients") == 1 ? "8" : Cvar_VariableString("maxclients"), 3, 3);
 
+	y += 18;
 	s_hostname_field.generic.type = MTYPE_FIELD;
 	s_hostname_field.generic.name = "hostname";
 	s_hostname_field.generic.flags = 0;
 	s_hostname_field.generic.x = 0;
-	s_hostname_field.generic.y = 90;
+	s_hostname_field.generic.y = y;
 	s_hostname_field.generic.statusbar = NULL;
 	Field_InitState(&s_hostname_field,
 		Cvar_VariableString("hostname"), 12, 12);
 
+	y += 18;
 	s_startserver_dmoptions_action.generic.type = MTYPE_ACTION;
 	s_startserver_dmoptions_action.generic.name = " deathmatch flags";
 	s_startserver_dmoptions_action.generic.flags = QMF_LEFT_JUSTIFY;
 	s_startserver_dmoptions_action.generic.x = 24 * scale;
-	s_startserver_dmoptions_action.generic.y = 108;
+	s_startserver_dmoptions_action.generic.y = y;
 	s_startserver_dmoptions_action.generic.statusbar = NULL;
 	s_startserver_dmoptions_action.generic.callback = DMOptionsFunc;
 
+	y += 20;
 	s_startserver_start_action.generic.type = MTYPE_ACTION;
 	s_startserver_start_action.generic.name = " begin";
 	s_startserver_start_action.generic.flags = QMF_LEFT_JUSTIFY;
 	s_startserver_start_action.generic.x = 24 * scale;
-	s_startserver_start_action.generic.y = 128;
+	s_startserver_start_action.generic.y = y;
 	s_startserver_start_action.generic.callback = StartServerActionFunc;
 
 	Menu_AddItem(&s_startserver_menu, &s_startmap_list);
