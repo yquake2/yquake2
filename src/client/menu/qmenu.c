@@ -129,6 +129,43 @@ Action_Draw(menuaction_s *a)
 	}
 }
 
+void
+Field_InitState(menufield_s *f, const char *s, int len, int vislen)
+{
+	if (len < 1)
+	{
+		len = 1;
+	}
+	else if (len > sizeof(f->buffer))
+	{
+		len = sizeof(f->buffer);
+	}
+
+	if (vislen < 1)
+	{
+		vislen = 1;
+	}
+	else if (vislen > len)
+	{
+		vislen = len;
+	}
+
+	*f->buffer = '\0';
+
+	if (s)
+	{
+		if (((f->generic.flags & QMF_NUMBERSONLY) && !Q_strisnum(s)) ||
+			Q_strlcpy(f->buffer, s, len) >= len)
+		{
+			*f->buffer = '\0';
+		}
+	}
+
+	f->length = len;
+	f->visible_length = vislen;
+	f->cursor = strlen(f->buffer);
+}
+
 static void
 Field_Draw(menufield_s *f)
 {
@@ -338,10 +375,10 @@ Field_Key(menufield_s *f, int key)
 void
 Menu_AddItem(menuframework_s *menu, void *item)
 {
-	if (menu->nitems < MAXMENUITEMS)
+	if ((menu->nitems >= 0) && (menu->nitems < MAXMENUITEMS))
 	{
 		menu->items[menu->nitems] = item;
-		((menucommon_s *)menu->items[menu->nitems])->parent = menu;
+		((menucommon_s *)item)->parent = menu;
 		menu->nitems++;
 	}
 }
@@ -517,6 +554,18 @@ Menu_DrawStatusBar(const char *string)
 	}
 }
 
+/*
+ * Draws one solid graphics character cx and cy are in 320*240
+ * coordinates, and will be centered on higher res screens.
+ */
+void
+Menu_DrawCharacter(int cx, int cy, int num)
+{
+	float scale = SCR_GetMenuScale();
+
+	Draw_CharScaled(cx + ((int)(viddef.width - 320 * scale) >> 1), cy + ((int)(viddef.height - 240 * scale) >> 1), num, scale);
+}
+
 void
 Menu_DrawString(int x, int y, const char *string)
 {
@@ -569,6 +618,162 @@ Menu_DrawStringR2LDark(int x, int y, const char *string)
 	{
 		Draw_CharScaled(x - i * 8 * scale, y * scale, string[slen - i - 1] + 128, scale);
 	}
+}
+
+void
+Menu_DrawTextBox(int x, int y, int width, int lines)
+{
+	int cx, cy;
+	int n;
+	float scale = SCR_GetMenuScale();
+
+	/* draw left side */
+	cx = x;
+	cy = y;
+	Menu_DrawCharacter(cx * scale, cy * scale, 1);
+
+	for (n = 0; n < lines; n++)
+	{
+		cy += 8;
+		Menu_DrawCharacter(cx * scale, cy * scale, 4);
+	}
+
+	Menu_DrawCharacter(cx * scale, cy * scale + 8 * scale, 7);
+
+	/* draw middle */
+	cx += 8;
+
+	while (width > 0)
+	{
+		cy = y;
+		Menu_DrawCharacter(cx * scale, cy * scale, 2);
+
+		for (n = 0; n < lines; n++)
+		{
+			cy += 8;
+			Menu_DrawCharacter(cx * scale, cy * scale, 5);
+		}
+
+		Menu_DrawCharacter(cx * scale, cy *scale + 8 * scale, 8);
+		width -= 1;
+		cx += 8;
+	}
+
+	/* draw right side */
+	cy = y;
+	Menu_DrawCharacter(cx * scale, cy * scale, 3);
+
+	for (n = 0; n < lines; n++)
+	{
+		cy += 8;
+		Menu_DrawCharacter(cx * scale, cy * scale, 6);
+	}
+
+	Menu_DrawCharacter(cx * scale, cy * scale + 8 * scale, 9);
+}
+
+void
+Menu_DrawText(int x, int y, const char *str)
+{
+	int cx, cy;
+	float scale;
+
+	scale = SCR_GetMenuScale();
+	cx = x;
+	cy = y;
+
+	for (; *str != '\0'; str++)
+	{
+		if (*str == '\n')
+		{
+			cx = x;
+			cy += 8;
+		}
+		else
+		{
+			Menu_DrawCharacter(cx * scale, cy * scale, (*str) + 128);
+			cx += 8;
+		}
+	}
+}
+
+static void
+GetString2DSize(const char *s, int *w_out, int *h_out)
+{
+	int n, w, h;
+
+	n = 0;
+	w = 0;
+	h = 0;
+
+	for (; *s != '\0'; s++)
+	{
+		if (*s == '\n')
+		{
+			h++;
+			n = 0;
+		}
+		else
+		{
+			n++;
+
+			if (n > w)
+			{
+				w = n;
+			}
+		}
+	}
+
+	if (n)
+	{
+		h++;
+	}
+
+	*w_out = w;
+	*h_out = h;
+}
+
+void
+Menu_DrawPopup(int x, int y, const menupopup_s *pup)
+{
+	int w, h;
+
+	if (!pup->string)
+	{
+		return;
+	}
+
+	if (pup->endtime > 0 && pup->endtime < cls.realtime)
+	{
+		return;
+	}
+
+	if (!R_EndWorldRenderpass())
+	{
+		return;
+	}
+
+	GetString2DSize(pup->string, &w, &h);
+
+	if (w)
+	{
+		int cx, cy;
+
+		w += 2;
+
+		cx = (x - (w + 2) * 8) / 2;
+		cy = (y - (h + 2) * 8) / 3;
+
+		Menu_DrawTextBox(cx, cy, w, h);
+		Menu_DrawText(cx + 16, cy + 8, pup->string);
+	}
+}
+
+void
+Menu_StartPopup(menupopup_s *pup, const char *string, int lifetime)
+{
+	pup->string = string;
+	pup->endtime = (lifetime <= 0) ? 0 : (cls.realtime + lifetime);
 }
 
 void *
@@ -871,4 +1076,3 @@ SpinControl_Draw(menulist_s *s)
 			y, buffer);
 	}
 }
-

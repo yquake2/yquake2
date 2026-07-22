@@ -29,9 +29,9 @@
 #include "../../client/menu/header/qmenu.h"
 #include "header/qmenu.h"
 
-extern void M_Banner(const char *name);
 extern void M_ForceMenuOff(void);
 extern const char *Default_MenuKey(menuframework_s *m, int key);
+extern void Default_MenuDraw(menuframework_s *m);
 
 static cvar_t *r_mode;
 static cvar_t *vid_displayindex;
@@ -612,6 +612,7 @@ VID_MenuInit(void)
 
 	s_opengl_menu.x = viddef.width * 0.50;
 	s_opengl_menu.nitems = 0;
+	s_opengl_menu.banner = "m_banner_video";
 
 	s_renderer_list.generic.type = MTYPE_SPINCONTROL;
 	s_renderer_list.generic.name = "renderer";
@@ -971,20 +972,6 @@ VID_MenuInit(void)
 	s_opengl_menu.x -= 8;
 }
 
-void
-VID_MenuDraw(void)
-{
-	M_Banner("m_banner_video");
-	Menu_AdjustCursor(&s_opengl_menu, 1);
-	Menu_Draw(&s_opengl_menu);
-}
-
-const char *
-VID_MenuKey(int key)
-{
-	return Default_MenuKey(&s_opengl_menu, key);
-}
-
 /*
  * VIDEO MENU
  */
@@ -993,8 +980,8 @@ void
 M_Menu_Video_f(void)
 {
 	VID_MenuInit();
-	s_opengl_menu.draw = VID_MenuDraw;
-	s_opengl_menu.key  = VID_MenuKey;
+	s_opengl_menu.draw = Default_MenuDraw;
+	s_opengl_menu.key  = Default_MenuKey;
 
 	M_PushMenu(&s_opengl_menu);
 }

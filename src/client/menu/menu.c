@@ -63,7 +63,6 @@ static void M_Menu_Joy_f(void);
 static void M_Menu_ControllerButtons_f(void);
 static void M_Menu_ControllerAltButtons_f(void);
 static void M_Menu_Quit_f(void);
-
 void M_Menu_Credits(void);
 
 qboolean m_entersound; /* play after drawing a frame, so caching won't disrupt the sound */
@@ -71,15 +70,17 @@ qboolean m_entersound; /* play after drawing a frame, so caching won't disrupt t
 /* Maximal number of submenus */
 #define MAX_MENU_DEPTH 8
 
-typedef struct
-{
-	void (*draw)(void);
-	const char *(*key)(int k);
-} menulayer_t;
-
-static menulayer_t m_layers[MAX_MENU_DEPTH];
-static menulayer_t m_active;		/* active menu layer */
+static menuframework_s *m_layers[MAX_MENU_DEPTH];
 static int m_menudepth;
+
+static menupopup_s m_popup;
+
+static menuframework_s *
+M_GetActiveMenu(void)
+{
+	return ((m_menudepth > 0) && (m_menudepth < MAX_MENU_DEPTH)) ?
+		m_layers[m_menudepth - 1] : NULL;
+}
 
 static qboolean
 M_IsGame(const char *gamename)
@@ -95,11 +96,18 @@ M_IsGame(const char *gamename)
 	return false;
 }
 
-void
+static void
 M_Banner(const char *name)
 {
 	int w, h;
-	float scale = SCR_GetMenuScale();
+	float scale;
+
+	if (!name)
+	{
+		return;
+	}
+
+	scale = SCR_GetMenuScale();
 
 	Draw_GetPicSize(&w, &h, name);
 	Draw_PicScaled(viddef.width / 2 - (w * scale) / 2, viddef.height / 2 - (110 * scale), name, scale);
@@ -108,63 +116,62 @@ M_Banner(const char *name)
 void
 M_ForceMenuOff(void)
 {
-	cls.key_dest = key_game;
-	m_active.draw = NULL;
-	m_active.key  = NULL;
+	int i;
+
+	for (i = m_menudepth - 1; i >= 0; i--)
+	{
+		menuframework_s *menu = m_layers[i];
+
+		if (menu && menu->close)
+		{
+			menu->close(menu);
+		}
+	}
+
 	m_menudepth = 0;
+
+	cls.key_dest = key_game;
 	Key_MarkAllUp();
 	Cvar_Set("paused", "0");
 }
 
 static void
-M_PopMenu(void)
+M_PopMenu(qboolean silent)
 {
-	S_StartLocalSound(menu_out_sound);
+	menuframework_s *menu;
 
-	if (m_menudepth < 1)
+	if (m_menudepth <= 0)
 	{
-		Com_Error(ERR_FATAL, "%s: depth < 1", __func__);
+		M_ForceMenuOff();
 		return;
+	}
+
+	menu = M_GetActiveMenu();
+
+	if (menu && menu->close)
+	{
+		menu->close(menu);
 	}
 
 	m_menudepth--;
 
-	m_active.draw = m_layers[m_menudepth].draw;
-	m_active.key  = m_layers[m_menudepth].key;
+	if (silent)
+	{
+		return;
+	}
+
+	S_StartLocalSound(menu_out_sound);
 
 	if (!m_menudepth)
 	{
 		M_ForceMenuOff();
+
 		/* play music */
 		if (Cvar_VariableValue("ogg_pausewithgame") == 1 &&
 				OGG_Status() == PAUSE && cl.attractloop == false)
 		{
 			Cbuf_AddText("ogg toggle\n");
 		}
-	}
-}
-
-// Similar to M_PopMenu but silent and doesn't toggle music or paused state
-static void
-M_PopMenuSilent(void)
-{
-	if (m_menudepth < 1)
-	{
-		Com_Error(ERR_FATAL, "%s: depth < 1", __func__);
-		return;
-	}
-
-	m_menudepth--;
-
-	if (m_menudepth)
-	{
-		m_active.draw = m_layers[m_menudepth].draw;
-		m_active.key  = m_layers[m_menudepth].key;
-	}
-	else
-	{
-		m_active.draw = NULL;
-		m_active.key  = NULL;
 	}
 }
 
@@ -219,9 +226,9 @@ M_PushMenu(menuframework_s* menu)
 
 	/* if this menu is already open (and on top),
 	   close it => toggling behaviour */
-	if ((m_active.draw == menu->draw) && (m_active.key  == menu->key))
+	if (M_GetActiveMenu() == menu)
 	{
-		M_PopMenu();
+		M_PopMenu(false);
 		return;
 	}
 
@@ -229,7 +236,7 @@ M_PushMenu(menuframework_s* menu)
 	   that level to avoid stacking menus by hotkeys */
 	for (i = 0; i < m_menudepth; i++)
 	{
-		if ((m_layers[i].draw == menu->draw) && (m_layers[i].key  == menu->key))
+		if (m_layers[i] == menu)
 		{
 			alreadyPresent = 1;
 			break;
@@ -239,7 +246,7 @@ M_PushMenu(menuframework_s* menu)
 	/* menu was already opened further down the stack */
 	while (alreadyPresent && i <= m_menudepth)
 	{
-		M_PopMenu(); /* decrements m_menudepth */
+		M_PopMenu(false);
 	}
 
 	if (m_menudepth >= MAX_MENU_DEPTH)
@@ -248,12 +255,8 @@ M_PushMenu(menuframework_s* menu)
 		return;
 	}
 
-	m_layers[m_menudepth].draw = m_active.draw;
-	m_layers[m_menudepth].key  = m_active.key;
+	m_layers[m_menudepth] = menu;
 	m_menudepth++;
-
-	m_active.draw = menu->draw;
-	m_active.key  = menu->key;
 
 	m_entersound = true;
 
@@ -306,8 +309,10 @@ Key_GetMenuKey(int key)
 
 		case K_KP_DEL:
 			if (IN_NumpadIsOn() == true) { break; }
-		case K_BACKSPACE:
 		case K_DEL:
+			return K_DEL;
+
+		case K_BACKSPACE:
 		case K_BTN_NORTH:
 			return K_BACKSPACE;
 
@@ -335,17 +340,13 @@ Default_MenuKey(menuframework_s *m, int key)
 	menucommon_s *item;
 	int menu_key;
 
-	menu_key = Key_GetMenuKey(key);
-
-	if (!m)
+	if (Menu_PopupActive(&m_popup))
 	{
-		if (menu_key == K_ESCAPE)
-		{
-			M_PopMenu();
-		}
-
+		Menu_ClosePopup(&m_popup);
 		return NULL;
 	}
+
+	menu_key = Key_GetMenuKey(key);
 
 	item = Menu_ItemAtCursor(m);
 
@@ -363,7 +364,7 @@ Default_MenuKey(menuframework_s *m, int key)
 	{
 		case K_ESCAPE:
 			Field_ResetCursor(m);
-			M_PopMenu();
+			M_PopMenu(false);
 			break;
 
 		case K_UPARROW:
@@ -405,39 +406,12 @@ Default_MenuKey(menuframework_s *m, int key)
 	return sound;
 }
 
-/*
- * Draws one solid graphics character cx and cy are in 320*240
- * coordinates, and will be centered on higher res screens.
- */
-static void
-M_DrawCharacter(int cx, int cy, int num)
+void
+Default_MenuDraw(menuframework_s *m)
 {
-	float scale = SCR_GetMenuScale();
-	Draw_CharScaled(cx + ((int)(viddef.width - 320 * scale) >> 1), cy + ((int)(viddef.height - 240 * scale) >> 1), num, scale);
-}
-
-static void
-M_Print(int x, int y, char *str)
-{
-	int cx, cy;
-	float scale = SCR_GetMenuScale();
-
-	cx = x;
-	cy = y;
-	while (*str)
-	{
-		if (*str == '\n')
-		{
-			cx = x;
-			cy += 8;
-		}
-		else
-		{
-			M_DrawCharacter(cx * scale, cy * scale, (*str) + 128);
-			cx += 8;
-		}
-		str++;
-	}
+	M_Banner(m->banner);
+	Menu_Draw(m);
+	Menu_DrawPopup(320, 240, &m_popup);
 }
 
 /* Unsused, left for backward compability */
@@ -490,15 +464,15 @@ M_DrawTextBox(int x, int y, int width, int lines)
 	/* draw left side */
 	cx = x;
 	cy = y;
-	M_DrawCharacter(cx * scale, cy * scale, 1);
+	Menu_DrawCharacter(cx * scale, cy * scale, 1);
 
 	for (n = 0; n < lines; n++)
 	{
 		cy += 8;
-		M_DrawCharacter(cx * scale, cy * scale, 4);
+		Menu_DrawCharacter(cx * scale, cy * scale, 4);
 	}
 
-	M_DrawCharacter(cx * scale, cy * scale + 8 * scale, 7);
+	Menu_DrawCharacter(cx * scale, cy * scale + 8 * scale, 7);
 
 	/* draw middle */
 	cx += 8;
@@ -506,91 +480,30 @@ M_DrawTextBox(int x, int y, int width, int lines)
 	while (width > 0)
 	{
 		cy = y;
-		M_DrawCharacter(cx * scale, cy * scale, 2);
+		Menu_DrawCharacter(cx * scale, cy * scale, 2);
 
 		for (n = 0; n < lines; n++)
 		{
 			cy += 8;
-			M_DrawCharacter(cx * scale, cy * scale, 5);
+			Menu_DrawCharacter(cx * scale, cy * scale, 5);
 		}
 
-		M_DrawCharacter(cx * scale, cy *scale + 8 * scale, 8);
+		Menu_DrawCharacter(cx * scale, cy *scale + 8 * scale, 8);
 		width -= 1;
 		cx += 8;
 	}
 
 	/* draw right side */
 	cy = y;
-	M_DrawCharacter(cx * scale, cy * scale, 3);
+	Menu_DrawCharacter(cx * scale, cy * scale, 3);
 
 	for (n = 0; n < lines; n++)
 	{
 		cy += 8;
-		M_DrawCharacter(cx * scale, cy * scale, 6);
+		Menu_DrawCharacter(cx * scale, cy * scale, 6);
 	}
 
-	M_DrawCharacter(cx * scale, cy * scale + 8 * scale, 9);
-}
-
-static char *m_popup_string;
-static int m_popup_endtime;
-
-static void
-M_Popup(void)
-{
-	int width, lines;
-	int n;
-	char *str;
-
-	if (!m_popup_string)
-	{
-		return;
-	}
-
-	if (m_popup_endtime && m_popup_endtime < cls.realtime)
-	{
-		m_popup_string = NULL;
-		return;
-	}
-
-	if (!R_EndWorldRenderpass())
-	{
-		return;
-	}
-
-	width = lines = n = 0;
-	for (str = m_popup_string; *str; str++)
-	{
-		if (*str == '\n')
-		{
-			lines++;
-			n = 0;
-		}
-		else
-		{
-			n++;
-			if (n > width)
-			{
-				width = n;
-			}
-		}
-	}
-	if (n)
-	{
-		lines++;
-	}
-
-	if (width)
-	{
-		int x, y;
-		width += 2;
-
-		x = (320 - (width + 2) * 8) / 2;
-		y = (240 - (lines + 2) * 8) / 3;
-
-		M_DrawTextBox(x, y, width, lines);
-		M_Print(x + 16, y + 8, m_popup_string);
-	}
+	Menu_DrawCharacter(cx * scale, cy * scale + 8 * scale, 9);
 }
 
 /*
@@ -758,13 +671,13 @@ InitMainMenu(void)
 
 
 static void
-M_Main_Draw(void)
+M_Main_Draw(menuframework_s *m)
 {
-	const menucommon_s * item = NULL;
+	const menucommon_s *item;
 
-	Menu_Draw(&s_main);
+	Menu_Draw(m);
 
-	item = Menu_ItemAtCursor(&s_main);
+	item = Menu_ItemAtCursor(m);
 
 	if (item)
 	{
@@ -773,18 +686,12 @@ M_Main_Draw(void)
 	}
 }
 
-static const char *
-M_Main_Key(int key)
-{
-	return Default_MenuKey(&s_main, key);
-}
-
 void
 M_Menu_Main_f(void)
 {
 	InitMainMenu();
 	s_main.draw = M_Main_Draw;
-	s_main.key  = M_Main_Key;
+	s_main.key  = Default_MenuKey;
 
 	Menu_AdjustCursor(&s_main, 1);
 
@@ -800,15 +707,6 @@ static menuaction_s s_join_network_server_action;
 static menuaction_s s_start_network_server_action;
 static menuaction_s s_player_setup_action;
 static menuaction_s s_customize_options_action;
-
-static void
-Multiplayer_MenuDraw(void)
-{
-	M_Banner("m_banner_multiplayer");
-
-	Menu_AdjustCursor(&s_multiplayer_menu, 1);
-	Menu_Draw(&s_multiplayer_menu);
-}
 
 static void
 PlayerSetupFunc(void *unused)
@@ -841,6 +739,7 @@ Multiplayer_MenuInit(void)
 
 	s_multiplayer_menu.x = (int)(viddef.width * 0.50f) - 64 * scale;
 	s_multiplayer_menu.nitems = 0;
+	s_multiplayer_menu.banner = "m_banner_multiplayer";
 
 	s_join_network_server_action.generic.type = MTYPE_ACTION;
 	s_join_network_server_action.generic.flags = QMF_LEFT_JUSTIFY;
@@ -880,18 +779,12 @@ Multiplayer_MenuInit(void)
 	Menu_Center(&s_multiplayer_menu);
 }
 
-static const char *
-Multiplayer_MenuKey(int key)
-{
-	return Default_MenuKey(&s_multiplayer_menu, key);
-}
-
 static void
 M_Menu_Multiplayer_f(void)
 {
 	Multiplayer_MenuInit();
-	s_multiplayer_menu.draw = Multiplayer_MenuDraw;
-	s_multiplayer_menu.key  = Multiplayer_MenuKey;
+	s_multiplayer_menu.draw = Default_MenuDraw;
+	s_multiplayer_menu.key  = Default_MenuKey;
 
 	M_PushMenu(&s_multiplayer_menu);
 }
@@ -1121,17 +1014,10 @@ Keys_MenuInit(void)
 	Menu_Center(&s_keys_menu);
 }
 
-static void
-Keys_MenuDraw(void)
-{
-	Menu_AdjustCursor(&s_keys_menu, 1);
-	Menu_Draw(&s_keys_menu);
-}
-
 static const char *
-Keys_MenuKey(int key)
+Keys_MenuKey(menuframework_s *m, int key)
 {
-	menuaction_s *item = (menuaction_s *)Menu_ItemAtCursor(&s_keys_menu);
+	menuaction_s *item = (menuaction_s *)Menu_ItemAtCursor(m);
 
 	if (menukeyitem_bind)
 	{
@@ -1145,7 +1031,7 @@ Keys_MenuKey(int key)
 			Cbuf_InsertText(cmd);
 		}
 
-		Menu_SetStatusBar(&s_keys_menu, "ENTER to change, BACKSPACE to clear");
+		Menu_SetStatusBar(m, "ENTER to change, BACKSPACE to clear");
 		menukeyitem_bind = false;
 		return menu_out_sound;
 	}
@@ -1156,11 +1042,12 @@ Keys_MenuKey(int key)
 	case K_ENTER:
 		KeyBindingFunc(item);
 		return menu_in_sound;
+	case K_DEL:
 	case K_BACKSPACE: /* delete bindings */
 		M_UnbindCommand(bindnames[item->generic.localdata[0]][0], KEYS_KEYBOARD_MOUSE);
 		return menu_out_sound;
 	default:
-		return Default_MenuKey(&s_keys_menu, key);
+		return Default_MenuKey(m, key);
 	}
 }
 
@@ -1168,7 +1055,7 @@ static void
 M_Menu_Keys_f(void)
 {
 	Keys_MenuInit();
-	s_keys_menu.draw = Keys_MenuDraw;
+	s_keys_menu.draw = Default_MenuDraw;
 	s_keys_menu.key  = Keys_MenuKey;
 
 	M_PushMenu(&s_keys_menu);
@@ -1273,17 +1160,10 @@ MultiplayerKeys_MenuInit(void)
 	Menu_Center(&s_multiplayer_keys_menu);
 }
 
-static void
-MultiplayerKeys_MenuDraw(void)
-{
-	Menu_AdjustCursor(&s_multiplayer_keys_menu, 1);
-	Menu_Draw(&s_multiplayer_keys_menu);
-}
-
 static const char *
-MultiplayerKeys_MenuKey(int key)
+MultiplayerKeys_MenuKey(menuframework_s *m, int key)
 {
-	menuaction_s *item = (menuaction_s *)Menu_ItemAtCursor(&s_multiplayer_keys_menu);
+	menuaction_s *item = (menuaction_s *)Menu_ItemAtCursor(m);
 
 	if (menukeyitem_bind)
 	{
@@ -1297,7 +1177,7 @@ MultiplayerKeys_MenuKey(int key)
 			Cbuf_InsertText(cmd);
 		}
 
-		Menu_SetStatusBar(&s_multiplayer_keys_menu, "ENTER to change, BACKSPACE to clear");
+		Menu_SetStatusBar(m, "ENTER to change, BACKSPACE to clear");
 		menukeyitem_bind = false;
 		return menu_out_sound;
 	}
@@ -1308,11 +1188,12 @@ MultiplayerKeys_MenuKey(int key)
 	case K_ENTER:
 		MultiplayerKeyBindingFunc(item);
 		return menu_in_sound;
+	case K_DEL:
 	case K_BACKSPACE: /* delete bindings */
 		M_UnbindCommand(multiplayer_key_bindnames[item->generic.localdata[0]][0], KEYS_ALL);
 		return menu_out_sound;
 	default:
-		return Default_MenuKey(&s_multiplayer_keys_menu, key);
+		return Default_MenuKey(m, key);
 	}
 }
 
@@ -1320,7 +1201,7 @@ static void
 M_Menu_Multiplayer_Keys_f(void)
 {
 	MultiplayerKeys_MenuInit();
-	s_multiplayer_keys_menu.draw = MultiplayerKeys_MenuDraw;
+	s_multiplayer_keys_menu.draw = Default_MenuDraw;
 	s_multiplayer_keys_menu.key  = MultiplayerKeys_MenuKey;
 
 	M_PushMenu(&s_multiplayer_keys_menu);
@@ -1470,17 +1351,10 @@ ControllerButtons_MenuInit(void)
 	Menu_Center(&s_controller_buttons_menu);
 }
 
-static void
-ControllerButtons_MenuDraw(void)
-{
-	Menu_AdjustCursor(&s_controller_buttons_menu, 1);
-	Menu_Draw(&s_controller_buttons_menu);
-}
-
 static const char *
-ControllerButtons_MenuKey(int key)
+ControllerButtons_MenuKey(menuframework_s *m, int key)
 {
-	menuaction_s *item = (menuaction_s *)Menu_ItemAtCursor(&s_controller_buttons_menu);
+	menuaction_s *item = (menuaction_s *)Menu_ItemAtCursor(m);
 
 	if (menukeyitem_bind)
 	{
@@ -1494,7 +1368,7 @@ ControllerButtons_MenuKey(int key)
 			Cbuf_InsertText(cmd);
 		}
 
-		GamepadMenu_StatusPrompt(&s_controller_buttons_menu);
+		GamepadMenu_StatusPrompt(m);
 		menukeyitem_bind = false;
 		return menu_out_sound;
 	}
@@ -1505,11 +1379,12 @@ ControllerButtons_MenuKey(int key)
 		case K_ENTER:
 			ControllerButtonBindingFunc(item);
 			return menu_in_sound;
+		case K_DEL:
 		case K_BACKSPACE:
 			M_UnbindCommand(controller_bindnames[item->generic.localdata[0]][0], KEYS_CONTROLLER);
 			return menu_out_sound;
 		default:
-			return Default_MenuKey(&s_controller_buttons_menu, key);
+			return Default_MenuKey(m, key);
 	}
 }
 
@@ -1517,7 +1392,7 @@ static void
 M_Menu_ControllerButtons_f(void)
 {
 	ControllerButtons_MenuInit();
-	s_controller_buttons_menu.draw = ControllerButtons_MenuDraw;
+	s_controller_buttons_menu.draw = Default_MenuDraw;
 	s_controller_buttons_menu.key  = ControllerButtons_MenuKey;
 
 	M_PushMenu(&s_controller_buttons_menu);
@@ -1643,17 +1518,10 @@ ControllerAltButtons_MenuInit(void)
 	Menu_Center(&s_controller_alt_buttons_menu);
 }
 
-static void
-ControllerAltButtons_MenuDraw(void)
-{
-	Menu_AdjustCursor(&s_controller_alt_buttons_menu, 1);
-	Menu_Draw(&s_controller_alt_buttons_menu);
-}
-
 static const char *
-ControllerAltButtons_MenuKey(int key)
+ControllerAltButtons_MenuKey(menuframework_s *m, int key)
 {
-	menuaction_s *item = (menuaction_s *)Menu_ItemAtCursor(&s_controller_alt_buttons_menu);
+	menuaction_s *item = (menuaction_s *)Menu_ItemAtCursor(m);
 
 	if (menukeyitem_bind)
 	{
@@ -1668,7 +1536,7 @@ ControllerAltButtons_MenuKey(int key)
 			Cbuf_InsertText(cmd);
 		}
 
-		GamepadMenu_StatusPrompt(&s_controller_alt_buttons_menu);
+		GamepadMenu_StatusPrompt(m);
 		menukeyitem_bind = false;
 		return menu_out_sound;
 	}
@@ -1679,11 +1547,12 @@ ControllerAltButtons_MenuKey(int key)
 		case K_ENTER:
 			ControllerAltButtonBindingFunc(item);
 			return menu_in_sound;
+		case K_DEL:
 		case K_BACKSPACE:
 			M_UnbindCommand(controller_alt_bindnames[item->generic.localdata[0]][0], KEYS_CONTROLLER_ALT);
 			return menu_out_sound;
 		default:
-			return Default_MenuKey(&s_controller_alt_buttons_menu, key);
+			return Default_MenuKey(m, key);
 	}
 }
 
@@ -1691,7 +1560,7 @@ static void
 M_Menu_ControllerAltButtons_f(void)
 {
 	ControllerAltButtons_MenuInit();
-	s_controller_alt_buttons_menu.draw = ControllerAltButtons_MenuDraw;
+	s_controller_alt_buttons_menu.draw = Default_MenuDraw;
 	s_controller_alt_buttons_menu.key  = ControllerAltButtons_MenuKey;
 
 	M_PushMenu(&s_controller_alt_buttons_menu);
@@ -1843,24 +1712,11 @@ Stick_MenuInit(void)
 }
 
 static void
-Stick_MenuDraw(void)
-{
-	Menu_AdjustCursor(&s_sticks_config_menu, 1);
-	Menu_Draw(&s_sticks_config_menu);
-}
-
-static const char *
-Stick_MenuKey(int key)
-{
-	return Default_MenuKey(&s_sticks_config_menu, key);
-}
-
-static void
 M_Menu_Stick_f(void)
 {
 	Stick_MenuInit();
-	s_sticks_config_menu.draw = Stick_MenuDraw;
-	s_sticks_config_menu.key  = Stick_MenuKey;
+	s_sticks_config_menu.draw = Default_MenuDraw;
+	s_sticks_config_menu.key  = Default_MenuKey;
 
 	M_PushMenu(&s_sticks_config_menu);
 }
@@ -1899,9 +1755,10 @@ CalibrateGyroFunc(void *unused)
 		return;
 	}
 
-	m_popup_string = "Calibrating, please wait...";
-	m_popup_endtime = cls.realtime + 4650;
-	M_Popup();
+	Menu_StartPopup(&m_popup,
+		"Calibrating, please wait...", 4650);
+
+	Menu_DrawPopup(320, 240, &m_popup);
 	R_EndFrame();
 	StartCalibration();
 }
@@ -1910,9 +1767,8 @@ void
 CalibrationFinishedCallback(void)
 {
 	Menu_SetStatusBar(&s_gyro_menu, NULL);
-	m_popup_string = "Calibration complete!";
-	m_popup_endtime = cls.realtime + 1900;
-	M_Popup();
+	Menu_StartPopup(&m_popup, "Calibration complete!", 1900);
+	Menu_DrawPopup(320, 240, &m_popup);
 	R_EndFrame();
 }
 
@@ -1928,7 +1784,7 @@ GyroSpaceFunc(void *unused)
 	Cvar_SetValue("gyro_space", s_gyro_space_box.curvalue);
 
 	// Force the menu to refresh.
-	M_PopMenuSilent();
+	M_PopMenu(true);
 	M_Menu_Gyro_f();
 }
 
@@ -1944,7 +1800,7 @@ GyroAccelerationFunc(void *unused)
 	Cvar_SetValue("gyro_acceleration", s_gyro_acceleration_box.curvalue);
 
 	// Force the menu to refresh.
-	M_PopMenuSilent();
+	M_PopMenu(true);
 	M_Menu_Gyro_f();
 }
 
@@ -2162,25 +2018,11 @@ Gyro_MenuInit(void)
 }
 
 static void
-Gyro_MenuDraw(void)
-{
-	Menu_AdjustCursor(&s_gyro_menu, 1);
-	Menu_Draw(&s_gyro_menu);
-	M_Popup();
-}
-
-static const char *
-Gyro_MenuKey(int key)
-{
-	return Default_MenuKey(&s_gyro_menu, key);
-}
-
-static void
 M_Menu_Gyro_f(void)
 {
 	Gyro_MenuInit();
-	s_gyro_menu.draw = Gyro_MenuDraw;
-	s_gyro_menu.key  = Gyro_MenuKey;
+	s_gyro_menu.draw = Default_MenuDraw;
+	s_gyro_menu.key  = Default_MenuKey;
 
 	M_PushMenu(&s_gyro_menu);
 }
@@ -2209,7 +2051,7 @@ extern qboolean IN_MatchJoyPreset(void);
 static void
 RefreshJoyMenuFunc(void *unused)
 {
-	M_PopMenuSilent();
+	M_PopMenu(true);
 	M_Menu_Joy_f();
 }
 
@@ -2437,24 +2279,11 @@ Joy_MenuInit(void)
 }
 
 static void
-Joy_MenuDraw(void)
-{
-	Menu_AdjustCursor(&s_joy_menu, 1);
-	Menu_Draw(&s_joy_menu);
-}
-
-static const char *
-Joy_MenuKey(int key)
-{
-	return Default_MenuKey(&s_joy_menu, key);
-}
-
-static void
 M_Menu_Joy_f(void)
 {
 	Joy_MenuInit();
-	s_joy_menu.draw = Joy_MenuDraw;
-	s_joy_menu.key  = Joy_MenuKey;
+	s_joy_menu.draw = Default_MenuDraw;
+	s_joy_menu.key  = Default_MenuKey;
 
 	M_PushMenu(&s_joy_menu);
 }
@@ -2671,11 +2500,12 @@ UpdateSoundBackendFunc(void *unused)
 {
 	Cvar_Set("s_openal", (s_options_quality_list.curvalue == 0)? "1":"0" );
 
-	m_popup_string = "Restarting the sound system. This\n"
-					 "could take up to a minute, so\n"
-					 "please be patient.";
-	m_popup_endtime = cls.realtime + 2000;
-	M_Popup();
+	Menu_StartPopup(&m_popup,
+		"Restarting the sound system. This\n"
+		"could take up to a minute, so\n"
+		"please be patient.",
+		2000);
+	Menu_DrawPopup(320, 240, &m_popup);
 
 	/* the text box won't show up unless we do a buffer swap */
 	R_EndFrame();
@@ -2745,6 +2575,7 @@ Options_MenuInit(void)
 	/* configure controls menu and menu items */
 	s_options_menu.x = viddef.width / 2;
 	s_options_menu.y = viddef.height / (2 * scale) - 58;
+	s_options_menu.banner = "m_banner_options";
 	s_options_menu.nitems = 0;
 
 	s_options_sfxvolume_slider.generic.type = MTYPE_SLIDER;
@@ -2889,31 +2720,11 @@ Options_MenuInit(void)
 }
 
 static void
-Options_MenuDraw(void)
-{
-	M_Banner("m_banner_options");
-	Menu_AdjustCursor(&s_options_menu, 1);
-	Menu_Draw(&s_options_menu);
-	M_Popup();
-}
-
-static const char *
-Options_MenuKey(int key)
-{
-	if (m_popup_string)
-	{
-		m_popup_string = NULL;
-		return NULL;
-	}
-	return Default_MenuKey(&s_options_menu, key);
-}
-
-static void
 M_Menu_Options_f(void)
 {
 	Options_MenuInit();
-	s_options_menu.draw = Options_MenuDraw;
-	s_options_menu.key  = Options_MenuKey;
+	s_options_menu.draw = Default_MenuDraw;
+	s_options_menu.key  = Default_MenuKey;
 
 	M_PushMenu(&s_options_menu);
 }
@@ -3286,7 +3097,7 @@ static const char *roguecredits[] =
 };
 
 static void
-M_Credits_Draw(void)
+M_Credits_Draw(menuframework_s *m)
 {
 	int i, y;
 	float scale = SCR_GetMenuScale();
@@ -3343,20 +3154,27 @@ M_Credits_Draw(void)
 	}
 }
 
+static void
+M_Credits_Close(menuframework_s *m)
+{
+	if (creditsBuffer)
+	{
+		FS_FreeFile(creditsBuffer);
+		creditsBuffer = NULL;
+	}
+}
+
 static const char *
-M_Credits_Key(int key)
+M_Credits_Key(menuframework_s *m, int key)
 {
 	key = Key_GetMenuKey(key);
+
 	if (key == K_ESCAPE)
 	{
-		if (creditsBuffer)
-		{
-			FS_FreeFile(creditsBuffer);
-		}
-		M_PopMenu();
+		M_PopMenu(false);
 	}
 
-	return menu_out_sound;
+	return NULL;
 }
 
 static void
@@ -3432,8 +3250,9 @@ M_Menu_Credits_f(void)
 
 	credits_start_time = cls.realtime;
 
-	s_credits.draw = M_Credits_Draw;
-	s_credits.key  = M_Credits_Key;
+	s_credits.draw  = M_Credits_Draw;
+	s_credits.key   = M_Credits_Key;
+	s_credits.close = M_Credits_Close;
 
 	M_PushMenu(&s_credits);
 }
@@ -3624,25 +3443,11 @@ Mods_MenuInit(void)
 }
 
 static void
-Mods_MenuDraw(void)
-{
-	Menu_AdjustCursor(&s_mods_menu, 1);
-	Menu_Draw(&s_mods_menu);
-	M_Popup();
-}
-
-static const char *
-Mods_MenuKey(int key)
-{
-	return Default_MenuKey(&s_mods_menu, key);
-}
-
-static void
 M_Menu_Mods_f(void)
 {
 	Mods_MenuInit();
-	s_mods_menu.draw = Mods_MenuDraw;
-	s_mods_menu.key  = Mods_MenuKey;
+	s_mods_menu.draw = Default_MenuDraw;
+	s_mods_menu.key  = Default_MenuKey;
 
 	M_PushMenu(&s_mods_menu);
 }
@@ -3741,6 +3546,7 @@ Game_MenuInit(void)
 
 	s_game_menu.x = (int)(viddef.width * 0.50f);
 	s_game_menu.nitems = 0;
+	s_game_menu.banner = "m_banner_game";
 
 	s_easy_game_action.generic.type = MTYPE_ACTION;
 	s_easy_game_action.generic.flags = QMF_LEFT_JUSTIFY;
@@ -3819,25 +3625,11 @@ Game_MenuInit(void)
 }
 
 static void
-Game_MenuDraw(void)
-{
-	M_Banner("m_banner_game");
-	Menu_AdjustCursor(&s_game_menu, 1);
-	Menu_Draw(&s_game_menu);
-}
-
-static const char *
-Game_MenuKey(int key)
-{
-	return Default_MenuKey(&s_game_menu, key);
-}
-
-static void
 M_Menu_Game_f(void)
 {
 	Game_MenuInit();
-	s_game_menu.draw = Game_MenuDraw;
-	s_game_menu.key  = Game_MenuKey;
+	s_game_menu.draw = Default_MenuDraw;
+	s_game_menu.key  = Default_MenuKey;
 
 	M_PushMenu(&s_game_menu);
 	m_game_cursor = 1;
@@ -4049,6 +3841,7 @@ LoadGame_MenuInit(void)
 
 	s_loadgame_menu.x = viddef.width / 2 - (120 * scale);
 	s_loadgame_menu.y = viddef.height / (2 * scale) - 58;
+	s_loadgame_menu.banner = "m_banner_load_game";
 	s_loadgame_menu.nitems = 0;
 
 	Create_Savestrings();
@@ -4097,18 +3890,9 @@ LoadGame_MenuInit(void)
 	Menu_SetStatusBar(&s_loadgame_menu, m_loadsave_statusbar);
 }
 
-static void
-LoadGame_MenuDraw(void)
-{
-	M_Banner("m_banner_load_game");
-	Menu_AdjustCursor(&s_loadgame_menu, 1);
-	Menu_Draw(&s_loadgame_menu);
-}
-
 static const char *
-LoadGame_MenuKey(int key)
+LoadGame_MenuKey(menuframework_s *m, int key)
 {
-	static menuframework_s *m = &s_loadgame_menu;
 	int menu_key = Key_GetMenuKey(key);
 
 	if (menukeyitem_delete)
@@ -4148,6 +3932,7 @@ LoadGame_MenuKey(int key)
 		LoadGame_MenuInit();
 		return menu_move_sound;
 
+	case K_DEL:
 	case K_BACKSPACE:
 		PromptDeleteSaveFunc(m);
 		return menu_move_sound;
@@ -4165,7 +3950,7 @@ M_Menu_LoadGame_f(void)
 {
 	LoadSave_AdjustPage(0);
 	LoadGame_MenuInit();
-	s_loadgame_menu.draw = LoadGame_MenuDraw;
+	s_loadgame_menu.draw = Default_MenuDraw;
 	s_loadgame_menu.key  = LoadGame_MenuKey;
 
 	M_PushMenu(&s_loadgame_menu);
@@ -4182,34 +3967,28 @@ SaveGameCallback(void *self)
 
 	if (a->generic.localdata[0] == -1)
 	{
-		m_popup_string = "This slot is reserved for\n"
-						 "quicksaving, so please select\n"
-						 "another one.";
-		m_popup_endtime = cls.realtime + 2000;
-		M_Popup();
+		Menu_StartPopup(&m_popup,
+			"This slot is reserved for\n"
+			"quicksaving, so please select\n"
+			"another one.",
+			2000);
+		Menu_DrawPopup(320, 240, &m_popup);
 		return;
 	}
-	else if (a->generic.localdata[0] == 0)
+
+	if (a->generic.localdata[0] == 0)
 	{
-		m_popup_string = "This slot is reserved for\n"
-						 "autosaving, so please select\n"
-						 "another one.";
-		m_popup_endtime = cls.realtime + 2000;
-		M_Popup();
+		Menu_StartPopup(&m_popup,
+			"This slot is reserved for\n"
+			"autosaving, so please select\n"
+			"another one.",
+			2000);
+		Menu_DrawPopup(320, 240, &m_popup);
 		return;
 	}
 
 	Cbuf_AddText(va("save save%i\n", a->generic.localdata[0]));
 	M_ForceMenuOff();
-}
-
-static void
-SaveGame_MenuDraw(void)
-{
-	M_Banner("m_banner_save_game");
-	Menu_AdjustCursor(&s_savegame_menu, 1);
-	Menu_Draw(&s_savegame_menu);
-	M_Popup();
 }
 
 static void
@@ -4220,6 +3999,7 @@ SaveGame_MenuInit(void)
 
 	s_savegame_menu.x = viddef.width / 2 - (120 * scale);
 	s_savegame_menu.y = viddef.height / (2 * scale) - 58;
+	s_savegame_menu.banner = "m_banner_save_game";
 	s_savegame_menu.nitems = 0;
 
 	Create_Savestrings();
@@ -4253,14 +4033,13 @@ SaveGame_MenuInit(void)
 }
 
 static const char *
-SaveGame_MenuKey(int key)
+SaveGame_MenuKey(menuframework_s *m, int key)
 {
-	static menuframework_s *m = &s_savegame_menu;
 	int menu_key = Key_GetMenuKey(key);
 
-	if (m_popup_string)
+	if (Menu_PopupActive(&m_popup))
 	{
-		m_popup_string = NULL;
+		Menu_ClosePopup(&m_popup);
 		return NULL;
 	}
 
@@ -4301,6 +4080,7 @@ SaveGame_MenuKey(int key)
 		SaveGame_MenuInit();
 		return menu_move_sound;
 
+	case K_DEL:
 	case K_BACKSPACE:
 		PromptDeleteSaveFunc(m);
 		return menu_move_sound;
@@ -4323,7 +4103,7 @@ M_Menu_SaveGame_f(void)
 
 	LoadSave_AdjustPage(0);
 	SaveGame_MenuInit();
-	s_savegame_menu.draw = SaveGame_MenuDraw;
+	s_savegame_menu.draw = Default_MenuDraw;
 	s_savegame_menu.key  = SaveGame_MenuKey;
 
 	M_PushMenu(&s_savegame_menu);
@@ -4430,11 +4210,12 @@ SearchLocalGames(void)
 		local_server_netadr_strings[i][0] = '\0';
 	}
 
-	m_popup_string = "Searching for local servers. This\n"
-					 "could take up to a minute, so\n"
-					 "please be patient.";
-	m_popup_endtime = cls.realtime + 2000;
-	M_Popup();
+	Menu_StartPopup(&m_popup,
+		"Searching for local servers. This\n"
+		"could take up to a minute, so\n"
+		"please be patient.",
+		2000);
+	Menu_DrawPopup(320, 240, &m_popup);
 
 	/* the text box won't show up unless we do a buffer swap */
 	R_EndFrame();
@@ -4457,6 +4238,7 @@ JoinServer_MenuInit(void)
 
 	s_joinserver_menu.x = (int)(viddef.width * 0.50f) - 120 * scale;
 	s_joinserver_menu.nitems = 0;
+	s_joinserver_menu.banner = "m_banner_join_server";
 
 	s_joinserver_address_book_action.generic.type = MTYPE_ACTION;
 	s_joinserver_address_book_action.generic.name = "address book";
@@ -4505,30 +4287,11 @@ JoinServer_MenuInit(void)
 }
 
 static void
-JoinServer_MenuDraw(void)
-{
-	M_Banner("m_banner_join_server");
-	Menu_Draw(&s_joinserver_menu);
-	M_Popup();
-}
-
-static const char *
-JoinServer_MenuKey(int key)
-{
-	if (m_popup_string)
-	{
-		m_popup_string = NULL;
-		return NULL;
-	}
-	return Default_MenuKey(&s_joinserver_menu, key);
-}
-
-static void
 M_Menu_JoinServer_f(void)
 {
 	JoinServer_MenuInit();
-	s_joinserver_menu.draw = JoinServer_MenuDraw;
-	s_joinserver_menu.key  = JoinServer_MenuKey;
+	s_joinserver_menu.draw = Default_MenuDraw;
+	s_joinserver_menu.key  = Default_MenuKey;
 
 	M_PushMenu(&s_joinserver_menu);
 }
@@ -4944,6 +4707,8 @@ GetCombinedMapsList(int *nummaps)
 static void
 StartServer_MenuInit(void)
 {
+	int y;
+
 	static const char *dm_coop_names[] =
 	{
 		"deathmatch",
@@ -4977,37 +4742,34 @@ StartServer_MenuInit(void)
 
 	/* initialize the menu stuff */
 	s_startserver_menu.x = (int)(viddef.width * 0.50f);
+	s_startserver_menu.banner = "m_banner_start_server";
 	s_startserver_menu.nitems = 0;
 
+	y = 18;
 	s_startmap_list.generic.type = MTYPE_SPINCONTROL;
 	s_startmap_list.generic.x = 0;
-
-	if (M_IsGame("ctf"))
-		s_startmap_list.generic.y = -8;
-	else
-		s_startmap_list.generic.y = 0;
-
+	s_startmap_list.generic.y = y;
 	s_startmap_list.generic.name = "initial map";
 	s_startmap_list.itemnames = (const char **)mapnames;
 
 	if (M_IsGame("ctf"))
 	{
+		y += 26;
 		s_capturelimit_field.generic.type = MTYPE_FIELD;
 		s_capturelimit_field.generic.name = "capture limit";
 		s_capturelimit_field.generic.flags = QMF_NUMBERSONLY;
 		s_capturelimit_field.generic.x = 0;
-		s_capturelimit_field.generic.y = 18;
+		s_capturelimit_field.generic.y = y;
 		s_capturelimit_field.generic.statusbar = "0 = no limit";
-		s_capturelimit_field.length = 3;
-		s_capturelimit_field.visible_length = 3;
-		Q_strlcpy(s_capturelimit_field.buffer, Cvar_VariableString("capturelimit"),
-			sizeof(s_capturelimit_field.buffer));
+		Field_InitState(&s_capturelimit_field,
+			Cvar_VariableString("capturelimit"), 3, 3);
 	}
 	else
 	{
+		y += 20;
 		s_rules_box.generic.type = MTYPE_SPINCONTROL;
 		s_rules_box.generic.x = 0;
-		s_rules_box.generic.y = 20;
+		s_rules_box.generic.y = y;
 		s_rules_box.generic.name = "rules";
 
 		/* Ground Zero games only available with rogue game */
@@ -5032,76 +4794,65 @@ StartServer_MenuInit(void)
 		s_rules_box.generic.callback = RulesChangeFunc;
 	}
 
+	y += 18;
 	s_timelimit_field.generic.type = MTYPE_FIELD;
 	s_timelimit_field.generic.name = "time limit";
 	s_timelimit_field.generic.flags = QMF_NUMBERSONLY;
 	s_timelimit_field.generic.x = 0;
-	s_timelimit_field.generic.y = 36;
+	s_timelimit_field.generic.y = y;
 	s_timelimit_field.generic.statusbar = "0 = no limit";
-	s_timelimit_field.length = 3;
-	s_timelimit_field.visible_length = 3;
-	Q_strlcpy(s_timelimit_field.buffer, Cvar_VariableString("timelimit"),
-		sizeof(s_timelimit_field.buffer));
+	Field_InitState(&s_timelimit_field,
+		Cvar_VariableString("timelimit"), 3, 3);
 
+	y += 18;
 	s_fraglimit_field.generic.type = MTYPE_FIELD;
 	s_fraglimit_field.generic.name = "frag limit";
 	s_fraglimit_field.generic.flags = QMF_NUMBERSONLY;
 	s_fraglimit_field.generic.x = 0;
-	s_fraglimit_field.generic.y = 54;
+	s_fraglimit_field.generic.y = y;
 	s_fraglimit_field.generic.statusbar = "0 = no limit";
-	s_fraglimit_field.length = 3;
-	s_fraglimit_field.visible_length = 3;
-	Q_strlcpy(s_fraglimit_field.buffer, Cvar_VariableString("fraglimit"),
-		sizeof(s_fraglimit_field.buffer));
+	Field_InitState(&s_fraglimit_field,
+		Cvar_VariableString("fraglimit"), 3, 3);
 
 	/* maxclients determines the maximum number of players that can join
 	   the game. If maxclients is only "1" then we should default the menu
 	   option to 8 players, otherwise use whatever its current value is.
 	   Clamping will be done when the server is actually started. */
+	y += 18;
 	s_maxclients_field.generic.type = MTYPE_FIELD;
 	s_maxclients_field.generic.name = "max players";
 	s_maxclients_field.generic.flags = QMF_NUMBERSONLY;
 	s_maxclients_field.generic.x = 0;
-	s_maxclients_field.generic.y = 72;
+	s_maxclients_field.generic.y = y;
 	s_maxclients_field.generic.statusbar = NULL;
-	s_maxclients_field.length = 3;
-	s_maxclients_field.visible_length = 3;
+	Field_InitState(&s_maxclients_field,
+		Cvar_VariableValue("maxclients") == 1 ? "8" : Cvar_VariableString("maxclients"), 3, 3);
 
-	if (Cvar_VariableValue("maxclients") == 1)
-	{
-		strcpy(s_maxclients_field.buffer, "8");
-	}
-	else
-	{
-		Q_strlcpy(s_maxclients_field.buffer, Cvar_VariableString("maxclients"),
-			sizeof(s_maxclients_field.buffer));
-	}
-
+	y += 18;
 	s_hostname_field.generic.type = MTYPE_FIELD;
 	s_hostname_field.generic.name = "hostname";
 	s_hostname_field.generic.flags = 0;
 	s_hostname_field.generic.x = 0;
-	s_hostname_field.generic.y = 90;
+	s_hostname_field.generic.y = y;
 	s_hostname_field.generic.statusbar = NULL;
-	s_hostname_field.length = 12;
-	s_hostname_field.visible_length = 12;
-	Q_strlcpy(s_hostname_field.buffer, Cvar_VariableString("hostname"),
-		sizeof(s_hostname_field.buffer));
-	s_hostname_field.cursor = strlen(s_hostname_field.buffer);
+	Field_InitState(&s_hostname_field,
+		Cvar_VariableString("hostname"), 12, 12);
 
+	y += 18;
 	s_startserver_dmoptions_action.generic.type = MTYPE_ACTION;
 	s_startserver_dmoptions_action.generic.name = " deathmatch flags";
 	s_startserver_dmoptions_action.generic.flags = QMF_LEFT_JUSTIFY;
 	s_startserver_dmoptions_action.generic.x = 24 * scale;
-	s_startserver_dmoptions_action.generic.y = 108;
+	s_startserver_dmoptions_action.generic.y = y;
 	s_startserver_dmoptions_action.generic.statusbar = NULL;
 	s_startserver_dmoptions_action.generic.callback = DMOptionsFunc;
 
+	y += 20;
 	s_startserver_start_action.generic.type = MTYPE_ACTION;
 	s_startserver_start_action.generic.name = " begin";
 	s_startserver_start_action.generic.flags = QMF_LEFT_JUSTIFY;
 	s_startserver_start_action.generic.x = 24 * scale;
-	s_startserver_start_action.generic.y = 128;
+	s_startserver_start_action.generic.y = y;
 	s_startserver_start_action.generic.callback = StartServerActionFunc;
 
 	Menu_AddItem(&s_startserver_menu, &s_startmap_list);
@@ -5129,23 +4880,11 @@ StartServer_MenuInit(void)
 }
 
 static void
-StartServer_MenuDraw(void)
-{
-	Menu_Draw(&s_startserver_menu);
-}
-
-static const char *
-StartServer_MenuKey(int key)
-{
-	return Default_MenuKey(&s_startserver_menu, key);
-}
-
-static void
 M_Menu_StartServer_f(void)
 {
 	StartServer_MenuInit();
-	s_startserver_menu.draw = StartServer_MenuDraw;
-	s_startserver_menu.key  = StartServer_MenuKey;
+	s_startserver_menu.draw = Default_MenuDraw;
+	s_startserver_menu.key  = Default_MenuKey;
 
 	M_PushMenu(&s_startserver_menu);
 }
@@ -5617,23 +5356,11 @@ DMOptions_MenuInit(void)
 }
 
 static void
-DMOptions_MenuDraw(void)
-{
-	Menu_Draw(&s_dmoptions_menu);
-}
-
-static const char *
-DMOptions_MenuKey(int key)
-{
-	return Default_MenuKey(&s_dmoptions_menu, key);
-}
-
-static void
 M_Menu_DMOptions_f(void)
 {
 	DMOptions_MenuInit();
-	s_dmoptions_menu.draw = DMOptions_MenuDraw;
-	s_dmoptions_menu.key  = DMOptions_MenuKey;
+	s_dmoptions_menu.draw = Default_MenuDraw;
+	s_dmoptions_menu.key  = Default_MenuKey;
 
 	M_PushMenu(&s_dmoptions_menu);
 }
@@ -5785,23 +5512,11 @@ DownloadOptions_MenuInit(void)
 }
 
 static void
-DownloadOptions_MenuDraw(void)
-{
-	Menu_Draw(&s_downloadoptions_menu);
-}
-
-static const char *
-DownloadOptions_MenuKey(int key)
-{
-	return Default_MenuKey(&s_downloadoptions_menu, key);
-}
-
-static void
 M_Menu_DownloadOptions_f(void)
 {
 	DownloadOptions_MenuInit();
-	s_downloadoptions_menu.draw = DownloadOptions_MenuDraw;
-	s_downloadoptions_menu.key  = DownloadOptions_MenuKey;
+	s_downloadoptions_menu.draw = Default_MenuDraw;
+	s_downloadoptions_menu.key  = Default_MenuKey;
 
 	M_PushMenu(&s_downloadoptions_menu);
 }
@@ -5821,6 +5536,7 @@ AddressBook_MenuInit(void)
 
 	s_addressbook_menu.x = viddef.width / 2 - (142 * scale);
 	s_addressbook_menu.y = viddef.height / (2 * scale) - 58;
+	s_addressbook_menu.banner = "m_banner_addressbook";
 	s_addressbook_menu.nitems = 0;
 
 	for (i = 0; i < NUM_ADDRESSBOOK_ENTRIES; i++)
@@ -5841,48 +5557,33 @@ AddressBook_MenuInit(void)
 		f->generic.x = 0;
 		f->generic.y = i * 18 + 0;
 		f->generic.localdata[0] = i;
-
-		f->length = 60;
-		f->visible_length = 30;
-
-		Q_strlcpy(f->buffer, adr->string, f->length);
-		f->cursor = strlen(f->buffer);
+		Field_InitState(f, adr->string, 60, 30);
 
 		Menu_AddItem(&s_addressbook_menu, f);
 	}
 }
 
-static const char *
-AddressBook_MenuKey(int key)
+static void
+AddressBook_MenuClose(menuframework_s *m)
 {
-	if (key == K_ESCAPE)
+	int index;
+
+	for (index = 0; index < NUM_ADDRESSBOOK_ENTRIES; index++)
 	{
-		int index;
 		char buffer[20];
 
-		for (index = 0; index < NUM_ADDRESSBOOK_ENTRIES; index++)
-		{
-			Com_sprintf(buffer, sizeof(buffer), "adr%d", index);
-			Cvar_Set(buffer, s_addressbook_fields[index].buffer);
-		}
+		Com_sprintf(buffer, sizeof(buffer), "adr%d", index);
+		Cvar_Set(buffer, s_addressbook_fields[index].buffer);
 	}
-
-	return Default_MenuKey(&s_addressbook_menu, key);
-}
-
-static void
-AddressBook_MenuDraw(void)
-{
-	M_Banner("m_banner_addressbook");
-	Menu_Draw(&s_addressbook_menu);
 }
 
 static void
 M_Menu_AddressBook_f(void)
 {
 	AddressBook_MenuInit();
-	s_addressbook_menu.draw = AddressBook_MenuDraw;
-	s_addressbook_menu.key  = AddressBook_MenuKey;
+	s_addressbook_menu.draw  = Default_MenuDraw;
+	s_addressbook_menu.key   = Default_MenuKey;
+	s_addressbook_menu.close = AddressBook_MenuClose;
 
 	M_PushMenu(&s_addressbook_menu);
 }
@@ -6625,11 +6326,7 @@ PlayerConfig_MenuInit(void)
 	s_player_name_field.generic.callback = NULL;
 	s_player_name_field.generic.x = 0;
 	s_player_name_field.generic.y = 0;
-	s_player_name_field.length = 20;
-	s_player_name_field.visible_length = 20;
-	Q_strlcpy(s_player_name_field.buffer, name->string,
-		sizeof(s_player_name_field.buffer));
-	s_player_name_field.cursor = strlen(name->string);
+	Field_InitState(&s_player_name_field, name->string, 20, 20);
 
 	s_player_icon_bitmap.generic.type = MTYPE_BITMAP;
 	s_player_icon_bitmap.generic.flags = QMF_INACTIVE;
@@ -6759,7 +6456,7 @@ PlayerConfig_AnimateModel(entity_t *entity, int count, int curTime)
 }
 
 static void
-PlayerConfig_MenuDraw(void)
+PlayerConfig_MenuDraw(menuframework_s *m)
 {
 	refdef_t refdef;
 	float scale = SCR_GetMenuScale();
@@ -6849,7 +6546,7 @@ PlayerConfig_MenuDraw(void)
 		// icon bitmap to draw
 		s_player_icon_bitmap.generic.name = scratch;
 
-		Menu_Draw(&s_player_config_menu);
+		Menu_Draw(m);
 
 		M_DrawTextBox(((int)(refdef.x) * (320.0F / viddef.width) - 8),
 					  (int)((viddef.height / 2) * (240.0F / viddef.height) - 77),
@@ -6860,31 +6557,25 @@ PlayerConfig_MenuDraw(void)
 	}
 }
 
-static const char *
-PlayerConfig_MenuKey(int key)
+static void
+PlayerConfig_MenuClose(menuframework_s *m)
 {
-	key = Key_GetMenuKey(key);
-	if (key == K_ESCAPE)
-	{
-		const char* name = NULL;
-		char skin[MAX_QPATH];
-		char* mdl = NULL;
-		char* img = NULL;
+	const char* name = NULL;
+	char skin[MAX_QPATH];
+	char* mdl = NULL;
+	char* img = NULL;
 
-		name = s_player_name_field.buffer;
-		mdl = s_modelname.data[s_player_model_box.curvalue];
-		img = s_skinnames[s_player_model_box.curvalue].data[s_player_skin_box.curvalue];
+	name = s_player_name_field.buffer;
+	mdl = s_modelname.data[s_player_model_box.curvalue];
+	img = s_skinnames[s_player_model_box.curvalue].data[s_player_skin_box.curvalue];
 
-		Com_sprintf(skin, MAX_QPATH, "%s/%s", mdl, img);
+	Com_sprintf(skin, MAX_QPATH, "%s/%s", mdl, img);
 
-		// set <name> and <model dir>/<skin>
-		Cvar_Set("name", name);
-		Cvar_Set("skin", skin);
+	// set <name> and <model dir>/<skin>
+	Cvar_Set("name", name);
+	Cvar_Set("skin", skin);
 
-		PlayerModelFree();          // free player skins, models and directories
-	}
-
-	return Default_MenuKey(&s_player_config_menu, key);
+	PlayerModelFree();          // free player skins, models and directories
 }
 
 static void
@@ -6897,8 +6588,9 @@ M_Menu_PlayerConfig_f(void)
 	}
 
 	Menu_SetStatusBar(&s_multiplayer_menu, NULL);
-	s_player_config_menu.draw = PlayerConfig_MenuDraw;
-	s_player_config_menu.key  = PlayerConfig_MenuKey;
+	s_player_config_menu.draw  = PlayerConfig_MenuDraw;
+	s_player_config_menu.key   = Default_MenuKey;
+	s_player_config_menu.close = PlayerConfig_MenuClose;
 
 	M_PushMenu(&s_player_config_menu);
 }
@@ -6910,7 +6602,7 @@ M_Menu_PlayerConfig_f(void)
 menuframework_s s_quit_menu;
 
 static const char *
-M_Quit_Key(int key)
+M_Quit_Key(menuframework_s *m, int key)
 {
 	int menu_key = Key_GetMenuKey(key);
 	switch (menu_key)
@@ -6918,7 +6610,7 @@ M_Quit_Key(int key)
 	case K_ESCAPE:
 	case 'n':
 	case 'N':
-		M_PopMenu();
+		M_PopMenu(false);
 		break;
 
 	case K_ENTER:
@@ -6936,7 +6628,7 @@ M_Quit_Key(int key)
 }
 
 static void
-M_Quit_Draw(void)
+M_Quit_Draw(menuframework_s *m)
 {
 	int w, h;
 	float scale = SCR_GetMenuScale();
@@ -7013,6 +6705,8 @@ M_Init(void)
 void
 M_Draw(void)
 {
+	menuframework_s *menu;
+
 	if (cls.key_dest != key_menu)
 	{
 		return;
@@ -7032,9 +6726,10 @@ M_Draw(void)
 		Draw_FadeScreen();
 	}
 
-	if (m_active.draw)
+	menu = M_GetActiveMenu();
+	if (menu && menu->draw)
 	{
-		m_active.draw();
+		menu->draw(menu);
 	}
 
 	/* delay playing the enter sound until after the
@@ -7050,11 +6745,15 @@ M_Draw(void)
 void
 M_Keydown(int key)
 {
-	if (m_active.key)
+	menuframework_s *menu;
+
+	menu = M_GetActiveMenu();
+
+	if (menu && menu->key)
 	{
 		const char *s;
 
-		s = m_active.key(key);
+		s = menu->key(menu, key);
 
 		if (s)
 		{
