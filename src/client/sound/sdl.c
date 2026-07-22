@@ -656,7 +656,7 @@ SDL_Spatialize(channel_t *ch)
 
 	/* Anything coming from the view entity
 	   will always be full volume */
-	if (ch->entnum == cl.playernum + 1)
+	if ((ch->entnum == -1) || (ch->entnum == cl.playernum + 1))
 	{
 		ch->leftvol = ch->master_vol;
 		ch->rightvol = ch->master_vol;
