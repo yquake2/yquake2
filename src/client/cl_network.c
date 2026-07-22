@@ -304,7 +304,7 @@ CL_Disconnect(void)
 
 		if (time > 0)
 		{
-			Com_Printf("%i frames, %3.1f seconds: %3.1f fps\n",
+			Com_Printf("%i frames, %3.1f seconds: %3.1f fps\n\n",
 					cl.timedemo_frames, time / 1000.0,
 					cl.timedemo_frames * 1000.0 / time);
 		}

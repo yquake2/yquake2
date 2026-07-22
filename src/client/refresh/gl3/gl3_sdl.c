@@ -112,20 +112,8 @@ DebugCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei le
 
 // ---------
 
-/*
- * Swaps the buffers and shows the next frame.
- */
-void GL3_EndFrame(void)
+void GL3_SwapWindow(void)
 {
-	if(gl3config.useBigVBO)
-	{
-		// I think this is a good point to orphan the VBO and get a fresh one
-		GL3_BindVAO(gl3state.vao3D);
-		GL3_BindVBO(gl3state.vbo3D);
-		glBufferData(GL_ARRAY_BUFFER, gl3state.vbo3Dsize, NULL, GL_STREAM_DRAW);
-		gl3state.vbo3DcurOffset = 0;
-	}
-
 	SDL_GL_SwapWindow(window);
 }
 
@@ -416,6 +404,7 @@ int GL3_InitContext(void* win)
 
 #ifdef YQ2_GL3_GLES
 	gl3config.debug_output = GLAD_GL_KHR_debug != 0;
+	gl3config.discardfb = GLAD_GL_EXT_discard_framebuffer != 0;
 #else // Desktop GL
 	gl3config.debug_output = GLAD_GL_ARB_debug_output != 0;
 #endif

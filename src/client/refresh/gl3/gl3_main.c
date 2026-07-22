@@ -112,6 +112,7 @@ cvar_t *r_lerp_list;
 cvar_t *r_2D_unfiltered;
 cvar_t *r_videos_unfiltered;
 cvar_t *gl_nobind;
+cvar_t *gl_showtris;
 cvar_t *r_lockpvs;
 cvar_t *r_novis;
 cvar_t *r_speeds;
@@ -124,13 +125,28 @@ cvar_t *r_modulate;
 cvar_t *gl_lightmap;
 cvar_t *gl_shadows;
 cvar_t *gl3_debugcontext;
-cvar_t *gl3_usebigvbo;
 cvar_t *r_fixsurfsky;
 cvar_t *r_palettedtexture;
 cvar_t *r_validation;
 cvar_t *gl3_usefbo;
 
+#ifdef YQ2_GL3_GLES
+cvar_t *gl_discardfb;
+#endif
+
+cvar_t *gl3_show_draw_stats;
+
 static cvar_t *gl_znear;
+
+DA_TYPEDEF(gl3_3D_vtx_t, Vtx3DArray_t);
+DA_TYPEDEF(GLushort, UShortArray_t);
+DA_TYPEDEF(gl3drawCmd_t, DrawCommandArray_t);
+DA_TYPEDEF(hmm_mat4, Mat4Array_t);
+// dynamic arrays to batch all consecutive 3D draws (with gl3_3D_vtx_t) with same texture to reduce drawcalls
+static Vtx3DArray_t vtxBuf = {0};
+static UShortArray_t idxBuf = {0};
+static DrawCommandArray_t drawCmds = {0};
+static Mat4Array_t transModelMats = {0};
 
 // Yaw-Pitch-Roll
 // equivalent to R_z * R_y * R_x where R_x is the trans matrix for rotating around X axis for aroundXdeg
@@ -161,7 +177,7 @@ static hmm_mat4 rotAroundAxisZYX(float aroundZdeg, float aroundYdeg, float aroun
 }
 
 void
-GL3_RotateForEntity(entity_t *e)
+GL3_RotateUni3DforEntity(entity_t *e)
 {
 	// angles: pitch (around y), yaw (around z), roll (around x)
 	// rot matrices to be multiplied in order Z, Y, X (yaw, pitch, roll)
@@ -175,6 +191,25 @@ GL3_RotateForEntity(entity_t *e)
 	gl3state.uni3DData.transModelMat4 = HMM_MultiplyMat4(gl3state.uni3DData.transModelMat4, transMat);
 
 	GL3_UpdateUBO3D();
+}
+
+// if replaceTransModelMat is true, the existing value of drawCmd->transModelMat
+// is ignored and it's replaced with the one calculated here (otherwise they're multiplied)
+void
+GL3_RotateForEntity(entity_t *e, gl3drawCmd_t* drawCmd)
+{
+	// TODO: shortcut for "not rotated at all"?
+
+	// angles: pitch (around y), yaw (around z), roll (around x)
+	// rot matrices to be multiplied in order Z, Y, X (yaw, pitch, roll)
+	hmm_mat4 transMat = rotAroundAxisZYX(e->angles[1], -e->angles[0], -e->angles[2]);
+
+	for(int i=0; i<3; ++i)
+	{
+		transMat.Elements[3][i] = e->origin[i]; // set translation
+	}
+
+	GL3_SetDrawCmdTransMatrix(drawCmd, transMat);
 }
 
 
@@ -220,11 +255,6 @@ GL3_Register(void)
 	gl3_colorlight = ri.Cvar_Get("gl3_colorlight", "1", CVAR_ARCHIVE);
 	gl_polyblend = ri.Cvar_Get("gl_polyblend", "1", CVAR_ARCHIVE);
 
-	//  0: use lots of calls to glBufferData()
-	//  1: reduce calls to glBufferData() with one big VBO (see GL3_BufferAndDraw3D())
-	// -1: auto (let yq2 choose to enable/disable this based on detected driver)
-	gl3_usebigvbo = ri.Cvar_Get("gl3_usebigvbo", "-1", CVAR_ARCHIVE);
-
 	r_norefresh = ri.Cvar_Get("r_norefresh", "0", 0);
 	r_drawentities = ri.Cvar_Get("r_drawentities", "1", 0);
 	r_drawworld = ri.Cvar_Get("r_drawworld", "1", 0);
@@ -242,6 +272,7 @@ GL3_Register(void)
 	/* don't bilerp videos */
 	r_videos_unfiltered = ri.Cvar_Get("r_videos_unfiltered", "0", CVAR_ARCHIVE);
 	gl_nobind = ri.Cvar_Get("gl_nobind", "0", 0);
+	gl_showtris = ri.Cvar_Get("gl_showtris", "0", 0);
 
 	gl_texturemode = ri.Cvar_Get("gl_texturemode", "GL_LINEAR_MIPMAP_NEAREST", CVAR_ARCHIVE);
 	gl_anisotropic = ri.Cvar_Get("r_anisotropic", "0", CVAR_ARCHIVE);
@@ -267,7 +298,13 @@ GL3_Register(void)
 	gl_finish = ri.Cvar_Get("gl_finish", "0", CVAR_ARCHIVE);
 	gl_znear = ri.Cvar_Get("gl_znear", "4", CVAR_ARCHIVE);
 
+#ifdef YQ2_GL3_GLES
+	gl_discardfb = ri.Cvar_Get("gl_discardfb", "1", CVAR_ARCHIVE);
+#endif
+
 	gl3_usefbo = ri.Cvar_Get("gl3_usefbo", "1", CVAR_ARCHIVE); // use framebuffer object for postprocess effects (water)
+
+	gl3_show_draw_stats = ri.Cvar_Get("gl3_show_draw_stats", "0", CVAR_ARCHIVE);
 
 #if 0 // TODO!
 	//gl_lefthand = ri.Cvar_Get("hand", "0", CVAR_USERINFO | CVAR_ARCHIVE);
@@ -295,7 +332,7 @@ GL3_Register(void)
 	//gl_lightmap = ri.Cvar_Get("r_lightmap", "0", 0);
 	//gl_shadows = ri.Cvar_Get("r_shadows", "0", CVAR_ARCHIVE);
 	//gl_nobind = ri.Cvar_Get("gl_nobind", "0", 0);
-	gl_showtris = ri.Cvar_Get("gl_showtris", "0", 0);
+
 	gl_showbbox = Cvar_Get("gl_showbbox", "0", 0);
 	//gl1_ztrick = ri.Cvar_Get("gl1_ztrick", "0", 0); NOTE: dump this.
 	//gl_zfix = ri.Cvar_Get("gl_zfix", "0", 0);
@@ -521,6 +558,9 @@ GL3_Init(void)
 	GetPCXPalette (&colormap, d_8to24table);
 	free(colormap);
 
+	da_clear(transModelMats);
+	da_add(transModelMats, gl3_identityMat4); // element 0 is always the identity matrix
+
 	GL3_Register();
 
 	/* set our "safe" mode */
@@ -594,46 +634,20 @@ GL3_Init(void)
 		Com_Printf(" - OpenGL Debug Output: Not Supported\n");
 	}
 
-	gl3config.useBigVBO = false;
-	if(gl3_usebigvbo->value == 1.0f)
+#ifdef YQ2_GL3_GLES
+	if(gl3config.discardfb)
 	{
-		Com_Printf("Enabling useBigVBO workaround because gl3_usebigvbo = 1\n");
-		gl3config.useBigVBO = true;
+		Com_Printf(" - OpenGL ES EXT_discard_framebuffer: Supported ");
+		if(gl_discardfb->value == 0.0f)
+			Com_Printf("but disabled with gl_discardfb = 0\n");
+		else
+			Com_Printf("and enabled with gl_discardfb = %d\n", (int)gl_discardfb->value);
 	}
-	else if(gl3_usebigvbo->value == -1.0f)
+	else
 	{
-		// enable for AMDs proprietary Windows and Linux drivers
-#ifdef _WIN32
-		if(gl3config.version_string != NULL && gl3config.vendor_string != NULL
-		   && strstr(gl3config.vendor_string, "ATI Technologies Inc") != NULL)
-		{
-			int a, b, ver;
-			if(sscanf(gl3config.version_string, " %d.%d.%d ", &a, &b, &ver) >= 3 && ver >= 13431)
-			{
-				// turns out the legacy driver is a lot faster *without* the workaround :-/
-				// GL_VERSION for legacy 16.2.1 Beta driver: 3.2.13399 Core Profile Forward-Compatible Context 15.200.1062.1004
-				//            (this is the last version that supports the Radeon HD 6950)
-				// GL_VERSION for (non-legacy) 16.3.1 driver on Radeon R9 200: 4.5.13431 Compatibility Profile Context 16.150.2111.0
-				// GL_VERSION for non-legacy 17.7.2 WHQL driver: 4.5.13491 Compatibility Profile/Debug Context 22.19.662.4
-				// GL_VERSION for 18.10.1 driver: 4.6.13541 Compatibility Profile/Debug Context 25.20.14003.1010
-				// GL_VERSION for (current) 19.3.2 driver: 4.6.13547 Compatibility Profile/Debug Context 25.20.15027.5007
-				// (the 3.2/4.5/4.6 can probably be ignored, might depend on the card and what kind of context was requested
-				//  but AFAIK the number behind that can be used to roughly match the driver version)
-				// => let's try matching for x.y.z with z >= 13431
-				// (no, I don't feel like testing which release since 16.2.1 has introduced the slowdown.)
-				Com_Printf("Detected AMD Windows GPU driver, enabling useBigVBO workaround\n");
-				gl3config.useBigVBO = true;
-			}
-		}
-#elif defined(__linux__)
-		if(gl3config.vendor_string != NULL && strstr(gl3config.vendor_string, "Advanced Micro Devices, Inc.") != NULL)
-		{
-			Com_Printf("Detected proprietary AMD GPU driver, enabling useBigVBO workaround\n");
-			Com_Printf("(consider using the open source RadeonSI drivers, they tend to work better overall)\n");
-			gl3config.useBigVBO = true;
-		}
+		Com_Printf(" - OpenGL ES EXT_discard_framebuffer: Not Supported\n");
+	}
 #endif
-	}
 
 	// generate texture handles for all possible lightmaps
 	glGenTextures(MAX_LIGHTMAPS*MAX_LIGHTMAPS_PER_SURFACE, gl3state.lightmap_textureIDs[0]);
@@ -651,6 +665,8 @@ GL3_Init(void)
 	}
 
 	registration_sequence = 1; // from R_InitImages() (everything else from there shouldn't be needed anymore)
+
+	GL3_Scrap_Init();
 
 	GL3_Mod_Init();
 
@@ -700,81 +716,336 @@ GL3_Shutdown(void)
 		gl3state.ppFBtexWidth = gl3state.ppFBtexHeight = -1;
 	}
 
+	da_free(vtxBuf);
+	da_free(idxBuf);
+	da_free(drawCmds);
+	da_free(transModelMats);
+
 	/* shutdown OS specific OpenGL stuff like contexts, etc.  */
 	GL3_ShutdownContext();
+}
+
+static inline qboolean
+colorsEqual(const byte c1[3], const byte c2[3])
+{
+	return c1[0] == c2[0] && c1[1] == c2[1] && c1[2] == c2[2];
+}
+
+static inline qboolean
+lmstylesEqual(const byte st1[MAXLIGHTMAPS], const byte st2[MAXLIGHTMAPS])
+{
+	for(int i=0; i<MAXLIGHTMAPS; ++i)
+	{
+		byte astyle = st1[i];
+		if(astyle != st2[i])
+			return false;
+		// 255 indicates that this and the remaining styles can be ignored
+		// (still needed to check first if a and b agree about ignoring it)
+		if(astyle == 255)
+			break;
+	}
+	return true;
+}
+
+static void
+UpdateLMscales(const hmm_vec4 lmScales[MAX_LIGHTMAPS_PER_SURFACE], gl3ShaderInfo_t* si)
+{
+	int i;
+	qboolean hasChanged = false;
+
+	for(i=0; i<MAX_LIGHTMAPS_PER_SURFACE; ++i)
+	{
+		if(hasChanged)
+		{
+			si->lmScales[i] = lmScales[i];
+		}
+		else if(   si->lmScales[i].R != lmScales[i].R
+		        || si->lmScales[i].G != lmScales[i].G
+		        || si->lmScales[i].B != lmScales[i].B
+		        || si->lmScales[i].A != lmScales[i].A )
+		{
+			si->lmScales[i] = lmScales[i];
+			hasChanged = true;
+		}
+	}
+
+	if(hasChanged)
+	{
+		glUniform4fv(si->uniLmScalesOrTime, MAX_LIGHTMAPS_PER_SURFACE, si->lmScales[0].Elements);
+	}
+}
+
+void GL3_Draw3DBatchesNow()
+{
+	if(da_count(drawCmds) == 0)
+		return;
+
+	GL3_BindVAO(gl3state.vao3D);
+	GL3_BindVBO(gl3state.vbo3D);
+	GL3_BindEBO(gl3state.ebo3D);
+
+	glBufferData(GL_ARRAY_BUFFER, da_count(vtxBuf)*sizeof(gl3_3D_vtx_t), vtxBuf.p, GL_STREAM_DRAW);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, da_count(idxBuf)*sizeof(GLushort), idxBuf.p, GL_STREAM_DRAW);
+
+	++gl3_numBufferVtxData;
+
+	// set curState to something that reflects the actual state, as far as possible,
+	// and otherwise makes sure it'll be set in the loop
+	gl3drawCmd_t curState = GL3_CreateDrawCmd();
+
+	curState.texnum = gl3state.currenttexture;
+	curState.lmtexnum = gl3state.currentlightmap;
+	curState.alpha = gl3state.uni3DData.alpha;
+	curState.scroll = gl3state.uni3DData.scroll;
+	curState.lightScaleForTurb = gl3state.uni3DData.lightScaleForTurb;
+
+	// for the next two the approach is setting a value that
+	// is different from the one in the first drawCmd, to make sure
+	// the corresponding state is set in the first iteration
+	curState.flags = ~drawCmds.p[0].flags; // just the opposite flags of the first element
+	curState.transModelMatIdx = drawCmds.p[0].transModelMatIdx + 1;
+
+	gl3ShaderInfo_t* shader = NULL;
+
+	for(int i=0, n=da_count(drawCmds); i < n; ++i)
+	{
+		gl3drawCmd_t* cmd = da_getptr(drawCmds, i);
+
+		int flags = cmd->flags;
+		int curFlags = curState.flags;
+		qboolean updateUni3D = false;
+
+		if(cmd->shaderIdx != curState.shaderIdx)
+		{
+			shader = GL3_GetDrawCmdShader(cmd);
+			GL3_UseProgram( shader->shaderProgram );
+		}
+		if(cmd->texnum != gl3state.currenttexture)
+			GL3_Bind(cmd->texnum);
+		if(cmd->lmtexnum >= 0)
+			GL3_BindLightmap(cmd->lmtexnum);
+
+		if((flags & DCFlag_DisableDepthMask) != (curFlags & DCFlag_DisableDepthMask))
+			glDepthMask((flags & DCFlag_DisableDepthMask) == 0);
+
+		if((flags & DCFlag_Blend) != (curFlags & DCFlag_Blend))
+		{
+			if(flags & DCFlag_Blend)
+				glEnable(GL_BLEND);
+			else
+				glDisable(GL_BLEND);
+		}
+
+		if((flags & DCFlag_PolyOffsetFill) != (curFlags & DCFlag_PolyOffsetFill))
+		{
+			if(flags & DCFlag_PolyOffsetFill)
+				glEnable(GL_POLYGON_OFFSET_FILL);
+			else
+				glDisable(GL_POLYGON_OFFSET_FILL);
+		}
+
+		if((flags & DCFlag_UseScroll) && cmd->scroll != gl3state.uni3DData.scroll)
+		{
+			gl3state.uni3DData.scroll = cmd->scroll;
+			updateUni3D = true;
+		}
+
+		if((flags & DCFlag_UseLightScaleForTurb)
+		   && cmd->lightScaleForTurb != gl3state.uni3DData.lightScaleForTurb)
+		{
+			gl3state.uni3DData.lightScaleForTurb = cmd->lightScaleForTurb;
+			updateUni3D = true;
+		}
+
+		if((flags & DCFlag_UseLmStyles) && !lmstylesEqual(cmd->styles, curState.styles))
+		{
+			hmm_vec4 lmScales[MAX_LIGHTMAPS_PER_SURFACE] = {0};
+			lmScales[0] = HMM_Vec4(1.0f, 1.0f, 1.0f, 1.0f);
+			for(int map = 0; map < MAX_LIGHTMAPS_PER_SURFACE && cmd->styles[map] != 255; map++)
+			{
+				lmScales[map].R = r_newrefdef.lightstyles[cmd->styles[map]].rgb[0];
+				lmScales[map].G = r_newrefdef.lightstyles[cmd->styles[map]].rgb[1];
+				lmScales[map].B = r_newrefdef.lightstyles[cmd->styles[map]].rgb[2];
+				lmScales[map].A = 1.0f;
+			}
+			UpdateLMscales(lmScales, shader);
+		}
+
+		if(flags & DCFlag_UseColor)
+		{
+			if(cmd->alpha != curState.alpha || !colorsEqual(cmd->color, curState.color))
+			{
+				gl3state.uniCommonData.color.R = cmd->color[0] * (1.0f/255.0f);
+				gl3state.uniCommonData.color.G = cmd->color[1] * (1.0f/255.0f);
+				gl3state.uniCommonData.color.B = cmd->color[2] * (1.0f/255.0f);
+				gl3state.uniCommonData.color.A = cmd->alpha;
+				GL3_UpdateUBOCommon();
+			}
+		}
+		else if((flags & DCFlag_Blend) && cmd->alpha != gl3state.uni3DData.alpha)
+		{
+			gl3state.uni3DData.alpha = cmd->alpha;
+			updateUni3D = true;
+		}
+
+		if(cmd->transModelMatIdx != curState.transModelMatIdx)
+		{
+			gl3state.uni3DData.transModelMat4 = da_get(transModelMats, cmd->transModelMatIdx);
+			updateUni3D = true;
+		}
+
+		if(updateUni3D)
+			GL3_UpdateUBO3D();
+
+		uintptr_t elemOffset = cmd->idxBufOffset * sizeof(GLushort);
+		glDrawElements(GL_TRIANGLES, cmd->numElements, GL_UNSIGNED_SHORT, (void*)elemOffset);
+		curState = *cmd;
+
+		++gl3_num3Ddraws;
+	}
+
+	da_clear(vtxBuf);
+	da_clear(idxBuf);
+	da_clear(drawCmds);
+
+	da_setcount(transModelMats, 1); // keep index 0 (identity matrix)
+
+	// restore sane default for other draw operations (models, particles, 2D)
+	if(curState.transModelMatIdx != 0)
+	{
+		gl3state.uni3DData.transModelMat4 = gl3_identityMat4;
+		GL3_UpdateUBO3D();
+	}
+	int curFlags = curState.flags;
+	if(curFlags & DCFlag_Blend)
+		glDisable(GL_BLEND);
+	if(curFlags & DCFlag_DisableDepthMask)
+		glDepthMask(GL_TRUE);
+
+	if(curFlags & DCFlag_PolyOffsetFill)
+		glDisable(GL_POLYGON_OFFSET_FILL);
+}
+
+static qboolean drawStateEqual(const gl3drawCmd_t* a, const gl3drawCmd_t* b)
+{
+	if( a->flags != b->flags || a->shaderIdx != b->shaderIdx
+	   || a->texnum != b->texnum || a->lmtexnum != b->lmtexnum
+	   || a->transModelMatIdx != b->transModelMatIdx )
+		return false;
+
+	int flags = a->flags; // at this point we know the flags are identical
+
+	if((flags & DCFlag_UseScroll) && a->scroll != b->scroll)
+		return false;
+
+	if((flags & DCFlag_UseLightScaleForTurb) && a->lightScaleForTurb != b->lightScaleForTurb)
+		return false;
+
+	if( (flags & DCFlag_UseColor) && !colorsEqual(a->color, b->color) )
+		return false;
+
+	if(a->alpha != b->alpha)
+		return false;
+
+	if((flags & DCFlag_UseLmStyles) && !lmstylesEqual(a->styles, b->styles))
+		return false;
+
+	return true;
+}
+
+void
+GL3_SetDrawCmdTransMatrix(gl3drawCmd_t* drawCmd, hmm_mat4 mat)
+{
+	int idx = da_count(transModelMats);
+	da_add(transModelMats, mat);
+	drawCmd->transModelMatIdx = idx;
 }
 
 // assumes gl3state.v[ab]o3D are bound
 // buffers and draws gl3_3D_vtx_t vertices
 // drawMode is something like GL_TRIANGLE_STRIP or GL_TRIANGLE_FAN or whatever
 void
-GL3_BufferAndDraw3D(const gl3_3D_vtx_t* verts, int numVerts, GLenum drawMode)
+GL3_Add3DdrawCmdToBatch(const gl3_3D_vtx_t* verts, int numVerts, GLenum drawMode, gl3drawCmd_t drawCmd)
 {
-	if(!gl3config.useBigVBO)
+	if(numVerts > UINT16_MAX)
 	{
-		glBufferData( GL_ARRAY_BUFFER, sizeof(gl3_3D_vtx_t)*numVerts, verts, GL_STREAM_DRAW );
-		glDrawArrays( drawMode, 0, numVerts );
+		Com_Printf("WARNING: Discarding a draw command with %d vertices (max %d allowed)!\n", numVerts, UINT16_MAX);
+		return;
 	}
-	else // gl3config.useBigVBO == true
+
+	if(da_count(vtxBuf)+numVerts > UINT16_MAX)
 	{
-		/*
-		 * For some reason, AMD's Windows driver doesn't seem to like lots of
-		 * calls to glBufferData() (some of them seem to take very long then).
-		 * GL3_BufferAndDraw3D() is called a lot when drawing world geometry
-		 * (once for each visible face I think?).
-		 * The simple code above caused noticeable slowdowns - even a fast
-		 * quadcore CPU and a Radeon RX580 weren't able to maintain 60fps..
-		 * The workaround is to not call glBufferData() with small data all the time,
-		 * but to allocate a big buffer and on each call to GL3_BufferAndDraw3D()
-		 * to use a different region of that buffer, resulting in a lot less calls
-		 * to glBufferData() (=> a lot less buffer allocations in the driver).
-		 * Only when the buffer is full and at the end of a frame (=> GL3_EndFrame())
-		 * we get a fresh buffer.
-		 *
-		 * BTW, we couldn't observe this kind of problem with any other driver:
-		 * Neither nvidias driver, nor AMDs or Intels Open Source Linux drivers,
-		 * not even Intels Windows driver seem to care that much about the
-		 * glBufferData() calls.. However, at least nvidias driver doesn't like
-		 * this workaround (with glMapBufferRange()), the framerate dropped
-		 * significantly - that's why both methods are available and
-		 * selectable at runtime.
-		 */
-#if 0
-		// I /think/ doing it with glBufferSubData() didn't really help
-		const int bufSize = gl3state.vbo3Dsize;
-		int neededSize = numVerts*sizeof(gl3_3D_vtx_t);
-		int curOffset = gl3state.vbo3DcurOffset;
-		if(curOffset + neededSize > gl3state.vbo3Dsize)
-			curOffset = 0;
-		int curIdx = curOffset / sizeof(gl3_3D_vtx_t);
+		GL3_Draw3DBatchesNow();
+	}
 
-		gl3state.vbo3DcurOffset = curOffset + neededSize;
+	GLushort nextVtxIdx = da_count(vtxBuf);
+	drawCmd.idxBufOffset = da_count(idxBuf);
+	assert(drawCmd.shaderIdx != -1);
 
-		glBufferSubData( GL_ARRAY_BUFFER, curOffset, neededSize, verts );
-		glDrawArrays( drawMode, curIdx, numVerts );
-#else
-		int curOffset = gl3state.vbo3DcurOffset;
-		int neededSize = numVerts*sizeof(gl3_3D_vtx_t);
-		if(curOffset+neededSize > gl3state.vbo3Dsize)
+	// translate triangle fan/strip to just triangle indices
+	if(drawMode == GL_TRIANGLE_FAN)
+	{
+		for(GLushort i=1; i < numVerts-1; ++i)
 		{
-			// buffer is full, need to start again from the beginning
-			// => need to sync or get fresh buffer
-			// (getting fresh buffer seems easier)
-			glBufferData(GL_ARRAY_BUFFER, gl3state.vbo3Dsize, NULL, GL_STREAM_DRAW);
-			curOffset = 0;
+			GLushort* add = da_addn_uninit(idxBuf, 3);
+
+			add[0] = nextVtxIdx;
+			add[1] = nextVtxIdx+i;
+			add[2] = nextVtxIdx+i+1;
 		}
+	}
+	else if(drawMode == GL_TRIANGLE_STRIP)
+	{
+		GLushort i;
+		for(i=1; i < numVerts-2; i+=2)
+		{
+			// add two triangles at once, because the vertex order is different
+			// for odd vs even triangles
+			GLushort* add = da_addn_uninit(idxBuf, 6);
 
-		// as we make sure to use a previously unused part of the buffer,
-		// doing it unsynchronized should be safe..
-		GLbitfield accessBits = GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_RANGE_BIT | GL_MAP_UNSYNCHRONIZED_BIT;
-		void* data = glMapBufferRange(GL_ARRAY_BUFFER, curOffset, neededSize, accessBits);
-		memcpy(data, verts, neededSize);
-		glUnmapBuffer(GL_ARRAY_BUFFER);
+			add[0] = nextVtxIdx + i-1;
+			add[1] = nextVtxIdx + i;
+			add[2] = nextVtxIdx + i+1;
 
-		glDrawArrays(drawMode, curOffset/sizeof(gl3_3D_vtx_t), numVerts);
+			add[3] = nextVtxIdx + i;
+			add[4] = nextVtxIdx + i+2;
+			add[5] = nextVtxIdx + i+1;
+		}
+		// add remaining triangle, if any
+		if(i < numVerts-1)
+		{
+			GLushort* add = da_addn_uninit(idxBuf, 3);
 
-		gl3state.vbo3DcurOffset = curOffset + neededSize; // TODO: padding or sth needed?
-#endif
+			add[0] = nextVtxIdx + i-1;
+			add[1] = nextVtxIdx + i;
+			add[2] = nextVtxIdx + i+1;
+		}
+	}
+	else if(drawMode == GL_TRIANGLES)
+	{
+		GLushort* add = da_addn_uninit(idxBuf, numVerts);
+		for(GLushort i=0; i<numVerts; ++i)
+			add[i] = nextVtxIdx + i;
+	}
+	else
+	{
+		Com_Printf("GL3_BufferAndDraw3D(): WARNING: Unsupported drawmode 0x%x\n", drawMode);
+		return;
+	}
+
+	da_addn(vtxBuf, verts, numVerts);
+
+	int numAddedIndices = da_count(idxBuf) - drawCmd.idxBufOffset;
+
+	gl3drawCmd_t* lastDrawCmd = da_lastptr(drawCmds);
+	if(lastDrawCmd != NULL && drawStateEqual(lastDrawCmd, &drawCmd))
+	{
+		lastDrawCmd->numElements += numAddedIndices;
+	}
+	else
+	{
+		drawCmd.numElements = numAddedIndices;
+		da_add(drawCmds, drawCmd);
 	}
 }
 
@@ -782,9 +1053,9 @@ static void
 GL3_DrawBeam(entity_t *e)
 {
 	int i;
-	float r, g, b;
-
 	enum { NUM_BEAM_SEGS = 6 };
+
+	gl3drawCmd_t drawCmd = GL3_CreateDrawCmd();
 
 	vec3_t perpvec;
 	vec3_t direction, normalized_direction;
@@ -823,21 +1094,16 @@ GL3_DrawBeam(entity_t *e)
 	}
 
 	//glDisable(GL_TEXTURE_2D);
-	glEnable(GL_BLEND);
-	glDepthMask(GL_FALSE);
+	drawCmd.flags |= (DCFlag_Blend | DCFlag_DisableDepthMask | DCFlag_UseColor);
 
-	GL3_UseProgram(gl3state.si3DcolorOnly.shaderProgram);
+	GL3_SetDrawCmdShader(&drawCmd, &gl3state.si3DcolorOnly);
 
-	r = (LittleLong(d_8to24table[e->skinnum & 0xFF])) & 0xFF;
-	g = (LittleLong(d_8to24table[e->skinnum & 0xFF]) >> 8) & 0xFF;
-	b = (LittleLong(d_8to24table[e->skinnum & 0xFF]) >> 16) & 0xFF;
+	drawCmd.color[0] = (LittleLong(d_8to24table[e->skinnum & 0xFF])) & 0xFF;
+	drawCmd.color[1] = (LittleLong(d_8to24table[e->skinnum & 0xFF]) >> 8) & 0xFF;
+	drawCmd.color[2] = (LittleLong(d_8to24table[e->skinnum & 0xFF]) >> 16) & 0xFF;
+	drawCmd.alpha = e->alpha;
 
-	r *= 1 / 255.0F;
-	g *= 1 / 255.0F;
-	b *= 1 / 255.0F;
 
-	gl3state.uniCommonData.color = HMM_Vec4(r, g, b, e->alpha);
-	GL3_UpdateUBOCommon();
 
 	for ( i = 0; i < NUM_BEAM_SEGS; i++ )
 	{
@@ -850,13 +1116,9 @@ GL3_DrawBeam(entity_t *e)
 		VectorCopy(end_points[pointb], verts[4*i+3].pos);
 	}
 
-	GL3_BindVAO(gl3state.vao3D);
-	GL3_BindVBO(gl3state.vbo3D);
 
-	GL3_BufferAndDraw3D(verts, NUM_BEAM_SEGS*4, GL_TRIANGLE_STRIP);
+	GL3_Add3DdrawCmdToBatch(verts, NUM_BEAM_SEGS*4, GL_TRIANGLE_STRIP, drawCmd);
 
-	glDisable(GL_BLEND);
-	glDepthMask(GL_TRUE);
 }
 
 static void
@@ -868,6 +1130,8 @@ GL3_DrawSpriteModel(entity_t *e, gl3model_t *currentmodel)
 	float *up, *right;
 	dsprite_t *psprite;
 	gl3image_t *skin;
+
+	gl3drawCmd_t drawCmd = GL3_CreateDrawCmd();
 
 	/* don't even bother culling, because it's just
 	   a single polygon without a surface cache */
@@ -882,14 +1146,11 @@ GL3_DrawSpriteModel(entity_t *e, gl3model_t *currentmodel)
 
 	if (e->flags & RF_TRANSLUCENT)
 	{
+		drawCmd.flags |= DCFlag_DisableDepthMask;
 		alpha = e->alpha;
 	}
 
-	if (alpha != gl3state.uni3DData.alpha)
-	{
-		gl3state.uni3DData.alpha = alpha;
-		GL3_UpdateUBO3D();
-	}
+	drawCmd.alpha = alpha;
 
 	skin = currentmodel->skins[e->frame];
 	if (!skin)
@@ -897,18 +1158,18 @@ GL3_DrawSpriteModel(entity_t *e, gl3model_t *currentmodel)
 		skin = gl3_notexture; /* fallback... */
 	}
 
-	GL3_Bind(skin->texnum);
+	drawCmd.texnum = skin->texnum;
 
 	if (alpha == 1.0)
 	{
 		// use shader with alpha test
-		GL3_UseProgram(gl3state.si3DspriteAlpha.shaderProgram);
+		GL3_SetDrawCmdShader(&drawCmd, &gl3state.si3DspriteAlpha);
 	}
 	else
 	{
-		glEnable(GL_BLEND);
+		drawCmd.flags |= DCFlag_Blend;
 
-		GL3_UseProgram(gl3state.si3Dsprite.shaderProgram);
+		GL3_SetDrawCmdShader(&drawCmd, &gl3state.si3Dsprite);
 	}
 
 	verts[0].texCoord[0] = 0;
@@ -932,23 +1193,19 @@ GL3_DrawSpriteModel(entity_t *e, gl3model_t *currentmodel)
 	VectorMA( e->origin, -frame->origin_y, up, verts[3].pos );
 	VectorMA( verts[3].pos, frame->width - frame->origin_x, right, verts[3].pos );
 
-	GL3_BindVAO(gl3state.vao3D);
-	GL3_BindVBO(gl3state.vbo3D);
 
-	GL3_BufferAndDraw3D(verts, 4, GL_TRIANGLE_FAN);
+	GL3_Add3DdrawCmdToBatch(verts, 4, GL_TRIANGLE_FAN, drawCmd);
 
-	if (alpha != 1.0F)
-	{
-		glDisable(GL_BLEND);
-		gl3state.uni3DData.alpha = 1.0f;
-		GL3_UpdateUBO3D();
-	}
 }
 
 static void
 GL3_DrawNullModel(entity_t *currententity)
 {
 	vec3_t shadelight;
+	gl3drawCmd_t drawCmd = GL3_CreateDrawCmd();
+
+	if(currententity->flags & RF_TRANSLUCENT)
+		drawCmd.flags |= DCFlag_DisableDepthMask;
 
 	if (currententity->flags & RF_FULLBRIGHT)
 	{
@@ -959,16 +1216,17 @@ GL3_DrawNullModel(entity_t *currententity)
 		GL3_LightPoint(currententity, currententity->origin, shadelight);
 	}
 
-	hmm_mat4 origModelMat = gl3state.uni3DData.transModelMat4;
-	GL3_RotateForEntity(currententity);
+	GL3_RotateForEntity(currententity, &drawCmd);
 
-	gl3state.uniCommonData.color = HMM_Vec4( shadelight[0], shadelight[1], shadelight[2], 1 );
-	GL3_UpdateUBOCommon();
+	drawCmd.alpha = 1.0f;
+	for(int i=0; i<3; ++i)
+	{
+		int c = shadelight[i] * 255.0f;
+		drawCmd.color[i] = c & 255;
+	}
+	drawCmd.flags |= DCFlag_UseColor;
 
-	GL3_UseProgram(gl3state.si3DcolorOnly.shaderProgram);
-
-	GL3_BindVAO(gl3state.vao3D);
-	GL3_BindVBO(gl3state.vbo3D);
+	GL3_SetDrawCmdShader(&drawCmd, &gl3state.si3DcolorOnly);
 
 	gl3_3D_vtx_t vtxA[6] = {
 		{{0, 0, -16}, {0,0}, {0,0}},
@@ -979,17 +1237,15 @@ GL3_DrawNullModel(entity_t *currententity)
 		{{16 * cos( 4 * M_PI / 2 ), 16 * sin( 4 * M_PI / 2 ), 0}, {0,0}, {0,0}}
 	};
 
-	GL3_BufferAndDraw3D(vtxA, 6, GL_TRIANGLE_FAN);
+	GL3_Add3DdrawCmdToBatch(vtxA, 6, GL_TRIANGLE_FAN, drawCmd);
 
 	gl3_3D_vtx_t vtxB[6] = {
 		{{0, 0, 16}, {0,0}, {0,0}},
 		vtxA[5], vtxA[4], vtxA[3], vtxA[2], vtxA[1]
 	};
 
-	GL3_BufferAndDraw3D(vtxB, 6, GL_TRIANGLE_FAN);
+	GL3_Add3DdrawCmdToBatch(vtxB, 6, GL_TRIANGLE_FAN, drawCmd);
 
-	gl3state.uni3DData.transModelMat4 = origModelMat;
-	GL3_UpdateUBO3D();
 }
 
 static void
@@ -1063,6 +1319,8 @@ GL3_DrawParticles(void)
 		GL3_BindVBO(gl3state.vboParticle);
 		glBufferData(GL_ARRAY_BUFFER, sizeof(part_vtx)*numParticles, buf, GL_STREAM_DRAW);
 		glDrawArrays(GL_POINTS, 0, numParticles);
+		++gl3_num3Ddraws;
+		++gl3_numBufferVtxData;
 
 		glDisable(GL_BLEND);
 		glDepthMask(GL_TRUE);
@@ -1134,6 +1392,10 @@ GL3_DrawEntitiesOnList(void)
 	/* draw transparent entities
 	   we could sort these if it ever
 	   becomes a problem... */
+
+	// make sure that drawing the solid entities is done first
+	GL3_Draw3DBatchesNow();
+
 	glDepthMask(GL_FALSE);
 
 	for (i = 0; i < r_newrefdef.num_entities; i++)
@@ -1176,6 +1438,11 @@ GL3_DrawEntitiesOnList(void)
 			}
 		}
 	}
+
+	// make sure that drawing the entities is done before drawing the shadows
+	GL3_Draw3DBatchesNow();
+
+	glDepthMask(GL_FALSE);
 
 	GL3_DrawAliasShadows();
 
@@ -1517,7 +1784,7 @@ SetupGL(void)
 extern int c_visible_lightmaps, c_visible_textures;
 
 /*
- * r_newrefdef must be set before the first call
+ * r_newrefdef must be set before the first call - FIXME: ?! it is set right here
  */
 static void
 GL3_RenderView(refdef_t *fd)
@@ -1677,6 +1944,9 @@ GL3_RenderView(refdef_t *fd)
 
 	GL3_DrawAlphaSurfaces();
 
+	// make sure all remaining batched 3D stuff is drawn
+	GL3_Draw3DBatchesNow();
+
 	// Note: R_Flash() is now GL3_Draw_Flash() and called from GL3_RenderFrame()
 
 	if (r_speeds->value)
@@ -1766,6 +2036,11 @@ GL3_SetLightLevel(entity_t *currententity)
 static void
 GL3_RenderFrame(refdef_t *fd)
 {
+	// in case some batched 2D draws are outstanding, draw them now
+	// to preserve draw order (I think here this is only relevant
+	// for the player model in the multiplayer player setup menu)
+	GL3_DrawCurrent2Dbatch();
+
 	GL3_RenderView(fd);
 	GL3_SetLightLevel(NULL);
 	qboolean usedFBO = gl3state.ppFBObound; // if it was/is used this frame

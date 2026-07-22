@@ -6840,7 +6840,7 @@ PlayerConfig_MenuDraw(void)
 		refdef.areabits = 0;
 		refdef.num_entities = (entities[1].model) ? 2 : 1;
 		refdef.entities = entities;
-		refdef.lightstyles = 0;
+		refdef.lightstyles = NULL;
 		refdef.rdflags = RDF_NOWORLDMODEL;
 
 		Com_sprintf(scratch, sizeof(scratch), "/players/%s/%s_i.pcx", mdlname,

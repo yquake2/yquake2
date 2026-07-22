@@ -37,7 +37,7 @@ CompileShader(GLenum shaderType, const char* shaderSrc, const char* shaderSrc2)
 	GLuint shader = glCreateShader(shaderType);
 
 #ifdef YQ2_GL3_GLES3
-	const char* version = "#version 300 es\nprecision mediump float;\n";
+	const char* version = "#version 300 es\nprecision highp float;\n";
 #else // Desktop GL
 	const char* version = "#version 150\n";
 #endif
@@ -793,7 +793,8 @@ static const char* fragmentSrc3DspriteAlpha = MULTILINE_STRING(
 			// apply gamma correction and intensity
 			texel.rgb *= intensity;
 			outColor.rgb = pow(texel.rgb, vec3(gamma));
-			outColor.a = texel.a*alpha; // I think alpha shouldn't be modified by gamma and intensity
+			//outColor.a = texel.a*alpha; // I think alpha shouldn't be modified by gamma and intensity
+			outColor.a = texel.a; // I think in this case alpha from uni3d shouldn't be used
 		}
 );
 
@@ -1377,6 +1378,8 @@ updateUBO(GLuint ubo, GLsizeiptr size, void* data)
 		gl3state.currentUBO = ubo;
 		glBindBuffer(GL_UNIFORM_BUFFER, ubo);
 	}
+
+	++gl3_numBufferUniforms;
 
 	// http://docs.gl/gl3/glBufferSubData says  "When replacing the entire data store,
 	// consider using glBufferSubData rather than completely recreating the data store
