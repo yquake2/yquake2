@@ -1320,4 +1320,7 @@ typedef char bitlist_t;
 /* test the value of bit i */
 #define BITLIST_ISSET(l, i) (l[(i) / BITLIST_BPU] & (1 << ((i) % BITLIST_BPU))) != 0
 
+/* a realloc wrapper that initializes new memory to 0 */
+void *Q_realloc0(void *ptr, size_t prev_n, size_t new_n);
+
 #endif /* COMMON_SHARED_H */

@@ -1726,3 +1726,21 @@ NextPow2gt(unsigned int i)
 {
 	return NextPow2(i + 1U);
 }
+
+void *
+Q_realloc0(void *ptr, size_t prev_n, size_t new_n)
+{
+	void *new_ptr = realloc(ptr, new_n);
+
+	if (!new_ptr)
+	{
+		return NULL;
+	}
+
+	if (new_n > prev_n)
+	{
+		memset((char *)new_ptr + prev_n, 0, new_n - prev_n);
+	}
+
+	return new_ptr;
+}
