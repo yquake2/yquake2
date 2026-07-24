@@ -1761,13 +1761,12 @@ FS_ListMods(void)
 static void
 FS_Dir_f(void)
 {
-	char **dirnames; /* File list. */
+	strlist_t dirs;
 	char findname[1024]; /* File search path and pattern. */
 	const char *path = NULL; /* Search path. */
 	char *lastsep;
 	char wildcard[1024] = "*.*"; /* File pattern. */
 	int i; /* Loop counter. */
-	int ndirs; /* Number of files in list. */
 
 	/* Check for pattern in arguments. */
 	if (Cmd_Argc() != 1)
@@ -1782,23 +1781,22 @@ FS_Dir_f(void)
 		Com_Printf("Directory of '%s'.\n", findname);
 		Com_Printf("----\n");
 
-		if ((dirnames = FS_ListFiles(findname, &ndirs, 0, 0)) != 0)
-		{
-			for (i = 0; i < ndirs - 1; i++)
-			{
-				lastsep = strrchr(dirnames[i], '/');
-				if (lastsep)
-				{
-					Com_Printf("%s\n", lastsep + 1);
-				}
-				else
-				{
-					Com_Printf("%s\n", dirnames[i]);
-				}
-			}
+		dirs = FS_ListFilesx(findname, 0, 0);
 
-			FS_FreeList(dirnames, ndirs);
+		for (i = 0; i < dirs.num; i++)
+		{
+			lastsep = strrchr(dirs.data[i], '/');
+			if (lastsep)
+			{
+				Com_Printf("%s\n", lastsep + 1);
+			}
+			else
+			{
+				Com_Printf("%s\n", dirs.data[i]);
+			}
 		}
+
+		StrList_Free(&dirs);
 
 		Com_Printf("\n");
 	}
