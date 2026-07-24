@@ -1762,6 +1762,108 @@ FS_ListMods(int *nummods)
 	return modnames;
 }
 
+static qboolean
+HasValidPack(const char *dir)
+{
+	const fsPackTypes_t *pkt;
+
+	// iterate over supported pack types, but ignore ZIP files (they cause false positives)
+	for (pkt = fs_packtypes; pkt < ARREND(fs_packtypes); pkt++)
+	{
+		strlist_t packs;
+		char findnamepattern[MAX_OSPATH];
+		int npacks;
+
+		if (!strcmp("zip", pkt->suffix))
+		{
+			continue;
+		}
+
+		Com_sprintf(findnamepattern, sizeof(findnamepattern), "%s/*.%s",
+			dir, pkt->suffix);
+
+		packs = FS_ListFilesx(findnamepattern, 0, 0);
+		npacks = packs.num;
+		StrList_Free(&packs);
+
+		if (npacks)
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
+
+strlist_t
+FS_ListModsx(void)
+{
+	strlist_t list;
+
+	StrList_Init(&list, 0);
+
+	for (fsRawPath_t *search = fs_rawPath; search; search = search->next)
+	{
+		strlist_t dirchildren;
+		const char *path;
+		char searchpath[MAX_OSPATH];
+		size_t splen;
+		int i;
+
+		splen = strlen(search->path);
+		if (!splen)
+		{
+			continue;
+		}
+
+		// make sure this Raw path ends with a '/' otherwise FS_ListFiles will open its parent dir
+		if (search->path[splen - 1] != '/')
+		{
+			Com_sprintf(searchpath, sizeof(searchpath), "%s/*", search->path);
+			path = searchpath;
+		}
+		else
+		{
+			path = search->path;
+		}
+
+		dirchildren = FS_ListFilesx(path, 0, 0);
+
+		// iterate over the children of this Raw path (unless we've already got enough mods)
+		for (i = 0; i < dirchildren.num && list.num < MAX_MODS; i++)
+		{
+			const char *modname;
+
+			if (!HasValidPack(dirchildren.data[i]))
+			{
+				continue;
+			}
+
+			modname = strrchr(dirchildren.data[i], '/');
+			if (!modname)
+			{
+				continue;
+			}
+
+			modname++;
+
+			if (!StrList_Contains(&list, modname))
+			{
+				StrList_Append(&list, modname);
+			}
+		}
+
+		StrList_Free(&dirchildren);
+	}
+
+	if (list.num > 1)
+	{
+		qsort(list.data, list.num, sizeof(char *), Q_sort_modcmp);
+	}
+
+	return list;
+}
+
 /*
  * Directory listing.
  */
