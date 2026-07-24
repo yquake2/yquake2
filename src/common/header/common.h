@@ -709,15 +709,9 @@ int FS_FRead(void *buffer, int size, int count, fileHandle_t f);
 // returns NULL if f is no valid handle
 const char* FS_GetFilenameForHandle(fileHandle_t f);
 
-char **FS_ListFiles(const char *findname, int *numfiles,
+strlist_t FS_ListFiles(const char *findname,
 		unsigned musthave, unsigned canthave);
-char **FS_ListFiles2(const char *findname, int *numfiles,
-		unsigned musthave, unsigned canthave);
-void FS_FreeList(char **list, int nfiles);
-
-strlist_t FS_ListFilesx(const char *findname,
-		unsigned musthave, unsigned canthave);
-strlist_t FS_ListFilesx2(const char *findname,
+strlist_t FS_ListFiles2(const char *findname,
 		unsigned musthave, unsigned canthave);
 
 void FS_InitFilesystem(void);

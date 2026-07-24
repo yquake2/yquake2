@@ -940,7 +940,7 @@ Cmd_CompleteMapCommand(const char *partial)
 {
 	strlist_t mapNames;
 
-	mapNames = FS_ListFilesx2("maps/*.bsp", 0, 0);
+	mapNames = FS_ListFiles2("maps/*.bsp", 0, 0);
 
 	if (mapNames.num)
 	{

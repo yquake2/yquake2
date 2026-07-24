@@ -4545,7 +4545,7 @@ GetMapsInFolderList(int *nummaps)
 	char **mapnames = NULL;
 	int i;
 
-	list = FS_ListFilesx2("maps/*.bsp", 0, 0);
+	list = FS_ListFiles2("maps/*.bsp", 0, 0);
 	if (!list.num)
 	{
 		Com_Printf("couldn't find maps/*.bsp\n");
@@ -5719,7 +5719,7 @@ PlayerDirectoryList(void)
 
 	StrList_Init(&list, 0);
 
-	dirs = FS_ListFilesx2(findname, 0, 0);
+	dirs = FS_ListFiles2(findname, 0, 0);
 
 	for (i = 0; i < dirs.num; ++i)
 	{
@@ -5773,7 +5773,7 @@ SkinsInDir(strlist_t *sl, const char *dirname, const char *ext)
 		return;
 	}
 
-	list = FS_ListFilesx2(findname, 0, 0);
+	list = FS_ListFiles2(findname, 0, 0);
 	dirname_size = strlen(dirname) + 1;
 
 	StrList_Expand(sl, sl->num + list.num);

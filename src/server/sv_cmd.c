@@ -332,7 +332,7 @@ SV_ListMaps_f(void)
 
 	Com_Printf("\n");
 
-	userMapNames = FS_ListFilesx2("maps/*.bsp", 0, 0);
+	userMapNames = FS_ListFiles2("maps/*.bsp", 0, 0);
 
 	for (i = 0; i < userMapNames.num; i++)
 	{
