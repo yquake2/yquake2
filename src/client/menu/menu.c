@@ -4552,40 +4552,41 @@ static char**
 GetMapsInFolderList(int *nummaps)
 {
 	/* Generate list by bsp files in maps/ directory */
+	strlist_t list;
 	size_t nummapslen;
-	char **list = NULL, **mapnames = NULL;
-	int num = 0, i;
+	char **mapnames = NULL;
+	int i;
 
-	list = FS_ListFiles2("maps/*.bsp", &num, 0, 0);
-	if (!list)
+	list = FS_ListFilesx2("maps/*.bsp", 0, 0);
+	if (!list.num)
 	{
 		Com_Printf("couldn't find maps/*.bsp\n");
 		/* unaware about YQ2_ATTR_NORETURN_FUNCPTR? */
 		return NULL;
 	}
 
-	nummapslen = sizeof(char *) * (num);
+	nummapslen = sizeof(char *) * (list.num + 1);
 	mapnames = malloc(nummapslen);
 	YQ2_COM_CHECK_OOM(mapnames, "malloc(sizeof(char *) * (num))", nummapslen)
 	if (!mapnames)
 	{
-		FS_FreeList(list, num);
+		StrList_Free(&list);
 		/* unaware about YQ2_ATTR_NORETURN_FUNCPTR? */
 		return NULL;
 	}
 
 	memset(mapnames, 0, nummapslen);
 
-	for (i = 0; i < num - 1; i++)
+	for (i = 0; i < list.num; i++)
 	{
 		char scratch[200], shortname[MAX_QPATH];
 		int len;
 
-		len = strlen(list[i]);
+		len = strlen(list.data[i]);
 		if (len > 9 && len < MAX_QPATH)
 		{
 			/* maps/ + .bsp */
-			Q_strlcpy(shortname, list[i] + 5, sizeof(shortname));
+			Q_strlcpy(shortname, list.data[i] + 5, sizeof(shortname));
 			shortname[len - 9]  = 0;
 
 			Com_sprintf(scratch, sizeof(scratch), "%s\n%s", shortname, shortname);
@@ -4600,14 +4601,15 @@ GetMapsInFolderList(int *nummaps)
 		}
 	}
 
-	mapnames[num - 1] = NULL;
+	mapnames[list.num] = NULL;
 
 	/* sort maps names alphabetically */
-	qsort(mapnames, num - 1, sizeof(char*), Q_sort_stricmp);
+	qsort(mapnames, list.num, sizeof(char*), Q_sort_stricmp);
+
+	*nummaps = list.num;
 
 	/* free file list */
-	FS_FreeList(list, num);
-	*nummaps = num - 1;
+	StrList_Free(&list);
 
 	return mapnames;
 }
@@ -5650,8 +5652,7 @@ ModelCallback(void *unused)
 
 // returns true if icon .pcx exists for skin .pcx
 static qboolean
-IconOfSkinExists(const char* skin, char** pcxfiles, int npcxfiles,
-	const char *ext)
+IconOfSkinExists(const char* skin, strlist_t *files, const char *ext)
 {
 	int i;
 	char scratch[1024];
@@ -5661,9 +5662,9 @@ IconOfSkinExists(const char* skin, char** pcxfiles, int npcxfiles,
 	Q_strlcat(scratch, "_i.", sizeof(scratch));
 	Q_strlcat(scratch, ext, sizeof(scratch));
 
-	for (i = 0; i < npcxfiles; i++)
+	for (i = 0; i < files->num; i++)
 	{
-		if (strcmp(pcxfiles[i], scratch) == 0)
+		if (strcmp(files->data[i], scratch) == 0)
 		{
 			return true;
 		}
@@ -5776,13 +5777,16 @@ PlayerModelFree()
 static qboolean
 PlayerDirectoryList(void)
 {
+	strlist_t list;
 	const char* findname = "players/*";
-	char** list = NULL;
-	int num = 0, dirnum = 0;
+	int num, dirnum = 0;
 	size_t listoff = strlen(findname);
 
 	/* get a list of "players" subdirectories or files */
-	if ((list = FS_ListFiles2(findname, &num, 0, 0)) == NULL)
+	list = FS_ListFilesx2(findname, 0, 0);
+	num = list.num;
+
+	if (!num)
 	{
 		return false;
 	}
@@ -5790,11 +5794,11 @@ PlayerDirectoryList(void)
 	if (num > MAX_PLAYERMODELS)
 	{
 		Com_Printf("Too many player models (%d)!\n", num);
-		num = MAX_PLAYERMODELS - 1;
+		num = MAX_PLAYERMODELS;
 	}
 
 	// malloc directories
-	char** data = (char**)calloc(num, sizeof(char*));
+	char** data = (char**)calloc(num + 1, sizeof(char*));
 	YQ2_COM_CHECK_OOM(data, "calloc()", num * sizeof(char*))
 	if (!data)
 	{
@@ -5811,7 +5815,7 @@ PlayerDirectoryList(void)
 		int j;
 
 		// last element of FS_FileList maybe null
-		if (list[i] == 0)
+		if (list.data[i] == 0)
 		{
 			break;
 		}
@@ -5821,18 +5825,18 @@ PlayerDirectoryList(void)
 		 * pak search does not return directory names, only files in
 		 * directories
 		 */
-		dirsize = Q_strchrs(list[i] + listoff, "/\\");
+		dirsize = Q_strchrs(list.data[i] + listoff, "/\\");
 		if (dirsize)
 		{
 			int dirnamelen = 0;
 
-			dirnamelen = dirsize - list[i];
-			memcpy(dirname, list[i], dirnamelen);
+			dirnamelen = dirsize - list.data[i];
+			memcpy(dirname, list.data[i], dirnamelen);
 			dirname[dirnamelen] = 0;
 		}
 		else
 		{
-			Q_strlcpy(dirname, list[i], sizeof(dirname));
+			Q_strlcpy(dirname, list.data[i], sizeof(dirname));
 		}
 
 		for (j = 0; j < dirnum; j++)
@@ -5858,7 +5862,7 @@ PlayerDirectoryList(void)
 	s_directory.num = dirnum;
 
 	// free file list
-	FS_FreeList(list, num);
+	StrList_Free(&list);
 
 	/* sort them male, female, alphabetical */
 	if (s_directory.num > 2)
@@ -5869,110 +5873,37 @@ PlayerDirectoryList(void)
 	return true;
 }
 
-static char**
-HasSkinInDir(const char *dirname, const char *ext, int *num)
+void
+SkinsInDir(strlist_t *sl, const char *dirname, const char *ext)
 {
+	strlist_t list;
 	char findname[MAX_QPATH];
-
-	snprintf(findname, sizeof(findname), "%s/*.%s", dirname, ext);
-
-	return FS_ListFiles2(findname, num, 0, 0);
-}
-
-static char**
-HasSkinsInDir(const char *dirname, int *num)
-{
-	char **list_png, **list_pcx;
-	char **curr = NULL, **list = NULL;
-	int num_png, num_pcx;
 	size_t dirname_size;
+	int i;
 
-	*num = 0;
-	/* dir name size plus one for skip slash */
+	if (snprintf(findname, sizeof(findname), "%s/*.%s",
+		dirname, ext) >= sizeof(findname))
+	{
+		return;
+	}
+
+	list = FS_ListFilesx2(findname, 0, 0);
 	dirname_size = strlen(dirname) + 1;
 
-	list_png = HasSkinInDir(dirname, "png", &num_png);
-	if (list_png)
-	{
-		*num += num_png - 1;
-	}
+	StrList_Expand(sl, sl->num + list.num);
 
-	list_pcx = HasSkinInDir(dirname, "pcx", &num_pcx);
-	if (list_pcx)
+	for (i = 0; i < list.num && sl->num < sl->cap; i++)
 	{
-		*num += num_pcx - 1;
-	}
-
-	if (*num)
-	{
-		curr = list = malloc(sizeof(char *) * (*num + 1));
-		YQ2_COM_CHECK_OOM(list, "malloc()", (size_t)sizeof(char *) * (*num + 1))
-		if (!list)
+		if (!strchr(list.data[i] + dirname_size, '/'))
 		{
-			/* unaware about YQ2_ATTR_NORETURN_FUNCPTR? */
-			return false;
+			sl->data[sl->num] = list.data[i];
+			sl->num++;
+
+			list.data[i] = NULL;
 		}
-
-		if (list_png && num_png)
-		{
-			int j;
-
-			for (j = 0; j < num_png; j ++)
-			{
-				if (list_png[j])
-				{
-					if (!strchr(list_png[j] + dirname_size, '/'))
-					{
-						*curr = list_png[j];
-						curr++;
-					}
-					else
-					{
-						/* unused in final response */
-						free(list_png[j]);
-					}
-				}
-			}
-		}
-
-		if (list_pcx && num_pcx)
-		{
-			int j;
-
-			for (j = 0; j < num_pcx; j ++)
-			{
-				if (list_pcx[j])
-				{
-					if (!strchr(list_pcx[j] + dirname_size, '/'))
-					{
-						*curr = list_pcx[j];
-						curr++;
-					}
-					else
-					{
-						/* unused in final response */
-						free(list_pcx[j]);
-					}
-				}
-			}
-		}
-
-		*curr = NULL;
-		curr++;
-		*num = curr - list;
 	}
 
-	if (list_png)
-	{
-		free(list_png);
-	}
-
-	if (list_pcx)
-	{
-		free(list_pcx);
-	}
-
-	return list;
+	StrList_Free(&list);
 }
 
 /*
@@ -5983,10 +5914,9 @@ HasSkinsInDir(const char *dirname, int *num)
 static qboolean
 PlayerModelList(void)
 {
-	char** list = NULL;
+	strlist_t list;
 	char** data = NULL;
 	int i;
-	int num = 0;
 	int mdl = 0;
 	qboolean result = true;
 
@@ -6023,9 +5953,14 @@ PlayerModelList(void)
 			continue;
 		}
 
-		list = HasSkinsInDir(s_directory.data[i], &num);
+
+		StrList_Init(&list, 0);
+
+		SkinsInDir(&list, s, "pcx");
+		SkinsInDir(&list, s, "png");
+
 		/* get a list of pcx files */
-		if (!num || !list)
+		if (!list.num)
 		{
 			continue;
 		}
@@ -6033,19 +5968,19 @@ PlayerModelList(void)
 		/* count valid skins, which consist of a skin with a matching "_i" icon */
 		s_skinnames[mdl].num = 0;
 
-		for (int j = 0; j < num; j++)
+		for (int j = 0; j < list.num; j++)
 		{
 			/* last element of FS_FileList maybe null */
-			if (list[j] == 0)
+			if (list.data[j] == 0)
 			{
 				break;
 			}
 
-			if (!strstr(list[j], "_i.png") ||
-				!strstr(list[j], "_i.pcx"))
+			if (!strstr(list.data[j], "_i.png") ||
+				!strstr(list.data[j], "_i.pcx"))
 			{
-				if (IconOfSkinExists(list[j], list, num - 1, "png") ||
-					IconOfSkinExists(list[j], list, num - 1, "pcx"))
+				if (IconOfSkinExists(list.data[j], &list, "png") ||
+					IconOfSkinExists(list.data[j], &list, "pcx"))
 				{
 					s_skinnames[mdl].num++;
 				}
@@ -6054,8 +5989,7 @@ PlayerModelList(void)
 
 		if (s_skinnames[mdl].num == 0)
 		{
-			FS_FreeList(list, num);
-
+			StrList_Free(&list);
 			continue;
 		}
 
@@ -6074,21 +6008,21 @@ PlayerModelList(void)
 		s_skinnames[mdl].num = 0;
 
 		/* duplicate strings */
-		for (int k = 0; k < num; ++k)
+		for (int k = 0; k < list.num; ++k)
 		{
 			/* last element of FS_FileList maybe null */
-			if (list[k] == 0)
+			if (list.data[k] == 0)
 			{
 				break;
 			}
 
-			if (!strstr(list[k], "_i.png") ||
-				!strstr(list[k], "_i.pcx"))
+			if (!strstr(list.data[k], "_i.png") ||
+				!strstr(list.data[k], "_i.pcx"))
 			{
-				if (IconOfSkinExists(list[k], list, num - 1, "png") ||
-					IconOfSkinExists(list[k], list, num - 1, "pcx"))
+				if (IconOfSkinExists(list.data[k], &list, "png") ||
+					IconOfSkinExists(list.data[k], &list, "pcx"))
 				{
-					t = Q_strrchrs(list[k], "/\\");
+					t = Q_strrchrs(list.data[k], "/\\");
 
 					l = strlen(t) + 1;
 					s = (char*)malloc(l);
@@ -6129,7 +6063,7 @@ PlayerModelList(void)
 		mdl = s_modelname.num;
 
 		/* free file list */
-		FS_FreeList(list, num);
+		StrList_Free(&list);
 	}
 
 	if (s_modelname.num == 0)
