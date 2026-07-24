@@ -326,33 +326,31 @@ SV_Map_f(void)
 static void
 SV_ListMaps_f(void)
 {
-	char **userMapNames;
-	int nUserMaps = 0;
+	strlist_t userMapNames;
 	int i;
 	char* mapName, *lastsep;
 
 	Com_Printf("\n");
 
-	if ((userMapNames = FS_ListFiles2("maps/*.bsp", &nUserMaps, 0, 0)) != NULL)
+	userMapNames = FS_ListFilesx2("maps/*.bsp", 0, 0);
+
+	for (i = 0; i < userMapNames.num; i++)
 	{
-		for (i = 0; i < nUserMaps - 1; i++)
+		if ((lastsep = strrchr(userMapNames.data[i], '/')))
 		{
-			if ((lastsep = strrchr(userMapNames[i], '/')))
-			{
-				mapName = lastsep + 1;
-			}
-			else
-			{
-				mapName = userMapNames[i];
-			}
-
-			mapName = strtok(mapName, ".");
-
-			Com_Printf("%s\n", mapName);
+			mapName = lastsep + 1;
+		}
+		else
+		{
+			mapName = userMapNames.data[i];
 		}
 
-		FS_FreeList(userMapNames, nUserMaps);
+		mapName = strtok(mapName, ".");
+
+		Com_Printf("%s\n", mapName);
 	}
+
+	StrList_Free(&userMapNames);
 }
 
 /*
