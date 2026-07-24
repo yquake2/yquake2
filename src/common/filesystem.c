@@ -1952,13 +1952,12 @@ static char* basename( char* n )
 #endif // _MSC_VER
 
 static void
-FS_AddDirToSearchPath(char *dir, qboolean create) {
+FS_AddDirToSearchPath(char *dir, qboolean create)
+{
 	char *file;
-	char **list;
 	char path[MAX_OSPATH];
 	char *tmp;
 	int i, j, k;
-	int nfiles;
 	fsPack_t *pack = NULL;
 	fsSearchPath_t *search;
 	qboolean nextpak;
@@ -2040,15 +2039,13 @@ FS_AddDirToSearchPath(char *dir, qboolean create) {
 	// this, since it might break existing installations.
 	for (i = 0; i < ARRLEN(fs_packtypes); i++)
 	{
+		strlist_t list;
+
 		Com_sprintf(path, sizeof(path), "%s/*.%s", dir, fs_packtypes[i].suffix);
 
-		// Nothing here, next pak type please.
-		if ((list = FS_ListFiles(path, &nfiles, 0, 0)) == NULL)
-		{
-			continue;
-		}
+		list = FS_ListFilesx(path, 0, 0);
 
-		for (j = 0; j < nfiles - 1; j++)
+		for (j = 0; j < list.num; j++)
 		{
 			// Sort out numbered paks. This is as inefficient as
 			// it can be, but it doesn't matter. This is done only
@@ -2059,7 +2056,7 @@ FS_AddDirToSearchPath(char *dir, qboolean create) {
 			{
 				// basename() may alter the given string.
 				// We need to work around that...
-				tmp = strdup(list[j]);
+				tmp = strdup(list.data[j]);
 				file = basename(tmp);
 
 				Com_sprintf(path, sizeof(path), "pak%d.%s", k, fs_packtypes[i].suffix);
@@ -2082,10 +2079,10 @@ FS_AddDirToSearchPath(char *dir, qboolean create) {
 			switch (fs_packtypes[i].format)
 			{
 				case PAK:
-					pack = FS_LoadPAK(list[j]);
+					pack = FS_LoadPAK(list.data[j]);
 					break;
 				case PK3:
-					pack = FS_LoadPK3(list[j]);
+					pack = FS_LoadPK3(list.data[j]);
 					break;
 			}
 
@@ -2104,7 +2101,7 @@ FS_AddDirToSearchPath(char *dir, qboolean create) {
 			fs_searchPaths = search;
 		}
 
-		FS_FreeList(list, nfiles);
+		StrList_Free(&list);
 	}
 }
 
