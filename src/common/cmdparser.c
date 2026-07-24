@@ -938,10 +938,11 @@ Cmd_CompleteCommand(const char *partial)
 const char *
 Cmd_CompleteMapCommand(const char *partial)
 {
-	char **mapNames;
-	int nMaps;
+	strlist_t mapNames;
 
-	if ((mapNames = FS_ListFiles2("maps/*.bsp", &nMaps, 0, 0)) != NULL)
+	mapNames = FS_ListFilesx2("maps/*.bsp", 0, 0);
+
+	if (mapNames.num)
 	{
 		size_t len;
 		int i, j, k, nbMatches;
@@ -953,24 +954,24 @@ Cmd_CompleteMapCommand(const char *partial)
 		nbMatches = 0;
 		memset(retval, 0, sizeof(retval));
 
-		pmatch = malloc(nMaps * sizeof(char*));
-		YQ2_COM_CHECK_OOM(pmatch, "malloc()", nMaps * sizeof(char*))
+		pmatch = malloc(mapNames.num * sizeof(char*));
+		YQ2_COM_CHECK_OOM(pmatch, "malloc()", (mapNames.num + 1) * sizeof(char*))
 		if (!pmatch)
 		{
 			/* unaware about YQ2_ATTR_NORETURN_FUNCPTR? */
-			FS_FreeList(mapNames, nMaps);
+			StrList_Free(&mapNames);
 			return retval;
 		}
 
-		for (i = 0; i < nMaps - 1; i++)
+		for (i = 0; i < mapNames.num; i++)
 		{
-			if ((lastsep = strrchr(mapNames[i], '/')))
+			if ((lastsep = strrchr(mapNames.data[i], '/')))
 			{
 				mapName = lastsep + 1;
 			}
 			else
 			{
-				mapName = mapNames[i];
+				mapName = mapNames.data[i];
 			}
 
 			mapName = strtok(mapName, ".");
@@ -1030,7 +1031,7 @@ Cmd_CompleteMapCommand(const char *partial)
 		}
 
 		free(pmatch);
-		FS_FreeList(mapNames, nMaps);
+		StrList_Free(&mapNames);
 	}
 
 	return retval;
