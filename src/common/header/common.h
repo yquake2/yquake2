@@ -729,7 +729,7 @@ int FS_LoadFile(const char *path, void **buffer);
 qboolean FS_FileInGamedir(const char *file);
 qboolean FS_AddPAKFromGamedir(const char *pak);
 const char* FS_GetNextRawPath(const char* lastRawPath);
-char **FS_ListMods(int *nummods);
+strlist_t FS_ListMods(void);
 
 /* a null buffer will just return the file length without loading */
 /* a -1 length is not present */

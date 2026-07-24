@@ -3270,52 +3270,40 @@ static menulist_s s_mods_list;
 static menuaction_s s_mods_apply_action;
 static char mods_statusbar[64];
 
-static char **modnames = NULL;
-static int nummods;
+static strlist_t modnames;
 
 void
 Mods_NamesFinish(void)
 {
-	if (modnames)
-	{
-		int i;
-
-		for (i = 0; i < nummods; i ++)
-		{
-			free(modnames[i]);
-		}
-
-		free(modnames);
-		modnames = NULL;
-	}
+	StrList_Free(&modnames);
 }
 
 static void
 Mods_NamesInit(void)
 {
 	/* initialize list of mods once, reuse it afterwards */
-	if (modnames == NULL)
+	if (!modnames.num)
 	{
-		modnames = FS_ListMods(&nummods);
+		modnames = FS_ListMods();
 	}
 }
 
 static void
 ModsListFunc(void *unused)
 {
-	if (strcmp(BASEDIRNAME, modnames[s_mods_list.curvalue]) == 0)
+	if (strcmp(BASEDIRNAME, modnames.data[s_mods_list.curvalue]) == 0)
 	{
 		strcpy(mods_statusbar, "Quake II");
 	}
-	else if (strcmp("ctf", modnames[s_mods_list.curvalue]) == 0)
+	else if (strcmp("ctf", modnames.data[s_mods_list.curvalue]) == 0)
 	{
 		strcpy(mods_statusbar, "Quake II Capture The Flag");
 	}
-	else if (strcmp("rogue", modnames[s_mods_list.curvalue]) == 0)
+	else if (strcmp("rogue", modnames.data[s_mods_list.curvalue]) == 0)
 	{
 		strcpy(mods_statusbar, "Quake II Mission Pack: Ground Zero");
 	}
-	else if (strcmp("xatrix", modnames[s_mods_list.curvalue]) == 0)
+	else if (strcmp("xatrix", modnames.data[s_mods_list.curvalue]) == 0)
 	{
 		strcpy(mods_statusbar, "Quake II Mission Pack: The Reckoning");
 	}
@@ -3328,7 +3316,7 @@ ModsListFunc(void *unused)
 static void
 ModsApplyActionFunc(void *unused)
 {
-	if (!M_IsGame(modnames[s_mods_list.curvalue]))
+	if (!M_IsGame(modnames.data[s_mods_list.curvalue]))
 	{
 		if(Com_ServerState())
 		{
@@ -3338,7 +3326,7 @@ ModsApplyActionFunc(void *unused)
 		}
 
 		// called via command buffer so that any running server has time to shutdown
-		Cbuf_AddText(va("game %s\n", modnames[s_mods_list.curvalue]));
+		Cbuf_AddText(va("game %s\n", modnames.data[s_mods_list.curvalue]));
 
 		// start the demo cycle in the new game directory
 		menu_startdemoloop = true;
@@ -3370,28 +3358,28 @@ Mods_MenuInit(void)
 	Mods_NamesInit();
 
 	/* create array of bracketed display names from folder names - TG626 */
-	displaynames = malloc(sizeof(*displaynames) * (nummods + 1));
-	YQ2_COM_CHECK_OOM(displaynames, "malloc()", sizeof(*displaynames) * (nummods + 1))
+	displaynames = malloc(sizeof(*displaynames) * (modnames.num + 1));
+	YQ2_COM_CHECK_OOM(displaynames, "malloc()", sizeof(*displaynames) * (modnames.num + 1))
 	if (!displaynames)
 	{
 		/* unaware about YQ2_ATTR_NORETURN_FUNCPTR? */
 		return;
 	}
 
-	for (i = 0; i < nummods; i++)
+	for (i = 0; i < modnames.num; i++)
 	{
 		strcpy(modname, "[");
-		if (strlen(modnames[i]) < 16)
+		if (strlen(modnames.data[i]) < 16)
 		{
-			strcat(modname, modnames[i]);
-			for (int j=0; j < 15 - strlen(modnames[i]); j++)
+			strcat(modname, modnames.data[i]);
+			for (int j=0; j < 15 - strlen(modnames.data[i]); j++)
 			{
 				strcat(modname, " ");
 			}
 		}
 		else
 		{
-			strncat(modname, modnames[i], 12);
+			strncat(modname, modnames.data[i], 12);
 			strcat(modname, "...");
 		}
 		strcat(modname, "]");
@@ -3405,13 +3393,13 @@ Mods_MenuInit(void)
 		}
 	}
 
-	displaynames[nummods] = NULL;
+	displaynames[modnames.num] = NULL;
 	/* end TG626 */
 
 	/* pre-select the current mod for display in the list */
-	for (currentmod = 0; currentmod < nummods; currentmod++)
+	for (currentmod = 0; currentmod < modnames.num; currentmod++)
 	{
-		if (M_IsGame(modnames[currentmod]))
+		if (M_IsGame(modnames.data[currentmod]))
 		{
 			break;
 		}
@@ -3426,7 +3414,7 @@ Mods_MenuInit(void)
 	s_mods_list.generic.y = y;
 	s_mods_list.generic.callback = ModsListFunc;
 	s_mods_list.itemnames = (const char **)displaynames;
-	s_mods_list.curvalue = currentmod < nummods ? currentmod : 0;
+	s_mods_list.curvalue = currentmod < modnames.num ? currentmod : 0;
 
 	y += 20;
 
@@ -3612,7 +3600,7 @@ Game_MenuInit(void)
 	Menu_AddItem(&s_game_menu, (void *)&s_save_game_action);
 	Menu_AddItem(&s_game_menu, (void *)&s_credits_action);
 
-	if(nummods > 1)
+	if(modnames.num > 1)
 	{
 		s_mods_action.generic.type = MTYPE_ACTION;
 		s_mods_action.generic.flags = QMF_LEFT_JUSTIFY;
