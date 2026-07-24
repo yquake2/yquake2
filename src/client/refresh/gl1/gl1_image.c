@@ -25,12 +25,11 @@
  */
 
 #include "header/local.h"
+#include <limits.h>
 
 image_t gltextures[MAX_GLTEXTURES];
 int numgltextures;
 static int image_max = 0;
-extern qboolean scrap_dirty;
-extern byte scrap_texels[MAX_SCRAPS][SCRAP_WIDTH * SCRAP_HEIGHT];
 
 static byte intensitytable[256];
 byte gammatable[256];
@@ -249,7 +248,7 @@ R_EnableMultitexture(qboolean enable)
 void
 R_TextureMode(const char *string)
 {
-	int i;
+	int i, texnum;
 	image_t *glt;
 
 	for (i = 0; i < NUM_GL_MODES; i++)
@@ -333,6 +332,26 @@ R_TextureMode(const char *string)
 				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gl_filter_max);
 				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gl_filter_max);
 			}
+		}
+	}
+
+	for (texnum = MAX_SCRAPS_NOLERP; texnum < MAX_SCRAPS; texnum++)
+	{
+		R_Bind(TEXNUM_SCRAPS + texnum);
+
+		if (unfiltered2D)
+		{
+			// 2D textures shouldn't be filtered by default (r_2D_unfiltered),
+			// so the scrap shouldn't be filtered
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		}
+		else // 2D textures should be filtered by default => filter the scrap
+		{
+			// we can't use gl_filter_min which might be GL_*_MIPMAP_*
+			// also, there's no anisotropic filtering for textures w/o mipmaps
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gl_filter_max);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gl_filter_max);
 		}
 	}
 }
@@ -845,10 +864,12 @@ R_LoadPic(const char *name, byte *pic, int width, int realwidth,
 		int height, int realheight, size_t data_size, imagetype_t type, int bits)
 {
 	image_t *image;
+	qboolean nolerp = false;
 	int i;
 
-	qboolean nolerp = false;
-	if (r_2D_unfiltered->value && type == it_pic)
+
+	qboolean default2Dnolerp = r_2D_unfiltered->value != 0.0f;
+	if (default2Dnolerp && type == it_pic)
 	{
 		// if r_2D_unfiltered is true(ish), nolerp should usually be true,
 		// *unless* the texture is on the r_lerp_list
@@ -905,7 +926,7 @@ R_LoadPic(const char *name, byte *pic, int width, int realwidth,
 			strcmp(name, "pics/ch2.pcx") == 0 ||
 			strcmp(name, "pics/ch3.pcx") == 0))
 	{
-		int best = 0;
+		int best = 0, i;
 		float best_lum = 0;
 
 		for (i = 0; i < 255; i++)
@@ -932,42 +953,51 @@ R_LoadPic(const char *name, byte *pic, int width, int realwidth,
 	}
 
 	/* load little pics into the scrap */
-	if (!nolerp && (image->type == it_pic) && (bits == 8) &&
-		(image->width < 64) && (image->height < 64))
+	if ((image->type == it_pic) && (width <= BLOCK_WIDTH) && (height <= BLOCK_HEIGHT))
 	{
+		int texnum = -1;
 		int x, y;
-		int i, k;
-		int texnum;
 
-		texnum = Scrap_AllocBlock(image->width, image->height, &x, &y);
+		if (bits == 32)
+		{
+			texnum = Scrap_AllocBlock(width, height, &x, &y, (unsigned*)pic, nolerp ? 0 : MAX_SCRAPS_NOLERP);
+		}
+		else if (bits == 8)
+		{
+			unsigned *trans;
+
+			trans = R_Convert8to32(pic, width, height, d_8to24table);
+			if (trans)
+			{
+				texnum = Scrap_AllocBlock(width, height, &x, &y, trans, nolerp ? 0 : MAX_SCRAPS_NOLERP);
+				free(trans);
+			}
+		}
+		else
+		{
+			Sys_Error("Error: texture '%s' has %d bits per pixel, only 8 and 32 supported!\n",
+				name, bits);
+		}
 
 		if (texnum == -1)
 		{
 			goto nonscrap;
 		}
 
-		scrap_dirty = true;
-
-		/* copy the texels into the scrap block */
-		k = 0;
-
-		for (i = 0; i < image->height; i++)
+		if (nolerp && texnum >= MAX_SCRAPS_NOLERP)
 		{
-			int j;
-
-			for (j = 0; j < image->width; j++, k++)
-			{
-				scrap_texels[texnum][(y + i) * SCRAP_WIDTH + x + j] = pic[k];
-			}
+			Com_Printf("%s: Nolerp image stored to lerp\n", name);
 		}
 
 		image->texnum = TEXNUM_SCRAPS + texnum;
 		image->scrap = true;
 		image->has_alpha = true;
 		image->sl = (float)x / SCRAP_WIDTH;
-		image->sh = (float)(x + image->width) / SCRAP_WIDTH;
+		image->sh = (float)(x + width) / SCRAP_WIDTH;
 		image->tl = (float)y / SCRAP_HEIGHT;
-		image->th = (float)(y + image->height) / SCRAP_HEIGHT;
+		image->th = (float)(y + height) / SCRAP_HEIGHT;
+		image->upload_width = width;
+		image->upload_height = height;
 	}
 	else
 	{
@@ -987,6 +1017,12 @@ R_LoadPic(const char *name, byte *pic, int width, int realwidth,
 				// scale 3 times if lerp image
 				if (!nolerp && (vid.height >= 240 * 3))
 					scale = 3;
+
+				if (height == 0 || scale == 0 || width > INT_MAX / height / scale / scale)
+				{
+					Com_Error(ERR_DROP, "%s: invalid dimensions", __func__);
+					return NULL;
+				}
 
 				image_converted = malloc(width * height * scale * scale);
 				if (!image_converted)
@@ -1020,21 +1056,6 @@ R_LoadPic(const char *name, byte *pic, int width, int realwidth,
 		image->upload_height = upload_height;
 		image->paletted = uploaded_paletted;
 
-		if (realwidth && realheight)
-		{
-			if ((realwidth <= image->width) && (realheight <= image->height))
-			{
-				image->width = realwidth;
-				image->height = realheight;
-			}
-			else
-			{
-				Com_DPrintf(
-						"Warning, image '%s' has hi-res replacement smaller than the original! (%d x %d) < (%d x %d)\n",
-						name, image->width, image->height, realwidth, realheight);
-			}
-		}
-
 		image->sl = 0;
 		image->sh = 1;
 		image->tl = 0;
@@ -1044,6 +1065,21 @@ R_LoadPic(const char *name, byte *pic, int width, int realwidth,
 		{
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		}
+	}
+
+	if (realwidth && realheight)
+	{
+		if ((realwidth <= image->width) && (realheight <= image->height))
+		{
+			image->width = realwidth;
+			image->height = realheight;
+		}
+		else
+		{
+			Com_DPrintf(
+					"Warning, image '%s' has hi-res replacement smaller than the original! (%d x %d) < (%d x %d)\n",
+					name, image->width, image->height, realwidth, realheight);
 		}
 	}
 
@@ -1198,6 +1234,8 @@ R_InitImages(void)
 	float	g = 1;
 #endif
 	g = Q_max(g, 0.1f);
+
+	Scrap_Init();
 
 	registration_sequence = 1;
 	image_max = 0;
