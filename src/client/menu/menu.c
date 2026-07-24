@@ -5727,11 +5727,10 @@ static qboolean
 PlayerDirectoryList(void)
 {
 	strlist_t list;
-	const char* findname = "players/*";
-	int num, dirnum = 0;
+	const char *findname = "players/*";
+	int i, num;
 	size_t listoff = strlen(findname);
 
-	/* get a list of "players" subdirectories or files */
 	list = FS_ListFilesx2(findname, 0, 0);
 	num = list.num;
 
@@ -5746,71 +5745,29 @@ PlayerDirectoryList(void)
 		num = MAX_PLAYERMODELS;
 	}
 
-	// malloc directories
-	char** data = (char**)calloc(num + 1, sizeof(char*));
-	YQ2_COM_CHECK_OOM(data, "calloc()", num * sizeof(char*))
-	if (!data)
+	StrList_Init(&s_directory, 3);
+
+	for (i = 0; i < num; ++i)
 	{
-		/* unaware about YQ2_ATTR_NORETURN_FUNCPTR? */
-		return false;
-	}
-
-	s_directory.data = data;
-
-	for (int i = 0; i < num; ++i)
-	{
-		char dirname[MAX_QPATH];
-		const char *dirsize;
-		int j;
-
-		// last element of FS_FileList maybe null
-		if (list.data[i] == 0)
-		{
-			break;
-		}
+		char *slash;
 
 		/*
 		 * search slash after "players/" and use only directory name
 		 * pak search does not return directory names, only files in
 		 * directories
 		 */
-		dirsize = Q_strchrs(list.data[i] + listoff, "/\\");
-		if (dirsize)
+		slash = Q_strchrs(list.data[i] + listoff, "/\\");
+		if (slash)
 		{
-			int dirnamelen = 0;
-
-			dirnamelen = dirsize - list.data[i];
-			memcpy(dirname, list.data[i], dirnamelen);
-			dirname[dirnamelen] = 0;
-		}
-		else
-		{
-			Q_strlcpy(dirname, list.data[i], sizeof(dirname));
+			*slash = '\0';
 		}
 
-		for (j = 0; j < dirnum; j++)
+		if (!StrList_Contains(&s_directory, list.data[i]))
 		{
-			if (!strcmp(dirname, data[j]))
-			{
-				break;
-			}
-		}
-
-		if (j == dirnum)
-		{
-			char* s = (char*)malloc(MAX_QPATH);
-
-			YQ2_COM_CHECK_OOM(s, "malloc()", MAX_QPATH * sizeof(char))
-
-			Q_strlcpy(s, dirname, MAX_QPATH);
-			data[dirnum] = s;
-			dirnum ++;
+			StrList_Append(&s_directory, list.data[i]);
 		}
 	}
 
-	s_directory.num = dirnum;
-
-	// free file list
 	StrList_Free(&list);
 
 	/* sort them male, female, alphabetical */
