@@ -1266,6 +1266,32 @@ FS_ListFiles(const char *findname, int *numfiles,
 	return list;
 }
 
+strlist_t
+FS_ListFilesx(const char *findname,
+		unsigned musthave, unsigned canthave)
+{
+	strlist_t list;
+	const char *s;
+
+	StrList_Init(&list, 0);
+
+	s = Sys_FindFirst(findname, musthave, canthave);
+
+	while (s)
+	{
+		if (s[strlen(s) - 1] != '.')
+		{
+			StrList_Append(&list, s);
+		}
+
+		s = Sys_FindNext(musthave, canthave);
+	}
+
+	Sys_FindClose();
+
+	return list;
+}
+
 /*
  * Compare file attributes (musthave and canthave) in packed files. If
  * "output" is not NULL, "size" is greater than zero and the file matches the
@@ -1508,6 +1534,70 @@ FS_ListFiles2(const char *findname, int *numfiles,
 	}
 
 	*numfiles = nfiles;
+
+	return list;
+}
+
+strlist_t
+FS_ListFilesx2(const char *findname,
+		unsigned musthave, unsigned canthave)
+{
+	strlist_t list;
+	fsSearchPath_t *search;
+
+	StrList_Init(&list, 0);
+
+	for (search = fs_searchPaths; search != NULL; search = search->next)
+	{
+		strlist_t tmplist;
+		char path[MAX_OSPATH];
+		size_t splen;
+		int i;
+
+		if (search->pack)
+		{
+			if (canthave & SFF_INPACK)
+			{
+				continue;
+			}
+
+			for (i = 0; i < search->pack->numFiles; i++)
+			{
+				if (ComparePackFiles(findname, search->pack->files[i].name,
+							musthave, canthave, path, sizeof(path)))
+				{
+					if (!StrList_Contains(&list, path))
+					{
+						StrList_Append(&list, path);
+					}
+				}
+			}
+		}
+
+		if ((musthave & SFF_INPACK) ||
+			(*search->path == '\0'))
+		{
+			continue;
+		}
+
+		/* files from host filesystem */
+		Com_sprintf(path, sizeof(path), "%s/%s", search->path, findname);
+		tmplist = FS_ListFilesx(path, musthave, canthave);
+
+		splen = strlen(search->path);
+
+		for (i = 0; i < tmplist.num; i++)
+		{
+			const char *s = tmplist.data[i] + splen + 1;
+
+			if (!StrList_Contains(&list, s))
+			{
+				StrList_Append(&list, s);
+			}
+		}
+
+		StrList_Free(&tmplist);
+	}
 
 	return list;
 }

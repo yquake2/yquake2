@@ -715,6 +715,11 @@ char **FS_ListFiles2(const char *findname, int *numfiles,
 		unsigned musthave, unsigned canthave);
 void FS_FreeList(char **list, int nfiles);
 
+strlist_t FS_ListFilesx(const char *findname,
+		unsigned musthave, unsigned canthave);
+strlist_t FS_ListFilesx2(const char *findname,
+		unsigned musthave, unsigned canthave);
+
 void FS_InitFilesystem(void);
 void FS_ShutdownFilesystem(void);
 void FS_BuildGameSpecificSearchPath(const char *dir);
