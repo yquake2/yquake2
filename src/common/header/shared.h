@@ -325,6 +325,7 @@ void RotatePointAroundVector(vec3_t dst,
 
 const char *COM_SkipPath(const char *pathname);
 void COM_StripExtension(const char *in, char *out);
+char *COM_StripExtension2(char *path);
 YQ2_ATTR_RETURNS_NONNULL const char *COM_FileExtension(const char *in);
 void COM_FileBase(const char *in, char *out);
 void COM_FilePath(const char *in, char *out);

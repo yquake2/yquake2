@@ -764,6 +764,33 @@ COM_StripExtension(const char *in, char *out)
 	*out = 0;
 }
 
+char *
+COM_StripExtension2(char *path)
+{
+	char *s ;
+
+	if (*path == '\0')
+	{
+		return NULL;
+	}
+
+	s = path + (strlen(path) - 1);
+
+	if (*s != '.')
+	{
+		for (; s > path && *s != '/' && *s != '\\'; s--)
+		{
+			if (*s == '.')
+			{
+				*s = '\0';
+				return s + 1;
+			}
+		}
+	}
+
+	return NULL;
+}
+
 const char *
 COM_FileExtension(const char *in)
 {

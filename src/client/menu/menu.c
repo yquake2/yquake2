@@ -5679,30 +5679,6 @@ IconOfSkinExists(const char* skin, char** pcxfiles, int npcxfiles,
 	return false;
 }
 
-// strip file extension
-static void
-StripExtension(char* path)
-{
-	size_t length;
-
-	length = strlen(path) - 1;
-
-	while (length > 0 && path[length] != '.')
-	{
-		length--;
-
-		if (path[length] == '/')
-		{
-			return;         // no extension
-		}
-	}
-
-	if (length)
-	{
-		path[length] = 0;
-	}
-}
-
 // returns true if file is in path
 static qboolean
 ContainsFile(char* path, char* file)
@@ -6184,7 +6160,7 @@ PlayerModelList(void)
 						return false;
 					}
 
-					StripExtension(t);
+					COM_StripExtension2(t);
 					Q_strlcpy(s, t + 1, l);
 
 					data[s_skinnames[mdl].num++] = s;
