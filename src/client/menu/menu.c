@@ -5679,33 +5679,6 @@ IconOfSkinExists(const char* skin, char** pcxfiles, int npcxfiles,
 	return false;
 }
 
-// returns true if file is in path
-static qboolean
-ContainsFile(char* path, char* file)
-{
-	int handle = 0;
-	qboolean result = false;
-
-	if (path != 0 && file != 0)
-	{
-		char pathname[MAX_QPATH];
-		int length = 0;
-
-		Com_sprintf(pathname, MAX_QPATH, "%s/%s", path, file);
-
-		length = FS_FOpenFile(pathname, &handle, false);
-
-		// verify the existence of file
-		if (handle != 0 && length != 0)
-		{
-			FS_FCloseFile(handle);
-			result = true;
-		}
-	}
-
-	return result;
-}
-
 // replace characters in string
 static void
 ReplaceCharacters(char* s, char r, char c)
@@ -6075,7 +6048,7 @@ PlayerModelList(void)
 		/* contains triangle .md2 model */
 		s = s_directory.data[i];
 
-		if (ContainsFile(s, "tris.md2") == false)
+		if (!FS_FileExists(s, "tris.md2"))
 		{
 			/* invalid player model */
 			continue;
