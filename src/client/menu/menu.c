@@ -128,6 +128,11 @@ M_ForceMenuOff(void)
 		}
 	}
 
+	if (Menu_PopupActive(&m_popup))
+	{
+		Menu_ClosePopup(&m_popup);
+	}
+
 	m_menudepth = 0;
 
 	cls.key_dest = key_game;
