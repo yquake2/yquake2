@@ -5616,7 +5616,6 @@ static menuaction_s s_player_download_action;
 // player model info
 static strlist_t s_skinnames[MAX_PLAYERMODELS];
 static strlist_t s_modelname;
-static strlist_t s_directory;
 
 static int rate_tbl[] = {2500, 3200, 5000, 10000, 25000, 0};
 static const char *rate_names[] = {"28.8 Modem", "33.6 Modem", "Single ISDN",
@@ -5714,7 +5713,6 @@ PlayerModelFree()
 	}
 
 	StrList_Free(&s_modelname);
-	StrList_Free(&s_directory);
 
 	s_player_model_box.itemnames = NULL;
 	s_player_skin_box.itemnames = NULL;
@@ -5723,31 +5721,19 @@ PlayerModelFree()
 // list all player model directories.
 // directory names are stored players/<modelname>.
 // directory number never exceeds MAX_PLAYERMODELS
-static qboolean
+static strlist_t
 PlayerDirectoryList(void)
 {
-	strlist_t list;
+	strlist_t dirs, list;
 	const char *findname = "players/*";
-	int i, num;
+	int i;
 	size_t listoff = strlen(findname);
 
-	list = FS_ListFilesx2(findname, 0, 0);
-	num = list.num;
+	StrList_Init(&list, 0);
 
-	if (!num)
-	{
-		return false;
-	}
+	dirs = FS_ListFilesx2(findname, 0, 0);
 
-	if (num > MAX_PLAYERMODELS)
-	{
-		Com_Printf("Too many player models (%d)!\n", num);
-		num = MAX_PLAYERMODELS;
-	}
-
-	StrList_Init(&s_directory, 3);
-
-	for (i = 0; i < num; ++i)
+	for (i = 0; i < dirs.num; ++i)
 	{
 		char *slash;
 
@@ -5756,27 +5742,33 @@ PlayerDirectoryList(void)
 		 * pak search does not return directory names, only files in
 		 * directories
 		 */
-		slash = Q_strchrs(list.data[i] + listoff, "/\\");
+		slash = Q_strchrs(dirs.data[i] + listoff, "/\\");
 		if (slash)
 		{
 			*slash = '\0';
 		}
 
-		if (!StrList_Contains(&s_directory, list.data[i]))
+		if (!StrList_Contains(&list, dirs.data[i]))
 		{
-			StrList_Append(&s_directory, list.data[i]);
+			if (list.num >= MAX_PLAYERMODELS)
+			{
+				Com_Printf("Too many player models\n");
+				break;
+			}
+
+			StrList_Append(&list, dirs.data[i]);
 		}
 	}
 
-	StrList_Free(&list);
+	StrList_Free(&dirs);
 
 	/* sort them male, female, alphabetical */
-	if (s_directory.num > 2)
+	if (list.num > 2)
 	{
-		qsort(s_directory.data, s_directory.num - 1, sizeof(char*), dircmp_func);
+		qsort(list.data, list.num - 1, sizeof(char*), dircmp_func);
 	}
 
-	return true;
+	return list;
 }
 
 static void
@@ -5818,20 +5810,20 @@ SkinsInDir(strlist_t *sl, const char *dirname, const char *ext)
  * model names is always allocated MAX_PLAYERMODELS
  */
 static qboolean
-PlayerModelList(void)
+PlayerModelList(const strlist_t *dirs)
 {
 	int i;
 
 	StrList_Init(&s_modelname, 3);
 
 	/* verify the existence of at least one pcx skin */
-	for (i = 0; i < s_directory.num; ++i)
+	for (i = 0; i < dirs->num; ++i)
 	{
 		strlist_t list, *sl;
-		char *s, *t;
+		const char *s, *mdl;
 		int k;
 
-		s = s_directory.data[i];
+		s = dirs->data[i];
 
 		if (!s || !FS_FileExists(s, "tris.md2"))
 		{
@@ -5853,6 +5845,8 @@ PlayerModelList(void)
 
 		for (k = 0; k < list.num; ++k)
 		{
+			char *t;
+
 			if (strstr(list.data[k], "_i.png") ||
 				strstr(list.data[k], "_i.pcx"))
 			{
@@ -5885,19 +5879,20 @@ PlayerModelList(void)
 			qsort(sl->data, sl->num, sizeof(char*), Q_sort_stricmp);
 		}
 
+
 		StrList_Compress(sl);
 
-		t = strrchr(s, '/');
-		if (!t)
+		mdl = strrchr(s, '/');
+		if (!mdl)
 		{
-			t = s;
+			mdl = s;
 		}
 		else
 		{
-			t++;
+			mdl++;
 		}
 
-		StrList_Append(&s_modelname, t);
+		StrList_Append(&s_modelname, mdl);
 
 		StrList_Free(&list);
 	}
@@ -5916,23 +5911,26 @@ PlayerModelList(void)
 static qboolean
 PlayerConfig_ScanDirectories(void)
 {
-	qboolean result = false;
+	strlist_t dirs;
+	qboolean result;
 
 	// directory names
-	result = PlayerDirectoryList();
-
-	if (result == false)
+	dirs = PlayerDirectoryList();
+	if (!dirs.num)
 	{
 		Com_Printf("No valid player directories found.\n");
+		return false;
 	}
 
 	// valid models
-	result = PlayerModelList();
+	result = PlayerModelList(&dirs);
 
-	if (result == false)
+	if (!result)
 	{
 		Com_Printf("No valid player models found.\n");
 	}
+
+	StrList_Free(&dirs);
 
 	return result;
 }
