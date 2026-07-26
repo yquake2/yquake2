@@ -1404,17 +1404,30 @@ Q_strisnum(const char *s)
 	return true;
 }
 
-const char *
+char *
 Q_strchrs(const char *s, const char *chrs)
 {
-	const char *hit;
-
-	for (; *chrs != '\0'; chrs++)
+	for (; *s != '\0'; s++)
 	{
-		hit = strchr(s, *chrs);
-		if (hit)
+		if (strchr(chrs, *s))
 		{
-			return hit;
+			return (char *)s;
+		}
+	}
+
+	return NULL;
+}
+
+char *
+Q_strrchrs(const char *s, const char *chrs)
+{
+	const char *curr;
+
+	for (curr = s + (strlen(s) - 1); curr >= s; curr--)
+	{
+		if (strchr(chrs, *curr))
+		{
+			return (char *)curr;
 		}
 	}
 

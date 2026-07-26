@@ -5679,28 +5679,6 @@ IconOfSkinExists(const char* skin, char** pcxfiles, int npcxfiles,
 	return false;
 }
 
-// replace characters in string
-static void
-ReplaceCharacters(char* s, char r, char c)
-{
-	char* p = s;
-
-	if (p == 0)
-	{
-		return;
-	}
-
-	while (*p != 0)
-	{
-		if (*p == r)
-		{
-			*p = c;
-		}
-
-		p++;
-	}
-}
-
 // qsort directory name compare function
 static int
 dircmp_func(const void* _a, const void* _b)
@@ -5845,14 +5823,12 @@ PlayerDirectoryList(void)
 			break;
 		}
 
-		ReplaceCharacters(list[i], '\\', '/');
-
 		/*
 		 * search slash after "players/" and use only directory name
 		 * pak search does not return directory names, only files in
 		 * directories
 		 */
-		dirsize = strchr(list[i] + listoff, '/');
+		dirsize = Q_strchrs(list[i] + listoff, "/\\");
 		if (dirsize)
 		{
 			int dirnamelen = 0;
@@ -6119,9 +6095,7 @@ PlayerModelList(void)
 				if (IconOfSkinExists(list[k], list, num - 1, "png") ||
 					IconOfSkinExists(list[k], list, num - 1, "pcx"))
 				{
-					ReplaceCharacters(list[k], '\\', '/');
-
-					t = strrchr(list[k], '/');
+					t = Q_strrchrs(list[k], "/\\");
 
 					l = strlen(t) + 1;
 					s = (char*)malloc(l);
@@ -6223,6 +6197,7 @@ PlayerConfig_MenuInit(void)
 	static const char *handedness[] = { "right", "left", "center", NULL};
 	char mdlname[MAX_QPATH];
 	char imgname[MAX_QPATH];
+	char *slash;
 	int mdlindex = 0;
 	int imgindex = 0;
 	int i = 0;
@@ -6234,17 +6209,17 @@ PlayerConfig_MenuInit(void)
 	}
 
 	Q_strlcpy(mdlname, skin->string, sizeof(mdlname));
-	ReplaceCharacters(mdlname, '\\', '/' );
 
-	if (strchr(mdlname, '/'))
+	slash = Q_strchrs(mdlname, "/\\");
+	if (slash)
 	{
-		Q_strlcpy(imgname, strchr(mdlname, '/') + 1, sizeof(imgname));
-		*strchr(mdlname, '/') = 0;
+		Q_strlcpy(imgname, slash + 1, sizeof(imgname));
+		*slash = '\0';
 	}
 	else
 	{
-		strcpy(mdlname, "male\0");
-		strcpy(imgname, "grunt\0");
+		strcpy(mdlname, "male");
+		strcpy(imgname, "grunt");
 	}
 
 	for (i = 0; i < s_modelname.num; i++)

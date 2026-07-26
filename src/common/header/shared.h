@@ -372,11 +372,12 @@ qboolean Q_strisnum(const char *s);
 /* fix backslashes in path */
 void Q_replacebackslash(char *curr);
 
-/* A strchr that can search for multiple characters
+/* A strchr / strrchr that can search for multiple characters
  * chrs is a string of characters to search for
- * If found, returns a pointer to that char inside s, NULL otherwise
+ * Returns pointer to first / last char in s if found, NULL otherwise
  */
-const char *Q_strchrs(const char *s, const char *chrs);
+char *Q_strchrs(const char *s, const char *chrs);
+char *Q_strrchrs(const char *s, const char *chrs);
 
 /* Returns a pointer to c in s if found
  * Otherwise returns a pointer to the null-terminator at the end of s
