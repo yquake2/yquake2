@@ -57,8 +57,23 @@ Scrap_Update(void)
 		scrap_texels = Scrap_Upload(texnum);
 		if (scrap_texels)
 		{
+			size_t scrap_size;
+			unsigned *tmp;
+
 			R_Bind(TEXNUM_SCRAPS + texnum);
-			R_Upload32(scrap_texels, SCRAP_WIDTH, SCRAP_HEIGHT, false);
+
+			scrap_size = SCRAP_WIDTH * SCRAP_HEIGHT * sizeof(unsigned);
+			tmp = malloc(scrap_size);
+			YQ2_COM_CHECK_OOM(tmp, "malloc()", scrap_size)
+			if (!tmp)
+			{
+				/* unaware about YQ2_ATTR_NORETURN_FUNCPTR? */
+				return;
+			}
+
+			memcpy(tmp, scrap_texels, scrap_size);
+			R_Upload32(tmp, SCRAP_WIDTH, SCRAP_HEIGHT, false);
+			free(tmp);
 
 			if (default2Dnolerp || (texnum < MAX_SCRAPS_NOLERP))
 			{
@@ -494,7 +509,7 @@ RDraw_StretchRaw(int x, int y, int w, int h, int cols, int rows, const byte *dat
 		}
 		else
 		{
-			unsigned int image32[320 * 240];
+			static unsigned int image32[320 * 240];
 			int trows = 256;
 			size_t i;
 
@@ -530,7 +545,7 @@ RDraw_StretchRaw(int x, int y, int w, int h, int cols, int rows, const byte *dat
 	}
 	else
 	{
-		byte image8[256 * 256];
+		static byte image8[256 * 256];
 		int trows = 256;
 		size_t i;
 
