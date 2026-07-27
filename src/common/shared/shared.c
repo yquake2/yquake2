@@ -1256,18 +1256,22 @@ Com_sprintf(char *dest, int size, const char *fmt, ...)
 	}
 }
 
-char *
-Q_strlwr ( char *s )
+void
+Q_strlwr(char *s)
 {
-	char *p = s;
-
-	while ( *s )
+	for (; *s != '\0'; s++)
 	{
-		*s = tolower( (unsigned char)*s );
-		s++;
+		*s = tolower(*s);
 	}
+}
 
-	return ( p );
+void
+Q_strupr(char *s)
+{
+	for (; *s != '\0'; s++)
+	{
+		*s = toupper(*s);
+	}
 }
 
 int
