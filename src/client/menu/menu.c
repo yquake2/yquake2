@@ -3265,17 +3265,68 @@ M_Menu_Credits_f(void)
  * MODS MENU
  */
 
+#define MODS_MAX_DISPNAMELEN 15
+
 static menuframework_s s_mods_menu;
 static menulist_s s_mods_list;
 static menuaction_s s_mods_apply_action;
 static char mods_statusbar[64];
 
 static strlist_t modnames;
+static strlist_t moddispnames;
 
 void
 Mods_NamesFinish(void)
 {
 	StrList_Free(&modnames);
+	StrList_Free(&moddispnames);
+
+	s_mods_list.itemnames = NULL;
+}
+
+/* create array of bracketed display names from folder names - TG626 */
+static strlist_t
+Mods_DisplayNamesInit(const strlist_t *mods)
+{
+	strlist_t list;
+	int i;
+
+	StrList_Init(&list, 0);
+
+	for (i = 0; i < mods->num; i++)
+	{
+		const char *m;
+		char dispname[MODS_MAX_DISPNAMELEN + 3];
+		int len;
+
+		strcpy(dispname, "[");
+
+		m = mods->data[i];
+		len = strlen(m);
+
+		if (len <= MODS_MAX_DISPNAMELEN)
+		{
+			int j;
+
+			strcat(dispname, m);
+
+			for (j = 0; j < (MODS_MAX_DISPNAMELEN - len); j++)
+			{
+				strcat(dispname, " ");
+			}
+		}
+		else
+		{
+			strncat(dispname, m, MODS_MAX_DISPNAMELEN - 3);
+			strcat(dispname, "...");
+		}
+
+		strcat(dispname, "]");
+
+		StrList_Append(&list, dispname);
+	}
+
+	return list;
 }
 
 static void
@@ -3285,125 +3336,106 @@ Mods_NamesInit(void)
 	if (!modnames.num)
 	{
 		modnames = FS_ListMods();
+		moddispnames = Mods_DisplayNamesInit(&modnames);
+
+		StrList_Compress(&modnames);
+		StrList_Compress(&moddispnames);
 	}
 }
 
 static void
 ModsListFunc(void *unused)
 {
-	if (strcmp(BASEDIRNAME, modnames.data[s_mods_list.curvalue]) == 0)
+	const char *m, *sb;
+	int i;
+
+	i = s_mods_list.curvalue;
+
+	if ((i < 0) || (i >= modnames.num))
 	{
-		strcpy(mods_statusbar, "Quake II");
+		strcpy(mods_statusbar, "(invalid)");
+		return;
 	}
-	else if (strcmp("ctf", modnames.data[s_mods_list.curvalue]) == 0)
+
+	m = modnames.data[i];
+
+	if (!strcmp(BASEDIRNAME, m))
 	{
-		strcpy(mods_statusbar, "Quake II Capture The Flag");
+		sb = "Quake II";
 	}
-	else if (strcmp("rogue", modnames.data[s_mods_list.curvalue]) == 0)
+	else if (!strcmp("ctf", m))
 	{
-		strcpy(mods_statusbar, "Quake II Mission Pack: Ground Zero");
+		sb = "Quake II Capture The Flag";
 	}
-	else if (strcmp("xatrix", modnames.data[s_mods_list.curvalue]) == 0)
+	else if (!strcmp("rogue", m))
 	{
-		strcpy(mods_statusbar, "Quake II Mission Pack: The Reckoning");
+		sb = "Quake II Mission Pack: Ground Zero";
+	}
+	else if (!strcmp("xatrix", m))
+	{
+		sb = "Quake II Mission Pack: The Reckoning";
 	}
 	else
 	{
-		strcpy(mods_statusbar, "\0");
+		sb = "";
 	}
+
+	strcpy(mods_statusbar, sb);
 }
 
 static void
 ModsApplyActionFunc(void *unused)
 {
-	if (!M_IsGame(modnames.data[s_mods_list.curvalue]))
+	int i = s_mods_list.curvalue;
+
+	if ((i < 0) || (i >= modnames.num))
 	{
-		if(Com_ServerState())
-		{
-			// equivalent to "killserver" cmd, but avoids cvar latching below
-			SV_Shutdown("Server is changing games.\n", false);
-			NET_Config(false);
-		}
-
-		// called via command buffer so that any running server has time to shutdown
-		Cbuf_AddText(va("game %s\n", modnames.data[s_mods_list.curvalue]));
-
-		// start the demo cycle in the new game directory
-		menu_startdemoloop = true;
-
-		M_ForceMenuOff();
+		return;
 	}
+
+	if (M_IsGame(modnames.data[i]))
+	{
+		return;
+	}
+
+	if (Com_ServerState())
+	{
+		// equivalent to "killserver" cmd, but avoids cvar latching below
+		SV_Shutdown("Server is changing games.\n", false);
+		NET_Config(false);
+	}
+
+	// called via command buffer so that any running server has time to shutdown
+	Cbuf_AddText(va("game %s\n", modnames.data[i]));
+
+	// start the demo cycle in the new game directory
+	menu_startdemoloop = true;
+
+	M_ForceMenuOff();
+}
+
+static int
+Mods_CurrentModIndex(void)
+{
+	int m;
+
+	for (m = 0; m < modnames.num; m++)
+	{
+		if (M_IsGame(modnames.data[m]))
+		{
+			return m;
+		}
+	}
+
+	return 0;
 }
 
 static void
 Mods_MenuInit(void)
 {
-	int currentmod, x = 0, y = 0, i;
-	char modname[MAX_QPATH]; /* TG626 */
-	char **displaynames, **ptr;
-
-	displaynames = ptr = (char **)s_mods_list.itemnames;
-
-	if (ptr)
-	{
-		while (*ptr)
-		{
-			free(*ptr);
-			ptr ++;
-		}
-
-		free(displaynames);
-	}
+	int x = 0, y = 0;
 
 	Mods_NamesInit();
-
-	/* create array of bracketed display names from folder names - TG626 */
-	displaynames = malloc(sizeof(*displaynames) * (modnames.num + 1));
-	YQ2_COM_CHECK_OOM(displaynames, "malloc()", sizeof(*displaynames) * (modnames.num + 1))
-	if (!displaynames)
-	{
-		/* unaware about YQ2_ATTR_NORETURN_FUNCPTR? */
-		return;
-	}
-
-	for (i = 0; i < modnames.num; i++)
-	{
-		strcpy(modname, "[");
-		if (strlen(modnames.data[i]) < 16)
-		{
-			strcat(modname, modnames.data[i]);
-			for (int j=0; j < 15 - strlen(modnames.data[i]); j++)
-			{
-				strcat(modname, " ");
-			}
-		}
-		else
-		{
-			strncat(modname, modnames.data[i], 12);
-			strcat(modname, "...");
-		}
-		strcat(modname, "]");
-
-		displaynames[i] = strdup(modname);
-		YQ2_COM_CHECK_OOM(displaynames[i], "strdup()", strlen(modname) + 1)
-		if (!displaynames[i])
-		{
-			/* unaware about YQ2_ATTR_NORETURN_FUNCPTR? */
-			return;
-		}
-	}
-
-	displaynames[modnames.num] = NULL;
-	/* end TG626 */
-
-	/* pre-select the current mod for display in the list */
-	for (currentmod = 0; currentmod < modnames.num; currentmod++)
-	{
-		if (M_IsGame(modnames.data[currentmod]))
-		{
-			break;
-		}
-	}
 
 	s_mods_menu.x = viddef.width * 0.50;
 	s_mods_menu.nitems = 0;
@@ -3413,8 +3445,8 @@ Mods_MenuInit(void)
 	s_mods_list.generic.x = x;
 	s_mods_list.generic.y = y;
 	s_mods_list.generic.callback = ModsListFunc;
-	s_mods_list.itemnames = (const char **)displaynames;
-	s_mods_list.curvalue = currentmod < modnames.num ? currentmod : 0;
+	s_mods_list.itemnames = (const char **)moddispnames.data;
+	s_mods_list.curvalue = Mods_CurrentModIndex();
 
 	y += 20;
 
