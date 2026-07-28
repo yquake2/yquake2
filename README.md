@@ -53,7 +53,7 @@ We are always open to code contributions, no matter if they are small
 bugfixes or bigger features. However, Yamagi Quake II is a conservative
 project with big focus on stability and backward compatibility. We don't
 accept breaking changes. When in doubt please open an issue and ask if a
-contribution in welcome before putting too much work into it. Open a
+contribution is welcome before putting too much work into it. Open a
 pull request to submit code:
 
 * [Pull Requests](https://github.com/yquake2/yquake2/pulls)
