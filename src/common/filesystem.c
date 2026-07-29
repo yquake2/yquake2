@@ -367,6 +367,43 @@ FS_FCloseFile(fileHandle_t f)
 	memset(handle, 0, sizeof(*handle));
 }
 
+qboolean
+FS_FileExists(const char *path, const char *file)
+{
+	char pathname[MAX_QPATH];
+	fileHandle_t handle;
+	int len;
+
+	if (!file)
+	{
+		return false;
+	}
+
+	if (!path)
+	{
+		path = file;
+	}
+	else
+	{
+		if (snprintf(pathname, sizeof(pathname), "%s/%s",
+			path, file) >= sizeof(pathname))
+		{
+			return false;
+		}
+
+		path = pathname;
+	}
+
+	len = FS_FOpenFile(path, &handle, false);
+
+	if (handle)
+	{
+		FS_FCloseFile(handle);
+	}
+
+	return (handle && len >= 0) ? true : false;
+}
+
 static int
 FS_SortPackCompare(const void *p1, const void *p2)
 {
@@ -427,6 +464,8 @@ FS_FOpenFile(const char *rawname, fileHandle_t *f, qboolean gamedir_only)
 	fsPack_t *pack;
 	fsSearchPath_t *search;
 	int input, output;
+
+	*f = 0;
 
 	// Remove self references and empty dirs from the requested path.
 	// ZIPs and PAKs don't support them, but they may be hardcoded in
