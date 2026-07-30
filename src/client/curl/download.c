@@ -553,7 +553,7 @@ static void CL_ReVerifyHTTPQueue (void)
 		dlqueue_t *next = q->next;
 		if (q->state == DLQ_STATE_NOT_STARTED)
 		{
-			if (FS_LoadFile (q->quakePath, NULL) != -1)
+			if (FS_FileExists(q->quakePath))
 			{
 				CL_RemoveFromQueue(q);
 			}

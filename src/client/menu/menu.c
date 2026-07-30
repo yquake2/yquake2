@@ -5696,7 +5696,7 @@ PlayerModelList(const strlist_t *dirs)
 
 		s = dirs->data[i];
 
-		if (!s || !FS_FileExists(s, "tris.md2"))
+		if (!s || !FS_FileExists(va("%s/tris.md2", s)))
 		{
 			continue;
 		}

@@ -308,7 +308,7 @@ SV_Map_f(void)
 	{
 		Com_sprintf(expanded, sizeof(expanded), "maps/%s.bsp", map);
 
-		if (FS_LoadFile(expanded, NULL) == -1)
+		if (!FS_FileExists(expanded))
 		{
 			Com_Printf("Can't find %s\n", expanded);
 			return;

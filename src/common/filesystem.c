@@ -367,43 +367,6 @@ FS_FCloseFile(fileHandle_t f)
 	memset(handle, 0, sizeof(*handle));
 }
 
-qboolean
-FS_FileExists(const char *path, const char *file)
-{
-	char pathname[MAX_QPATH];
-	fileHandle_t handle;
-	int len;
-
-	if (!file)
-	{
-		return false;
-	}
-
-	if (!path)
-	{
-		path = file;
-	}
-	else
-	{
-		if (snprintf(pathname, sizeof(pathname), "%s/%s",
-			path, file) >= sizeof(pathname))
-		{
-			return false;
-		}
-
-		path = pathname;
-	}
-
-	len = FS_FOpenFile(path, &handle, false);
-
-	if (handle)
-	{
-		FS_FCloseFile(handle);
-	}
-
-	return (handle && len >= 0) ? true : false;
-}
-
 static int
 FS_SortPackCompare(const void *p1, const void *p2)
 {
@@ -795,24 +758,23 @@ FS_FRead(void *buffer, int size, int count, fileHandle_t f)
 }
 
 /*
- * Filename are reletive to the quake search path. A null buffer will just
- * return the file length without loading.
+ * Filename is reletive to the quake search path
+ * A null buffer will just return the file length
+ * pad adds bytes at the end of the buffer
+ * The buffer must be freed by the caller with FS_FreeFile
  */
 int
-FS_LoadFile(const char *path, void **buffer)
+FS_LoadFile2(const char *path, void **buffer, int pad)
 {
-	byte *buf; /* Buffer. */
-	int size; /* File size. */
-	fileHandle_t f; /* File handle. */
+	fileHandle_t f;
+	int size;
 
-	buf = NULL;
 	size = FS_FOpenFile(path, &f, false);
 
 	if (size <= 0)
 	{
-		if (size == 0)
+		if (!size)
 		{
-			/* empty file, close before exit*/
 			FS_FCloseFile(f);
 		}
 
@@ -824,19 +786,21 @@ FS_LoadFile(const char *path, void **buffer)
 		return size;
 	}
 
-	if (buffer == NULL)
+	if (buffer)
 	{
-		FS_FCloseFile(f);
-		return size;
+		*buffer = Z_Malloc(size + (pad < 0 ? 0 : pad));
+		FS_Read(*buffer, size, f);
 	}
 
-	buf = Z_Malloc(size);
-	*buffer = buf;
-
-	FS_Read(buf, size, f);
 	FS_FCloseFile(f);
 
 	return size;
+}
+
+int
+FS_LoadFile(const char *path, void **buffer)
+{
+	return FS_LoadFile2(path, buffer, 1); /* safety null byte */
 }
 
 void

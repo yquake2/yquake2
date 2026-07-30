@@ -364,7 +364,7 @@ Cbuf_AddLateCommands(void)
 static void
 Cmd_Exec_f(void)
 {
-	char *f, *f2;
+	char *f;
 	int len;
 
 	if (Cmd_Argc() != 2)
@@ -373,7 +373,7 @@ Cmd_Exec_f(void)
 		return;
 	}
 
-	len = FS_LoadFile(Cmd_Argv(1), (void **)&f);
+	len = FS_LoadFile2(Cmd_Argv(1), (void **)&f, 2);
 
 	if (!f)
 	{
@@ -383,16 +383,11 @@ Cmd_Exec_f(void)
 
 	Com_Printf("execing %s.\n", Cmd_Argv(1));
 
-	/* the file doesn't have a trailing 0, so we need to copy it off */
-	/* we also add a newline */
-	f2 = Z_Malloc(len + 2);
-	memcpy(f2, f, len);
-	f2[len] = '\n'; // make sure last line has a newline
-	f2[len+1] = '\0';
+	f[len] = '\n'; // make sure last line has a newline
+	f[len+1] = '\0';
 
-	Cbuf_InsertText(f2);
+	Cbuf_InsertText(f);
 
-	Z_Free(f2);
 	FS_FreeFile(f);
 }
 
