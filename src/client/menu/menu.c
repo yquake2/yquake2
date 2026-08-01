@@ -2529,7 +2529,6 @@ Options_MenuInit(void)
 		"play once",
 		"sequential",
 		"random",
-		"truly random",
 		NULL
 	};
 
