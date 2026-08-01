@@ -3275,7 +3275,7 @@ static char mods_statusbar[64];
 static strlist_t modnames;
 static strlist_t moddispnames;
 
-void
+static void
 Mods_NamesFinish(void)
 {
 	StrList_Free(&modnames);
@@ -6323,4 +6323,12 @@ M_Keydown(int key)
 			S_StartLocalSound(s);
 		}
 	}
+}
+
+void
+M_Free(void)
+{
+	Mods_NamesFinish();
+	CleanCachedMapsList();
+	PlayerModelFree();
 }

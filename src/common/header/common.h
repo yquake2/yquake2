@@ -873,8 +873,6 @@ void Sys_SetupFPU(void);
 
 /* ======================================================================= */
 
-void Mods_NamesFinish(void);
-
 /* stringlist_t API
  * Store strings in a dynamic array
  */
