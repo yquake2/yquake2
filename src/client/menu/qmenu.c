@@ -66,21 +66,24 @@ Bitmap_Draw
 static void
 Bitmap_Draw(menubitmap_s * item)
 {
-	float scale = SCR_GetMenuScale();
-	int x = 0;
-	int y = 0;
+	const char *pic;
 
-	x = item->generic.x;
-	y = item->generic.y;
-
-	if (((item->generic.flags & QMF_HIGHLIGHT_IF_FOCUS) &&
-		(Menu_ItemAtCursor(item->generic.parent) == item)))
+	if ((item->generic.flags & QMF_HIGHLIGHT_IF_FOCUS) &&
+		(Menu_ItemAtCursor(item->generic.parent) == item))
 	{
-		Draw_PicScaled(x * scale, y * scale, item->focuspic, scale);
+		pic = item->focuspic;
 	}
-	else if (item->generic.name)
+	else
 	{
-		Draw_PicScaled(x * scale, y * scale, ( char * )item->generic.name, scale);
+		pic = item->generic.name;
+	}
+
+	if (pic && *pic != '\0')
+	{
+		float scale = SCR_GetMenuScale();
+
+		Draw_PicScaled(item->generic.x * scale, item->generic.y * scale,
+			pic, scale);
 	}
 }
 
