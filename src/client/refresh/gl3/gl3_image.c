@@ -54,23 +54,23 @@ enum {
 	SCRAP_HEIGHT = 1024
 };
 
-static int scrap_allocated[SCRAP_WIDTH]; // FIXME: why not short
+static short scrap_allocated[SCRAP_WIDTH];
 static GLuint gl3_scrap_texnum = 0;
-static byte scrap_texels[SCRAP_WIDTH * SCRAP_HEIGHT]; // FIXME: [4] ?
+static unsigned scrap_texels[SCRAP_WIDTH * SCRAP_HEIGHT];
 qboolean gl3_scrap_dirty = false;
 
 void
 GL3_Scrap_Init(void)
 {
 	memset (scrap_allocated, 0, sizeof(scrap_allocated));	// empty
-	memset (scrap_texels, 255, sizeof(scrap_texels));	// transparent
+	memset (scrap_texels, 0, sizeof(scrap_texels));	// transparent
 
 	glGenTextures(1, &gl3_scrap_texnum);
 }
 
 /* returns a texture number (relative to g3_scrap_texnum) and the position inside it */
 static int
-GL3_Scrap_AllocBlock(int w, int h, int *x, int *y)
+GL3_Scrap_AllocBlock(int w, int h, int *x, int *y, const unsigned *pic)
 {
 	w += 2;	// add an empty border to all sides
 	h += 2;
@@ -113,6 +113,16 @@ GL3_Scrap_AllocBlock(int w, int h, int *x, int *y)
 	}
 	(*x)++;	// jump the border
 	(*y)++;
+
+	int k=0;
+	for(int i=0; i < h-2; i++)
+	{
+		memcpy(&scrap_texels[(*y + i) * SCRAP_WIDTH + *x],
+				pic + k, (w - 2) * sizeof(unsigned));
+		k += w - 2; // -2 because of w += 2 above
+	}
+
+	gl3_scrap_dirty = true;
 
 	return 0;
 }
@@ -327,7 +337,8 @@ GL3_Scrap_Upload(void)
 {
 	GL3_Bind(gl3_scrap_texnum);
 
-	GL3_Upload8(scrap_texels, SCRAP_WIDTH, SCRAP_HEIGHT, false);
+	GL3_Upload32(scrap_texels, SCRAP_WIDTH, SCRAP_HEIGHT, false);
+
 	if (r_2D_unfiltered->value != 0)
 	{
 		// 2D textures shouldn't be filtered by default (r_2D_unfiltered),
@@ -444,28 +455,39 @@ GL3_LoadPic(char *name, byte *pic, int width, int realwidth,
 	}
 
 	/* load little pics into the scrap */
-	if (nolerp == default2Dnolerp && (image->type == it_pic) && (bits == 8) &&
+	if (nolerp == default2Dnolerp && (image->type == it_pic) &&
 		(image->width <= 128) && (image->height <= 128))
 	{
 		int x=0, y=0;
 
-		if (GL3_Scrap_AllocBlock(image->width, image->height, &x, &y) == -1)
-		{
-			goto nonscrap;
-		}
-
-		gl3_scrap_dirty = true;
-
 		/* copy the texels into the scrap block */
-		int k = 0;
-
-		for (int i = 0; i < image->height; i++)
+		if(bits == 8)
 		{
-			for (int j = 0; j < image->width; j++, k++)
+			unsigned *trans = R_Convert8to32(pic, width, height, d_8to24table);
+			if (trans)
 			{
-				// TODO: could do 8->32 conversion here
-				scrap_texels[(y + i) * SCRAP_WIDTH + x + j] = pic[k];
+				int scrapnum = GL3_Scrap_AllocBlock(width, height, &x, &y, trans);
+				free(trans);
+				if(scrapnum == -1)
+					goto nonscrap;
 			}
+			else
+			{
+				Sys_Error("Error: Couldn't convert texture '%s' to 32bit?!\n", name);
+				return NULL;
+			}
+		}
+		else if(bits == 32)
+		{
+			if (GL3_Scrap_AllocBlock(image->width, image->height, &x, &y, (unsigned*)pic) == -1)
+			{
+				goto nonscrap;
+			}
+		}
+		else
+		{
+			Sys_Error("Error: texture '%s' has %d bits per pixel, only 8 and 32 supported!\n", name, bits);
+			return NULL;
 		}
 
 		image->texnum = gl3_scrap_texnum;
@@ -528,21 +550,6 @@ GL3_LoadPic(char *name, byte *pic, int width, int realwidth,
 						(image->type != it_pic && image->type != it_sky));
 		}
 
-		if (realwidth && realheight)
-		{
-			if ((realwidth <= image->width) && (realheight <= image->height))
-			{
-				image->width = realwidth;
-				image->height = realheight;
-			}
-			else
-			{
-				Com_DPrintf(
-						"Warning, image '%s' has hi-res replacement smaller than the original! (%d x %d) < (%d x %d)\n",
-						name, image->width, image->height, realwidth, realheight);
-			}
-		}
-
 		image->sl = 0;
 		image->sh = 1;
 		image->tl = 0;
@@ -552,6 +559,21 @@ GL3_LoadPic(char *name, byte *pic, int width, int realwidth,
 		{
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		}
+	}
+
+	if (realwidth && realheight)
+	{
+		if ((realwidth <= image->width) && (realheight <= image->height))
+		{
+			image->width = realwidth;
+			image->height = realheight;
+		}
+		else
+		{
+			Com_DPrintf(
+					"Warning, image '%s' has hi-res replacement smaller than the original! (%d x %d) < (%d x %d)\n",
+					name, image->width, image->height, realwidth, realheight);
 		}
 	}
 
