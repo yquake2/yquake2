@@ -304,7 +304,7 @@ typedef struct image_s
 	struct msurface_s *texturechain;    /* for sort-by-texture world drawing */
 	GLuint texnum;                      /* gl texture binding */
 	float sl, tl, sh, th;               /* 0,0 - 1,1 unless part of the scrap */
-	// qboolean scrap; // currently unused
+	qboolean scrap;
 	qboolean has_alpha;
 	qboolean is_lava; // DG: added for lava brightness hack
 
@@ -455,6 +455,10 @@ extern void GL3_ShutdownImages(void);
 extern void GL3_FreeUnusedImages(void);
 extern qboolean GL3_ImageHasFreeSpace(void);
 extern void GL3_ImageList_f(void);
+
+extern void GL3_Scrap_Init(void);
+extern void GL3_Scrap_Upload(void);
+extern qboolean gl3_scrap_dirty;
 
 // gl3_light.c
 extern int r_dlightframecount;
