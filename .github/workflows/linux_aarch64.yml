@@ -72,6 +72,6 @@ jobs:
           --output-file=cppcheck_results.sarif --inconclusive --library=posix \
           -DYQ2OSTYPE=\"Linux\" src
     - name: Upload SARIF to GitHub Code Scanning
-      uses: github/codeql-action/upload-sarif@v4
+      uses: github/codeql-action/upload-sarif@v4.37.4
       with:
         sarif_file: cppcheck_results.sarif
