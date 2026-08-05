@@ -49,9 +49,9 @@ jobs:
       shell: msys2 {0}
       run: |
         # Download and extract SDL3 devel files.
-        curl -o SDL3-devel-3.4.12-mingw.tar.gz -L "https://github.com/libsdl-org/SDL/releases/download/release-3.4.12/SDL3-devel-3.4.12-mingw.tar.gz"
-        tar xf SDL3-devel-3.4.12-mingw.tar.gz
-        mv SDL3-3.4.12 SDL3
+        curl -o SDL3-devel-3.4.14-mingw.tar.gz -L "https://github.com/libsdl-org/SDL/releases/download/release-3.4.14/SDL3-devel-3.4.14-mingw.tar.gz"
+        tar xf SDL3-devel-3.4.14-mingw.tar.gz
+        mv SDL3-3.4.14 SDL3
         # Public runners come with 4 CPUs.
         PKG_CONFIG_PATH=SDL3/x86_64-w64-mingw32/lib/pkgconfig make -j4
         PKG_CONFIG_PATH=SDL3/x86_64-w64-mingw32/lib/pkgconfig make -j4 ref_gles1

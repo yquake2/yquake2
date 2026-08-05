@@ -31,7 +31,7 @@ jobs:
       run: |
         apt update
         apt install -y libgl1-mesa-dev libsdl3-dev libopenal-dev libcurl4-openssl-dev \
-            build-essential cppcheck
+            build-essential
     - name: Check out repository code
       uses: actions/checkout@v7
     - name: Build
@@ -47,6 +47,7 @@ jobs:
         cp -r release/* publish/quake2-linux_x86_64-${{github.sha}}/
         # Copy misc assets
         cp -r stuff/yq2.cfg publish/quake2-linux_x86_64-${{github.sha}}/misc/yq2.cfg
+        cp -r stuff/models publish/quake2-linux_x86_64-${{github.sha}}/misc
         cp -r stuff/mapfixes publish/quake2-linux_x86_64-${{github.sha}}/misc
         cp LICENSE publish/quake2-linux_x86_64-${{github.sha}}/misc/docs/LICENSE.txt
         cp README.md publish/quake2-linux_x86_64-${{github.sha}}/misc/docs/README.txt

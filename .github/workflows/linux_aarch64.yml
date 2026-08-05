@@ -40,14 +40,20 @@ jobs:
         # Public runners come with 4 CPUs.
         make WITH_SDL3=no -j4
         make WITH_SDL3=no -j4 ref_gles1
+        # Debug version
+        make WITH_SDL3=no DEBUG=1 -j4
+        make WITH_SDL3=no DEBUG=1 -j4 ref_gles1
     - name: Create testbuild package
       run: |
         # Create release directory tree
         mkdir -p publish/quake2-linux_aarch64-${{github.sha}}/misc/docs
+        mkdir -p publish/quake2-linux_aarch64-${{github.sha}}/debug
         # Copy release assets
         cp -r release/* publish/quake2-linux_aarch64-${{github.sha}}/
+        cp -r debug/* publish/quake2-linux_aarch64-${{github.sha}}/debug/
         # Copy misc assets
         cp -r stuff/yq2.cfg publish/quake2-linux_aarch64-${{github.sha}}/misc/yq2.cfg
+        cp -r stuff/models publish/quake2-linux_aarch64-${{github.sha}}/misc
         cp -r stuff/mapfixes publish/quake2-linux_aarch64-${{github.sha}}/misc
         cp LICENSE publish/quake2-linux_aarch64-${{github.sha}}/misc/docs/LICENSE.txt
         cp README.md publish/quake2-linux_aarch64-${{github.sha}}/misc/docs/README.txt
@@ -70,8 +76,9 @@ jobs:
       run: |
         cppcheck -j 4 --enable=all --output-format=sarif \
           --output-file=cppcheck_results.sarif --inconclusive --library=posix \
+          --suppress=missingIncludeSystem \
           -DYQ2OSTYPE=\"Linux\" src
     - name: Upload SARIF to GitHub Code Scanning
-      uses: github/codeql-action/upload-sarif@v4
+      uses: github/codeql-action/upload-sarif@v4.37.4
       with:
         sarif_file: cppcheck_results.sarif

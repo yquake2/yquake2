@@ -43,6 +43,7 @@ jobs:
         cp -r release/* publish/quake2-macos-${{github.sha}}/
         # Copy misc assets
         cp -r stuff/yq2.cfg publish/quake2-macos-${{github.sha}}/misc/yq2.cfg
+        cp -r stuff/models publish/quake2-macos-${{github.sha}}/misc
         cp -r stuff/mapfixes publish/quake2-macos-${{github.sha}}/misc
         cp LICENSE publish/quake2-macos-${{github.sha}}/misc/docs/LICENSE.txt
         cp README.md publish/quake2-macos-${{github.sha}}/misc/docs/README.txt
