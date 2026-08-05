@@ -5487,6 +5487,7 @@ static menuaction_s s_player_download_action;
 // player model info
 static strlist_t s_skinnames[MAX_PLAYERMODELS];
 static strlist_t s_modelname;
+static char player_icon_path[MAX_QPATH];
 
 static int rate_tbl[] = {2500, 3200, 5000, 10000, 25000, 0};
 static const char *rate_names[] = {"28.8 Modem", "33.6 Modem", "Single ISDN",
@@ -5895,7 +5896,7 @@ PlayerConfig_MenuInit(void)
 	s_player_icon_bitmap.generic.flags = QMF_INACTIVE;
 	s_player_icon_bitmap.generic.x = ((viddef.width / scale - 95) / 2) - 87;
 	s_player_icon_bitmap.generic.y = ((viddef.height / (2 * scale))) - 72;
-	s_player_icon_bitmap.generic.name = NULL;
+	s_player_icon_bitmap.generic.name = player_icon_path;
 	s_player_icon_bitmap.generic.callback = NULL;
 	s_player_icon_bitmap.focuspic = 0;
 
@@ -6103,11 +6104,8 @@ PlayerConfig_MenuDraw(menuframework_s *m)
 		refdef.lightstyles = NULL;
 		refdef.rdflags = RDF_NOWORLDMODEL;
 
-		Com_sprintf(scratch, sizeof(scratch), "/players/%s/%s_i.pcx", mdlname,
-			imgname);
-
-		// icon bitmap to draw
-		s_player_icon_bitmap.generic.name = scratch;
+		Com_sprintf(player_icon_path, sizeof(player_icon_path),
+			"/players/%s/%s_i.pcx", mdlname, imgname);
 
 		Menu_Draw(m);
 
