@@ -6071,11 +6071,20 @@ PlayerConfig_AnimateModel(entity_t *entity, int count, int curTime)
 }
 
 static void
-PlayerConfig_MenuDraw(menuframework_s *m)
+PlayerConfig_ModelDraw(void)
 {
 	refdef_t refdef;
 	float scale = SCR_GetMenuScale();
+	entity_t entities[2];
+	char scratch[MAX_QPATH];
+	int i, curTime;
 	const char *mdlname, *imgname;
+
+	SelectedModelSkin(&mdlname, &imgname);
+	if (!mdlname || !imgname)
+	{
+		return;
+	}
 
 	memset(&refdef, 0, sizeof(refdef));
 
@@ -6087,81 +6096,77 @@ PlayerConfig_MenuDraw(menuframework_s *m)
 	refdef.fov_y = CalcFov(refdef.fov_x, (float)refdef.width, (float)refdef.height);
 	refdef.time = cls.realtime * 0.001f;
 
-	SelectedModelSkin(&mdlname, &imgname);
+	memset(&entities, 0, sizeof(entities));
 
-	if (mdlname && imgname)
+	Com_sprintf(scratch, sizeof(scratch), "players/%s/tris.md2", mdlname);
+	entities[0].model = R_RegisterModel(scratch);
+
+	Com_sprintf(scratch, sizeof(scratch), "players/%s/%s.pcx", mdlname,
+		imgname);
+	entities[0].skin = R_RegisterSkin(scratch);
+
+	curTime = Sys_Milliseconds();
+
+	/* multiplayer weapons loaded */
+	if (num_cl_weaponmodels)
 	{
-		entity_t entities[2];
-		char scratch[MAX_QPATH];
-		int i, curTime;
+		int weapon_id;
 
-		memset(&entities, 0, sizeof(entities));
+		/* change weapon every 3 rounds */
+		weapon_id = curTime / 9000;
 
-		Com_sprintf(scratch, sizeof(scratch), "players/%s/tris.md2", mdlname);
-		entities[0].model = R_RegisterModel(scratch);
-
-		Com_sprintf(scratch, sizeof(scratch), "players/%s/%s.pcx", mdlname,
-			imgname);
-		entities[0].skin = R_RegisterSkin(scratch);
-
-		curTime = Sys_Milliseconds();
-
-		/* multiplayer weapons loaded */
-		if (num_cl_weaponmodels)
-		{
-			int weapon_id;
-
-			/* change weapon every 3 rounds */
-			weapon_id = curTime / 9000;
-
-			weapon_id = weapon_id % num_cl_weaponmodels;
-			/* show weapon also */
-			Com_sprintf(scratch, sizeof(scratch),
-				"players/%s/%s", mdlname, cl_weaponmodels[weapon_id]);
-			entities[1].model = R_RegisterModel(scratch);
-		}
-
-		/* no such weapon model */
-		if (!entities[1].model)
-		{
-			/* show weapon also */
-			Com_sprintf(scratch, sizeof(scratch),
-				"players/%s/weapon.md2", mdlname);
-			entities[1].model = R_RegisterModel(scratch);
-		}
-
-		curTime = curTime % 3000;
-		for (i = 0; i < 2; i++)
-		{
-			entities[i].flags = RF_FULLBRIGHT;
-			entities[i].origin[0] = 80;
-			entities[i].origin[1] = 0;
-			entities[i].origin[2] = 0;
-			VectorCopy(entities[i].origin, entities[i].oldorigin);
-			entities[i].frame = 0;
-			entities[i].oldframe = 0;
-			entities[i].backlerp = 0.0;
-			// one full turn is 3s = 3000ms => 3000/360 deg per millisecond
-			entities[i].angles[1] = (float)curTime/(3000.0f/360.0f);
-		}
-
-		PlayerConfig_AnimateModel(entities, 2, curTime);
-
-		refdef.areabits = 0;
-		refdef.num_entities = (entities[1].model) ? 2 : 1;
-		refdef.entities = entities;
-		refdef.lightstyles = NULL;
-		refdef.rdflags = RDF_NOWORLDMODEL;
-
-		Menu_Draw(m);
-
-		M_DrawTextBox(((int)(refdef.x) * (320.0F / viddef.width) - 8),
-					  (int)((viddef.height / 2) * (240.0F / viddef.height) - 77),
-					  refdef.width / (8 * scale), refdef.height / (8 * scale));
-		refdef.height += 4 * scale;
-
-		R_RenderFrame(&refdef);
+		weapon_id = weapon_id % num_cl_weaponmodels;
+		/* show weapon also */
+		Com_sprintf(scratch, sizeof(scratch),
+			"players/%s/%s", mdlname, cl_weaponmodels[weapon_id]);
+		entities[1].model = R_RegisterModel(scratch);
 	}
+
+	/* no such weapon model */
+	if (!entities[1].model)
+	{
+		/* show weapon also */
+		Com_sprintf(scratch, sizeof(scratch),
+			"players/%s/weapon.md2", mdlname);
+		entities[1].model = R_RegisterModel(scratch);
+	}
+
+	curTime = curTime % 3000;
+	for (i = 0; i < 2; i++)
+	{
+		entities[i].flags = RF_FULLBRIGHT;
+		entities[i].origin[0] = 80;
+		entities[i].origin[1] = 0;
+		entities[i].origin[2] = 0;
+		VectorCopy(entities[i].origin, entities[i].oldorigin);
+		entities[i].frame = 0;
+		entities[i].oldframe = 0;
+		entities[i].backlerp = 0.0;
+		// one full turn is 3s = 3000ms => 3000/360 deg per millisecond
+		entities[i].angles[1] = (float)curTime/(3000.0f/360.0f);
+	}
+
+	PlayerConfig_AnimateModel(entities, 2, curTime);
+
+	refdef.areabits = 0;
+	refdef.num_entities = (entities[1].model) ? 2 : 1;
+	refdef.entities = entities;
+	refdef.lightstyles = NULL;
+	refdef.rdflags = RDF_NOWORLDMODEL;
+
+	M_DrawTextBox(((int)(refdef.x) * (320.0F / viddef.width) - 8),
+	  (int)((viddef.height / 2) * (240.0F / viddef.height) - 77),
+	  refdef.width / (8 * scale), refdef.height / (8 * scale));
+	refdef.height += 4 * scale;
+
+	R_RenderFrame(&refdef);
+}
+
+static void
+PlayerConfig_MenuDraw(menuframework_s *m)
+{
+	PlayerConfig_ModelDraw();
+	Default_MenuDraw(m);
 }
 
 static void
