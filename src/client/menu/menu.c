@@ -5489,10 +5489,9 @@ static strlist_t s_skinnames[MAX_PLAYERMODELS];
 static strlist_t s_modelname;
 static char player_icon_path[MAX_QPATH];
 
-static int rate_tbl[] = {2500, 3200, 5000, 10000, 25000, 0};
+static int rate_tbl[] = {2500, 3200, 5000, 10000, 25000};
 static const char *rate_names[] = {"28.8 Modem", "33.6 Modem", "Single ISDN",
 								   "Dual ISDN/Cable", "T1/LAN", "User defined", NULL};
-
 
 static void
 SelectedModelSkin(const char **mdl, const char **img)
@@ -5537,11 +5536,13 @@ HandednessCallback(void *unused)
 }
 
 static void
-RateCallback(void *unused)
+RateCallback(void *self)
 {
-	if (s_player_rate_box.curvalue != ARRLEN(rate_tbl) - 1)
+	const menulist_s *r = self;
+
+	if (r->curvalue >= 0 && r->curvalue != ARRLEN(rate_tbl))
 	{
-		Cvar_SetValue("rate", (float)rate_tbl[s_player_rate_box.curvalue]);
+		Cvar_SetValue("rate", rate_tbl[r->curvalue]);
 	}
 }
 
@@ -5880,6 +5881,24 @@ ListModels_f(void)
 	PlayerModelFree();
 }
 
+static int
+CurrentRateIndex(void)
+{
+	int i, curr_rate;
+
+	curr_rate = Cvar_VariableValue("rate");
+
+	for (i = 0; i < ARRLEN(rate_tbl); i++)
+	{
+		if (rate_tbl[i] == curr_rate)
+		{
+			break;
+		}
+	}
+
+	return i;
+}
+
 static qboolean
 PlayerConfig_MenuInit(void)
 {
@@ -5888,11 +5907,9 @@ PlayerConfig_MenuInit(void)
 	cvar_t *hand = Cvar_Get( "hand", "0", CVAR_USERINFO | CVAR_ARCHIVE );
 	static const char *handedness[] = { "right", "left", "center", NULL};
 	char mdlname[MAX_QPATH];
-	char imgname[MAX_QPATH];
+	const char *imgname;
 	char *slash;
-	int mdlindex = 0;
-	int imgindex = 0;
-	int i = 0;
+	int mdlindex, imgindex;
 	float scale = SCR_GetMenuScale();
 
 	if (!PlayerConfig_ScanDirectories())
@@ -5906,32 +5923,25 @@ PlayerConfig_MenuInit(void)
 	slash = Q_strchrs(mdlname, "/\\");
 	if (slash)
 	{
-		Q_strlcpy(imgname, slash + 1, sizeof(imgname));
 		*slash = '\0';
+		imgname = slash + 1;
 	}
 	else
 	{
 		strcpy(mdlname, "male");
-		strcpy(imgname, "grunt");
+		imgname = "grunt";
 	}
 
-	for (i = 0; i < s_modelname.num; i++)
+	mdlindex = StrList_Find(&s_modelname, Q_stricmp, mdlname);
+	if (mdlindex >= s_modelname.num)
 	{
-		if (Q_stricmp(s_modelname.data[i], mdlname) == 0)
-		{
-			mdlindex = i;
-			break;
-		}
+		mdlindex = 0;
 	}
 
-	for (i = 0; i < s_skinnames[mdlindex].num; i++)
+	imgindex = StrList_Find(&s_skinnames[mdlindex], Q_stricmp, imgname);
+	if (imgindex >= s_skinnames[mdlindex].num)
 	{
-		const char* names = s_skinnames[mdlindex].data[i];
-		if (Q_stricmp(names, imgname) == 0)
-		{
-			imgindex = i;
-			break;
-		}
+		imgindex = 0;
 	}
 
 	if (hand->value < 0 || hand->value > 2)
@@ -6002,14 +6012,6 @@ PlayerConfig_MenuInit(void)
 	s_player_handedness_box.curvalue = ClampCvar(0, 2, hand->value);
 	s_player_handedness_box.itemnames = handedness;
 
-	for (i = 0; i < ARRLEN(rate_tbl) - 1; i++)
-	{
-		if (Cvar_VariableValue("rate") == rate_tbl[i])
-		{
-			break;
-		}
-	}
-
 	s_player_rate_title.generic.type = MTYPE_SEPARATOR;
 	s_player_rate_title.generic.name = "connect speed";
 	s_player_rate_title.generic.x = 56 * scale;
@@ -6021,7 +6023,7 @@ PlayerConfig_MenuInit(void)
 	s_player_rate_box.generic.name = NULL;
 	s_player_rate_box.generic.cursor_offset = -48;
 	s_player_rate_box.generic.callback = RateCallback;
-	s_player_rate_box.curvalue = i;
+	s_player_rate_box.curvalue = CurrentRateIndex();
 	s_player_rate_box.itemnames = rate_names;
 
 	s_player_download_action.generic.type = MTYPE_ACTION;
