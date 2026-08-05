@@ -5546,10 +5546,27 @@ RateCallback(void *unused)
 }
 
 static void
+SkinCallback(void *unused)
+{
+	const char *mdl, *img;
+
+	SelectedModelSkin(&mdl, &img);
+
+	if (!mdl || !img ||
+		snprintf(player_icon_path, sizeof(player_icon_path),
+			"/players/%s/%s_i.pcx", mdl,img) >= sizeof(player_icon_path))
+	{
+		*player_icon_path = '\0';
+	}
+}
+
+static void
 ModelCallback(void *unused)
 {
 	s_player_skin_box.itemnames = (const char **)s_skinnames[s_player_model_box.curvalue].data;
 	s_player_skin_box.curvalue = 0;
+
+	SkinCallback(&s_player_skin_box);
 }
 
 // returns true if icon .pcx exists for skin .pcx
@@ -5953,10 +5970,13 @@ PlayerConfig_MenuInit(void)
 	s_player_skin_box.generic.x = -56 * scale;
 	s_player_skin_box.generic.y = 94;
 	s_player_skin_box.generic.name = NULL;
-	s_player_skin_box.generic.callback = NULL;
+	s_player_skin_box.generic.callback = SkinCallback;
 	s_player_skin_box.generic.cursor_offset = -48;
 	s_player_skin_box.curvalue = imgindex;
 	s_player_skin_box.itemnames = (const char **)s_skinnames[mdlindex].data;
+
+	/* initialize player icon */
+	SkinCallback(&s_player_skin_box);
 
 	s_player_hand_title.generic.type = MTYPE_SEPARATOR;
 	s_player_hand_title.generic.name = "handedness";
@@ -6132,9 +6152,6 @@ PlayerConfig_MenuDraw(menuframework_s *m)
 		refdef.entities = entities;
 		refdef.lightstyles = NULL;
 		refdef.rdflags = RDF_NOWORLDMODEL;
-
-		Com_sprintf(player_icon_path, sizeof(player_icon_path),
-			"/players/%s/%s_i.pcx", mdlname, imgname);
 
 		Menu_Draw(m);
 
