@@ -5895,9 +5895,10 @@ PlayerConfig_MenuInit(void)
 	int i = 0;
 	float scale = SCR_GetMenuScale();
 
-	if (PlayerConfig_ScanDirectories() == false)
+	if (!PlayerConfig_ScanDirectories())
 	{
-		return false;
+		Menu_StartPopup(&m_popup,
+			"No player models\nwere found", 3000);
 	}
 
 	Q_strlcpy(mdlname, skin->string, sizeof(mdlname));
@@ -6035,13 +6036,8 @@ PlayerConfig_MenuInit(void)
 	Menu_AddItem(&s_player_config_menu, &s_player_icon_bitmap);
 	Menu_AddItem(&s_player_config_menu, &s_player_model_title);
 	Menu_AddItem(&s_player_config_menu, &s_player_model_box);
-
-	if (s_player_skin_box.itemnames)
-	{
-		Menu_AddItem(&s_player_config_menu, &s_player_skin_title);
-		Menu_AddItem(&s_player_config_menu, &s_player_skin_box);
-	}
-
+	Menu_AddItem(&s_player_config_menu, &s_player_skin_title);
+	Menu_AddItem(&s_player_config_menu, &s_player_skin_box);
 	Menu_AddItem(&s_player_config_menu, &s_player_hand_title);
 	Menu_AddItem(&s_player_config_menu, &s_player_handedness_box);
 	Menu_AddItem(&s_player_config_menu, &s_player_rate_title);
