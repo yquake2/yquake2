@@ -5561,12 +5561,21 @@ SkinCallback(void *unused)
 }
 
 static void
-ModelCallback(void *unused)
+ModelCallback(void *self)
 {
-	s_player_skin_box.itemnames = (const char **)s_skinnames[s_player_model_box.curvalue].data;
-	s_player_skin_box.curvalue = 0;
+	const menulist_s *m = self;
+	menulist_s *s = &s_player_skin_box;
+	const char **skinnames;
 
-	SkinCallback(&s_player_skin_box);
+	skinnames = (const char **)s_skinnames[m->curvalue].data;
+
+	if (s->itemnames != skinnames)
+	{
+		s->itemnames = skinnames;
+		s->curvalue = 0;
+
+		SkinCallback(s);
+	}
 }
 
 // returns true if icon .pcx exists for skin .pcx
