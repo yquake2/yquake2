@@ -5493,6 +5493,9 @@ static int rate_tbl[] = {2500, 3200, 5000, 10000, 25000};
 static const char *rate_names[] = {"28.8 Modem", "33.6 Modem", "Single ISDN",
 								   "Dual ISDN/Cable", "T1/LAN", "User defined", NULL};
 
+static const cvar_t *model_preview_start = NULL;
+static const cvar_t *model_preview_end = NULL;
+
 static void
 SelectedModelSkin(const char **mdl, const char **img)
 {
@@ -5646,6 +5649,9 @@ PlayerModelFree()
 
 	s_player_model_box.itemnames = NULL;
 	s_player_skin_box.itemnames = NULL;
+
+	model_preview_start = NULL;
+	model_preview_end = NULL;
 }
 
 // list all player model directories.
@@ -6057,19 +6063,26 @@ extern float CalcFov(float fov_x, float w, float h);
 static void
 PlayerConfig_AnimateModel(entity_t *entity, int count, int curTime)
 {
-	const cvar_t *cl_start_frame, *cl_end_frame;
 	int startFrame, endFrame;
 
-	cl_start_frame = Cvar_Get("cl_model_preview_start", "84", CVAR_ARCHIVE);
-	cl_end_frame = Cvar_Get("cl_model_preview_end", "94", CVAR_ARCHIVE);
-	startFrame = cl_start_frame->value;
-	endFrame = cl_end_frame->value;
+	if (!model_preview_start)
+	{
+		model_preview_start = Cvar_Get("cl_model_preview_start", "84", CVAR_ARCHIVE);
+	}
+
+	if (!model_preview_end)
+	{
+		model_preview_end = Cvar_Get("cl_model_preview_end", "94", CVAR_ARCHIVE);
+	}
+
+	startFrame = model_preview_start->value;
+	endFrame = model_preview_end->value;
 
 	if (startFrame >= 0 && endFrame > startFrame)
 	{
 		int i;
 
-		for (i = 0; i < count; i ++)
+		for (i = 0; i < count; i++)
 		{
 			/* salute male 84..94 frame */
 			entity[i].frame = (curTime / 100) % (endFrame - startFrame) + startFrame;
