@@ -5493,6 +5493,37 @@ static int rate_tbl[] = {2500, 3200, 5000, 10000, 25000, 0};
 static const char *rate_names[] = {"28.8 Modem", "33.6 Modem", "Single ISDN",
 								   "Dual ISDN/Cable", "T1/LAN", "User defined", NULL};
 
+
+static void
+SelectedModelSkin(const char **mdl, const char **img)
+{
+	int mi = s_player_model_box.curvalue;
+	int si = s_player_skin_box.curvalue;
+
+	if (mdl)
+	{
+		*mdl = NULL;
+	}
+
+	if (img)
+	{
+		*img = NULL;
+	}
+
+	if (mi >= 0 && mi < s_modelname.num)
+	{
+		if (mdl)
+		{
+			*mdl = s_modelname.data[mi];
+		}
+
+		if (img && si >= 0 && si < s_skinnames[mi].num)
+		{
+			*img = s_skinnames[mi].data[si];
+		}
+	}
+}
+
 static void
 DownloadOptionsFunc(void *self)
 {
@@ -6024,6 +6055,7 @@ PlayerConfig_MenuDraw(menuframework_s *m)
 {
 	refdef_t refdef;
 	float scale = SCR_GetMenuScale();
+	const char *mdlname, *imgname;
 
 	memset(&refdef, 0, sizeof(refdef));
 
@@ -6035,15 +6067,12 @@ PlayerConfig_MenuDraw(menuframework_s *m)
 	refdef.fov_y = CalcFov(refdef.fov_x, (float)refdef.width, (float)refdef.height);
 	refdef.time = cls.realtime * 0.001f;
 
-	// could remove this, there should be a valid set of models
-	if ((s_player_model_box.curvalue >= 0 && s_player_model_box.curvalue < s_modelname.num)
-		&& (s_player_skin_box.curvalue >= 0
-		&& s_player_skin_box.curvalue < s_skinnames[s_player_model_box.curvalue].num))
+	SelectedModelSkin(&mdlname, &imgname);
+
+	if (mdlname && imgname)
 	{
 		entity_t entities[2];
 		char scratch[MAX_QPATH];
-		char* mdlname = s_modelname.data[s_player_model_box.curvalue];
-		char* imgname = s_skinnames[s_player_model_box.curvalue].data[s_player_skin_box.curvalue];
 		int i, curTime;
 
 		memset(&entities, 0, sizeof(entities));
@@ -6121,20 +6150,21 @@ PlayerConfig_MenuDraw(menuframework_s *m)
 static void
 PlayerConfig_MenuClose(menuframework_s *m)
 {
-	const char* name = NULL;
-	char skin[MAX_QPATH];
-	char* mdl = NULL;
-	char* img = NULL;
+	const char* name;
+	const char *mdl, *img;
 
 	name = s_player_name_field.buffer;
-	mdl = s_modelname.data[s_player_model_box.curvalue];
-	img = s_skinnames[s_player_model_box.curvalue].data[s_player_skin_box.curvalue];
-
-	Com_sprintf(skin, MAX_QPATH, "%s/%s", mdl, img);
-
-	// set <name> and <model dir>/<skin>
 	Cvar_Set("name", name);
-	Cvar_Set("skin", skin);
+
+	SelectedModelSkin(&mdl, &img);
+	if (mdl && img)
+	{
+		char skin[MAX_QPATH];
+
+		Com_sprintf(skin, sizeof(skin), "%s/%s", mdl, img);
+
+		Cvar_Set("skin", skin);
+	}
 
 	PlayerModelFree();          // free player skins, models and directories
 }
