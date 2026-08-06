@@ -1460,23 +1460,18 @@ FS_ListMods(void)
 static void
 FS_Dir_f(void)
 {
-	strlist_t dirs;
-	char findname[1024]; /* File search path and pattern. */
-	const char *path = NULL; /* Search path. */
-	char *lastsep;
-	char wildcard[1024] = "*.*"; /* File pattern. */
-	int i; /* Loop counter. */
+	const char *path, *wildcard;
 
-	/* Check for pattern in arguments. */
-	if (Cmd_Argc() != 1)
-	{
-		Q_strlcpy(wildcard, Cmd_Argv(1), sizeof(wildcard));
-	}
+	wildcard = (Cmd_Argc() > 1) ? Cmd_Argv(1) : "*.*";
 
-	/* Scan search paths and list files. */
-	while ((path = FS_NextPath(path)) != NULL)
+	for (path = FS_NextPath(NULL); path; path = FS_NextPath(path))
 	{
+		strlist_t dirs;
+		char findname[MAX_OSPATH];
+		int i;
+
 		Com_sprintf(findname, sizeof(findname), "%s/%s", path, wildcard);
+
 		Com_Printf("Directory of '%s'.\n", findname);
 		Com_Printf("----\n");
 
@@ -1484,15 +1479,12 @@ FS_Dir_f(void)
 
 		for (i = 0; i < dirs.num; i++)
 		{
+			const char *lastsep;
+
 			lastsep = strrchr(dirs.data[i], '/');
-			if (lastsep)
-			{
-				Com_Printf("%s\n", lastsep + 1);
-			}
-			else
-			{
-				Com_Printf("%s\n", dirs.data[i]);
-			}
+
+			Com_Printf("%s\n",
+				lastsep ? lastsep + 1 : dirs.data[i]);
 		}
 
 		StrList_Free(&dirs);
