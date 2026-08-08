@@ -346,8 +346,9 @@ int Q_strcasecmp(const char *s1, const char *s2);
 int Q_strncasecmp(const char *s1, const char *s2, int n);
 char *Q_strcasestr(const char *s1, const char *s2);
 
-/* portable string lowercase */
-char *Q_strlwr(char *s);
+/* portable string lowercase / uppercase */
+void Q_strlwr(char *s);
+void Q_strupr(char *s);
 
 /* portable safe string copy/concatenate */
 int Q_strlcpy(char *dst, const char *src, int size);
@@ -1319,5 +1320,86 @@ typedef char bitlist_t;
 
 /* test the value of bit i */
 #define BITLIST_ISSET(l, i) (l[(i) / BITLIST_BPU] & (1 << ((i) % BITLIST_BPU))) != 0
+
+/* a realloc wrapper that initializes new memory to 0 */
+void *Q_realloc0(void *ptr, size_t prev_n, size_t new_n);
+
+/* strlist_t API - a dynamic string list object
+ *
+ * a NULL terminated list of char * pointers
+ *
+ *   similar to stringlist_t but uses malloc instead of Z_Malloc
+ *   (switch entirely to stringlist_t?)
+*/
+
+typedef struct
+{
+	char **data;
+	int num;
+	int cap;
+} strlist_t;
+
+/* sl_eqfunc
+ *   An equals test function used by StrList_Find
+ *   list_s is the string inside the list being tested
+ *   targ_s is the target string passed to StrList_Find
+ *   Return 0 if found, a non-0 value otherwise
+ */
+typedef int (*sl_eqfunc)(const char *list_s, const char *targ_s);
+
+/* StrList_Init
+ *   Initializes a strlist_t object to the starting capacity
+ *   A cap of 0 starts a blank list with no allocation
+ *   Note that the NULL terminator is not counted in the cap
+ *   If allocation fails, cap of 0 is used
+ */
+void StrList_Init(strlist_t *sl, int cap);
+
+/* StrList_Free
+ *   Frees all memory used by the list
+ *   and resets it to a blank state ready to be used again
+ */
+void StrList_Free(strlist_t *sl);
+
+/* StrList_Compress
+ *   Reduce capacity down to number of items if needed
+ *   The list is not modified if re-allocation fails
+ */
+void StrList_Compress(strlist_t *sl);
+
+/* StrList_Find
+ *   Search the list for s given the specified eq function
+  *  If eq is NULL, strcmp is used by default
+ *   Returns the index of the string if found
+ *   Returns total number of items if not found
+ */
+int StrList_Find(const strlist_t *sl, sl_eqfunc eq, const char *s);
+
+/* StrList_Contains
+ *   Evaluates to 1 if s is in the list, 0 otherwise
+ *   Use Contains2 to provide your own equals test function
+ */
+#define StrList_Contains(sl, s) (StrList_Find(sl, NULL, s) < (sl)->num)
+#define StrList_Contains2(sl, eq, s) (StrList_Find(sl, eq, s) < (sl)->num)
+
+/* StrList_Expand
+ *   Expands the list's capacity to the requested value if needed
+ *   If re-allocation fails the object is not modified
+ */
+void StrList_Expand(strlist_t *sl, int new_cap);
+
+/* StrList_Append
+ *   Adds s to the list
+ *   The list is dynamically resized if needed
+ *   If allocation fails, the list is still in a valid state
+ */
+void StrList_Append(strlist_t *sl, const char *s);
+
+/* StrList_Print
+ *   Prints the contents of the list
+ *   If no printfunc then Com_Printf is used
+ *   Explicitly prints the NULL terminator if it is there
+ */
+void StrList_Print(const strlist_t *sl, void (*printfunc)(const char *fmt, ...));
 
 #endif /* COMMON_SHARED_H */

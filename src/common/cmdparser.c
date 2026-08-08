@@ -364,7 +364,7 @@ Cbuf_AddLateCommands(void)
 static void
 Cmd_Exec_f(void)
 {
-	char *f, *f2;
+	char *f;
 	int len;
 
 	if (Cmd_Argc() != 2)
@@ -373,7 +373,7 @@ Cmd_Exec_f(void)
 		return;
 	}
 
-	len = FS_LoadFile(Cmd_Argv(1), (void **)&f);
+	len = FS_LoadFile2(Cmd_Argv(1), (void **)&f, 2);
 
 	if (!f)
 	{
@@ -383,16 +383,11 @@ Cmd_Exec_f(void)
 
 	Com_Printf("execing %s.\n", Cmd_Argv(1));
 
-	/* the file doesn't have a trailing 0, so we need to copy it off */
-	/* we also add a newline */
-	f2 = Z_Malloc(len + 2);
-	memcpy(f2, f, len);
-	f2[len] = '\n'; // make sure last line has a newline
-	f2[len+1] = '\0';
+	f[len] = '\n'; // make sure last line has a newline
+	f[len+1] = '\0';
 
-	Cbuf_InsertText(f2);
+	Cbuf_InsertText(f);
 
-	Z_Free(f2);
 	FS_FreeFile(f);
 }
 
@@ -938,10 +933,11 @@ Cmd_CompleteCommand(const char *partial)
 const char *
 Cmd_CompleteMapCommand(const char *partial)
 {
-	char **mapNames;
-	int nMaps;
+	strlist_t mapNames;
 
-	if ((mapNames = FS_ListFiles2("maps/*.bsp", &nMaps, 0, 0)) != NULL)
+	mapNames = FS_ListFiles2("maps/*.bsp", 0, 0);
+
+	if (mapNames.num)
 	{
 		size_t len;
 		int i, j, k, nbMatches;
@@ -953,24 +949,24 @@ Cmd_CompleteMapCommand(const char *partial)
 		nbMatches = 0;
 		memset(retval, 0, sizeof(retval));
 
-		pmatch = malloc(nMaps * sizeof(char*));
-		YQ2_COM_CHECK_OOM(pmatch, "malloc()", nMaps * sizeof(char*))
+		pmatch = malloc(mapNames.num * sizeof(char*));
+		YQ2_COM_CHECK_OOM(pmatch, "malloc()", (mapNames.num + 1) * sizeof(char*))
 		if (!pmatch)
 		{
 			/* unaware about YQ2_ATTR_NORETURN_FUNCPTR? */
-			FS_FreeList(mapNames, nMaps);
+			StrList_Free(&mapNames);
 			return retval;
 		}
 
-		for (i = 0; i < nMaps - 1; i++)
+		for (i = 0; i < mapNames.num; i++)
 		{
-			if ((lastsep = strrchr(mapNames[i], '/')))
+			if ((lastsep = strrchr(mapNames.data[i], '/')))
 			{
 				mapName = lastsep + 1;
 			}
 			else
 			{
-				mapName = mapNames[i];
+				mapName = mapNames.data[i];
 			}
 
 			mapName = strtok(mapName, ".");
@@ -1030,7 +1026,7 @@ Cmd_CompleteMapCommand(const char *partial)
 		}
 
 		free(pmatch);
-		FS_FreeList(mapNames, nMaps);
+		StrList_Free(&mapNames);
 	}
 
 	return retval;

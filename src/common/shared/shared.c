@@ -1256,18 +1256,22 @@ Com_sprintf(char *dest, int size, const char *fmt, ...)
 	}
 }
 
-char *
-Q_strlwr ( char *s )
+void
+Q_strlwr(char *s)
 {
-	char *p = s;
-
-	while ( *s )
+	for (; *s != '\0'; s++)
 	{
-		*s = tolower( (unsigned char)*s );
-		s++;
+		*s = tolower(*s);
 	}
+}
 
-	return ( p );
+void
+Q_strupr(char *s)
+{
+	for (; *s != '\0'; s++)
+	{
+		*s = toupper(*s);
+	}
 }
 
 int
@@ -1725,4 +1729,176 @@ unsigned int
 NextPow2gt(unsigned int i)
 {
 	return NextPow2(i + 1U);
+}
+
+void *
+Q_realloc0(void *ptr, size_t prev_n, size_t new_n)
+{
+	void *new_ptr = realloc(ptr, new_n);
+
+	if (!new_ptr)
+	{
+		return NULL;
+	}
+
+	if (new_n > prev_n)
+	{
+		memset((char *)new_ptr + prev_n, 0, new_n - prev_n);
+	}
+
+	return new_ptr;
+}
+
+/* strlist_t API */
+
+void
+StrList_Init(strlist_t *sl, int cap)
+{
+	memset(sl, 0, sizeof(*sl));
+
+	if (cap > 0)
+	{
+		/* allocating +1 ensures the list is always NULL terminated */
+		sl->data = calloc(cap + 1, sizeof(char *));
+
+		if (!sl->data)
+		{
+			return;
+		}
+
+		sl->cap = cap;
+	}
+}
+
+void
+StrList_Free(strlist_t *sl)
+{
+	if (sl->data)
+	{
+		int i;
+
+		for (i = 0; i < sl->num; i++)
+		{
+			if (sl->data[i])
+			{
+				free(sl->data[i]);
+			}
+		}
+
+		free(sl->data);
+		sl->data = NULL;
+	}
+
+	sl->cap = 0;
+	sl->num = 0;
+}
+
+void
+StrList_Compress(strlist_t *sl)
+{
+	char **new_data;
+
+	if (sl->cap <= sl->num)
+	{
+		return;
+	}
+
+	new_data = realloc(sl->data, (sl->num + 1) * sizeof(char *));
+	if (new_data)
+	{
+		sl->data = new_data;
+		sl->cap = sl->num;
+	}
+}
+
+int
+StrList_Find(const strlist_t *sl, sl_eqfunc eq, const char *s)
+{
+	int i;
+
+	if (!eq)
+	{
+		eq = strcmp;
+	}
+
+	for (i = 0; i < sl->num; i++)
+	{
+		if (!eq(sl->data[i], s))
+		{
+			return i;
+		}
+	}
+
+	return sl->num;
+}
+
+void
+StrList_Expand(strlist_t *sl, int new_cap)
+{
+	char **new_data;
+
+	if (new_cap <= sl->cap)
+	{
+		return;
+	}
+
+	new_data = Q_realloc0(sl->data,
+		!sl->cap ? 0 : ((sl->cap + 1) * sizeof(char *)),
+		(new_cap + 1) * sizeof(char *));
+
+	if (!new_data)
+	{
+		return;
+	}
+
+	sl->data = new_data;
+	sl->cap = new_cap;
+}
+
+void
+StrList_Append(strlist_t *sl, const char *s)
+{
+	char *new_s;
+
+	if (sl->num >= sl->cap)
+	{
+		StrList_Expand(sl, NextPow2gt(sl->cap));
+
+		if (sl->num >= sl->cap)
+		{
+			return;
+		}
+	}
+
+	new_s = strdup(s);
+	if (new_s)
+	{
+		sl->data[sl->num] = new_s;
+		sl->num++;
+	}
+}
+
+void
+StrList_Print(const strlist_t *sl, void (*printfunc)(const char *fmt, ...))
+{
+	int i;
+
+	if (!printfunc)
+	{
+		printfunc = Com_Printf;
+	}
+
+	printfunc("%d / %d items\n{\n", sl->num, sl->cap);
+
+	for (i = 0; i < sl->num; i++)
+	{
+		printfunc("  '%s'\n", sl->data[i]);
+	}
+
+	if (sl->num && !sl->data[sl->num])
+	{
+		printfunc("  NULL\n");
+	}
+
+	printfunc("}\n");
 }

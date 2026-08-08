@@ -367,43 +367,6 @@ FS_FCloseFile(fileHandle_t f)
 	memset(handle, 0, sizeof(*handle));
 }
 
-qboolean
-FS_FileExists(const char *path, const char *file)
-{
-	char pathname[MAX_QPATH];
-	fileHandle_t handle;
-	int len;
-
-	if (!file)
-	{
-		return false;
-	}
-
-	if (!path)
-	{
-		path = file;
-	}
-	else
-	{
-		if (snprintf(pathname, sizeof(pathname), "%s/%s",
-			path, file) >= sizeof(pathname))
-		{
-			return false;
-		}
-
-		path = pathname;
-	}
-
-	len = FS_FOpenFile(path, &handle, false);
-
-	if (handle)
-	{
-		FS_FCloseFile(handle);
-	}
-
-	return (handle && len >= 0) ? true : false;
-}
-
 static int
 FS_SortPackCompare(const void *p1, const void *p2)
 {
@@ -795,24 +758,23 @@ FS_FRead(void *buffer, int size, int count, fileHandle_t f)
 }
 
 /*
- * Filename are reletive to the quake search path. A null buffer will just
- * return the file length without loading.
+ * Filename is reletive to the quake search path
+ * A null buffer will just return the file length
+ * pad adds bytes at the end of the buffer
+ * The buffer must be freed by the caller with FS_FreeFile
  */
 int
-FS_LoadFile(const char *path, void **buffer)
+FS_LoadFile2(const char *path, void **buffer, int pad)
 {
-	byte *buf; /* Buffer. */
-	int size; /* File size. */
-	fileHandle_t f; /* File handle. */
+	fileHandle_t f;
+	int size;
 
-	buf = NULL;
 	size = FS_FOpenFile(path, &f, false);
 
 	if (size <= 0)
 	{
-		if (size == 0)
+		if (!size)
 		{
-			/* empty file, close before exit*/
 			FS_FCloseFile(f);
 		}
 
@@ -824,19 +786,21 @@ FS_LoadFile(const char *path, void **buffer)
 		return size;
 	}
 
-	if (buffer == NULL)
+	if (buffer)
 	{
-		FS_FCloseFile(f);
-		return size;
+		*buffer = Z_Malloc(size + (pad < 0 ? 0 : pad));
+		FS_Read(*buffer, size, f);
 	}
 
-	buf = Z_Malloc(size);
-	*buffer = buf;
-
-	FS_Read(buf, size, f);
 	FS_FCloseFile(f);
 
 	return size;
+}
+
+int
+FS_LoadFile(const char *path, void **buffer)
+{
+	return FS_LoadFile2(path, buffer, 1); /* safety null byte */
 }
 
 void
@@ -1201,61 +1165,22 @@ FS_Link_f(void)
 /*
  * Create a list of files that match a criteria.
  */
-char **
-FS_ListFiles(const char *findname, int *numfiles,
+strlist_t
+FS_ListFiles(const char *findname,
 		unsigned musthave, unsigned canthave)
 {
-	char **list; /* List of files. */
-	char *s; /* Next file in list. */
-	int nfiles; /* Number of files in list. */
+	strlist_t list;
+	const char *s;
 
-	/* Initialize variables. */
-	list = NULL;
-	nfiles = 0;
+	StrList_Init(&list, 0);
 
-	/* Count the number of matches. */
 	s = Sys_FindFirst(findname, musthave, canthave);
-
-	while (s != NULL)
-	{
-		if (s[strlen(s) - 1] != '.')
-		{
-			nfiles++;
-		}
-
-		s = Sys_FindNext(musthave, canthave);
-	}
-
-	Sys_FindClose();
-
-	/* Check if there are matches. */
-	if (nfiles == 0)
-	{
-		return NULL;
-	}
-
-	nfiles++; /* Add space for a guard. */
-	*numfiles = nfiles;
-
-	/* Allocate the list. */
-	list = calloc(nfiles, sizeof(char *));
-	YQ2_COM_CHECK_OOM(list, "calloc()", (size_t)nfiles*sizeof(char*))
-	if (!list)
-	{
-		/* unaware about YQ2_ATTR_NORETURN_FUNCPTR? */
-		return NULL;
-	}
-
-	/* Fill the list. */
-	s = Sys_FindFirst(findname, musthave, canthave);
-	nfiles = 0;
 
 	while (s)
 	{
 		if (s[strlen(s) - 1] != '.')
 		{
-			list[nfiles] = strdup(s);
-			nfiles++;
+			StrList_Append(&list, s);
 		}
 
 		s = Sys_FindNext(musthave, canthave);
@@ -1333,204 +1258,68 @@ ComparePackFiles(const char *findname, const char *name, unsigned musthave,
  * Searchs are relative to the game directory and use all the search paths
  * including .pak and .pk3 files.
  */
-char **
-FS_ListFiles2(const char *findname, int *numfiles,
+strlist_t
+FS_ListFiles2(const char *findname,
 		unsigned musthave, unsigned canthave)
 {
-	fsSearchPath_t *search; /* Search path. */
-	int i, j; /* Loop counters. */
-	int nfiles; /* Number of files found. */
-	int tmpnfiles; /* Temp number of files. */
-	char **tmplist; /* Temporary list of files. */
-	char **list; /* List of files found. */
-	char path[MAX_OSPATH]; /* Temporary path. */
+	strlist_t list;
+	fsSearchPath_t *search;
 
-	nfiles = 0;
-	list = malloc(sizeof(char *));
-	YQ2_COM_CHECK_OOM(list, "malloc()", sizeof(char*))
-	if (!list)
-	{
-		/* unaware about YQ2_ATTR_NORETURN_FUNCPTR? */
-		return NULL;
-	}
+	StrList_Init(&list, 0);
 
 	for (search = fs_searchPaths; search != NULL; search = search->next)
 	{
-		if (search->pack != NULL)
-		{
-			char **tmp;
+		strlist_t tmplist;
+		char path[MAX_OSPATH];
+		size_t splen;
+		int i;
 
+		if (search->pack)
+		{
 			if (canthave & SFF_INPACK)
 			{
 				continue;
 			}
 
-			for (i = 0, j = 0; i < search->pack->numFiles; i++)
-			{
-				if (ComparePackFiles(findname, search->pack->files[i].name,
-							musthave, canthave, NULL, 0))
-				{
-					j++;
-				}
-			}
-
-			if (j == 0)
-			{
-				continue;
-			}
-
-			nfiles += j;
-			tmp = realloc(list, nfiles * sizeof(char *));
-			if (!tmp)
-			{
-				free(list);
-				YQ2_COM_CHECK_OOM(tmp, "realloc()", (size_t)nfiles*sizeof(char*))
-				/* unaware about YQ2_ATTR_NORETURN_FUNCPTR? */
-				return NULL;
-			}
-
-			list = tmp;
-
-			for (i = 0, j = nfiles - j; i < search->pack->numFiles; i++)
+			for (i = 0; i < search->pack->numFiles; i++)
 			{
 				if (ComparePackFiles(findname, search->pack->files[i].name,
 							musthave, canthave, path, sizeof(path)))
 				{
-					list[j++] = strdup(path);
+					if (!StrList_Contains(&list, path))
+					{
+						StrList_Append(&list, path);
+					}
 				}
 			}
 		}
 
-		if (musthave & SFF_INPACK)
+		if ((musthave & SFF_INPACK) ||
+			(*search->path == '\0'))
 		{
 			continue;
 		}
 
+		/* files from host filesystem */
 		Com_sprintf(path, sizeof(path), "%s/%s", search->path, findname);
-		tmplist = FS_ListFiles(path, &tmpnfiles, musthave, canthave);
+		tmplist = FS_ListFiles(path, musthave, canthave);
 
-		if (tmplist != NULL)
+		splen = strlen(search->path);
+
+		for (i = 0; i < tmplist.num; i++)
 		{
-			char **tmp;
+			const char *s = tmplist.data[i] + splen + 1;
 
-			tmpnfiles--;
-			nfiles += tmpnfiles;
-			tmp = realloc(list, nfiles * sizeof(char *));
-			if (!tmp)
+			if (!StrList_Contains(&list, s))
 			{
-				FS_FreeList(tmplist, tmpnfiles + 1);
-				free(list);
-				YQ2_COM_CHECK_OOM(tmp, "2nd realloc()", (size_t)nfiles*sizeof(char*))
-				/* unaware about YQ2_ATTR_NORETURN_FUNCPTR? */
-				return NULL;
-			}
-
-			list = tmp;
-
-			for (i = 0, j = nfiles - tmpnfiles; i < tmpnfiles; i++, j++)
-			{
-				list[j] = strdup(tmplist[i] + strlen(search->path) + 1);
-			}
-
-			FS_FreeList(tmplist, tmpnfiles + 1);
-		}
-	}
-
-	/* Delete duplicates. */
-	tmpnfiles = 0;
-
-	for (i = 0; i < nfiles; i++)
-	{
-		if (list[i] == NULL)
-		{
-			continue;
-		}
-
-		for (j = i + 1; j < nfiles; j++)
-		{
-			if ((list[j] != NULL) &&
-				(strcmp(list[i], list[j]) == 0))
-			{
-				free(list[j]);
-				list[j] = NULL;
-				tmpnfiles++;
-			}
-		}
-	}
-
-	if (tmpnfiles > 0)
-	{
-		nfiles -= tmpnfiles;
-		tmplist = malloc(nfiles * sizeof(char *));
-		if (!tmplist)
-		{
-			free(list);
-			YQ2_COM_CHECK_OOM(tmplist, "malloc()", (size_t)nfiles*sizeof(char*))
-			/* unaware about YQ2_ATTR_NORETURN_FUNCPTR? */
-			return NULL;
-		}
-
-		for (i = 0, j = 0; i < nfiles + tmpnfiles; i++)
-		{
-			if (list[i] != NULL)
-			{
-				tmplist[j++] = list[i];
+				StrList_Append(&list, s);
 			}
 		}
 
-		free(list);
-		list = tmplist;
+		StrList_Free(&tmplist);
 	}
-
-	/* Add a guard. */
-	if (nfiles > 0)
-	{
-		char **tmp;
-
-		nfiles++;
-		tmp = realloc(list, nfiles * sizeof(char *));
-		if (!tmp)
-		{
-			free(list);
-			YQ2_COM_CHECK_OOM(tmp, "3rd realloc()", (size_t)nfiles*sizeof(char*))
-			/* unaware about YQ2_ATTR_NORETURN_FUNCPTR? */
-			return NULL;
-		}
-
-		list = tmp;
-		list[nfiles - 1] = NULL;
-	}
-
-	else
-	{
-		free(list);
-		list = NULL;
-	}
-
-	*numfiles = nfiles;
 
 	return list;
-}
-
-/*
- * Free list of files created by FS_ListFiles().
- */
-void
-FS_FreeList(char **list, int nfiles)
-{
-	int i;
-
-	if (!list)
-	{
-		return;
-	}
-
-	for (i = 0; i < nfiles - 1; i++)
-	{
-		free(list[i]);
-	}
-
-	free(list);
 }
 
 /*
@@ -1563,113 +1352,106 @@ Q_sort_modcmp(const void *p1, const void *p2)
  * Combs all Raw search paths to find game dirs containing PAK/PK2/PK3 files.
  * Returns an alphabetized array of unique relative dir names.
  */
-char**
-FS_ListMods(int *nummods)
+static qboolean
+HasValidPack(const char *dir)
 {
-	int nmods = 0, numdirchildren, numpacksinchilddir;
-	size_t searchpathlength;
-	char findnamepattern[MAX_OSPATH], modname[MAX_QPATH], searchpath[MAX_OSPATH];
-	char **dirchildren, **packsinchilddir, **modnames;
+	const fsPackTypes_t *pkt;
 
-	modnames = malloc((MAX_QPATH + 1) * (MAX_MODS + 1));
-	if (!modnames)
+	// iterate over supported pack types, but ignore ZIP files (they cause false positives)
+	for (pkt = fs_packtypes; pkt < ARREND(fs_packtypes); pkt++)
 	{
-		YQ2_COM_CHECK_OOM(modnames, "malloc()", (MAX_QPATH + 1) * (MAX_MODS + 1))
-		/* unaware about YQ2_ATTR_NORETURN_FUNCPTR? */
-		return NULL;
-	}
-	memset(modnames, 0, (MAX_QPATH + 1) * (MAX_MODS + 1));
+		strlist_t packs;
+		char findnamepattern[MAX_OSPATH];
+		int npacks;
 
-	// iterate over all Raw paths
+		if (!strcmp("zip", pkt->suffix))
+		{
+			continue;
+		}
+
+		Com_sprintf(findnamepattern, sizeof(findnamepattern), "%s/*.%s",
+			dir, pkt->suffix);
+
+		packs = FS_ListFiles(findnamepattern, 0, 0);
+		npacks = packs.num;
+		StrList_Free(&packs);
+
+		if (npacks)
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
+
+strlist_t
+FS_ListMods(void)
+{
+	strlist_t list;
+
+	StrList_Init(&list, 0);
+
 	for (fsRawPath_t *search = fs_rawPath; search; search = search->next)
 	{
-		searchpathlength = strlen(search->path);
-		if(!searchpathlength)
+		strlist_t dirchildren;
+		const char *path;
+		char searchpath[MAX_OSPATH];
+		size_t splen;
+		int i;
+
+		splen = strlen(search->path);
+		if (!splen)
 		{
 			continue;
 		}
 
 		// make sure this Raw path ends with a '/' otherwise FS_ListFiles will open its parent dir
-		if(search->path[searchpathlength - 1] != '/')
+		if (search->path[splen - 1] != '/')
 		{
 			Com_sprintf(searchpath, sizeof(searchpath), "%s/*", search->path);
+			path = searchpath;
 		}
 		else
 		{
-			Com_sprintf(searchpath, sizeof(searchpath), "%s*", search->path);
+			path = search->path;
 		}
 
-		dirchildren = FS_ListFiles(searchpath, &numdirchildren, 0, 0);
-
-		if (dirchildren == NULL)
-		{
-			continue;
-		}
+		dirchildren = FS_ListFiles(path, 0, 0);
 
 		// iterate over the children of this Raw path (unless we've already got enough mods)
-		for (int i = 0; i < numdirchildren && nmods < MAX_MODS; i++)
+		for (i = 0; i < dirchildren.num && list.num < MAX_MODS; i++)
 		{
-			if(dirchildren[i] == NULL)
+			const char *modname;
+
+			if (!HasValidPack(dirchildren.data[i]))
 			{
 				continue;
 			}
 
-			numpacksinchilddir = 0;
-
-			// iterate over supported pack types, but ignore ZIP files (they cause false positives)
-			for (int j = 0; j < ARRLEN(fs_packtypes); j++)
+			modname = strrchr(dirchildren.data[i], '/');
+			if (!modname)
 			{
-				if (strcmp("zip", fs_packtypes[j].suffix) != 0)
-				{
-					Com_sprintf(findnamepattern, sizeof(findnamepattern), "%s/*.%s", dirchildren[i], fs_packtypes[j].suffix);
+				continue;
+			}
 
-					packsinchilddir = FS_ListFiles(findnamepattern, &numpacksinchilddir, 0, 0);
-					FS_FreeList(packsinchilddir, numpacksinchilddir);
+			modname++;
 
-					// if this dir has some pack files, add it if not already in the list
-					if (numpacksinchilddir > 0)
-					{
-						qboolean matchfound = false;
-
-						Com_sprintf(modname, sizeof(modname), "%s", strrchr(dirchildren[i], '/') + 1);
-
-						for (int k = 0; k < nmods; k++)
-						{
-							if (strcmp(modname, modnames[k]) == 0)
-							{
-								matchfound = true;
-								break;
-							}
-						}
-
-						if (!matchfound)
-						{
-							modnames[nmods] = malloc(strlen(modname) + 1);
-							if (!modnames[nmods])
-							{
-								break;
-							}
-
-							strcpy(modnames[nmods], modname);
-
-							nmods++;
-						}
-
-						break;
-					}
-				}
+			if (!StrList_Contains(&list, modname))
+			{
+				StrList_Append(&list, modname);
 			}
 		}
 
-		FS_FreeList(dirchildren, numdirchildren);
+		StrList_Free(&dirchildren);
 	}
 
-	modnames[nmods] = 0;
+	if (list.num > 1)
+	{
+		qsort(list.data, list.num, sizeof(char *), Q_sort_modcmp);
+	}
 
-	qsort(modnames, nmods, sizeof(modnames[0]), Q_sort_modcmp);
-
-	*nummods = nmods;
-	return modnames;
+	return list;
 }
 
 /*
@@ -1678,44 +1460,34 @@ FS_ListMods(int *nummods)
 static void
 FS_Dir_f(void)
 {
-	char **dirnames; /* File list. */
-	char findname[1024]; /* File search path and pattern. */
-	const char *path = NULL; /* Search path. */
-	char *lastsep;
-	char wildcard[1024] = "*.*"; /* File pattern. */
-	int i; /* Loop counter. */
-	int ndirs; /* Number of files in list. */
+	const char *path, *wildcard;
 
-	/* Check for pattern in arguments. */
-	if (Cmd_Argc() != 1)
-	{
-		Q_strlcpy(wildcard, Cmd_Argv(1), sizeof(wildcard));
-	}
+	wildcard = (Cmd_Argc() > 1) ? Cmd_Argv(1) : "*.*";
 
-	/* Scan search paths and list files. */
-	while ((path = FS_NextPath(path)) != NULL)
+	for (path = FS_NextPath(NULL); path; path = FS_NextPath(path))
 	{
+		strlist_t dirs;
+		char findname[MAX_OSPATH];
+		int i;
+
 		Com_sprintf(findname, sizeof(findname), "%s/%s", path, wildcard);
+
 		Com_Printf("Directory of '%s'.\n", findname);
 		Com_Printf("----\n");
 
-		if ((dirnames = FS_ListFiles(findname, &ndirs, 0, 0)) != 0)
-		{
-			for (i = 0; i < ndirs - 1; i++)
-			{
-				lastsep = strrchr(dirnames[i], '/');
-				if (lastsep)
-				{
-					Com_Printf("%s\n", lastsep + 1);
-				}
-				else
-				{
-					Com_Printf("%s\n", dirnames[i]);
-				}
-			}
+		dirs = FS_ListFiles(findname, 0, 0);
 
-			FS_FreeList(dirnames, ndirs);
+		for (i = 0; i < dirs.num; i++)
+		{
+			const char *lastsep;
+
+			lastsep = strrchr(dirs.data[i], '/');
+
+			Com_Printf("%s\n",
+				lastsep ? lastsep + 1 : dirs.data[i]);
 		}
+
+		StrList_Free(&dirs);
 
 		Com_Printf("\n");
 	}
@@ -1871,13 +1643,12 @@ static char* basename( char* n )
 #endif // _MSC_VER
 
 static void
-FS_AddDirToSearchPath(char *dir, qboolean create) {
+FS_AddDirToSearchPath(char *dir, qboolean create)
+{
 	char *file;
-	char **list;
 	char path[MAX_OSPATH];
 	char *tmp;
 	int i, j, k;
-	int nfiles;
 	fsPack_t *pack = NULL;
 	fsSearchPath_t *search;
 	qboolean nextpak;
@@ -1959,15 +1730,13 @@ FS_AddDirToSearchPath(char *dir, qboolean create) {
 	// this, since it might break existing installations.
 	for (i = 0; i < ARRLEN(fs_packtypes); i++)
 	{
+		strlist_t list;
+
 		Com_sprintf(path, sizeof(path), "%s/*.%s", dir, fs_packtypes[i].suffix);
 
-		// Nothing here, next pak type please.
-		if ((list = FS_ListFiles(path, &nfiles, 0, 0)) == NULL)
-		{
-			continue;
-		}
+		list = FS_ListFiles(path, 0, 0);
 
-		for (j = 0; j < nfiles - 1; j++)
+		for (j = 0; j < list.num; j++)
 		{
 			// Sort out numbered paks. This is as inefficient as
 			// it can be, but it doesn't matter. This is done only
@@ -1978,7 +1747,7 @@ FS_AddDirToSearchPath(char *dir, qboolean create) {
 			{
 				// basename() may alter the given string.
 				// We need to work around that...
-				tmp = strdup(list[j]);
+				tmp = strdup(list.data[j]);
 				file = basename(tmp);
 
 				Com_sprintf(path, sizeof(path), "pak%d.%s", k, fs_packtypes[i].suffix);
@@ -2001,10 +1770,10 @@ FS_AddDirToSearchPath(char *dir, qboolean create) {
 			switch (fs_packtypes[i].format)
 			{
 				case PAK:
-					pack = FS_LoadPAK(list[j]);
+					pack = FS_LoadPAK(list.data[j]);
 					break;
 				case PK3:
-					pack = FS_LoadPK3(list[j]);
+					pack = FS_LoadPK3(list.data[j]);
 					break;
 			}
 
@@ -2023,7 +1792,7 @@ FS_AddDirToSearchPath(char *dir, qboolean create) {
 			fs_searchPaths = search;
 		}
 
-		FS_FreeList(list, nfiles);
+		StrList_Free(&list);
 	}
 }
 

@@ -172,18 +172,13 @@ Z_TagRealloc(void *ptr, size_t size, unsigned short tag)
 	}
 
 	size = size + sizeof(zhead_t);
-	zr = realloc(z, size);
+	zr = Q_realloc0(z, z->size, size);
 
 	if (!zr)
 	{
 		Com_Error(ERR_FATAL, "%s: failed to allocate " YQ2_COM_PRIdS " bytes",
 			__func__, size);
 		return NULL;
-	}
-
-	if (size > zr->size)
-	{
-		memset((byte *)zr + zr->size, 0, size - zr->size);
 	}
 
 	z_bytes -= zr->size;
