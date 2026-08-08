@@ -5584,15 +5584,23 @@ ModelCallback(void *self)
 
 // returns true if icon .pcx exists for skin .pcx
 static qboolean
-IconOfSkinExists(const char* skin, strlist_t *files, const char *ext)
+IconOfSkinExists(const char *skin, const strlist_t *files, const char *ext)
 {
+	char scratch[MAX_QPATH];
 	int i;
-	char scratch[1024];
 
-	Q_strlcpy(scratch, skin, sizeof(scratch));
-	*strrchr(scratch, '.') = 0;
-	Q_strlcat(scratch, "_i.", sizeof(scratch));
-	Q_strlcat(scratch, ext, sizeof(scratch));
+	if (Q_strlcpy(scratch, skin, sizeof(scratch)) >= sizeof(scratch))
+	{
+		return false;
+	}
+
+	COM_StripExtension2(scratch);
+
+	if (Q_strlcat(scratch, "_i.", sizeof(scratch)) >= sizeof(scratch) ||
+		Q_strlcat(scratch, ext, sizeof(scratch)) >= sizeof(scratch))
+	{
+		return false;
+	}
 
 	for (i = 0; i < files->num; i++)
 	{
