@@ -323,6 +323,9 @@ DrawAliasFrameLerp(dmdl_t *paliashdr, entity_t* entity, vec3_t shadelight)
 	GL3_BindEBO(gl3state.eboAlias);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, da_count(idxBuf)*sizeof(GLushort), idxBuf.p, GL_STREAM_DRAW);
 	glDrawElements(GL_TRIANGLES, da_count(idxBuf), GL_UNSIGNED_SHORT, NULL);
+	++gl3_num3Ddraws;
+	++gl3_numBufferVtxData;
+	// TODO ++gl3_numBufferIdxData ?
 }
 
 static void
@@ -484,6 +487,9 @@ DrawAliasShadow(gl3_shadowinfo_t* shadowInfo)
 	GL3_BindEBO(gl3state.eboAlias);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, da_count(idxBuf)*sizeof(GLushort), idxBuf.p, GL_STREAM_DRAW);
 	glDrawElements(GL_TRIANGLES, da_count(idxBuf), GL_UNSIGNED_SHORT, NULL);
+	++gl3_num3Ddraws;
+	++gl3_numBufferVtxData;
+	// TODO ++gl3_numBufferIdxData ?
 }
 
 static qboolean
@@ -843,7 +849,7 @@ GL3_DrawAliasModel(entity_t *entity)
 	origModelMat = gl3state.uni3DData.transModelMat4;
 
 	entity->angles[PITCH] = -entity->angles[PITCH];
-	GL3_RotateForEntity(entity);
+	GL3_RotateUni3DforEntity(entity);
 	entity->angles[PITCH] = -entity->angles[PITCH];
 
 
@@ -902,17 +908,16 @@ GL3_DrawAliasModel(entity_t *entity)
 
 	DrawAliasFrameLerp(paliashdr, entity, shadelight);
 
-	//glPopMatrix();
-	gl3state.uni3DData.transModelMat4 = origModelMat;
-	GL3_UpdateUBO3D();
-
 	if (entity->flags & RF_WEAPONMODEL)
 	{
 		gl3state.uni3DData.transProjViewMat4 = origProjViewMat;
-		GL3_UpdateUBO3D();
 		if(gl_lefthand->value == 1.0F)
 			glCullFace(GL_FRONT);
 	}
+
+	//glPopMatrix();
+	gl3state.uni3DData.transModelMat4 = origModelMat;
+	GL3_UpdateUBO3D();
 
 	if (entity->flags & RF_TRANSLUCENT)
 	{

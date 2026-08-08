@@ -53,13 +53,6 @@ void GL3_SurfInit(void)
 	glGenBuffers(1, &gl3state.vbo3D);
 	GL3_BindVBO(gl3state.vbo3D);
 
-	if(gl3config.useBigVBO)
-	{
-		gl3state.vbo3Dsize = 5*1024*1024; // a 5MB buffer seems to work well?
-		gl3state.vbo3DcurOffset = 0;
-		glBufferData(GL_ARRAY_BUFFER, gl3state.vbo3Dsize, NULL, GL_STREAM_DRAW); // allocate/reserve that data
-	}
-
 	glEnableVertexAttribArray(GL3_ATTRIB_POSITION);
 	qglVertexAttribPointer(GL3_ATTRIB_POSITION, 3, GL_FLOAT, GL_FALSE, sizeof(gl3_3D_vtx_t), 0);
 
@@ -75,7 +68,7 @@ void GL3_SurfInit(void)
 	glEnableVertexAttribArray(GL3_ATTRIB_LIGHTFLAGS);
 	qglVertexAttribIPointer(GL3_ATTRIB_LIGHTFLAGS, 1, GL_UNSIGNED_INT, sizeof(gl3_3D_vtx_t), offsetof(gl3_3D_vtx_t, lightFlags));
 
-
+	glGenBuffers(1, &gl3state.ebo3D);
 
 	// init VAO and VBO for model vertexdata: 9 floats
 	// (X,Y,Z), (S,T), (R,G,B,A)
@@ -119,6 +112,8 @@ void GL3_SurfInit(void)
 
 void GL3_SurfShutdown(void)
 {
+	glDeleteBuffers(1, &gl3state.ebo3D);
+	gl3state.ebo3D = 0;
 	glDeleteBuffers(1, &gl3state.vbo3D);
 	gl3state.vbo3D = 0;
 	glDeleteVertexArrays(1, &gl3state.vao3D);
@@ -165,18 +160,15 @@ SetAllLightFlags(msurface_t *surf)
 }
 
 void
-GL3_DrawGLPoly(msurface_t *fa)
+GL3_DrawGLPoly(msurface_t *fa, gl3drawCmd_t drawCmd)
 {
 	glpoly_t *p = fa->polys;
 
-	GL3_BindVAO(gl3state.vao3D);
-	GL3_BindVBO(gl3state.vbo3D);
-
-	GL3_BufferAndDraw3D(p->vertices, p->numverts, GL_TRIANGLE_FAN);
+	GL3_Add3DdrawCmdToBatch(p->vertices, p->numverts, GL_TRIANGLE_FAN, drawCmd);
 }
 
 void
-GL3_DrawGLFlowingPoly(msurface_t *fa)
+GL3_DrawGLFlowingPoly(msurface_t *fa, gl3drawCmd_t drawCmd)
 {
 	glpoly_t *p;
 	float scroll;
@@ -189,153 +181,124 @@ GL3_DrawGLFlowingPoly(msurface_t *fa)
 	{
 		scroll = -64.0f;
 	}
+	drawCmd.scroll = scroll;
+	drawCmd.flags |= DCFlag_UseScroll;
 
-	if(gl3state.uni3DData.scroll != scroll)
-	{
-		gl3state.uni3DData.scroll = scroll;
-		GL3_UpdateUBO3D();
-	}
-
-	GL3_BindVAO(gl3state.vao3D);
-	GL3_BindVBO(gl3state.vbo3D);
-
-	GL3_BufferAndDraw3D(p->vertices, p->numverts, GL_TRIANGLE_FAN);
+	GL3_Add3DdrawCmdToBatch(p->vertices, p->numverts, GL_TRIANGLE_FAN, drawCmd);
 }
+
+#define LINE_VTX_COUNT (256 * 6)
 
 static void
 DrawTriangleOutlines(void)
 {
-	STUB_ONCE("TODO: Implement for gl_showtris support!");
-#if 0
-	int i, j;
-	glpoly_t *p;
+	static gl3_3D_vtx_t vtx[LINE_VTX_COUNT];
+	const msurface_t *surf;
+	size_t i, curr_vtx;
 
 	if (!gl_showtris->value)
 	{
 		return;
 	}
 
-	glDisable(GL_TEXTURE_2D);
+	GL3_Draw3DBatchesNow();
+
 	glDisable(GL_DEPTH_TEST);
-	glColor4f(1, 1, 1, 1);
+	glUseProgram(gl3state.si3DcolorOnly.shaderProgram);
 
-	for (i = 0; i < MAX_LIGHTMAPS; i++)
+	gl3state.uniCommonData.color = HMM_Vec4(1.0f, 1.0f, 1.0f, 1.0f);
+	GL3_UpdateUBOCommon();
+	GL3_BindVAO(gl3state.vao3D);
+	GL3_BindVBO(gl3state.vbo3D);
+
+	curr_vtx = 0;
+
+	memset(vtx, 0, sizeof(vtx));
+	for (i = 0, surf = gl3_worldmodel->surfaces; i < gl3_worldmodel->numsurfaces; i++, surf++)
 	{
-		msurface_t *surf;
+		const glpoly_t *p;
 
-		for (surf = gl3_lms.lightmap_surfaces[i];
-				surf != 0;
-				surf = surf->lightmapchain)
+		if (surf->visframe != gl3_framecount)
 		{
-			p = surf->polys;
+			continue;
+		}
 
-			for ( ; p; p = p->chain)
+		for (p = surf->polys; p != NULL; p = p->chain)
+		{
+			size_t j;
+
+			for (j = 2; j < p->numverts; j++)
 			{
-				for (j = 2; j < p->numverts; j++)
+				size_t k;
+
+				if (curr_vtx > (LINE_VTX_COUNT - 6))
 				{
-					GLfloat vtx[12];
-					unsigned int k;
-
-					for (k=0; k<3; k++)
-					{
-						vtx[0+k] = p->vertices [ 0 ][ k ];
-						vtx[3+k] = p->vertices [ j - 1 ][ k ];
-						vtx[6+k] = p->vertices [ j ][ k ];
-						vtx[9+k] = p->vertices [ 0 ][ k ];
-					}
-
-					glEnableClientState( GL_VERTEX_ARRAY );
-
-					glVertexPointer( 3, GL_FLOAT, 0, vtx );
-					glDrawArrays( GL_LINE_STRIP, 0, 4 );
-
-					glDisableClientState( GL_VERTEX_ARRAY );
+					glBufferData(GL_ARRAY_BUFFER, sizeof(vtx), vtx, GL_STREAM_DRAW);
+					glDrawArrays(GL_LINES, 0, curr_vtx);
+					curr_vtx = 0;
+					memset(vtx, 0, sizeof(vtx));
 				}
+
+				for (k = 0; k < 3; k++)
+				{
+					vtx[curr_vtx + 0].pos[k] = p->vertices[0].pos[k];
+					vtx[curr_vtx + 1].pos[k] = p->vertices[j - 1].pos[k];
+
+					vtx[curr_vtx + 2].pos[k] = p->vertices[j - 1].pos[k];
+					vtx[curr_vtx + 3].pos[k] = p->vertices[j].pos[k];
+
+					vtx[curr_vtx + 4].pos[k] = p->vertices[j].pos[k];
+					vtx[curr_vtx + 5].pos[k] = p->vertices[0].pos[k];
+				}
+
+				curr_vtx += 6;
 			}
 		}
 	}
 
+	if (curr_vtx)
+	{
+		glBufferData(GL_ARRAY_BUFFER, sizeof(vtx), vtx, GL_STREAM_DRAW);
+		glDrawArrays(GL_LINES, 0, curr_vtx);
+	}
+
 	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_TEXTURE_2D);
-#endif // 0
 }
 
 static void
-UpdateLMscales(const hmm_vec4 lmScales[MAX_LIGHTMAPS_PER_SURFACE], gl3ShaderInfo_t* si)
+RenderBrushPoly(entity_t *currententity, msurface_t *fa, gl3drawCmd_t drawCmd)
 {
-	int i;
-	qboolean hasChanged = false;
-
-	for(i=0; i<MAX_LIGHTMAPS_PER_SURFACE; ++i)
-	{
-		if(hasChanged)
-		{
-			si->lmScales[i] = lmScales[i];
-		}
-		else if(   si->lmScales[i].R != lmScales[i].R
-		        || si->lmScales[i].G != lmScales[i].G
-		        || si->lmScales[i].B != lmScales[i].B
-		        || si->lmScales[i].A != lmScales[i].A )
-		{
-			si->lmScales[i] = lmScales[i];
-			hasChanged = true;
-		}
-	}
-
-	if(hasChanged)
-	{
-		glUniform4fv(si->uniLmScalesOrTime, MAX_LIGHTMAPS_PER_SURFACE, si->lmScales[0].Elements);
-	}
-}
-
-static void
-RenderBrushPoly(entity_t *currententity, msurface_t *fa)
-{
-	int map;
 	gl3image_t *image;
 
 	c_brush_polys++;
 
 	image = R_TextureAnimation(currententity, fa->texinfo);
+	drawCmd.texnum = image->texnum;
 
 	if (fa->flags & SURF_DRAWTURB)
 	{
-		GL3_Bind(image->texnum);
-
-		GL3_EmitWaterPolys(fa);
-
+		GL3_EmitWaterPolys(fa, drawCmd);
 		return;
 	}
-	else
-	{
-		GL3_Bind(image->texnum);
-	}
 
-	hmm_vec4 lmScales[MAX_LIGHTMAPS_PER_SURFACE] = {0};
-	lmScales[0] = HMM_Vec4(1.0f, 1.0f, 1.0f, 1.0f);
 
-	GL3_BindLightmap(fa->lightmaptexturenum);
+	drawCmd.lmtexnum = fa->lightmaptexturenum;
 
 	// Any dynamic lights on this surface?
-	for (map = 0; map < MAX_LIGHTMAPS_PER_SURFACE && fa->styles[map] != 255; map++)
-	{
-		lmScales[map].R = r_newrefdef.lightstyles[fa->styles[map]].rgb[0];
-		lmScales[map].G = r_newrefdef.lightstyles[fa->styles[map]].rgb[1];
-		lmScales[map].B = r_newrefdef.lightstyles[fa->styles[map]].rgb[2];
-		lmScales[map].A = 1.0f;
-	}
+	// TODO: maybe put lightstyles into a uniform (it's just 256 vec4)
+	//       and put fa->styles[] into the 3d draw vertex?
+	memcpy(drawCmd.styles, fa->styles, sizeof(fa->styles));
+	drawCmd.flags |= DCFlag_UseLmStyles;
 
 	if (fa->texinfo->flags & SURF_FLOWING)
 	{
-		GL3_UseProgram(gl3state.si3DlmFlow.shaderProgram);
-		UpdateLMscales(lmScales, &gl3state.si3DlmFlow);
-		GL3_DrawGLFlowingPoly(fa);
+		GL3_SetDrawCmdShader(&drawCmd, &gl3state.si3DlmFlow);
+		GL3_DrawGLFlowingPoly(fa, drawCmd);
 	}
 	else
 	{
-		GL3_UseProgram(gl3state.si3Dlm.shaderProgram);
-		UpdateLMscales(lmScales, &gl3state.si3Dlm);
-		GL3_DrawGLPoly(fa);
+		GL3_SetDrawCmdShader(&drawCmd, &gl3state.si3Dlm);
+		GL3_DrawGLPoly(fa, drawCmd);
 	}
 
 	// Note: lightmap chains are gone, lightmaps are rendered together with normal texture in one pass
@@ -343,7 +306,7 @@ RenderBrushPoly(entity_t *currententity, msurface_t *fa)
 
 /*
  * Draw water surfaces and windows.
- * The BSP tree is waled front to back, so unwinding the chain
+ * The BSP tree is walked front to back, so unwinding the chain
  * of alpha_surfaces will draw back to front, giving proper ordering.
  */
 void
@@ -352,50 +315,41 @@ GL3_DrawAlphaSurfaces(void)
 	msurface_t *s;
 
 	/* go back to the world matrix */
-	gl3state.uni3DData.transModelMat4 = gl3_identityMat4;
-	GL3_UpdateUBO3D();
-
-	glEnable(GL_BLEND);
+	gl3drawCmd_t drawCmd = GL3_CreateDrawCmd();
+	drawCmd.flags |= DCFlag_Blend;
 
 	for (s = gl3_alpha_surfaces; s != NULL; s = s->texturechain)
 	{
-		GL3_Bind(s->texinfo->image->texnum);
+		drawCmd.texnum = s->texinfo->image->texnum;
 		c_brush_polys++;
-		float alpha = 1.0f;
 		if (s->texinfo->flags & SURF_TRANS33)
 		{
-			alpha = 0.333f;
+			drawCmd.alpha = 0.333f;
 		}
 		else if (s->texinfo->flags & SURF_TRANS66)
 		{
-			alpha = 0.666f;
+			drawCmd.alpha = 0.666f;
 		}
-		if(alpha != gl3state.uni3DData.alpha)
+		else
 		{
-			gl3state.uni3DData.alpha = alpha;
-			GL3_UpdateUBO3D();
+			drawCmd.alpha = 1.0f;
 		}
 
 		if (s->flags & SURF_DRAWTURB)
 		{
-			GL3_EmitWaterPolys(s);
+			GL3_EmitWaterPolys(s, drawCmd);
 		}
 		else if (s->texinfo->flags & SURF_FLOWING)
 		{
-			GL3_UseProgram(gl3state.si3DtransFlow.shaderProgram);
-			GL3_DrawGLFlowingPoly(s);
+			GL3_SetDrawCmdShader(&drawCmd, &gl3state.si3DtransFlow);
+			GL3_DrawGLFlowingPoly(s, drawCmd);
 		}
 		else
 		{
-			GL3_UseProgram(gl3state.si3Dtrans.shaderProgram);
-			GL3_DrawGLPoly(s);
+			GL3_SetDrawCmdShader(&drawCmd, &gl3state.si3Dtrans);
+			GL3_DrawGLPoly(s, drawCmd);
 		}
 	}
-
-	gl3state.uni3DData.alpha = 1.0f;
-	GL3_UpdateUBO3D();
-
-	glDisable(GL_BLEND);
 
 	gl3_alpha_surfaces = NULL;
 }
@@ -408,6 +362,8 @@ DrawTextureChains(entity_t *currententity)
 	gl3image_t *image;
 
 	c_visible_textures = 0;
+
+	gl3drawCmd_t drawCmd = GL3_CreateDrawCmd();
 
 	for (i = 0, image = gl3textures; i < numgl3textures; i++, image++)
 	{
@@ -428,7 +384,7 @@ DrawTextureChains(entity_t *currententity)
 		for ( ; s; s = s->texturechain)
 		{
 			SetLightFlags(s);
-			RenderBrushPoly(currententity, s);
+			RenderBrushPoly(currententity, s, drawCmd);
 		}
 
 		image->texturechain = NULL;
@@ -438,47 +394,37 @@ DrawTextureChains(entity_t *currententity)
 }
 
 static void
-RenderLightmappedPoly(entity_t *currententity, msurface_t *surf)
+RenderLightmappedPoly(entity_t *currententity, msurface_t *surf, gl3drawCmd_t drawCmd)
 {
-	int map;
 	gl3image_t *image = R_TextureAnimation(currententity, surf->texinfo);
 
-	hmm_vec4 lmScales[MAX_LIGHTMAPS_PER_SURFACE] = {0};
-	lmScales[0] = HMM_Vec4(1.0f, 1.0f, 1.0f, 1.0f);
 
 	assert((surf->texinfo->flags & (SURF_SKY | SURF_TRANS33 | SURF_TRANS66 | SURF_WARP)) == 0
 			&& "RenderLightMappedPoly mustn't be called with transparent, sky or warping surfaces!");
 
 	// Any dynamic lights on this surface?
-	for (map = 0; map < MAX_LIGHTMAPS_PER_SURFACE && surf->styles[map] != 255; map++)
-	{
-		lmScales[map].R = r_newrefdef.lightstyles[surf->styles[map]].rgb[0];
-		lmScales[map].G = r_newrefdef.lightstyles[surf->styles[map]].rgb[1];
-		lmScales[map].B = r_newrefdef.lightstyles[surf->styles[map]].rgb[2];
-		lmScales[map].A = 1.0f;
-	}
+	memcpy(drawCmd.styles, surf->styles, sizeof(surf->styles));
+	drawCmd.flags |= DCFlag_UseLmStyles;
 
 	c_brush_polys++;
 
-	GL3_Bind(image->texnum);
-	GL3_BindLightmap(surf->lightmaptexturenum);
+	drawCmd.texnum = image->texnum;
+	drawCmd.lmtexnum = surf->lightmaptexturenum;
 
 	if (surf->texinfo->flags & SURF_FLOWING)
 	{
-		GL3_UseProgram(gl3state.si3DlmFlow.shaderProgram);
-		UpdateLMscales(lmScales, &gl3state.si3DlmFlow);
-		GL3_DrawGLFlowingPoly(surf);
+		GL3_SetDrawCmdShader(&drawCmd, &gl3state.si3DlmFlow);
+		GL3_DrawGLFlowingPoly(surf, drawCmd);
 	}
 	else
 	{
-		GL3_UseProgram(gl3state.si3Dlm.shaderProgram);
-		UpdateLMscales(lmScales, &gl3state.si3Dlm);
-		GL3_DrawGLPoly(surf);
+		GL3_SetDrawCmdShader(&drawCmd, &gl3state.si3Dlm);
+		GL3_DrawGLPoly(surf, drawCmd);
 	}
 }
 
 static void
-DrawInlineBModel(entity_t *currententity, gl3model_t *currentmodel)
+DrawInlineBModel(entity_t *currententity, gl3model_t *currentmodel, gl3drawCmd_t drawCmd)
 {
 	int i, k;
 	cplane_t *pplane;
@@ -499,7 +445,7 @@ DrawInlineBModel(entity_t *currententity, gl3model_t *currentmodel)
 
 	if (currententity->flags & RF_TRANSLUCENT)
 	{
-		glEnable(GL_BLEND);
+		drawCmd.flags |= DCFlag_Blend;
 		/* TODO: should I care about the 0.25 part? we'll just set alpha to 0.33 or 0.66 depending on surface flag..
 		glColor4f(1, 1, 1, 0.25);
 		R_TexEnv(GL_MODULATE);
@@ -527,19 +473,15 @@ DrawInlineBModel(entity_t *currententity, gl3model_t *currentmodel)
 			else if(!(psurf->flags & SURF_DRAWTURB))
 			{
 				SetAllLightFlags(psurf);
-				RenderLightmappedPoly(currententity, psurf);
+				RenderLightmappedPoly(currententity, psurf, drawCmd);
 			}
 			else
 			{
-				RenderBrushPoly(currententity, psurf);
+				RenderBrushPoly(currententity, psurf, drawCmd);
 			}
 		}
 	}
 
-	if (currententity->flags & RF_TRANSLUCENT)
-	{
-		glDisable(GL_BLEND);
-	}
 }
 
 void
@@ -554,7 +496,10 @@ GL3_DrawBrushModel(entity_t *e, gl3model_t *currentmodel)
 		return;
 	}
 
-	gl3state.currenttexture = -1;
+	gl3drawCmd_t drawCmd = GL3_CreateDrawCmd();
+	if(e->flags & RF_TRANSLUCENT)
+		drawCmd.flags |= DCFlag_DisableDepthMask;
+
 
 	if (e->angles[0] || e->angles[1] || e->angles[2])
 	{
@@ -580,7 +525,7 @@ GL3_DrawBrushModel(entity_t *e, gl3model_t *currentmodel)
 
 	if (gl_zfix->value)
 	{
-		glEnable(GL_POLYGON_OFFSET_FILL);
+		drawCmd.flags |= DCFlag_PolyOffsetFill;
 	}
 
 	VectorSubtract(r_newrefdef.vieworg, e->origin, modelorg);
@@ -597,27 +542,18 @@ GL3_DrawBrushModel(entity_t *e, gl3model_t *currentmodel)
 		modelorg[2] = DotProduct(temp, up);
 	}
 
-
-
 	//glPushMatrix();
-	hmm_mat4 oldMat = gl3state.uni3DData.transModelMat4;
 
 	e->angles[0] = -e->angles[0];
 	e->angles[2] = -e->angles[2];
-	GL3_RotateForEntity(e);
+	GL3_RotateForEntity(e, &drawCmd);
 	e->angles[0] = -e->angles[0];
 	e->angles[2] = -e->angles[2];
 
-	DrawInlineBModel(e, currentmodel);
+	DrawInlineBModel(e, currentmodel, drawCmd);
 
 	// glPopMatrix();
-	gl3state.uni3DData.transModelMat4 = oldMat;
-	GL3_UpdateUBO3D();
 
-	if (gl_zfix->value)
-	{
-		glDisable(GL_POLYGON_OFFSET_FILL);
-	}
 }
 
 static void
@@ -785,6 +721,9 @@ GL3_DrawWorld(void)
 	DrawTextureChains(&ent);
 	GL3_DrawSkyBox();
 	DrawTriangleOutlines();
+
+	// make sure all this is drawed
+	GL3_Draw3DBatchesNow();
 }
 
 /*
