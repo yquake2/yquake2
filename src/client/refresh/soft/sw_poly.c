@@ -768,7 +768,7 @@ R_PolygonScanLeftEdge (espan_t *s_polygon_spans)
 	int		i, lmaxindex;
 	emitpoint_t	*pvert, *pnext;
 	espan_t		*pspan;
-	float		du, dv, vtop, u_step;
+	float		vtop, vvert;
 
 	pspan = s_polygon_spans;
 	i = s_minindex;
@@ -779,27 +779,51 @@ R_PolygonScanLeftEdge (espan_t *s_polygon_spans)
 	if (lmaxindex == 0)
 		lmaxindex = r_polydesc.nump;
 
-	vtop = ceil (r_polydesc.pverts[i].v);
+	vvert = r_polydesc.pverts[i].v;
+	if (vvert < r_refdef.fvrecty_adj)
+		vvert = r_refdef.fvrecty_adj;
+	if (vvert > r_refdef.fvrectbottom_adj)
+		vvert = r_refdef.fvrectbottom_adj;
+
+	vtop = ceil (vvert);
 
 	do
 	{
-		float vbottom;
+		float vbottom, vnext;
 
 		pvert = &r_polydesc.pverts[i];
 		pnext = pvert - 1;
+		vnext = pnext->v;
+		if (vnext < r_refdef.fvrecty_adj)
+			vnext = r_refdef.fvrecty_adj;
+		if (vnext > r_refdef.fvrectbottom_adj)
+			vnext = r_refdef.fvrectbottom_adj;
 
-		vbottom = ceil (pnext->v);
+		vbottom = ceil (vnext);
 
 		if (vtop < vbottom)
 		{
 			int v, u, istep, itop, ibottom;
+			float du, dv, u_step, uvert, unext;
 
-			du = pnext->u - pvert->u;
-			dv = pnext->v - pvert->v;
+			uvert = pvert->u;
+			if (uvert < r_refdef.fvrectx_adj)
+				uvert = r_refdef.fvrectx_adj;
+			if (uvert > r_refdef.fvrectright_adj)
+				uvert = r_refdef.fvrectright_adj;
+
+			unext = pnext->u;
+			if (unext < r_refdef.fvrectx_adj)
+				unext = r_refdef.fvrectx_adj;
+			if (unext > r_refdef.fvrectright_adj)
+				unext = r_refdef.fvrectright_adj;
+
+			du = unext - uvert;
+			dv = vnext - vvert;
 
 			u_step = (du * SHIFT16XYZ_MULT) / dv;
 			// adjust u to ceil the integer portion
-			u = (int)((pvert->u * SHIFT16XYZ_MULT) + u_step * (vtop - pvert->v)) +
+			u = (int)((uvert * SHIFT16XYZ_MULT) + u_step * (vtop - vvert)) +
 				(SHIFT16XYZ_MULT - 1);
 			itop = (int)vtop;
 			ibottom = (int)vbottom;
@@ -815,6 +839,7 @@ R_PolygonScanLeftEdge (espan_t *s_polygon_spans)
 		}
 
 		vtop = vbottom;
+		vvert = vnext;
 
 		i--;
 		if (i == 0)
