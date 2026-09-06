@@ -129,6 +129,7 @@ static cvar_t *m_filter;
 static cvar_t *windowed_pauseonfocuslost;
 static cvar_t *windowed_mouse;
 static cvar_t *haptic_feedback_filter;
+static cvar_t *s_muteonfocusloss;
 
 // ----
 
@@ -966,37 +967,43 @@ IN_Update(void)
 			case SDL_EVENT_WINDOW_FOCUS_LOST:
 			{
 				Key_MarkAllUp();
-				S_Activate(false);
 
 				if (windowed_pauseonfocuslost->value != 1)
 				{
 					Cvar_SetValue("paused", 1);
 				}
 
-				/* pause music */
 				if (Cvar_VariableValue("ogg_pausewithgame") == 1 &&
 						OGG_Status() == PLAY && cl.attractloop == false)
 				{
 					Cbuf_AddText("ogg toggle\n");
+				}
+
+				if (s_muteonfocusloss->value == 1)
+				{
+					S_Activate(false);
 				}
 				break;
 			}
 
 			case SDL_EVENT_WINDOW_FOCUS_GAINED:
 			{
-				S_Activate(true);
 
 				if (windowed_pauseonfocuslost->value == 2)
 				{
 					Cvar_SetValue("paused", 0);
 				}
 
-				/* play music */
 				if (Cvar_VariableValue("ogg_pausewithgame") == 1 &&
 						OGG_Status() == PAUSE && cl.attractloop == false &&
 						cl_paused->value == 0)
 				{
 					Cbuf_AddText("ogg toggle\n");
+				}
+
+				if (s_muteonfocusloss->value == 1)
+				{
+					S_Activate(true);
 				}
 				break;
 			}
@@ -2894,6 +2901,8 @@ IN_Init(void)
 
 	windowed_pauseonfocuslost = Cvar_Get("vid_pauseonfocuslost", "0", CVAR_USERINFO | CVAR_ARCHIVE);
 	windowed_mouse = Cvar_Get("windowed_mouse", "1", CVAR_USERINFO | CVAR_ARCHIVE);
+
+	s_muteonfocusloss = Cvar_Get("s_muteonfocusloss", "1", CVAR_ARCHIVE);
 
 	Cmd_AddCommand("+mlook", IN_MLookDown);
 	Cmd_AddCommand("-mlook", IN_MLookUp);

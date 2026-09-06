@@ -344,6 +344,9 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
   0.  Setting this cvar to `1` disables this behavior, the music keeps
   playing.
 
+* **ogg_pausewithgame**: When `1` the background is paused when the game
+  is paused. Defaults to `0`.
+
 * **ogg_shuffle**: Ogg/Vorbis playback mode. Supported modes are:
   - `0`: Loop the current track (the default).
   - `1`: Play the current track once, then stop.
@@ -352,6 +355,10 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
 
 * **s_doppler**: If set to `1` doppler effects are enabled. This is only
   supported by the OpenAL sound backend.
+
+* **s_muteonfocusloss**: If set to `1` (the default) all sounds are
+  muted when the game looses focus. Sound are unmuted when the game
+  regains focus.
 
 * **s_openal**: Use OpenAL for sound playback. This is enabled by
   default. OpenAL gives a huge quality boost over the classic sound
