@@ -272,6 +272,7 @@ static mframe_t floater_frames_activate[] = {
 	{ai_move, 0, NULL},
 	{ai_move, 0, NULL},
 	{ai_move, 0, NULL},
+	{ai_move, 0, NULL},
 	{ai_move, 0, NULL}
 };
 
