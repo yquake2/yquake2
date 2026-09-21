@@ -185,6 +185,6 @@ jobs:
         buildConfiguration: RelWithDebInfo
         ruleset: NativeRecommendedRules.ruleset
     - name: Upload SARIF to GitHub Code Scanning
-      uses: github/codeql-action/upload-sarif@v4.38.0
+      uses: github/codeql-action/upload-sarif@v4.38.1
       with:
         sarif_file: ${{ steps.run-analysis.outputs.sarif }}
