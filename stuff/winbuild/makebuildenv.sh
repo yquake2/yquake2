@@ -5,6 +5,7 @@
 CURLVER="8.21.0"
 OPENALSOFTVER="1.25.2"
 SDL3VER="3.4.14"
+VULKANSDKVER="1.4.357.0"
 W64DEVKITVER="2.9.1"
 
 # ----
@@ -82,6 +83,14 @@ fi
 tar -xf $WRKDIR/download/SDL3.tar.gz -C $WRKDIR/buildenv/dep
 mv $WRKDIR/buildenv/dep/SDL3-$SDL3VER $WRKDIR/buildenv/dep/SDL3
 
+# Vulkan-SDK.
+curl --follow -o $WRKDIR/download/vulkan-sdk.tar.gz https://github.com/KhronosGroup/Vulkan-Headers/archive/refs/tags/vulkan-sdk-$VULKANSDKVER.tar.gz
+if [ $? -ne 0 ] ; then
+	error "Couldn't download Vulkan-SDK"
+fi
+tar -xvf $WRKDIR/download/vulkan-sdk.tar.gz -C $WRKDIR/buildenv/dep
+mv $WRKDIR/buildenv/dep/Vulkan-Headers-vulkan-sdk-$VULKANSDKVER $WRKDIR/buildenv/dep/vulkan-sdk
+
 # --
 
 # Set home dir.
@@ -91,7 +100,7 @@ echo "home = ..\\home" >> $WRKDIR/buildenv/w64devkit-x64/w64devkit.ini
 # Create bashrc.
 cat > $WRKDIR/buildenv/home/.profile << 'EOL'
 export PS1="\w\$ "
-export CPATH="$HOME/../dep/curl/include;$HOME/../dep/openal-soft/include"
+export CPATH="$HOME/../dep/curl/include;$HOME/../dep/openal-soft/include;$HOME/../dep/vulkan-sdk/include"
 export PKG_CONFIG_PATH="$HOME/../dep/SDL3/$(uname -m)-w64-mingw32/lib/pkgconfig"
 EOL
 
