@@ -747,20 +747,17 @@ GetModelName(const char *cs, char *model, size_t n)
 }
 
 static sfx_t *
-S_RegisterSexedSound(const entity_state_t *ent, const char *base)
+S_RegisterSexedSound(int entnum, const char *base)
 {
 	sfx_t *sfx;
 	char model[MAX_QPATH];
 	char sexedFilename[MAX_QPATH];
 	char *cs;
-	int n;
 
 	/* determine what model the client is using */
-	n = ent->number;
-
-	if (n > 0 && n <= CL_MaxClients())
+	if (entnum > 0 && entnum <= CL_MaxClients())
 	{
-		cs = cl.configstrings[CS_PLAYERSKINS + n - 1];
+		cs = cl.configstrings[CS_PLAYERSKINS + entnum - 1];
 	}
 	else
 	{
@@ -1121,7 +1118,7 @@ S_StartSound(vec3_t origin, int entnum, int entchannel, sfx_t *sfx,
 
 	if (sfx->name[0] == '*')
 	{
-		sfx = S_RegisterSexedSound(&cl_entities[entnum].current, sfx->name);
+		sfx = S_RegisterSexedSound(entnum, sfx->name);
 
 		if (!sfx)
 		{
