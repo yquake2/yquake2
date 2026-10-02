@@ -764,9 +764,6 @@ S_RegisterSexedSound(const entity_state_t *ent, const char *base)
 	}
 	else
 	{
-		Com_Printf("%s: non-player entity %i playing sexed sound: %s\n",
-			__func__, n, base);
-
 		cs = NULL;
 	}
 
