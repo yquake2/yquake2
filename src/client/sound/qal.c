@@ -21,7 +21,7 @@
  * =======================================================================
  *
  * Low level, platform depended "qal" API implementation. This files
- * provides functions to load, initialize, shutdown und unload the
+ * provides functions to load, initialize, shutdown and unload the
  * OpenAL library and connects the "qal" funtion pointers to the
  * OpenAL functions. It shopuld work on Windows and unixoid Systems,
  * other platforms may need an own implementation. This source file
@@ -159,7 +159,7 @@ LPALDELETEEFFECTS qalDeleteEffects;
 
 /*
  * Gives information over the OpenAL
- * implementation and it's state
+ * implementation and its state
  */
 void QAL_SoundInfo()
 {

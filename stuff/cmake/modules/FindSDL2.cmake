@@ -127,7 +127,7 @@ IF(NOT APPLE)
 ENDIF(NOT APPLE)
 
 # MinGW needs an additional link flag, -mwindows
-# It's total link flags should look like -lmingw32 -lSDL2main -lSDL2 -mwindows
+# Its total link flags should look like -lmingw32 -lSDL2main -lSDL2 -mwindows
 IF(MINGW)
 	SET(MINGW32_LIBRARY mingw32 "-mwindows" CACHE STRING "mwindows for MinGW")
 ENDIF(MINGW)
