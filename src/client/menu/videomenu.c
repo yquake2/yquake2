@@ -99,61 +99,35 @@ typedef struct
 	const char *cvarstr;
 } renderer;
 
-renderer rendererlist[MAXRENDERERS];
-int numrenderer;
+static renderer rendererlist[MAXRENDERERS];
+static int numrenderer;
 
 static void
 Renderer_FillRenderdef(void)
 {
+	static const renderer fulllist[] = {
+		{"[OpenGL 1.4]", "gl1"},
+		{"[OpenGL ES1]", "gles1"},
+		{"[OpenGL 3.2]", "gl3"},
+		{"[OpenGL ES3]", "gles3"},
+		{"[OpenGL 4.6]", "gl4"},
+		{"[Vulkan    ]", "vk"},
+		{"[Software  ]", "soft"},
+		{NULL, NULL}
+	};
+	int idx = 0;
+
 	numrenderer = -1;
 
-	if (VID_HasRenderer("gl1"))
+	while (fulllist[idx].cvarstr)
 	{
-		numrenderer++;
-		rendererlist[numrenderer].boxstr = "[OpenGL 1.4]";
-		rendererlist[numrenderer].cvarstr = "gl1";
-	}
-
-	if (VID_HasRenderer("gles1"))
-	{
-		numrenderer++;
-		rendererlist[numrenderer].boxstr = "[OpenGL ES1]";
-		rendererlist[numrenderer].cvarstr = "gles1";
-	}
-
-	if (VID_HasRenderer("gl3"))
-	{
-		numrenderer++;
-		rendererlist[numrenderer].boxstr = "[OpenGL 3.2]";
-		rendererlist[numrenderer].cvarstr = "gl3";
-	}
-
-	if (VID_HasRenderer("gles3"))
-	{
-		numrenderer++;
-		rendererlist[numrenderer].boxstr = "[OpenGL ES3]";
-		rendererlist[numrenderer].cvarstr = "gles3";
-	}
-
-	if (VID_HasRenderer("gl4"))
-	{
-		numrenderer++;
-		rendererlist[numrenderer].boxstr = "[OpenGL 4.6]";
-		rendererlist[numrenderer].cvarstr = "gl4";
-	}
-
-	if (VID_HasRenderer("vk"))
-	{
-		numrenderer++;
-		rendererlist[numrenderer].boxstr = "[Vulkan    ]";
-		rendererlist[numrenderer].cvarstr = "vk";
-	}
-
-	if (VID_HasRenderer("soft"))
-	{
-		numrenderer++;
-		rendererlist[numrenderer].boxstr = "[Software  ]";
-		rendererlist[numrenderer].cvarstr = "soft";
+		if (VID_HasRenderer(fulllist[idx].cvarstr))
+		{
+			numrenderer++;
+			rendererlist[numrenderer].boxstr  = fulllist[idx].boxstr;
+			rendererlist[numrenderer].cvarstr = fulllist[idx].cvarstr;
+		}
+		idx++;
 	}
 
 	// The custom renderer. Must be known to the menu,
@@ -188,7 +162,7 @@ typedef struct
 } mode;
 
 // Sorted by string.
-mode modes[] = {
+static mode modes[] = {
 	{ 0, "[320 240   ]" },
 	{ 1, "[400 300   ]" },
 	{ 2, "[512 384   ]" },

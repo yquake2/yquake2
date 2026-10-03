@@ -504,6 +504,16 @@ VID_LoadRenderer(void)
 void
 VID_CheckChanges(void)
 {
+	static const char *r_order[] = {
+		"gl3",
+		"gles3",
+		"gl1",
+		"gles1",
+		"soft"
+	};
+
+#define R_ORDER_LEN	ARRLEN(r_order)
+
 	// Hack around renderers that still abuse vid_fullscreen
 	// to communicate restart requests to the client.
 	ref_restart_t rs;
@@ -526,7 +536,7 @@ VID_CheckChanges(void)
 	{
 		// Stop sound, because the clients blocks while
 		// we're reloading the renderer. The sound system
-		// would screw up it's internal timings.
+		// would screw up its internal timings.
 		S_StopAllSounds();
 
 		// Reset the client side of the renderer state.
@@ -539,41 +549,37 @@ VID_CheckChanges(void)
 		// Mkay, let's try our luck.
 		while (!VID_LoadRenderer())
 		{
-			// We try: custom -> gl3 -> gles3 -> gl1 -> gles1 -> soft.
-			if ((strcmp(vid_renderer->string, "gl3") != 0) &&
-				(strcmp(vid_renderer->string, "gles3") != 0) &&
-				(strcmp(vid_renderer->string, "gl1") != 0) &&
-				(strcmp(vid_renderer->string, "gles1") != 0) &&
-				(strcmp(vid_renderer->string, "soft") != 0))
+			qboolean r_selected[R_ORDER_LEN];
+			int i, sum = 0;
+
+			for (i = 0; i < R_ORDER_LEN; i++)
 			{
-				Com_Printf("Retrying with gl3...\n");
-				Cvar_Set("vid_renderer", "gl3");
+				r_selected[i] = (strcmp(vid_renderer->string, r_order[i]) == 0);
+				sum += (int)r_selected[i];
 			}
-			else if (strcmp(vid_renderer->string, "gl3") == 0)
+
+			if (sum == 0)	// custom - unrecognized renderer
 			{
-				Com_Printf("Retrying with gles3...\n");
-				Cvar_Set("vid_renderer", "gles3");
+				i = -1;	// use first in list
+				goto change_renderer;
 			}
-			else if (strcmp(vid_renderer->string, "gles3") == 0)
+
+			for (i = 0; i < R_ORDER_LEN - 1; i++)	// trying 1 by 1, following order
 			{
-				Com_Printf("Retrying with gl1...\n");
-				Cvar_Set("vid_renderer", "gl1");
+				if (r_selected[i])
+				{
+					goto change_renderer;
+				}
 			}
-			else if (strcmp(vid_renderer->string, "gl1") == 0)
+
+			if (r_selected[i])	// all tested, none usable
 			{
-				Com_Printf("Retrying with gles1...\n");
-				Cvar_Set("vid_renderer", "gles1");
-			}
-			else if (strcmp(vid_renderer->string, "gles1") == 0)
-			{
-				Com_Printf("Retrying with soft...\n");
-				Cvar_Set("vid_renderer", "soft");
-			}
-			else if (strcmp(vid_renderer->string, "soft") == 0)
-			{
-				// Sorry, no usable renderer found.
 				Com_Error(ERR_FATAL, "No usable renderer found!\n");
 			}
+
+change_renderer:
+			Com_Printf("Retrying with %s...\n", r_order[i + 1]);
+			Cvar_Set("vid_renderer", r_order[i + 1]);
 		}
 
 		// Unblock the client.
@@ -584,6 +590,9 @@ VID_CheckChanges(void)
 	{
 		cl.refresh_prepped = false;
 	}
+
+#undef R_ORDER_LEN
+
 }
 
 /*
