@@ -728,19 +728,17 @@ CL_ParseTEnt(void)
 			{
 				CL_SmokeAndFlash(pos);
 				/* impact sound */
-				cnt = randk() & 15;
-
-				if (cnt == 1)
+				switch (randk() & 15)
 				{
-					S_StartSound(pos, 0, 0, cl_sfx_ric1, 1, ATTN_NORM, 0);
-				}
-				else if (cnt == 2)
-				{
-					S_StartSound(pos, 0, 0, cl_sfx_ric2, 1, ATTN_NORM, 0);
-				}
-				else if (cnt == 3)
-				{
-					S_StartSound(pos, 0, 0, cl_sfx_ric3, 1, ATTN_NORM, 0);
+					case 1:
+						S_StartSound(pos, 0, 0, cl_sfx_ric1, 1, ATTN_NORM, 0);
+						break;
+					case 2:
+						S_StartSound(pos, 0, 0, cl_sfx_ric2, 1, ATTN_NORM, 0);
+						break;
+					case 3:
+						S_StartSound(pos, 0, 0, cl_sfx_ric3, 1, ATTN_NORM, 0);
+						break;
 				}
 			}
 
@@ -821,19 +819,16 @@ CL_ParseTEnt(void)
 
 			if (r == SPLASH_SPARKS)
 			{
-				r = randk() & 3;
-
-				if (r == 0)
+				switch (randk() & 3)
 				{
-					S_StartSound(pos, 0, 0, cl_sfx_spark5, 1, ATTN_STATIC, 0);
-				}
-				else if (r == 1)
-				{
-					S_StartSound(pos, 0, 0, cl_sfx_spark6, 1, ATTN_STATIC, 0);
-				}
-				else
-				{
-					S_StartSound(pos, 0, 0, cl_sfx_spark7, 1, ATTN_STATIC, 0);
+					case 0:
+						S_StartSound(pos, 0, 0, cl_sfx_spark5, 1, ATTN_STATIC, 0);
+						break;
+					case 1:
+						S_StartSound(pos, 0, 0, cl_sfx_spark6, 1, ATTN_STATIC, 0);
+						break;
+					default:
+						S_StartSound(pos, 0, 0, cl_sfx_spark7, 1, ATTN_STATIC, 0);
 				}
 			}
 
@@ -928,35 +923,12 @@ CL_ParseTEnt(void)
 
 			break;
 
-		case TE_PLASMA_EXPLOSION:
-			MSG_ReadPos(&net_message, pos);
-			ex = CL_AllocExplosion();
-			VectorCopy(pos, ex->ent.origin);
-			ex->type = ex_poly;
-			ex->ent.flags = RF_FULLBRIGHT | RF_NOSHADOW;
-			ex->start = cl.frame.servertime - 100.0f;
-			ex->light = 350;
-			ex->lightcolor[0] = 1.0;
-			ex->lightcolor[1] = 0.5;
-			ex->lightcolor[2] = 0.5;
-			ex->ent.angles[1] = (float)(randk() % 360);
-			ex->ent.model = cl_mod_explo4;
-
-			if (frandk() < 0.5)
-			{
-				ex->baseframe = 15;
-			}
-
-			ex->frames = 15;
-			EXPLOSION_PARTICLES(pos);
-			S_StartSound(pos, 0, 0, cl_sfx_rockexp, 1, ATTN_NORM, 0);
-			break;
-
 		case TE_EXPLOSION1_BIG:
 		case TE_EXPLOSION1_NP:
 		case TE_EXPLOSION1:
 		case TE_ROCKET_EXPLOSION:
 		case TE_ROCKET_EXPLOSION_WATER:
+		case TE_PLASMA_EXPLOSION:
 			MSG_ReadPos(&net_message, pos);
 			ex = CL_AllocExplosion();
 			VectorCopy(pos, ex->ent.origin);

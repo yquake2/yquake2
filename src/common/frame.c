@@ -207,7 +207,7 @@ Qcommon_Mainloop(void)
 
 		newtime = Sys_Microseconds();
 
-		// Save global time for network- und input code.
+		// Save global time for network- and input code.
 		curtime = (int)(newtime / 1000ll);
 
 		Qcommon_Frame(newtime - oldtime);

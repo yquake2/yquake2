@@ -1800,7 +1800,7 @@ static void
 FS_BuildGenericSearchPath(void)
 {
 	// We may not use the va() function from shared.c
-	// since it's buffersize is 1024 while most OS have
+	// since its buffersize is 1024 while most OS have
 	// a maximum path size of 4096...
 	char path[MAX_OSPATH];
 
@@ -1844,7 +1844,7 @@ void
 FS_BuildGameSpecificSearchPath(const char *dir)
 {
 	// We may not use the va() function from shared.c
-	// since it's buffersize is 1024 while most OS have
+	// since its buffersize is 1024 while most OS have
 	// a maximum path size of 4096...
 	char path[MAX_OSPATH] = {0};
 	int i;

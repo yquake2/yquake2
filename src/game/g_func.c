@@ -583,14 +583,14 @@ plat_blocked(edict_t *self, edict_t *other)
 
 	if (!(other->svflags & SVF_MONSTER) && (!other->client))
 	{
-		/* give it a chance to go away on it's own terms (like gibs) */
+		/* give it a chance to go away on its own terms (like gibs) */
 		T_Damage(other, self, self, vec3_origin, other->s.origin,
 				vec3_origin, 100000, 1, 0, MOD_CRUSH);
 
 		/* if it's still there, nuke it */
 		if (other->inuse)
 		{
-			/* Hack for entity without it's origin near the model */
+			/* Hack for entity without its origin near the model */
 			VectorMA (other->absmin, 0.5, other->size, other->s.origin);
 			BecomeExplosion1(other);
 		}

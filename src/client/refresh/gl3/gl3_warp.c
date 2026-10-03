@@ -20,7 +20,7 @@
  *
  * =======================================================================
  *
- * Warps. Used on water surfaces und for skybox rotation.
+ * Warps. Used on water surfaces and for skybox rotation.
  *
  * =======================================================================
  */
