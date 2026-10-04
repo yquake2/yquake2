@@ -527,6 +527,10 @@ CL_RequestNextDownload(void)
 	CL_RegisterSounds();
 	CL_PrepRefresh();
 
+	/* ensure ClientUserinfoChanged is called on reconnect
+	   and player skin config string gets broadcasted */
+	userinfo_modified = true;
+
 	MSG_WriteByte(&cls.netchan.message, clc_stringcmd);
 	MSG_WriteString(&cls.netchan.message, va("begin %i\n", precache_spawncount));
 	cls.forcePacket = true;
