@@ -313,7 +313,7 @@ SP_trigger_relay(edict_t *self)
 
 /*
  * QUAKED trigger_key (.5 .5 .5) (-8 -8 -8) (8 8 8)
- * A relay trigger that only fires it's targets if player
+ * A relay trigger that only fires its targets if player
  * has the proper key. Use "item" to specify the required key,
  * for example "key_data_cd"
  */

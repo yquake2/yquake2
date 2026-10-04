@@ -32,7 +32,7 @@ have their own repositories:
 
 * [The Reckoning](https://github.com/yquake2/xatrix)
 * [Ground Zero](https://github.com/yquake2/rogue)
-* [Three Waves Capture The Flag](https://github.com/yquake2/ctf)
+* [ThreeWave's Capture The Flag](https://github.com/yquake2/ctf)
 
 Yamagi Quake II Remaster is a project providing optional support for the
 assets of Quake II Remaster by Nightdive Studios and has a less

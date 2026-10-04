@@ -47,7 +47,7 @@ else() # GCC/clang/mingw
 #  -fvisibility=hidden	-> Force defaultsymbol visibility to hidden
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -fno-strict-aliasing -fwrapv -fvisibility=hidden")
 
-# Use -O2 as maximum optimization level. -O3 has it's problems with yquake2.
+# Use -O2 as maximum optimization level. -O3 has its problems with yquake2.
 string(REPLACE "-O3" "-O2" CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE}")
 endif() # MSVC'S else-case
 

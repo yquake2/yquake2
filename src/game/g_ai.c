@@ -174,7 +174,7 @@ ai_stand(edict_t *self, float dist)
 }
 
 /*
- * The monster is walking it's beat
+ * The monster is walking its beat
  */
 void
 ai_walk(edict_t *self, float dist)
@@ -270,7 +270,7 @@ ai_turn(edict_t *self, float dist)
  *
  * .movetarget
  * The next path spot to walk toward.  If .enemy, ignore .movetarget.
- * When an enemy is killed, the monster will try to return to it's path.
+ * When an enemy is killed, the monster will try to return to its path.
  *
  * .hunt_time
  * Set to time + something when the player is in sight, but movement straight for
@@ -283,7 +283,7 @@ ai_turn(edict_t *self, float dist)
  * this will be the exact line towards the enemy.
  *
  * .pausetime
- * A monster will leave it's stand state and head towards it's .movetarget when
+ * A monster will leave its stand state and head towards its .movetarget when
  * time > .pausetime.
  */
 

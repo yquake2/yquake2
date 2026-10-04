@@ -450,7 +450,7 @@ GetFunctionByAddress(const byte *adr, const functionList_t *fnl)
 /*
  * Helper function to get the
  * pointer to a function by
- * it's human readable name.
+ * its human readable name.
  * Called by WriteField1 and
  * WriteField2.
  */

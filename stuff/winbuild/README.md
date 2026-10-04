@@ -1,6 +1,6 @@
 # Windows Build Scripts
 
-These scripts are used to build Yamagi Quake II and it's addons under
+These scripts are used to build Yamagi Quake II and its addons under
 Windows. They rely on mingw-w64, at least Yamagi Quake II can also be
 build with Visual Studio. At this time the addons don't support Visual
 Studio.

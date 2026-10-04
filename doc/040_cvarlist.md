@@ -502,7 +502,7 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
   has 59.95hz.
 
 * **vid_gamma**: The value used for gamma correction. Higher values look
-  brighter. The OpenGL 3.2 OpenGL ES3 and Vulkan renderers apply this to
+  brighter. The OpenGL 3.2, OpenGL ES3 and Vulkan renderers apply this to
   the window in realtime via shaders (on all platforms). When the game
   is built against SDL2, the OpenGL 1.4 renderer uses "hardware gamma"
   when available, increasing the brightness of the whole screen. When
@@ -587,7 +587,7 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
 
 * **gl1_minlight**: Sets the minimum light level on screen. Increasing
   this illuminates darker scenes, at the expense of the atmosphere.
-  Posible values go from `0` (default, show the full spectrum of light
+  Possible values go from `0` (default, show the full spectrum of light
   & dark) to `255` (equal to `r_fullbright 1`). Requires `vid_restart`.
 
 * **gl1_multitexture**: Enables (`1`, default) the blending of color and
@@ -837,10 +837,10 @@ like.
 * **inc <cvar> [val]**: Increments the given cvar by `1` or the optional
   value `val`.
 
-* **reset <cvar>**: Reset the given cvar to it's default value.
+* **reset <cvar>**: Reset the given cvar to its default value.
 
 * **resetall**: Reset all known cvar to their default values.
 
 * **toggle <cvar> [val0] [val1]**: Toggle the given cvar between `0` and
-  `1`. If the optional arguments `val0` and `val1` are given the given
-  cvar is toggled between them.
+  `1`. If the optional arguments `val0` and `val1` are given, the cvar
+  is toggled between them.
