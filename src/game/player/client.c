@@ -1534,13 +1534,6 @@ spectator_respawn(edict_t *ent)
 void
 PutClientInServer(edict_t *ent)
 {
-	char userinfo[MAX_INFO_STRING];
-
-	if (!ent)
-	{
-		return;
-	}
-
 	vec3_t mins = {-16, -16, -24};
 	vec3_t maxs = {16, 16, 32};
 	int index;
@@ -1549,6 +1542,11 @@ PutClientInServer(edict_t *ent)
 	int i;
 	client_persistant_t saved;
 	client_respawn_t resp;
+
+	if (!ent)
+	{
+		return;
+	}
 
 	/* find a spawn point do it before setting
 	   health back up, so farthest ranging
@@ -1561,6 +1559,8 @@ PutClientInServer(edict_t *ent)
 	/* deathmatch wipes most client data every spawn */
 	if (deathmatch->value)
 	{
+		char userinfo[MAX_INFO_STRING];
+
 		resp = client->resp;
 		memcpy(userinfo, client->pers.userinfo, sizeof(userinfo));
 		InitClientPersistant(client);
@@ -1568,6 +1568,8 @@ PutClientInServer(edict_t *ent)
 	}
 	else if (coop->value)
 	{
+		char userinfo[MAX_INFO_STRING];
+
 		resp = client->resp;
 		memcpy(userinfo, client->pers.userinfo, sizeof(userinfo));
 		resp.coop_respawn.game_helpchanged = client->pers.game_helpchanged;
@@ -1583,10 +1585,8 @@ PutClientInServer(edict_t *ent)
 	else
 	{
 		memset(&resp, 0, sizeof(resp));
+		ClientUserinfoChanged(ent, NULL);
 	}
-
-	memcpy(userinfo, client->pers.userinfo, sizeof(userinfo));
-	ClientUserinfoChanged(ent, userinfo);
 
 	/* clear everything but the persistant data */
 	saved = client->pers;
@@ -1830,12 +1830,17 @@ ClientBegin(edict_t *ent)
 void
 ClientUserinfoChanged(edict_t *ent, char *userinfo)
 {
-	char *s;
+	const char *s;
 	int playernum;
 
-	if (!ent || !userinfo)
+	if (!ent)
 	{
 		return;
+	}
+
+	if (!userinfo)
+	{
+		userinfo = ent->client->pers.userinfo;
 	}
 
 	/* check for malformed or illegal info strings */
@@ -1898,7 +1903,10 @@ ClientUserinfoChanged(edict_t *ent, char *userinfo)
 	}
 
 	/* save off the userinfo in case we want to check something later */
-	Q_strlcpy(ent->client->pers.userinfo, userinfo, sizeof(ent->client->pers.userinfo));
+	if (userinfo != ent->client->pers.userinfo)
+	{
+		Q_strlcpy(ent->client->pers.userinfo, userinfo, sizeof(ent->client->pers.userinfo));
+	}
 }
 
 /*
