@@ -549,16 +549,16 @@ VID_CheckChanges(void)
 		// Mkay, let's try our luck.
 		while (!VID_LoadRenderer())
 		{
-			qboolean r_selected[R_ORDER_LEN], r_sum = false;
+			qboolean r_selected[R_ORDER_LEN], r_present_in_list = false;
 			int i;
 
 			for (i = 0; i < R_ORDER_LEN; i++)
 			{
 				r_selected[i] = (strcmp(vid_renderer->string, r_order[i]) == 0);
-				r_sum |= r_selected[i];
+				r_present_in_list |= r_selected[i];
 			}
 
-			if (!r_sum)	// custom - unrecognized renderer
+			if (!r_present_in_list)	// custom - unrecognized renderer
 			{
 				i = -1;	// use first in list
 				goto change_renderer;
