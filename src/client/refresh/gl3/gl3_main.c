@@ -210,9 +210,12 @@ GL3_RotateForEntity(entity_t *e, gl3drawCmd_t* drawCmd)
 
 
 static void
-GL3_Strings(void)
+GL3_Strings(qboolean show_ext)
 {
+	void (*Printf_Ext)(const char *msg, ...) =
+		(show_ext) ? Com_Printf : Com_DPrintf ;
 	GLint i, numExtensions;
+
 	Com_Printf("GL_VENDOR: %s\n", gl3config.vendor_string);
 	Com_Printf("GL_RENDERER: %s\n", gl3config.renderer_string);
 	Com_Printf("GL_VERSION: %s\n", gl3config.version_string);
@@ -220,12 +223,20 @@ GL3_Strings(void)
 
 	glGetIntegerv(GL_NUM_EXTENSIONS, &numExtensions);
 
-	Com_Printf("GL_EXTENSIONS:");
+	Printf_Ext("GL_EXTENSIONS:");
 	for(i = 0; i < numExtensions; i++)
 	{
-		Com_Printf(" %s", (const char*)glGetStringi(GL_EXTENSIONS, i));
+		Printf_Ext(" %s", (const char*)glGetStringi(GL_EXTENSIONS, i));
 	}
-	Com_Printf("\n");
+	Printf_Ext("\n");
+
+	Com_Printf("GL_NUM_EXTENSIONS: %d\n", numExtensions);
+}
+
+static void
+GL3_Strings_f(void)
+{
+	GL3_Strings(true);
 }
 
 static void
@@ -364,7 +375,7 @@ GL3_Register(void)
 	ri.Cmd_AddCommand("imagelist", GL3_ImageList_f);
 	ri.Cmd_AddCommand("screenshot", GL3_ScreenShot);
 	ri.Cmd_AddCommand("modellist", GL3_Mod_Modellist_f);
-	ri.Cmd_AddCommand("gl_strings", GL3_Strings);
+	ri.Cmd_AddCommand("gl_strings", GL3_Strings_f);
 }
 
 /*
@@ -582,8 +593,8 @@ GL3_Init(void)
 	gl3config.version_string = (const char*)glGetString(GL_VERSION);
 	gl3config.glsl_version_string = (const char*)glGetString(GL_SHADING_LANGUAGE_VERSION);
 
-	Com_Printf("\nOpenGL setting:\n");
-	GL3_Strings();
+	Com_Printf("\nOpenGL features:\n");
+	GL3_Strings(false);
 
 	/*
 	if (gl_config.major_version < 3)
@@ -598,7 +609,7 @@ GL3_Init(void)
 	}
 	*/
 
-	Com_Printf("\n\nProbing for OpenGL extensions:\n");
+	Com_Printf("\nProbing for OpenGL extensions:\n");
 
 
 	/* Anisotropic */
