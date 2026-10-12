@@ -221,7 +221,7 @@ void QAL_SoundInfo()
  * amount of time...
  */
 qboolean
-QAL_RecoverLostDevice()
+QAL_RecoverLostDevice(void)
 {
 	static int discoCount = 0;
 
@@ -268,7 +268,7 @@ QAL_RecoverLostDevice()
  * device handles and unloads the shared lib.
  */
 void
-QAL_Shutdown()
+QAL_Shutdown(void)
 {
 	if (context)
 	{
@@ -399,7 +399,7 @@ QAL_Shutdown()
  * a context and device handle.
  */
 qboolean
-QAL_Init()
+QAL_Init(void)
 {
 	al_device = Cvar_Get("al_device", "", CVAR_ARCHIVE);
 

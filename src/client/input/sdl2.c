@@ -2547,7 +2547,7 @@ IN_Haptic_Prepare(void)
 
 #ifndef NO_SDL_GYRO
 
-static void
+static inline void
 IN_Joy_IMU_Treatment(SDL_Joystick *joystick, const char* joystick_name, int joy_num)
 {
 	SDL_JoystickClose(joystick);
@@ -2555,7 +2555,7 @@ IN_Joy_IMU_Treatment(SDL_Joystick *joystick, const char* joystick_name, int joy_
 	Com_Printf ("Skipping IMU device.\n");
 }
 
-static void
+static inline void
 IN_Gyro_and_LED_Enabling(void)
 {
 	if (!controller) return;
@@ -2604,7 +2604,7 @@ IN_Gyro_and_LED_Enabling(void)
 	}
 }
 
-static qboolean
+static inline qboolean
 IN_GameController_Verify_Init_Complete(void)
 {
 	return show_gamepad;
@@ -2612,7 +2612,7 @@ IN_GameController_Verify_Init_Complete(void)
 
 #else	// with NO_SDL_GYRO
 
-static void
+static inline void
 IN_Joy_IMU_Treatment(SDL_Joystick *joystick, const char* joystick_name, int joy_num)
 {
 	// If it's not a Left JoyCon, use it as Gyro
@@ -2641,13 +2641,13 @@ IN_Joy_IMU_Treatment(SDL_Joystick *joystick, const char* joystick_name, int joy_
 	}
 }
 
-static void
+static inline void
 IN_Gyro_and_LED_Enabling(void)
 {
 	// Unavailable in this case
 }
 
-static qboolean
+static inline qboolean
 IN_GameController_Verify_Init_Complete(void)
 {
 	return (show_gamepad && show_gyro);
