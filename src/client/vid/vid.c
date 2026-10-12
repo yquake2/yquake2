@@ -511,8 +511,7 @@ VID_CheckChanges(void)
 		"gles1",
 		"soft"
 	};
-
-#define R_ORDER_LEN	ARRLEN(r_order)
+	static const int r_order_len = ARRLEN(r_order);
 
 	// Hack around renderers that still abuse vid_fullscreen
 	// to communicate restart requests to the client.
@@ -549,35 +548,25 @@ VID_CheckChanges(void)
 		// Mkay, let's try our luck.
 		while (!VID_LoadRenderer())
 		{
-			qboolean r_selected[R_ORDER_LEN], r_present_in_list = false;
-			int i;
+			int next_test = 0;
 
-			for (i = 0; i < R_ORDER_LEN; i++)
+			for (int i = 0; i < r_order_len; i++)
 			{
-				r_selected[i] = (strcmp(vid_renderer->string, r_order[i]) == 0);
-				r_present_in_list |= r_selected[i];
-			}
-
-			if (!r_present_in_list)	// custom - unrecognized renderer
-			{
-				i = -1;	// use first in list
-				goto change_renderer;
-			}
-
-			for (i = 0; i < R_ORDER_LEN - 1; i++)	// trying 1 by 1, following order
-			{
-				if (r_selected[i])
+				if (strcmp(vid_renderer->string, r_order[i]) == 0)
 				{
-					goto change_renderer;
+					next_test = i + 1;
+					break;
 				}
 			}
 
-			Com_Error(ERR_FATAL, "No usable renderer found!\n");
-			return;
+			if (next_test == r_order_len)
+			{
+				Com_Error(ERR_FATAL, "No usable renderer found!\n");
+				return;
+			}
 
-change_renderer:
-			Com_Printf("Retrying with %s...\n", r_order[i + 1]);
-			Cvar_Set("vid_renderer", r_order[i + 1]);
+			Com_Printf("Retrying with %s...\n", r_order[next_test]);
+			Cvar_Set("vid_renderer", r_order[next_test]);
 		}
 
 		// Unblock the client.
@@ -588,9 +577,6 @@ change_renderer:
 	{
 		cl.refresh_prepped = false;
 	}
-
-#undef R_ORDER_LEN
-
 }
 
 /*
