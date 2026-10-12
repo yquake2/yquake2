@@ -124,10 +124,10 @@ extern LPALDELETEAUXILIARYEFFECTSLOTS qalDeleteAuxiliaryEffectSlots;
 extern LPALDELETEEFFECTS qalDeleteEffects;
 
 /*
- * Gives information over the OpenAL
- * implementation and it's state
+ * Gives information over the OpenAL implementation and
+ * its state, showing extensions or not.
  */
-void QAL_SoundInfo(void);
+void QAL_SoundInfo(qboolean show_ext);
 
 /*
  * Checks if the output device is still connected. Returns true
