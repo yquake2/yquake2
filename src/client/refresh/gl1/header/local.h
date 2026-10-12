@@ -406,6 +406,7 @@ typedef struct
 	const char *version_string;
 	const char *extensions_string;
 
+	int num_extensions;
 	int major_version;
 	int minor_version;
 

@@ -158,12 +158,17 @@ R_ScreenShot(void)
 }
 
 void
-R_Strings(void)
+R_Strings(qboolean show_ext)
 {
+	void (*Printf_Ext)(const char *msg, ...) =
+		(show_ext) ? Com_Printf : Com_DPrintf ;
+
 	Com_Printf("GL_VENDOR: %s\n", gl_config.vendor_string);
 	Com_Printf("GL_RENDERER: %s\n", gl_config.renderer_string);
 	Com_Printf("GL_VERSION: %s\n", gl_config.version_string);
-	Com_Printf("GL_EXTENSIONS: %s\n", gl_config.extensions_string);
+	Printf_Ext("GL_EXTENSIONS: %s", gl_config.extensions_string);
+	Printf_Ext("\n");	// For some reason this is being ignored in the line above.
+	Com_Printf("GL_EXTENSIONS number: %d\n", gl_config.num_extensions);
 }
 
 void
