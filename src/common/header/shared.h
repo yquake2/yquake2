@@ -1402,4 +1402,9 @@ void StrList_Append(strlist_t *sl, const char *s);
  */
 void StrList_Print(const strlist_t *sl, void (*printfunc)(const char *fmt, ...));
 
+/*
+ * Counts words separated by whitespace.
+ */
+int Word_Count(const char *s);
+
 #endif /* COMMON_SHARED_H */

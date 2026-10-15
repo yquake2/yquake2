@@ -1902,3 +1902,27 @@ StrList_Print(const strlist_t *sl, void (*printfunc)(const char *fmt, ...))
 
 	printfunc("}\n");
 }
+
+int
+Word_Count(const char *s)
+{
+	int n = 0;
+	qboolean in_word = false;
+
+	if (!s) return 0;
+
+	for (; *s; ++s)
+	{
+		if ( isspace( (unsigned char)*s ) )
+		{
+			in_word = false;
+		}
+		else if (!in_word)
+		{
+			in_word = true;
+			++n;
+		}
+	}
+
+	return n;
+}

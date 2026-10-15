@@ -47,7 +47,7 @@ int c_brush_polys, c_alias_polys;
 
 float v_blend[4]; /* final blending color */
 
-void R_Strings(void);
+extern void R_Strings(qboolean show_ext);
 
 /* view origin */
 vec3_t vup;
@@ -1213,6 +1213,12 @@ RI_RenderFrame(refdef_t *fd)
 	R_SetGL2D();
 }
 
+static void
+R_Strings_f(void)
+{
+	R_Strings(true);
+}
+
 #ifdef YQ2_GL1_GLES
 #define ONLY_ENABLED_IN_GL1   "0"
 #else
@@ -1314,7 +1320,7 @@ R_Register(void)
 	ri.Cmd_AddCommand("imagelist", R_ImageList_f);
 	ri.Cmd_AddCommand("screenshot", R_ScreenShot);
 	ri.Cmd_AddCommand("modellist", Mod_Modellist_f);
-	ri.Cmd_AddCommand("gl_strings", R_Strings);
+	ri.Cmd_AddCommand("gl_strings", R_Strings_f);
 }
 
 #undef ONLY_ENABLED_IN_GL1
@@ -1532,19 +1538,14 @@ RI_Init(void)
 	// --------
 
 	/* get our various GL strings */
-	Com_Printf("\nOpenGL setting:\n");
+	gl_config.vendor_string     = (const char *)glGetString(GL_VENDOR);
+	gl_config.renderer_string   = (const char *)glGetString(GL_RENDERER);
+	gl_config.version_string    = (const char *)glGetString(GL_VERSION);
+	gl_config.extensions_string = (const char *)glGetString(GL_EXTENSIONS);
+	gl_config.num_extensions    = Word_Count(gl_config.extensions_string);
 
-	gl_config.vendor_string = (char *)glGetString(GL_VENDOR);
-	Com_Printf("GL_VENDOR: %s\n", gl_config.vendor_string);
-
-	gl_config.renderer_string = (char *)glGetString(GL_RENDERER);
-	Com_Printf("GL_RENDERER: %s\n", gl_config.renderer_string);
-
-	gl_config.version_string = (char *)glGetString(GL_VERSION);
-	Com_Printf("GL_VERSION: %s\n", gl_config.version_string);
-
-	gl_config.extensions_string = (char *)glGetString(GL_EXTENSIONS);
-	Com_Printf("GL_EXTENSIONS: %s\n", gl_config.extensions_string);
+	Com_Printf("\nOpenGL features:\n");
+	R_Strings(false);
 
 	sscanf(gl_config.version_string, "%d.%d", &gl_config.major_version, &gl_config.minor_version);
 
@@ -1557,7 +1558,7 @@ RI_Init(void)
 		return false;
 	}
 
-	Com_Printf("\n\nProbing for OpenGL extensions:\n");
+	Com_Printf("\nProbing for OpenGL extensions:\n");
 
 	// ----
 

@@ -158,16 +158,20 @@ LPALDELETEAUXILIARYEFFECTSLOTS qalDeleteAuxiliaryEffectSlots;
 LPALDELETEEFFECTS qalDeleteEffects;
 
 /*
- * Gives information over the OpenAL
- * implementation and its state
+ * Gives information over the OpenAL implementation and
+ * its state, showing extensions or not.
  */
-void QAL_SoundInfo()
+void QAL_SoundInfo(qboolean show_ext)
 {
-	Com_Printf("OpenAL settings:\n");
+	void (*Printf_Ext)(const char *msg, ...) =
+		(show_ext) ? Com_Printf : Com_DPrintf ;
+
+	Com_Printf("OpenAL features:\n");
 	Com_Printf("AL_VENDOR: %s\n", qalGetString(AL_VENDOR));
 	Com_Printf("AL_RENDERER: %s\n", qalGetString(AL_RENDERER));
 	Com_Printf("AL_VERSION: %s\n", qalGetString(AL_VERSION));
-	Com_Printf("AL_EXTENSIONS: %s\n", qalGetString(AL_EXTENSIONS));
+	Printf_Ext("AL_EXTENSIONS: %s\n", qalGetString(AL_EXTENSIONS));
+	Com_Printf("AL_EXTENSIONS number: %d\n", Word_Count(qalGetString(AL_EXTENSIONS)));
 
 	if (qalcIsExtensionPresent(NULL, "ALC_ENUMERATE_ALL_EXT"))
 	{
@@ -221,7 +225,7 @@ void QAL_SoundInfo()
  * amount of time...
  */
 qboolean
-QAL_RecoverLostDevice()
+QAL_RecoverLostDevice(void)
 {
 	static int discoCount = 0;
 
@@ -268,7 +272,7 @@ QAL_RecoverLostDevice()
  * device handles and unloads the shared lib.
  */
 void
-QAL_Shutdown()
+QAL_Shutdown(void)
 {
 	if (context)
 	{
@@ -399,7 +403,7 @@ QAL_Shutdown()
  * a context and device handle.
  */
 qboolean
-QAL_Init()
+QAL_Init(void)
 {
 	al_device = Cvar_Get("al_device", "", CVAR_ARCHIVE);
 
@@ -592,7 +596,7 @@ QAL_Init()
 
 	/* Print OpenAL information */
 	Com_Printf("\n");
-	QAL_SoundInfo();
+	QAL_SoundInfo(false);
 	Com_Printf("\n");
 
 	/*  Check extensions */
