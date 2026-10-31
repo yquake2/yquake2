@@ -232,7 +232,7 @@ void Master_Heartbeat(void);
 void Master_Packet(void);
 
 void SV_InitGame(void);
-void SV_Map(qboolean attractloop, char *levelstring, qboolean loadgame, qboolean isautosave);
+void SV_Map(qboolean attractloop, const char *levelstring, qboolean loadgame, qboolean isautosave);
 
 void SV_PrepWorldFrame(void);
 
@@ -309,5 +309,12 @@ trace_t SV_Trace(const vec3_t start, const vec3_t mins, const vec3_t maxs,
 
 int SV_Optimizations(void);
 
-#endif
+void SV_DemoMap1_f(void);
+void SV_DemoMap2_f(void);
+void SV_DemoMap3_f(void);
+void SV_DemoMap4_f(void);
 
+void SV_NewGame_f(void);
+void SV_DedicatedStart_f(void);
+
+#endif

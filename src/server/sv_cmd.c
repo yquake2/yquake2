@@ -761,6 +761,53 @@ SV_Gamemode_f(void)
 }
 
 void
+SV_DemoMap1_f(void)
+{
+	SV_Map(true, "idlog.cin", false, false);
+	Cvar_Set("nextserver", "d2");
+}
+
+void
+SV_DemoMap2_f(void)
+{
+	SV_Map(true, "demo1.dm2", false, false);
+	Cvar_Set("nextserver", "d3");
+}
+
+void
+SV_DemoMap3_f(void)
+{
+	SV_Map(true, "idlog.cin", false, false);
+	Cvar_Set("nextserver", "d4");
+}
+
+void
+SV_DemoMap4_f(void)
+{
+	SV_Map(true, "demo2.dm2", false, false);
+	Cvar_Set("nextserver", "d1");
+}
+
+void
+SV_NewGame_f(void)
+{
+	SV_KillServer_f();
+	Cvar_FullSet("maxclients", "1", CVAR_SERVERINFO | CVAR_LATCH);
+	Cvar_FullSet("deathmatch", "0", CVAR_SERVERINFO | CVAR_LATCH);
+
+	const char *map = "*ntro.cin+base1";
+	SV_Map(false, map, false, false);
+	Q_strlcpy(svs.mapcmd, map, sizeof(svs.mapcmd));
+}
+
+void
+SV_DedicatedStart_f(void)
+{
+	const char *map = "base1";
+	SV_Map(false, map, false, false);
+}
+
+void
 SV_InitOperatorCommands(void)
 {
 	Cmd_AddCommand("gamemode", SV_Gamemode_f);
@@ -791,5 +838,20 @@ SV_InitOperatorCommands(void)
 	Cmd_AddCommand("killserver", SV_KillServer_f);
 
 	Cmd_AddCommand("sv", SV_ServerCommand_f);
-}
 
+	if (!dedicated->value)
+	{
+		// DEMO STUFF
+		Cmd_AddCommand("d1", SV_DemoMap1_f);
+		Cmd_AddCommand("d2", SV_DemoMap2_f);
+		Cmd_AddCommand("d3", SV_DemoMap3_f);
+		Cmd_AddCommand("d4", SV_DemoMap4_f);
+
+		// newgame command
+		Cmd_AddCommand("newgame", SV_NewGame_f);
+
+		// quake2 +set dedicated 1
+		// will run this command if no other +map is included
+		Cmd_AddCommand("dedicated_start", SV_DedicatedStart_f);
+	}
+}

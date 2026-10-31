@@ -542,7 +542,7 @@ SV_InitGame(void)
  *  map tram.cin+jail_e3
  */
 void
-SV_Map(qboolean attractloop, char *levelstring, qboolean loadgame, qboolean isautosave)
+SV_Map(qboolean attractloop, const char *levelstring, qboolean loadgame, qboolean isautosave)
 {
 	char level[MAX_QPATH];
 	char *ch;
@@ -653,4 +653,3 @@ SV_Map(qboolean attractloop, char *levelstring, qboolean loadgame, qboolean isau
 
 	SV_BroadcastCommand("reconnect\n");
 }
-
