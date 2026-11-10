@@ -239,7 +239,7 @@ SV_movestep(edict_t *ent, vec3_t move, qboolean relink)
 				}
 			}
 
-			if (trace.fraction == 1)
+			if (trace.fraction == 1 && !trace.allsolid)
 			{
 				VectorCopy(trace.endpos, ent->s.origin);
 
