@@ -362,15 +362,7 @@ SpawnEntities(const char *mapname, char *entities, const char *spawnpoint)
 
 	skill_level = floor(skill->value);
 
-	if (skill_level < 0)
-	{
-		skill_level = 0;
-	}
-
-	if (skill_level > 3)
-	{
-		skill_level = 3;
-	}
+	skill_level = Q_clamp(skill_level, SKILL_EASY, SKILL_HARDPLUS);
 
 	if (skill->value != skill_level)
 	{

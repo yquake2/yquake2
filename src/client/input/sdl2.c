@@ -1450,7 +1450,7 @@ IN_SmoothedStickRotation(float value)
 	//				0 for immediate consumption
 	float immediate_weight = (fabsf(value) - bottom_threshold)
 					/ (top_threshold - bottom_threshold);
-	immediate_weight = Q_min( Q_max(immediate_weight, 0.0f), 1.0f ); // clamp to [0, 1] range
+	immediate_weight = Q_clamp(immediate_weight, 0.0f, 1.0f);
 
 	// now we can push the smooth sample
 	float smooth_weight = 1.0f - immediate_weight;

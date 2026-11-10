@@ -373,7 +373,7 @@ SV_Optimizations(void)
 {
 	cvar_t *cv;
 
-	if (svs.gamemode <= 0 || svs.gamemode > 3)
+	if (svs.gamemode < GAMEMODE_SP || svs.gamemode > GAMEMODE_DM)
 	{
 		return 0;
 	}
@@ -411,7 +411,7 @@ SV_Frame(int usec)
 	SV_ReadPackets();
 
 	/* send messages more often to new clients getting ready for spawning in
-	   speeds up the process of sending configstrings, entty deltas, etc.
+	   speeds up the process of sending configstrings, entity deltas, etc.
 	*/
 	opt_sendrate = SV_Optimizations() & OPTIMIZE_SENDRATE;
 

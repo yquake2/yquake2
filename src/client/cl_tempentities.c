@@ -571,20 +571,10 @@ CL_ParseLaser(int colors)
 	{
 		if (l->endtime < cl.time)
 		{
-			float alpha = cl_laseralpha->value;
-			if (alpha < 0.0f)
-			{
-				alpha = 0.0f;
-			}
-			else if (alpha > 1.0f)
-			{
-				alpha = 1.0f;
-			}
-
 			l->ent.flags = RF_TRANSLUCENT | RF_BEAM;
 			VectorCopy(start, l->ent.origin);
 			VectorCopy(end, l->ent.oldorigin);
-			l->ent.alpha = alpha;
+			l->ent.alpha = Q_clamp(cl_laseralpha->value, 0.0f, 1.0f);
 			l->ent.skinnum = (colors >> ((randk() % 4) * 8)) & 0xff;
 			l->ent.model = NULL;
 			l->ent.frame = 4;
