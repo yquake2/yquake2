@@ -2759,12 +2759,7 @@ IN_Controller_Init(qboolean notify_user)
 			}
 
 			show_gamepad = true;
-			Com_Printf("Enabled as Game Controller.\n");
-			Com_DPrintf("SDL mapping: %s\n", SDL_GameControllerMapping(controller));
-			IN_Gyro_and_LED_Enabling();
-
-			joystick_haptic = SDL_HapticOpenFromJoystick(SDL_GameControllerGetJoystick(controller));
-			IN_Haptic_Prepare();
+			Com_Printf("Enabled as Game Controller, ");
 
 #if SDL_VERSION_ATLEAST(2, 0, 18)	// support for query on features from controller
 			if (SDL_GameControllerHasRumble(controller))
@@ -2775,17 +2770,17 @@ IN_Controller_Init(qboolean notify_user)
 #endif
 			{
 				show_haptic = true;
-				Com_Printf("Rumble support available.\n");
+				Com_Printf("with Rumble support.\n");
 			}
 			else
 			{
-				Com_Printf("Controller doesn't support rumble.\n");
+				Com_Printf("Rumble unsupported.\n");
 			}
 
-			if (show_gyro && IsCalibrationZero())
-			{
-				Com_Printf("NOTE: Gyro calibration might be required!\n");
-			}
+			Com_DPrintf("SDL mapping: %s\n", SDL_GameControllerMapping(controller));
+			joystick_haptic = SDL_HapticOpenFromJoystick(SDL_GameControllerGetJoystick(controller));
+			IN_Haptic_Prepare();
+			IN_Gyro_and_LED_Enabling();
 		}
 
 next_joy:
@@ -2794,6 +2789,8 @@ next_joy:
 		if (i == numjoysticks) i = 0;
 	}
 	while (i != joy_num);
+
+	if (show_gyro && IsCalibrationZero()) Com_Printf("NOTE: Gyro calibration might be required!\n");
 
 	IN_GamepadLabels_Changed();
 	IN_GamepadConfirm_Changed();
