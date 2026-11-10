@@ -81,18 +81,12 @@ mutant_sight(edict_t *self, edict_t *other /* unused */)
 void
 mutant_search(edict_t *self)
 {
-	gi.sound(self, CHAN_VOICE, sound_search, 1, ATTN_NORM, 0);
-}
-
-static void
-mutant_swing(edict_t *self)
-{
 	if (!self)
 	{
 		return;
 	}
 
-	gi.sound(self, CHAN_VOICE, sound_swing, 1, ATTN_NORM, 0);
+	gi.sound(self, CHAN_VOICE, sound_search, 1, ATTN_NORM, 0);
 }
 
 static mframe_t mutant_frames_stand[] = {

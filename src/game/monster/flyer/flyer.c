@@ -302,6 +302,7 @@ mmove_t flyer_move_start =
 	NULL
 };
 
+#if 0
 static mframe_t flyer_frames_stop[] = {
 	{ai_move, 0, NULL},
 	{ai_move, 0, NULL},
@@ -330,17 +331,7 @@ flyer_stop(edict_t *self)
 
 	self->monsterinfo.currentmove = &flyer_move_stop;
 }
-
-static void
-flyer_start(edict_t *self)
-{
-	if (!self)
-	{
-		return;
-	}
-
-	self->monsterinfo.currentmove = &flyer_move_start;
-}
+#endif
 
 static mframe_t flyer_frames_rollright[] = {
 	{ai_move, 0, NULL},

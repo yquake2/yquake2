@@ -2068,6 +2068,7 @@ PM_trace(vec3_t start, vec3_t mins, vec3_t maxs, vec3_t end)
 	}
 }
 
+#if 0
 static unsigned
 CheckBlock(void *b, int c)
 {
@@ -2102,6 +2103,7 @@ PrintPmove(pmove_t *pm)
 	c2 = CheckBlock(&pm->cmd, sizeof(pm->cmd));
 	gi.dprintf("sv %3i:%i %i\n", pm->cmd.impulse, c1, c2);
 }
+#endif
 
 /*
  * This will be called once for each client frame, which will

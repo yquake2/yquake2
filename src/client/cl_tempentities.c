@@ -393,6 +393,7 @@ CL_SmokeAndFlash(vec3_t origin)
 	ex->ent.model = cl_mod_flash;
 }
 
+#if 0
 static void
 CL_ParseParticles(void)
 {
@@ -408,6 +409,7 @@ CL_ParseParticles(void)
 
 	CL_ParticleEffect(pos, dir, color, count);
 }
+#endif
 
 static void
 CL_ParseBeam(struct model_s *model, qboolean with_offset)

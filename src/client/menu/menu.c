@@ -419,6 +419,7 @@ Default_MenuDraw(menuframework_s *m)
 	Menu_DrawPopup(320, 240, &m_popup);
 }
 
+#if 0
 /* Unsused, left for backward compability */
 static void
 M_DrawPic(int x, int y, char *pic)
@@ -428,6 +429,7 @@ M_DrawPic(int x, int y, char *pic)
 	Draw_PicScaled((x + ((viddef.width - 320) >> 1)) * scale,
 			   (y + ((viddef.height - 240) >> 1)) * scale, pic, scale);
 }
+#endif
 
 /*
  * Draws an animating cursor with the point at

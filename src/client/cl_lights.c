@@ -153,6 +153,7 @@ CL_AllocDlight(int key)
 	return dl;
 }
 
+#if 0
 static void
 CL_NewDlight(int key, float x, float y, float z, float radius, float time)
 {
@@ -165,6 +166,7 @@ CL_NewDlight(int key, float x, float y, float z, float radius, float time)
 	dl->radius = radius;
 	dl->die = cl.time + time;
 }
+#endif
 
 void
 CL_RunDLights(void)

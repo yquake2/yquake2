@@ -783,11 +783,6 @@ makron_pain(edict_t *self, edict_t *other /* unused */,
 	}
 }
 
-static void
-makron_sight(edict_t *self, edict_t *other /* unused */)
-{
-}
-
 void
 makron_attack(edict_t *self)
 {

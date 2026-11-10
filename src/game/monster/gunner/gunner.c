@@ -316,6 +316,7 @@ gunner_run(edict_t *self)
 	}
 }
 
+#if 0
 static mframe_t gunner_frames_runandshoot[] = {
 	{ai_run, 32, NULL},
 	{ai_run, 15, gunner_footstep},
@@ -329,7 +330,7 @@ mmove_t gunner_move_runandshoot =
 {
 	FRAME_runs01,
 	FRAME_runs06,
-   	gunner_frames_runandshoot,
+	gunner_frames_runandshoot,
 	NULL
 };
 
@@ -343,6 +344,7 @@ gunner_runandshoot(edict_t *self)
 
 	self->monsterinfo.currentmove = &gunner_move_runandshoot;
 }
+#endif
 
 static mframe_t gunner_frames_pain3[] = {
 	{ai_move, -3, NULL},

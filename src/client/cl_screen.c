@@ -881,6 +881,7 @@ static char *sb_nums[2][11] = {
 #define CHARACTER_WIDTH 16
 #define ICON_SPACE 8
 
+#if 0
 /*
  * Allow embedded \n in the string
  */
@@ -917,6 +918,7 @@ SizeHUDString(char *string, int *w, int *h)
 	*w = width * 8;
 	*h = lines * 8;
 }
+#endif
 
 static void
 DrawHUDStringScaled(const char *string, int x, int y, int centerwidth, int xor, float factor)
@@ -965,11 +967,13 @@ DrawHUDStringScaled(const char *string, int x, int y, int centerwidth, int xor, 
 	}
 }
 
+#if 0
 static void
 DrawHUDString(char *string, int x, int y, int centerwidth, int xor)
 {
 	DrawHUDStringScaled(string, x, y, centerwidth, xor, 1.0f);
 }
+#endif
 
 static void
 SCR_DrawFieldScaled(int x, int y, int color, int width, int value, float factor)
@@ -1023,11 +1027,13 @@ SCR_DrawFieldScaled(int x, int y, int color, int width, int value, float factor)
 	}
 }
 
+#if 0
 static void
 SCR_DrawField(int x, int y, int color, int width, int value)
 {
 	SCR_DrawFieldScaled(x, y, color, width, value, 1.0f);
 }
+#endif
 
 /*
  * Allows rendering code to cache all needed sbar graphics
@@ -1545,7 +1551,7 @@ SCR_DrawSpeed(void)
 		str_len = scale * (strlen(spd_str) * CHAR_SIZE + 2);
 		yPos = scr_vrect.y + (scr_vrect.height / 2) + (scale * 10);
 		xPos = scr_vrect.x + (scr_vrect.width / 2) - (str_len / 2);
-		
+
 		DrawStringScaled(xPos, yPos, spd_str, scale);
 		SCR_AddDirtyPoint(xPos, yPos);
 		SCR_AddDirtyPoint(xPos + str_len, yPos);
