@@ -980,54 +980,62 @@ GL3_Add3DdrawCmdToBatch(const gl3_3D_vtx_t* verts, int numVerts, GLenum drawMode
 	assert(drawCmd.shaderIdx != -1);
 
 	// translate triangle fan/strip to just triangle indices
-	if(drawMode == GL_TRIANGLE_FAN)
+	switch (drawMode)
 	{
-		for(GLushort i=1; i < numVerts-1; ++i)
+		case GL_TRIANGLE_FAN:
 		{
-			GLushort* add = da_addn_uninit(idxBuf, 3);
+			const GLushort verts = (GLushort)(numVerts - 1);
+			for (GLushort i = 1; i < verts; ++i)
+			{
+				GLushort *add = da_addn_uninit(idxBuf, 3);
 
-			add[0] = nextVtxIdx;
-			add[1] = nextVtxIdx+i;
-			add[2] = nextVtxIdx+i+1;
+				add[0] = nextVtxIdx;
+				add[1] = nextVtxIdx + i;
+				add[2] = nextVtxIdx + i + 1;
+			}
+			break;
 		}
-	}
-	else if(drawMode == GL_TRIANGLE_STRIP)
-	{
-		GLushort i;
-		for(i=1; i < numVerts-2; i+=2)
+
+		case GL_TRIANGLE_STRIP:
 		{
-			// add two triangles at once, because the vertex order is different
-			// for odd vs even triangles
-			GLushort* add = da_addn_uninit(idxBuf, 6);
+			GLushort i, verts = (GLushort)(numVerts - 2);
+			for (i = 1; i < verts; i += 2)
+			{
+				// add two triangles at once, because the vertex order is different
+				// for odd vs even triangles
+				GLushort *add = da_addn_uninit(idxBuf, 6);
 
-			add[0] = nextVtxIdx + i-1;
-			add[1] = nextVtxIdx + i;
-			add[2] = nextVtxIdx + i+1;
+				add[0] = nextVtxIdx + i - 1;
+				add[1] = nextVtxIdx + i;
+				add[2] = nextVtxIdx + i + 1;
 
-			add[3] = nextVtxIdx + i;
-			add[4] = nextVtxIdx + i+2;
-			add[5] = nextVtxIdx + i+1;
+				add[3] = nextVtxIdx + i;
+				add[4] = nextVtxIdx + i + 2;
+				add[5] = nextVtxIdx + i + 1;
+			}
+			// add remaining triangle, if any
+			if (i < verts + 1)
+			{
+				GLushort *add = da_addn_uninit(idxBuf, 3);
+
+				add[0] = nextVtxIdx + i - 1;
+				add[1] = nextVtxIdx + i;
+				add[2] = nextVtxIdx + i + 1;
+			}
+			break;
 		}
-		// add remaining triangle, if any
-		if(i < numVerts-1)
+
+		case GL_TRIANGLES:
 		{
-			GLushort* add = da_addn_uninit(idxBuf, 3);
-
-			add[0] = nextVtxIdx + i-1;
-			add[1] = nextVtxIdx + i;
-			add[2] = nextVtxIdx + i+1;
+			GLushort *add = da_addn_uninit(idxBuf, numVerts);
+			for (GLushort i = 0; i < (GLushort)numVerts; ++i)
+				add[i] = nextVtxIdx + i;
+			break;
 		}
-	}
-	else if(drawMode == GL_TRIANGLES)
-	{
-		GLushort* add = da_addn_uninit(idxBuf, numVerts);
-		for(GLushort i=0; i<numVerts; ++i)
-			add[i] = nextVtxIdx + i;
-	}
-	else
-	{
-		Com_Printf("GL3_BufferAndDraw3D(): WARNING: Unsupported drawmode 0x%x\n", drawMode);
-		return;
+
+		default:
+			Com_Printf("%s: WARNING - Unsupported drawmode 0x%x\n", __func__, drawMode);
+			return;
 	}
 
 	da_addn(vtxBuf, verts, numVerts);
