@@ -420,7 +420,7 @@ Default_MenuDraw(menuframework_s *m)
 }
 
 /* Unsused, left for backward compability */
-void
+static void
 M_DrawPic(int x, int y, char *pic)
 {
 	float scale = SCR_GetMenuScale();

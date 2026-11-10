@@ -62,7 +62,7 @@ gunner_footstep(edict_t *self)
 }
 
 
-void
+static void
 gunner_idlesound(edict_t *self)
 {
 	if (!self)
@@ -166,7 +166,7 @@ mmove_t gunner_move_fidget =
    	gunner_stand
 };
 
-void
+static void
 gunner_fidget(edict_t *self)
 {
 	if (!self)
@@ -333,7 +333,7 @@ mmove_t gunner_move_runandshoot =
 	NULL
 };
 
-void
+static void
 gunner_runandshoot(edict_t *self)
 {
 	if (!self)
@@ -457,7 +457,7 @@ gunner_pain(edict_t *self, edict_t *other /* unused */,
 	}
 }
 
-void
+static void
 gunner_dead(edict_t *self)
 {
 	if (!self)
@@ -544,7 +544,7 @@ gunner_die(edict_t *self, edict_t *inflictor /* unused */,
 	self->monsterinfo.currentmove = &gunner_move_death;
 }
 
-void
+static void
 gunner_duck_down(edict_t *self)
 {
 	if (!self)
@@ -573,7 +573,7 @@ gunner_duck_down(edict_t *self)
 	gi.linkentity(self);
 }
 
-void
+static void
 gunner_duck_hold(edict_t *self)
 {
 	if (!self)
@@ -591,7 +591,7 @@ gunner_duck_hold(edict_t *self)
 	}
 }
 
-void
+static void
 gunner_duck_up(edict_t *self)
 {
 	if (!self)
@@ -646,7 +646,7 @@ gunner_dodge(edict_t *self, edict_t *attacker, float eta /* unused */)
 	self->monsterinfo.currentmove = &gunner_move_duck;
 }
 
-void
+static void
 gunner_opengun(edict_t *self)
 {
 	if (!self)

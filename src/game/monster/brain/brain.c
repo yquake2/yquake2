@@ -336,7 +336,7 @@ mmove_t brain_move_pain1 =
 	brain_run
 };
 
-void
+static void
 brain_duck_down(edict_t *self)
 {
 	if (!self)
@@ -355,7 +355,7 @@ brain_duck_down(edict_t *self)
 	gi.linkentity(self);
 }
 
-void
+static void
 brain_duck_hold(edict_t *self)
 {
 	if (!self)
@@ -373,7 +373,7 @@ brain_duck_hold(edict_t *self)
 	}
 }
 
-void
+static void
 brain_duck_up(edict_t *self)
 {
 	if (!self)
@@ -474,7 +474,7 @@ mmove_t brain_move_death1 =
    	brain_dead
 };
 
-void
+static void
 brain_swing_right(edict_t *self)
 {
 	if (!self)
@@ -485,7 +485,7 @@ brain_swing_right(edict_t *self)
 	gi.sound(self, CHAN_BODY, sound_melee1, 1, ATTN_NORM, 0);
 }
 
-void
+static void
 brain_hit_right(edict_t *self)
 {
 	vec3_t aim;
@@ -503,7 +503,7 @@ brain_hit_right(edict_t *self)
 	}
 }
 
-void
+static void
 brain_swing_left(edict_t *self)
 {
 	if (!self)
@@ -514,7 +514,7 @@ brain_swing_left(edict_t *self)
 	gi.sound(self, CHAN_BODY, sound_melee2, 1, ATTN_NORM, 0);
 }
 
-void
+static void
 brain_hit_left(edict_t *self)
 {
 	vec3_t aim;
@@ -561,7 +561,7 @@ mmove_t brain_move_attack1 =
 	brain_run
 };
 
-void
+static void
 brain_chest_open(edict_t *self)
 {
 	if (!self)
@@ -574,7 +574,7 @@ brain_chest_open(edict_t *self)
 	gi.sound(self, CHAN_BODY, sound_chest_open, 1, ATTN_NORM, 0);
 }
 
-void
+static void
 brain_tentacle_attack(edict_t *self)
 {
 	vec3_t aim;
@@ -594,7 +594,7 @@ brain_tentacle_attack(edict_t *self)
 	gi.sound(self, CHAN_WEAPON, sound_tentacles_retract, 1, ATTN_NORM, 0);
 }
 
-void
+static void
 brain_chest_closed(edict_t *self)
 {
 	if (!self)

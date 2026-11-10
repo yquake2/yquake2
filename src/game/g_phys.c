@@ -368,7 +368,7 @@ SV_FlyMove(edict_t *ent, float time, int mask)
 	return blocked;
 }
 
-void
+static void
 SV_AddGravity(edict_t *ent)
 {
 	if (!ent)

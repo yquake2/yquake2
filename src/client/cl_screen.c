@@ -884,7 +884,7 @@ static char *sb_nums[2][11] = {
 /*
  * Allow embedded \n in the string
  */
-void
+static void
 SizeHUDString(char *string, int *w, int *h)
 {
 	int lines, width, current;
@@ -965,13 +965,13 @@ DrawHUDStringScaled(const char *string, int x, int y, int centerwidth, int xor, 
 	}
 }
 
-void
+static void
 DrawHUDString(char *string, int x, int y, int centerwidth, int xor)
 {
 	DrawHUDStringScaled(string, x, y, centerwidth, xor, 1.0f);
 }
 
-void
+static void
 SCR_DrawFieldScaled(int x, int y, int color, int width, int value, float factor)
 {
 	char num[16], *ptr;
@@ -1023,7 +1023,7 @@ SCR_DrawFieldScaled(int x, int y, int color, int width, int value, float factor)
 	}
 }
 
-void
+static void
 SCR_DrawField(int x, int y, int color, int width, int value)
 {
 	SCR_DrawFieldScaled(x, y, color, width, value, 1.0f);

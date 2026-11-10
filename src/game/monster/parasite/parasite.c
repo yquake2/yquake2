@@ -48,7 +48,7 @@ void parasite_end_fidget(edict_t *self);
 void parasite_do_fidget(edict_t *self);
 void parasite_refidget(edict_t *self);
 
-void
+static void
 parasite_launch(edict_t *self)
 {
 	if (!self)
@@ -59,7 +59,7 @@ parasite_launch(edict_t *self)
 	gi.sound(self, CHAN_WEAPON, sound_launch, 1, ATTN_NORM, 0);
 }
 
-void
+static void
 parasite_reel_in(edict_t *self)
 {
 	if (!self)
@@ -81,7 +81,7 @@ parasite_sight(edict_t *self, edict_t *other /* unused */)
 	gi.sound(self, CHAN_VOICE, sound_sight, 1, ATTN_NORM, 0);
 }
 
-void
+static void
 parasite_tap(edict_t *self)
 {
 	if (!self)
@@ -92,7 +92,7 @@ parasite_tap(edict_t *self)
 	gi.sound(self, CHAN_BODY, sound_tap, 1, ATTN_IDLE, 0);
 }
 
-void
+static void
 parasite_footstep(edict_t *self)
 {
 	if (g_monsterfootsteps->value)
@@ -101,7 +101,7 @@ parasite_footstep(edict_t *self)
 	}
 }
 
-void
+static void
 parasite_scratch(edict_t *self)
 {
 	if (!self)
@@ -478,7 +478,7 @@ parasite_pain(edict_t *self, edict_t *other /* unused */,
 	self->monsterinfo.currentmove = &parasite_move_pain1;
 }
 
-qboolean
+static qboolean
 parasite_drain_attack_ok(vec3_t start, vec3_t end)
 {
 	vec3_t dir, angles;
@@ -507,7 +507,7 @@ parasite_drain_attack_ok(vec3_t start, vec3_t end)
 	return true;
 }
 
-void
+static void
 parasite_drain_attack(edict_t *self)
 {
 	vec3_t offset, start, f, r, end, dir;
@@ -659,7 +659,7 @@ parasite_attack(edict_t *self)
 	self->monsterinfo.currentmove = &parasite_move_drain;
 }
 
-void
+static void
 parasite_dead(edict_t *self)
 {
 	if (!self)

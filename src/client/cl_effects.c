@@ -1324,7 +1324,7 @@ CL_DiminishingTrail(vec3_t start, vec3_t end, centity_t *old, int flags)
 	}
 }
 
-void
+static void
 MakeNormalVectors(vec3_t forward, vec3_t right, vec3_t up)
 {
 	float d;
@@ -1612,7 +1612,7 @@ CL_BubbleTrail(vec3_t start, vec3_t end)
 	}
 }
 
-void
+static void
 CL_FlyParticles(vec3_t origin, int count)
 {
 	int i;

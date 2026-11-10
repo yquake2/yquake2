@@ -310,7 +310,7 @@ M_CatagorizePosition(edict_t *ent)
 	}
 }
 
-void
+static void
 M_WorldEffects(edict_t *ent)
 {
 	int dmg;
@@ -504,7 +504,7 @@ M_SetEffects(edict_t *ent)
 	}
 }
 
-void
+static void
 M_MoveFrame(edict_t *self)
 {
 	mmove_t *move;
@@ -708,7 +708,7 @@ monster_triggered_spawn_use(edict_t *self, edict_t *other /* unused */, edict_t 
 	self->use = monster_use;
 }
 
-void
+static void
 monster_triggered_start(edict_t *self)
 {
 	if (!self)
@@ -759,7 +759,7 @@ monster_death_use(edict_t *self)
 
 /* ================================================================== */
 
-qboolean
+static qboolean
 monster_start(edict_t *self)
 {
 	if (!self)

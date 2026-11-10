@@ -38,7 +38,7 @@ static int tread_sound;
 
 void BossExplode(edict_t *self);
 
-void
+static void
 TreadSound(edict_t *self)
 {
 	if (!self)
@@ -212,7 +212,7 @@ mmove_t supertank_move_forward =
 	NULL
 };
 
-void
+static void
 supertank_forward(edict_t *self)
 {
 	if (!self)

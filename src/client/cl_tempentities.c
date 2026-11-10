@@ -393,7 +393,7 @@ CL_SmokeAndFlash(vec3_t origin)
 	ex->ent.model = cl_mod_flash;
 }
 
-void
+static void
 CL_ParseParticles(void)
 {
 	int color, count;
@@ -1729,7 +1729,7 @@ CL_AddLasers(void)
 	}
 }
 
-void
+static void
 CL_ProcessSustain()
 {
 	cl_sustain_t *s;

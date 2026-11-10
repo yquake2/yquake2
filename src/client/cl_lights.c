@@ -153,7 +153,7 @@ CL_AllocDlight(int key)
 	return dl;
 }
 
-void
+static void
 CL_NewDlight(int key, float x, float y, float z, float radius, float time)
 {
 	cdlight_t *dl;

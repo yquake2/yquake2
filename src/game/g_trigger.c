@@ -71,7 +71,7 @@ multi_wait(edict_t *ent)
  * through a delay so wait for the
  * delay time before firing
  */
-void
+static void
 multi_trigger(edict_t *ent)
 {
 	if (!ent)

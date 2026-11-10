@@ -34,7 +34,7 @@
  */
 #define LASERLERP_NSKIPS 2
 
-void
+static void
 CL_AddPacketEntities(frame_t *frame)
 {
 	entity_t ent = {0};
@@ -606,7 +606,7 @@ CL_AddPacketEntities(frame_t *frame)
 	}
 }
 
-void
+static void
 CL_AddViewWeapon(player_state_t *ps, player_state_t *ops)
 {
 	entity_t gun = {0}; /* view model */

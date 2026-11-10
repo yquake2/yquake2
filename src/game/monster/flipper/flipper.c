@@ -111,7 +111,7 @@ mmove_t flipper_move_run_loop =
    	NULL
 };
 
-void
+static void
 flipper_run_loop(edict_t *self)
 {
 	if (!self)
@@ -139,7 +139,7 @@ mmove_t flipper_move_run_start =
    	flipper_run_loop
 };
 
-void
+static void
 flipper_run(edict_t *self)
 {
 	if (!self)
@@ -266,7 +266,7 @@ mmove_t flipper_move_pain1 =
 	flipper_run
 };
 
-void
+static void
 flipper_bite(edict_t *self)
 {
 	vec3_t aim;
@@ -280,7 +280,7 @@ flipper_bite(edict_t *self)
 	fire_hit(self, aim, 5, 0);
 }
 
-void
+static void
 flipper_preattack(edict_t *self)
 {
 	if (!self)
@@ -375,7 +375,7 @@ flipper_pain(edict_t *self, edict_t *other /* unused */,
 	}
 }
 
-void
+static void
 flipper_dead(edict_t *self)
 {
 	vec3_t p;
