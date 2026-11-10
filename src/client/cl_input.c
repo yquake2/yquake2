@@ -392,16 +392,7 @@ CL_KeyState(kbutton_t *key)
 	}
 
 	val = (float)msec / frame_msec;
-
-	if (val < 0)
-	{
-		val = 0;
-	}
-
-	if (val > 1)
-	{
-		val = 1;
-	}
+	val = Q_clamp(val, 0.0f, 1.0f);
 
 	return val;
 }

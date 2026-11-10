@@ -1177,17 +1177,18 @@ IN_Update(void)
 				break;
 
 			case SDL_EVENT_JOYSTICK_BATTERY_UPDATED :
-				if (!controller || event.jbattery.which != SDL_GetJoystickID(SDL_GetGamepadJoystick(controller)))
+				if ( !controller || event.jbattery.which != SDL_GetJoystickID(SDL_GetGamepadJoystick(controller))
+					|| event.jbattery.percent > 20 )
 				{
 					break;
 				}
-				if (event.jbattery.percent <= 20)
-				{
-					Com_Printf("WARNING: Gamepad battery Low, it is recommended to connect it by cable.\n");
-				}
-				else if (event.jbattery.percent <= 1)
+				if (event.jbattery.percent < 2)
 				{
 					SCR_CenterPrint("ALERT: Gamepad battery almost Empty.\n");
+				}
+				else	// event.jbattery.percent <= 20
+				{
+					Com_Printf("WARNING: Gamepad battery Low, it is recommended to connect it by cable.\n");
 				}
 				break;
 
@@ -1427,7 +1428,7 @@ IN_SmoothedStickRotation(float value)
 	//				0 for immediate consumption
 	float immediate_weight = (fabsf(value) - bottom_threshold)
 					/ (top_threshold - bottom_threshold);
-	immediate_weight = Q_min( Q_max(immediate_weight, 0.0f), 1.0f ); // clamp to [0, 1] range
+	immediate_weight = Q_clamp(immediate_weight, 0.0f, 1.0f);
 
 	// now we can push the smooth sample
 	float smooth_weight = 1.0f - immediate_weight;
@@ -2730,29 +2731,24 @@ IN_Controller_Init(qboolean notify_user)
 			}
 
 			show_gamepad = true;
-			Com_Printf("Enabled as Gamepad.\n");
-			Com_DPrintf("SDL mapping: %s\n", SDL_GetGamepadMapping(controller));
-			IN_Gyro_and_LED_Enabling();
-
-			joystick_haptic = SDL_OpenHapticFromJoystick(SDL_GetGamepadJoystick(controller));
-			IN_Haptic_Prepare();
+			Com_Printf("Enabled as Gamepad, ");
 
 			const bool hasRumble = SDL_GetBooleanProperty( SDL_GetGamepadProperties(controller),
 					SDL_PROP_GAMEPAD_CAP_RUMBLE_BOOLEAN, false );
 			if (hasRumble)
 			{
 				show_haptic = true;
-				Com_Printf("Rumble support available.\n");
+				Com_Printf("with Rumble support.\n");
 			}
 			else
 			{
-				Com_Printf("Gamepad doesn't support rumble.\n");
+				Com_Printf("Rumble unsupported.\n");
 			}
 
-			if (show_gyro && IsCalibrationZero())
-			{
-				Com_Printf("NOTE: Gyro calibration might be required!\n");
-			}
+			Com_DPrintf("SDL mapping: %s\n", SDL_GetGamepadMapping(controller));
+			joystick_haptic = SDL_OpenHapticFromJoystick(SDL_GetGamepadJoystick(controller));
+			IN_Haptic_Prepare();
+			IN_Gyro_and_LED_Enabling();
 		}
 
 next_joy:
@@ -2761,6 +2757,8 @@ next_joy:
 		if (i == numjoysticks) i = 0;
 	}
 	while (i != joy_num);
+
+	if (show_gyro && IsCalibrationZero()) Com_Printf("NOTE: Gyro calibration might be required!\n");
 
 	SDL_free((void *)joysticks);
 	IN_GamepadLabels_Changed();

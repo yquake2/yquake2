@@ -102,10 +102,7 @@ CL_DrawInventory(void)
 		top = num - DISPLAY_ITEMS;
 	}
 
-	if (top < 0)
-	{
-		top = 0;
-	}
+	top = Q_max(top, 0);
 
 	x = (viddef.width - scale*256) / 2;
 	y = (viddef.height - scale*240) / 2;

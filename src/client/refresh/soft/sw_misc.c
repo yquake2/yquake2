@@ -396,10 +396,7 @@ R_SetupFrame (void)
 
 	// d_setup
 	d_minmip = sw_mipcap->value;
-	if (d_minmip > 3)
-		d_minmip = 3;
-	else if (d_minmip < 0)
-		d_minmip = 0;
+	d_minmip = Q_clamp(d_minmip, 0, 3);
 
 	for (i=0 ; i<(NUM_MIPS-1) ; i++)
 		d_scalemip[i] = basemip[i] * sw_mipscale->value;

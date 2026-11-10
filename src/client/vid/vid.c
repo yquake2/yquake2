@@ -75,12 +75,13 @@ compress_for_stbiw(unsigned char *data, int data_len, int *out_len, int quality)
  */
 void VID_WriteScreenshot(int width, int height, int comp, const void* data)
 {
+	enum {fmt_tga = 0, fmt_bmp = 1, fmt_png = 2, fmt_jpg = 3};
 	char picname[80];
 	char checkname[MAX_OSPATH];
 	int i, success = 0;
 	static const char* supportedFormats[] = { "tga", "bmp", "png", "jpg" };
 	static const int numFormats = ARRLEN(supportedFormats);
-	int format = 0; // 0=tga, 1=bmp, 2=png, 3=jpg
+	int format = fmt_tga;
 	int quality = 85;
 	int argc = Cmd_Argc();
 	const char* gameDir = FS_Gamedir();
@@ -124,27 +125,13 @@ void VID_WriteScreenshot(int width, int height, int comp, const void* data)
 
 			quality = atoi(q);
 
-			if (format == 2) // png
+			if (format == fmt_png)
 			{
-				if (quality < 0)
-				{
-					quality = 0;
-				}
-				else if (quality > 9)
-				{
-					quality = 9;
-				}
+				quality = Q_clamp(quality, 0, 9);
 			}
-			else if(format == 3) // jpg
+			else if(format == fmt_jpg)
 			{
-				if (quality < 1)
-				{
-					quality = 1;
-				}
-				else if (quality > 100)
-				{
-					quality = 100;
-				}
+				quality = Q_clamp(quality, 1, 100);
 			}
 		}
 	}
@@ -173,17 +160,17 @@ void VID_WriteScreenshot(int width, int height, int comp, const void* data)
 
 	switch (format) // 0=tga, 1=bmp, 2=png, 3=jpg
 	{
-		case 0:
+		case fmt_tga:
 			success = stbi_write_tga(checkname, width, height, comp, data);
 			break;
-		case 1:
+		case fmt_bmp:
 			success = stbi_write_bmp(checkname, width, height, comp, data);
 			break;
-		case 2:
+		case fmt_png:
 			stbi_write_png_compression_level = (quality < 10) ? quality : 7;
 			success = stbi_write_png(checkname, width, height, comp, data, 0);
 			break;
-		case 3:
+		case fmt_jpg:
 			success = stbi_write_jpg(checkname, width, height, comp, data, quality);
 			break;
 	}
