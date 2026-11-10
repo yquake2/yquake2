@@ -127,13 +127,13 @@ Renderer_FillRenderdef(void)
 			rendererlist[numrenderer].boxstr  = fulllist[idx].boxstr;
 			rendererlist[numrenderer].cvarstr = fulllist[idx].cvarstr;
 		}
-		idx++;
+		++idx;
 	}
 
 	// The custom renderer. Must be known to the menu,
 	// but nothing more. The display string is hard
 	// coded below, the cvar is unknown.
-	numrenderer++;
+	++numrenderer;
 }
 
 static int
@@ -153,12 +153,10 @@ Renderer_GetRenderer(void)
 
 // --------
 
-#define NUMMODES 33
-
 typedef struct
 {
 	int modenum;
-	char *modestr;
+	const char *modestr;
 } mode;
 
 // Sorted by string.
@@ -198,10 +196,12 @@ static mode modes[] = {
 	{ 31, "[5120 2880 ]" }
 };
 
+#define NUMMODES ARRLEN(modes)
+
 static int
 GetModePos(int modenum)
 {
-	for (int i = 0; i < ARRLEN(modes); i++)
+	for (int i = 0; i < NUMMODES; ++i)
 	{
 		if (modes[i].modenum == modenum)
 		{
@@ -247,25 +247,31 @@ ResetDefaults(void *unused)
 static renderer_type
 CurrentRendererByCvar(void)
 {
-	if (Q_stricmp(vid_renderer->string, "gl3") == 0 || Q_stricmp(vid_renderer->string, "gles3") == 0)
+	typedef struct
 	{
-		return ref_gl3;
-	}
-	if (Q_stricmp(vid_renderer->string, "gl1") == 0 || Q_stricmp(vid_renderer->string, "gles1") == 0)
+		const char *cvarstr;
+		renderer_type type;
+	} rtype_by_cvar;
+
+	static const rtype_by_cvar rlist[] = {
+		{"gl1"  , ref_gl1 },
+		{"gles1", ref_gl1 },
+		{"gl3"  , ref_gl3 },
+		{"gles3", ref_gl3 },
+		{"gl4"  , ref_gl4 },
+		{"vk"   , ref_vk  },
+		{"soft" , ref_soft},
+		{NULL , ref_custom}
+	};
+
+	int i = 0;
+	while (rlist[i].cvarstr)
 	{
-		return ref_gl1;
-	}
-	if (Q_stricmp(vid_renderer->string, "soft") == 0)
-	{
-		return ref_soft;
-	}
-	if (Q_stricmp(vid_renderer->string, "gl4") == 0)
-	{
-		return ref_gl4;
-	}
-	if (Q_stricmp(vid_renderer->string, "vk") == 0)
-	{
-		return ref_vk;
+		if (Q_stricmp(vid_renderer->string, rlist[i].cvarstr) == 0)
+		{
+			return rlist[i].type;
+		}
+		++i;
 	}
 	return ref_custom;
 }
@@ -293,14 +299,7 @@ ApplyFilter(void* unused)
 			}
 			break;
 		case ref_soft:
-			if (s_filter_list.curvalue == 0)
-			{
-				Cvar_Set("sw_texture_filtering", "0");
-			}
-			else if (s_filter_list.curvalue == 1)
-			{
-				Cvar_Set("sw_texture_filtering", "1");
-			}
+			Cvar_SetValue("sw_texture_filtering", s_filter_list.curvalue);
 			break;
 		default:
 			break;	// avoid compiler warning
