@@ -1177,17 +1177,18 @@ IN_Update(void)
 				break;
 
 			case SDL_EVENT_JOYSTICK_BATTERY_UPDATED :
-				if (!controller || event.jbattery.which != SDL_GetJoystickID(SDL_GetGamepadJoystick(controller)))
+				if ( !controller || event.jbattery.which != SDL_GetJoystickID(SDL_GetGamepadJoystick(controller))
+					|| event.jbattery.percent > 20 )
 				{
 					break;
 				}
-				if (event.jbattery.percent <= 20)
-				{
-					Com_Printf("WARNING: Gamepad battery Low, it is recommended to connect it by cable.\n");
-				}
-				else if (event.jbattery.percent <= 1)
+				if (event.jbattery.percent < 2)
 				{
 					SCR_CenterPrint("ALERT: Gamepad battery almost Empty.\n");
+				}
+				else	// event.jbattery.percent <= 20
+				{
+					Com_Printf("WARNING: Gamepad battery Low, it is recommended to connect it by cable.\n");
 				}
 				break;
 

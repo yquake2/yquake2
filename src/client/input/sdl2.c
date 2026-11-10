@@ -1200,17 +1200,18 @@ IN_Update(void)
 
 #if SDL_VERSION_ATLEAST(2, 24, 0)	// support for battery status changes
 			case SDL_JOYBATTERYUPDATED:
-				if (!controller || event.jbattery.which != SDL_JoystickInstanceID(SDL_GameControllerGetJoystick(controller)))
+				if ( !controller || event.jbattery.which != SDL_JoystickInstanceID(SDL_GameControllerGetJoystick(controller))
+					|| event.jbattery.level > SDL_JOYSTICK_POWER_LOW )
 				{
 					break;
 				}
-				if (event.jbattery.level == SDL_JOYSTICK_POWER_LOW)
-				{
-					Com_Printf("WARNING: Gamepad battery Low, it is recommended to connect it by cable.\n");
-				}
-				else if (event.jbattery.level == SDL_JOYSTICK_POWER_EMPTY)
+				if (event.jbattery.level == SDL_JOYSTICK_POWER_EMPTY)
 				{
 					SCR_CenterPrint("ALERT: Gamepad battery almost Empty.\n");
+				}
+				else	// event.jbattery.level == SDL_JOYSTICK_POWER_LOW
+				{
+					Com_Printf("WARNING: Gamepad battery Low, it is recommended to connect it by cable.\n");
 				}
 				break;
 #endif	// SDL_VERSION_ATLEAST(2, 24, 0)
@@ -1299,8 +1300,7 @@ IN_Update(void)
 						break;
 					}
 
-				default:
-					break;	// avoiding compiler warning
+				default: break;	// avoiding compiler warning
 			}
 			countdown_reason = REASON_NONE;
 		}
