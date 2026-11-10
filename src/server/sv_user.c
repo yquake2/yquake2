@@ -39,7 +39,7 @@ SV_BeginDemoserver(void)
 	char name[MAX_OSPATH];
 
 	Com_sprintf(name, sizeof(name), "demos/%s", sv.name);
-	FS_FOpenFile(name, &sv.demofile, false);
+	sv.demofile_left = FS_FOpenFile(name, &sv.demofile, false);
 
 	if (!sv.demofile)
 	{
