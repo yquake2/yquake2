@@ -179,7 +179,7 @@ mmove_t makron_move_run =
 	NULL
 };
 
-void
+static void
 makron_hit(edict_t *self)
 {
 	if (!self)
@@ -190,7 +190,7 @@ makron_hit(edict_t *self)
 	gi.sound(self, CHAN_AUTO, sound_hit, 1, ATTN_NONE, 0);
 }
 
-void
+static void
 makron_popup(edict_t *self)
 {
 	if (!self)
@@ -223,7 +223,7 @@ makron_step_right(edict_t *self)
 	gi.sound(self, CHAN_BODY, sound_step_right, 1, ATTN_NORM, 0);
 }
 
-void
+static void
 makron_brainsplorch(edict_t *self)
 {
 	if (!self)
@@ -234,7 +234,7 @@ makron_brainsplorch(edict_t *self)
 	gi.sound(self, CHAN_VOICE, sound_brainsplorch, 1, ATTN_NORM, 0);
 }
 
-void
+static void
 makron_prerailgun(edict_t *self)
 {
 	if (!self)
@@ -784,11 +784,6 @@ makron_pain(edict_t *self, edict_t *other /* unused */,
 }
 
 void
-makron_sight(edict_t *self, edict_t *other /* unused */)
-{
-}
-
-void
 makron_attack(edict_t *self)
 {
 	float r;
@@ -885,7 +880,7 @@ makron_torso_die(edict_t *self, edict_t *inflictor /* unused */, edict_t *attack
 	G_FreeEdict(self);
 }
 
-void
+static void
 makron_torso(edict_t *self)
 {
 	edict_t *torso;

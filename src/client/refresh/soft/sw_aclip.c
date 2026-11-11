@@ -154,7 +154,7 @@ R_Alias_clip_bottom (const finalvert_t *pfv0, const finalvert_t *pfv1, finalvert
 }
 
 
-int
+static int
 R_AliasClip (const finalvert_t *in, finalvert_t *out, int flag, int count,
 	void(*clip)(const finalvert_t *pfv0, const finalvert_t *pfv1, finalvert_t *out) )
 {

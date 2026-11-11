@@ -60,7 +60,7 @@ void boss2_reattack_mg(edict_t *self);
 void boss2_die(edict_t *self, edict_t *inflictor, edict_t *attacker,
 		int damage, const vec3_t point);
 
-void
+static void
 Boss2Rocket(edict_t *self)
 {
 	vec3_t forward, right;
@@ -108,7 +108,7 @@ Boss2Rocket(edict_t *self)
 	monster_fire_rocket(self, start, dir, 50, 500, MZ2_BOSS2_ROCKET_4);
 }
 
-void
+static void
 boss2_firebullet_right(edict_t *self)
 {
 	vec3_t forward, right, target;
@@ -133,7 +133,7 @@ boss2_firebullet_right(edict_t *self)
 			MZ2_BOSS2_MACHINEGUN_R1);
 }
 
-void
+static void
 boss2_firebullet_left(edict_t *self)
 {
 	vec3_t forward, right, target;
@@ -159,7 +159,7 @@ boss2_firebullet_left(edict_t *self)
 			MZ2_BOSS2_MACHINEGUN_L1);
 }
 
-void
+static void
 Boss2MachineGun(edict_t *self)
 {
 	if (!self)

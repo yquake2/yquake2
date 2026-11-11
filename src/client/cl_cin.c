@@ -270,7 +270,7 @@ Huff1Decompress(cblock_t in)
 	return out;
 }
 
-byte *
+static byte *
 SCR_ReadNextFrame(void)
 {
 	int r;

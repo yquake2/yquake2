@@ -1497,7 +1497,7 @@ CMod_LoadLeafBrushes(const char *name, lump_t *l)
 	}
 }
 
-void
+static void
 CMod_LoadBrushSides(lump_t *l)
 {
 	int i, j;
@@ -1868,7 +1868,7 @@ CM_LeafArea(int leafnum)
 	return map_leafs[leafnum].area;
 }
 
-void
+static void
 CM_DecompressVis(byte *in, byte *out)
 {
 	int c;

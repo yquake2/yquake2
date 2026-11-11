@@ -124,7 +124,7 @@ Con_ToggleConsole_f(void)
 	}
 }
 
-void
+static void
 Con_ToggleChat_f(void)
 {
 	Key_ClearTyping();
@@ -154,7 +154,7 @@ Con_Clear_f(void)
 /*
  * Save the console contents out to a file
  */
-void
+static void
 Con_Dump_f(void)
 {
 	int l, x;
@@ -249,14 +249,14 @@ Con_ClearNotify(void)
 	}
 }
 
-void
+static void
 Con_MessageMode_f(void)
 {
 	chat_team = false;
 	cls.key_dest = key_message;
 }
 
-void
+static void
 Con_MessageMode2_f(void)
 {
 	chat_team = true;
@@ -356,7 +356,7 @@ Con_Init(void)
 	con.initialized = true;
 }
 
-void
+static void
 Con_Linefeed(void)
 {
 	con.x = 0;
@@ -465,7 +465,7 @@ Con_Print(char *txt)
  * The input line scrolls horizontally if
  * typing goes beyond the right edge
  */
-void
+static void
 Con_DrawInput(void)
 {
 	int i;

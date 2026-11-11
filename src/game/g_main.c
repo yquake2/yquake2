@@ -220,7 +220,7 @@ CreateTargetChangeLevel(char *map)
 /*
  * The timelimit or fraglimit has been exceeded
  */
-void
+static void
 EndDMLevel(void)
 {
 	char *s, *t, *f;
@@ -329,7 +329,7 @@ CheckNeedPass(void)
 	}
 }
 
-void
+static void
 CheckDMRules(void)
 {
 	if (level.intermissiontime)

@@ -77,7 +77,7 @@ CL_CheckPredictionError(void)
 	}
 }
 
-void
+static void
 CL_ClipMoveToEntities(vec3_t start, vec3_t mins, vec3_t maxs,
 		vec3_t end, trace_t *tr)
 {
@@ -180,7 +180,7 @@ CL_PMTrace(vec3_t start, vec3_t mins, vec3_t maxs, vec3_t end)
 	return t;
 }
 
-int
+static int
 CL_PMpointcontents(const vec3_t point)
 {
 	int i;

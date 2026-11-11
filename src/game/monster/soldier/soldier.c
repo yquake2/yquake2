@@ -82,7 +82,7 @@ soldier_footstep(edict_t *self)
 }
 
 
-void
+static void
 soldier_idle(edict_t *self)
 {
 	if (!self)
@@ -96,7 +96,7 @@ soldier_idle(edict_t *self)
 	}
 }
 
-void
+static void
 soldier_cock(edict_t *self)
 {
 	if (!self)
@@ -231,7 +231,7 @@ soldier_stand(edict_t *self)
 	}
 }
 
-void
+static void
 soldier_walk1_random(edict_t *self)
 {
 	if (!self)
@@ -587,7 +587,7 @@ static int machinegun_flash[] =
 	MZ2_SOLDIER_MACHINEGUN_8
 };
 
-void
+static void
 soldier_fire(edict_t *self, int flash_number)
 {
 	vec3_t start;
@@ -675,7 +675,7 @@ soldier_fire(edict_t *self, int flash_number)
 }
 
 /* ATTACK1 (blaster/shotgun) */
-void
+static void
 soldier_fire1(edict_t *self)
 {
 	if (!self)
@@ -686,7 +686,7 @@ soldier_fire1(edict_t *self)
 	soldier_fire(self, 0);
 }
 
-void
+static void
 soldier_attack1_refire1(edict_t *self)
 {
 	if (!self)
@@ -715,7 +715,7 @@ soldier_attack1_refire1(edict_t *self)
 	}
 }
 
-void
+static void
 soldier_attack1_refire2(edict_t *self)
 {
 	if (!self)
@@ -764,7 +764,7 @@ mmove_t soldier_move_attack1 =
 };
 
 /* ATTACK2 (blaster/shotgun) */
-void
+static void
 soldier_fire2(edict_t *self)
 {
 	if (!self)
@@ -775,7 +775,7 @@ soldier_fire2(edict_t *self)
 	soldier_fire(self, 1);
 }
 
-void
+static void
 soldier_attack2_refire1(edict_t *self)
 {
 	if (!self)
@@ -804,7 +804,7 @@ soldier_attack2_refire1(edict_t *self)
 	}
 }
 
-void
+static void
 soldier_attack2_refire2(edict_t *self)
 {
 	if (!self)
@@ -859,7 +859,7 @@ mmove_t soldier_move_attack2 =
 };
 
 /* ATTACK3 (duck and shoot) */
-void
+static void
 soldier_duck_down(edict_t *self)
 {
 	if (!self)
@@ -879,7 +879,7 @@ soldier_duck_down(edict_t *self)
 	gi.linkentity(self);
 }
 
-void
+static void
 soldier_duck_up(edict_t *self)
 {
 	if (!self)
@@ -893,7 +893,7 @@ soldier_duck_up(edict_t *self)
 	gi.linkentity(self);
 }
 
-void
+static void
 soldier_fire3(edict_t *self)
 {
 	if (!self)
@@ -905,7 +905,7 @@ soldier_fire3(edict_t *self)
 	soldier_fire(self, 2);
 }
 
-void
+static void
 soldier_attack3_refire(edict_t *self)
 {
 	if (!self)
@@ -940,7 +940,7 @@ mmove_t soldier_move_attack3 =
 };
 
 /* ATTACK4 (machinegun) */
-void
+static void
 soldier_fire4(edict_t *self)
 {
 	if (!self)
@@ -969,7 +969,7 @@ mmove_t soldier_move_attack4 =
 };
 
 /* ATTACK6 (run & shoot) */
-void
+static void
 soldier_fire8(edict_t *self)
 {
 	if (!self)
@@ -980,7 +980,7 @@ soldier_fire8(edict_t *self)
 	soldier_fire(self, 7);
 }
 
-void
+static void
 soldier_attack6_refire(edict_t *self)
 {
 	if (!self)
@@ -1080,7 +1080,7 @@ soldier_sight(edict_t *self, edict_t *other /* unused */)
 	}
 }
 
-void
+static void
 soldier_duck_hold(edict_t *self)
 {
 	if (!self)
@@ -1177,7 +1177,7 @@ soldier_dodge(edict_t *self, edict_t *attacker, float eta)
 	self->monsterinfo.currentmove = &soldier_move_attack3;
 }
 
-void
+static void
 soldier_fire6(edict_t *self)
 {
 	if (!self)
@@ -1188,7 +1188,7 @@ soldier_fire6(edict_t *self)
 	soldier_fire(self, 5);
 }
 
-void
+static void
 soldier_fire7(edict_t *self)
 {
 	if (!self)
@@ -1199,7 +1199,7 @@ soldier_fire7(edict_t *self)
 	soldier_fire(self, 6);
 }
 
-void
+static void
 soldier_dead(edict_t *self)
 {
 	if (!self)
@@ -1581,7 +1581,7 @@ soldier_die(edict_t *self, edict_t *inflictor /* unused */,
 	}
 }
 
-void
+static void
 SP_monster_soldier_x(edict_t *self)
 {
 	if (!self)

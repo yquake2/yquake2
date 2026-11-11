@@ -188,7 +188,7 @@ SetRespawn(edict_t *ent, float delay)
 
 /* ====================================================================== */
 
-qboolean
+static qboolean
 Pickup_Powerup(edict_t *ent, edict_t *other)
 {
 	int quantity;
@@ -224,7 +224,7 @@ Pickup_Powerup(edict_t *ent, edict_t *other)
 	return true;
 }
 
-void
+static void
 Drop_General(edict_t *ent, const gitem_t *item)
 {
 	if (!ent || !item)
@@ -239,7 +239,7 @@ Drop_General(edict_t *ent, const gitem_t *item)
 
 /* ====================================================================== */
 
-qboolean
+static qboolean
 Pickup_Adrenaline(edict_t *ent, edict_t *other)
 {
 	if (!ent || !other)
@@ -265,7 +265,7 @@ Pickup_Adrenaline(edict_t *ent, edict_t *other)
 	return true;
 }
 
-qboolean
+static qboolean
 Pickup_AncientHead(edict_t *ent, edict_t *other)
 {
 	if (!ent || !other)
@@ -283,7 +283,7 @@ Pickup_AncientHead(edict_t *ent, edict_t *other)
 	return true;
 }
 
-qboolean
+static qboolean
 Pickup_Bandolier(edict_t *ent, edict_t *other)
 {
 	gitem_t *item;
@@ -352,7 +352,7 @@ Pickup_Bandolier(edict_t *ent, edict_t *other)
 	return true;
 }
 
-qboolean
+static qboolean
 Pickup_Pack(edict_t *ent, edict_t *other)
 {
 	gitem_t *item;
@@ -493,7 +493,7 @@ Pickup_Pack(edict_t *ent, edict_t *other)
 
 /* ====================================================================== */
 
-void
+static void
 Use_Quad(edict_t *ent, const gitem_t *item)
 {
 	int timeout;
@@ -530,7 +530,7 @@ Use_Quad(edict_t *ent, const gitem_t *item)
 
 /* ====================================================================== */
 
-void
+static void
 Use_Breather(edict_t *ent, const gitem_t *item)
 {
 	if (!ent || !item || !ent->client)
@@ -553,7 +553,7 @@ Use_Breather(edict_t *ent, const gitem_t *item)
 
 /* ====================================================================== */
 
-void
+static void
 Use_Envirosuit(edict_t *ent, const gitem_t *item)
 {
 	if (!ent || !item || !ent->client)
@@ -576,7 +576,7 @@ Use_Envirosuit(edict_t *ent, const gitem_t *item)
 
 /* ====================================================================== */
 
-void
+static void
 Use_Invulnerability(edict_t *ent, const gitem_t *item)
 {
 	if (!ent || !item)
@@ -601,7 +601,7 @@ Use_Invulnerability(edict_t *ent, const gitem_t *item)
 
 /* ====================================================================== */
 
-void
+static void
 Use_Silencer(edict_t *ent, const gitem_t *item)
 {
 	if (!ent || !item)
@@ -616,7 +616,7 @@ Use_Silencer(edict_t *ent, const gitem_t *item)
 
 /* ====================================================================== */
 
-qboolean
+static qboolean
 Pickup_Key(edict_t *ent, edict_t *other)
 {
 	if (!ent || !other)
@@ -714,7 +714,7 @@ Add_Ammo(edict_t *ent, const gitem_t *item, int count)
 	return true;
 }
 
-qboolean
+static qboolean
 Pickup_Ammo(edict_t *ent, edict_t *other)
 {
 	int oldcount;
@@ -767,7 +767,7 @@ Pickup_Ammo(edict_t *ent, edict_t *other)
 	return true;
 }
 
-void
+static void
 Drop_Ammo(edict_t *ent, const gitem_t *item)
 {
 	edict_t *dropped;
@@ -831,7 +831,7 @@ MegaHealth_think(edict_t *self)
 	}
 }
 
-qboolean
+static qboolean
 Pickup_Health(edict_t *ent, edict_t *other)
 {
 	if (!ent || !other)
@@ -905,7 +905,7 @@ ArmorIndex(const edict_t *ent)
 	return 0;
 }
 
-qboolean
+static qboolean
 Pickup_Armor(edict_t *ent, edict_t *other)
 {
 	int old_armor_index;
@@ -1042,7 +1042,7 @@ PowerArmorType(const edict_t *ent)
 	return POWER_ARMOR_NONE;
 }
 
-void
+static void
 Use_PowerArmor(edict_t *ent, const gitem_t *item)
 {
 	if (!ent || !item)
@@ -1074,7 +1074,7 @@ Use_PowerArmor(edict_t *ent, const gitem_t *item)
 	}
 }
 
-qboolean
+static qboolean
 Pickup_PowerArmor(edict_t *ent, edict_t *other)
 {
 	int quantity;
@@ -1105,7 +1105,7 @@ Pickup_PowerArmor(edict_t *ent, edict_t *other)
 	return true;
 }
 
-void
+static void
 Drop_PowerArmor(edict_t *ent, const gitem_t *item)
 {
 	if (!ent || !item)

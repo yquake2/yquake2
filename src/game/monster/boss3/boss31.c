@@ -660,7 +660,7 @@ jorgBFG(edict_t *self)
 	monster_fire_bfg(self, start, dir, 50, 300, 100, 200, MZ2_JORG_BFG_1);
 }
 
-void
+static void
 jorg_firebullet_right(edict_t *self)
 {
 	vec3_t forward, right, target;
@@ -685,7 +685,7 @@ jorg_firebullet_right(edict_t *self)
 			MZ2_JORG_MACHINEGUN_R1);
 }
 
-void
+static void
 jorg_firebullet_left(edict_t *self)
 {
 	vec3_t forward, right, target;

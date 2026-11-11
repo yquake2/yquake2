@@ -81,18 +81,12 @@ mutant_sight(edict_t *self, edict_t *other /* unused */)
 void
 mutant_search(edict_t *self)
 {
-	gi.sound(self, CHAN_VOICE, sound_search, 1, ATTN_NORM, 0);
-}
-
-void
-mutant_swing(edict_t *self)
-{
 	if (!self)
 	{
 		return;
 	}
 
-	gi.sound(self, CHAN_VOICE, sound_swing, 1, ATTN_NORM, 0);
+	gi.sound(self, CHAN_VOICE, sound_search, 1, ATTN_NORM, 0);
 }
 
 static mframe_t mutant_frames_stand[] = {
@@ -172,7 +166,7 @@ mutant_stand(edict_t *self)
 	self->monsterinfo.currentmove = &mutant_move_stand;
 }
 
-void
+static void
 mutant_idle_loop(edict_t *self)
 {
 	if (!self)
@@ -247,7 +241,7 @@ mmove_t mutant_move_walk =
    	NULL
 };
 
-void
+static void
 mutant_walk_loop(edict_t *self)
 {
 	if (!self)
@@ -319,7 +313,7 @@ mutant_run(edict_t *self)
 	}
 }
 
-void
+static void
 mutant_hit_left(edict_t *self)
 {
 	vec3_t aim;
@@ -341,7 +335,7 @@ mutant_hit_left(edict_t *self)
 	}
 }
 
-void
+static void
 mutant_hit_right(edict_t *self)
 {
 	vec3_t aim;
@@ -363,7 +357,7 @@ mutant_hit_right(edict_t *self)
 	}
 }
 
-void
+static void
 mutant_check_refire(edict_t *self)
 {
 	if (!self)
@@ -458,7 +452,7 @@ mutant_jump_touch(edict_t *self, edict_t *other,
 	self->touch = NULL;
 }
 
-void
+static void
 mutant_jump_takeoff(edict_t *self)
 {
 	vec3_t forward;
@@ -479,7 +473,7 @@ mutant_jump_takeoff(edict_t *self)
 	self->touch = mutant_jump_touch;
 }
 
-void
+static void
 mutant_check_landing(edict_t *self)
 {
 	if (!self)
@@ -535,7 +529,7 @@ mutant_jump(edict_t *self)
 	self->monsterinfo.currentmove = &mutant_move_jump;
 }
 
-qboolean
+static qboolean
 mutant_check_melee(edict_t *self)
 {
 	if (!self)
@@ -551,7 +545,7 @@ mutant_check_melee(edict_t *self)
 	return false;
 }
 
-qboolean
+static qboolean
 mutant_check_jump(edict_t *self)
 {
 	vec3_t v;
@@ -718,7 +712,7 @@ mutant_pain(edict_t *self, edict_t *other /* unused */,
 	}
 }
 
-void
+static void
 mutant_dead(edict_t *self)
 {
 	if (!self)

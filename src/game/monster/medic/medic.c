@@ -65,7 +65,7 @@ medic_footstep(edict_t *self)
 }
 
 
-edict_t *
+static edict_t *
 medic_FindDeadMonster(edict_t *self)
 {
 	edict_t *ent = NULL;
@@ -472,7 +472,7 @@ medic_pain(edict_t *self, edict_t *other /* unused */,
 	}
 }
 
-void
+static void
 medic_fire_blaster(edict_t *self)
 {
 	vec3_t start;
@@ -513,7 +513,7 @@ medic_fire_blaster(edict_t *self)
 	monster_fire_blaster(self, start, dir, 2, 1000, MZ2_MEDIC_BLASTER_1, effect);
 }
 
-void
+static void
 medic_dead(edict_t *self)
 {
 	if (!self)
@@ -624,7 +624,7 @@ medic_die(edict_t *self, edict_t *inflictor /* unused */,
 	self->monsterinfo.currentmove = &medic_move_death;
 }
 
-void
+static void
 medic_duck_down(edict_t *self)
 {
 	if (!self)
@@ -644,7 +644,7 @@ medic_duck_down(edict_t *self)
 	gi.linkentity(self);
 }
 
-void
+static void
 medic_duck_hold(edict_t *self)
 {
 	if (!self)
@@ -662,7 +662,7 @@ medic_duck_hold(edict_t *self)
 	}
 }
 
-void
+static void
 medic_duck_up(edict_t *self)
 {
 	if (!self)
@@ -752,7 +752,7 @@ mmove_t medic_move_attackHyperBlaster =
    	medic_run
 };
 
-void
+static void
 medic_continue(edict_t *self)
 {
 	if (!self)
@@ -788,7 +788,7 @@ static mframe_t medic_frames_attackBlaster[] = {
 mmove_t medic_move_attackBlaster =
 {FRAME_attack1, FRAME_attack14, medic_frames_attackBlaster, medic_run};
 
-void
+static void
 medic_hook_launch(edict_t *self)
 {
 	if (!self)
@@ -812,7 +812,7 @@ static vec3_t medic_cable_offsets[] = {
 	{32.7, -19.7, 10.4}
 };
 
-void
+static void
 medic_cable_attack(edict_t *self)
 {
 	vec3_t offset, start, end, f, r;
@@ -917,7 +917,7 @@ medic_cable_attack(edict_t *self)
 	gi.multicast(self->s.origin, MULTICAST_PVS);
 }
 
-void
+static void
 medic_hook_retract(edict_t *self)
 {
 	if (!self)

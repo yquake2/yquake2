@@ -259,7 +259,7 @@ GL3_Draw_CharScaled(int x, int y, int num, float scale)
 }
 
 // DG: copy of DrawStringScaled(), so we can draw some stats right here in the render DLL
-void
+static void
 GL3_DrawStringScaled(int x, int y, const char *s, float factor)
 {
 	while (*s)

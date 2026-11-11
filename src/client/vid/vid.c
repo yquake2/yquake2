@@ -73,7 +73,8 @@ compress_for_stbiw(unsigned char *data, int data_len, int *out_len, int quality)
  * RGB or RGBA. The pixels must be given row-wise, stating at the top
  * left.
  */
-void VID_WriteScreenshot(int width, int height, int comp, const void* data)
+static void
+VID_WriteScreenshot(int width, int height, int comp, const void* data)
 {
 	enum {fmt_tga = 0, fmt_bmp = 1, fmt_png = 2, fmt_jpg = 3};
 	char picname[80];

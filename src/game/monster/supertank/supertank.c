@@ -38,7 +38,7 @@ static int tread_sound;
 
 void BossExplode(edict_t *self);
 
-void
+static void
 TreadSound(edict_t *self)
 {
 	if (!self)
@@ -211,17 +211,6 @@ mmove_t supertank_move_forward =
 	supertank_frames_forward,
 	NULL
 };
-
-void
-supertank_forward(edict_t *self)
-{
-	if (!self)
-	{
-		return;
-	}
-
-	self->monsterinfo.currentmove = &supertank_move_forward;
-}
 
 void
 supertank_walk(edict_t *self)

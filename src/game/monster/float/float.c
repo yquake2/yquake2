@@ -64,7 +64,7 @@ void floater_run(edict_t *self);
 void floater_wham(edict_t *self);
 void floater_zap(edict_t *self);
 
-void
+static void
 floater_fire_blaster(edict_t *self)
 {
 	vec3_t start;

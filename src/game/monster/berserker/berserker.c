@@ -238,7 +238,7 @@ berserk_run(edict_t *self)
 	}
 }
 
-void
+static void
 berserk_attack_spike(edict_t *self)
 {
 	static vec3_t aim = {MELEE_DISTANCE, 0, -24};
@@ -251,7 +251,7 @@ berserk_attack_spike(edict_t *self)
 	fire_hit(self, aim, (15 + (randk() % 6)), 400); /*	Faster attack -- upwards and backwards */
 }
 
-void
+static void
 berserk_swing(edict_t *self)
 {
 	if (!self)
@@ -281,7 +281,7 @@ mmove_t berserk_move_attack_spike =
 	berserk_run
 };
 
-void
+static void
 berserk_attack_club(edict_t *self)
 {
 	vec3_t aim;
@@ -318,7 +318,7 @@ mmove_t berserk_move_attack_club =
    	berserk_run
 };
 
-void
+static void
 berserk_strike(edict_t *self)
 {
 	/* Unused, but removal is
@@ -450,7 +450,7 @@ berserk_pain(edict_t *self, edict_t *other /* unused */,
 	}
 }
 
-void
+static void
 berserk_dead(edict_t *self)
 {
 	if (!self)

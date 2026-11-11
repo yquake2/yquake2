@@ -255,7 +255,7 @@ R_DrawSpriteModel(entity_t *currententity, const model_t *currentmodel)
 	glColor4f(1, 1, 1, 1);
 }
 
-void
+static void
 R_DrawNullModel(entity_t *currententity)
 {
 	vec3_t shadelight;
@@ -313,7 +313,7 @@ R_DrawNullModel(entity_t *currententity)
 	glEnable(GL_TEXTURE_2D);
 }
 
-void
+static void
 R_DrawEntitiesOnList(void)
 {
 	int i;
@@ -516,7 +516,7 @@ R_DrawParticles2(int num_particles, const particle_t particles[],
 	YQ2_VLAFREE(clr);
 }
 
-void
+static void
 R_DrawParticles(void)
 {
 	qboolean stereo_split_tb = ((gl_state.stereo_mode == STEREO_SPLIT_VERTICAL) && gl_state.camera_separation);
@@ -584,7 +584,7 @@ R_DrawParticles(void)
 	}
 }
 
-void
+static void
 R_PolyBlend(void)
 {
 	if (!gl_polyblend->value)
@@ -643,7 +643,7 @@ R_ResetClearColor(void)
 	}
 }
 
-void
+static void
 R_SetupFrame(void)
 {
 	int i;
@@ -760,7 +760,7 @@ R_SetPerspective(GLdouble fovy)
 	glFrustum(xmin, xmax, ymin, ymax, zNear, zFar);
 }
 
-void
+static void
 R_SetupGL(void)
 {
 	int x, x2, y2, y, w, h;
@@ -914,7 +914,7 @@ R_Flash(void)
 	R_PolyBlend();
 }
 
-void
+static void
 R_SetGL2D(void)
 {
 	int x, w, y, h;
@@ -1225,7 +1225,7 @@ R_Strings_f(void)
 #define ONLY_ENABLED_IN_GL1   "1"
 #endif
 
-void
+static void
 R_Register(void)
 {
 	gl_lefthand = ri.Cvar_Get("hand", "0", CVAR_USERINFO | CVAR_ARCHIVE);
@@ -1789,7 +1789,7 @@ RI_Init(void)
 	return true;
 }
 
-void
+static void
 RI_Shutdown(void)
 {
 	ri.Cmd_RemoveCommand("modellist");
@@ -1809,7 +1809,7 @@ RI_Shutdown(void)
 	QGL_Shutdown();
 }
 
-void
+static void
 RI_BeginFrame(float camera_separation)
 {
 	gl_state.camera_separation = camera_separation;
@@ -1969,7 +1969,7 @@ RI_BeginFrame(float camera_separation)
 	R_Clear();
 }
 
-void
+static void
 RI_SetPalette(const unsigned char *palette)
 {
 	int i;
