@@ -526,6 +526,7 @@ static const fnlist_entry_t fnentries_mv_end[] =
 	{"door_hit_top", (byte *)door_hit_top},
 	{"button_wait", (byte *)button_wait},
 	{"button_done", (byte *)button_done},
+	{"plat_go_up", (byte *)plat_go_up},
 	{"plat_hit_top", (byte *)plat_hit_top},
 	{"plat_hit_bottom", (byte *)plat_hit_bottom},
 };

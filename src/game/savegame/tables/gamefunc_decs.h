@@ -393,3 +393,4 @@ extern void door_secret_move1 (edict_t *);
 extern void door_secret_move3 (edict_t *);
 extern void door_secret_move5 (edict_t *);
 extern void door_secret_done (edict_t *);
+extern void plat_go_up (edict_t *);

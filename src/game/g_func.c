@@ -147,7 +147,7 @@ Move_Begin(edict_t *ent)
 static void
 Move_Calc(edict_t *ent, vec3_t dest, void (*func)(edict_t *))
 {
- 	if (!ent || !func)
+	if (!ent || !func)
 	{
 		return;
 	}
@@ -277,7 +277,7 @@ AngleMove_Begin(edict_t *ent)
 static void
 AngleMove_Calc(edict_t *ent, void (*func)(edict_t *))
 {
- 	if (!ent || !func)
+	if (!ent || !func)
 	{
 		return;
 	}
@@ -550,7 +550,8 @@ plat_go_down(edict_t *ent)
 	Move_Calc(ent, ent->moveinfo.end_origin, plat_hit_bottom);
 }
 
-static void
+/* ->moveinfo.endfunc = plat_go_up; */
+void
 plat_go_up(edict_t *ent)
 {
 	if (!ent)
@@ -651,7 +652,7 @@ wait_and_change(edict_t* ent, void (*afterwaitfunc)(edict_t *))
 
 	if (coop->value && waittime > 0.0f)
 	{
-		if(ent->nextthink == 0)
+		if (ent->nextthink == 0)
 		{
 			ent->moveinfo.endfunc = afterwaitfunc;
 			ent->think = wait_and_change_think;
@@ -1721,7 +1722,7 @@ door_killed(edict_t *self, edict_t *inflictor /* unused */, edict_t *attacker,
 void
 door_touch(edict_t *self, edict_t *other, const cplane_t *plane /* unused */, const csurface_t *surf /* unused */)
 {
- 	if (!self || !other)
+	if (!self || !other)
 	{
 		return;
 	}
