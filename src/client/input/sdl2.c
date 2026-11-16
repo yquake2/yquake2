@@ -1201,6 +1201,7 @@ IN_Update(void)
 #if SDL_VERSION_ATLEAST(2, 24, 0)	// support for battery status changes
 			case SDL_JOYBATTERYUPDATED:
 				if ( !controller || event.jbattery.which != SDL_JoystickInstanceID(SDL_GameControllerGetJoystick(controller))
+					|| event.jbattery.level < SDL_JOYSTICK_POWER_EMPTY
 					|| event.jbattery.level > SDL_JOYSTICK_POWER_LOW )
 				{
 					break;
