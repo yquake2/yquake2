@@ -8,10 +8,10 @@
 
 /* ------------------- Types and macros */
 typedef unsigned char mz_uint8;
-typedef signed short mz_int16;
-typedef unsigned short mz_uint16;
-typedef unsigned int mz_uint32;
-typedef unsigned int mz_uint;
+typedef int16_t mz_int16;
+typedef uint16_t mz_uint16;
+typedef uint32_t mz_uint32;
+typedef uint32_t mz_uint;
 typedef int64_t mz_int64;
 typedef uint64_t mz_uint64;
 typedef int mz_bool;
@@ -72,21 +72,14 @@ typedef struct mz_dummy_time_t_tag
 
 #define MZ_READ_LE64(p) (((mz_uint64)MZ_READ_LE32(p)) | (((mz_uint64)MZ_READ_LE32((const mz_uint8 *)(p) + sizeof(mz_uint32))) << 32U))
 
-#ifdef _MSC_VER
-#define MZ_FORCEINLINE __forceinline
-#elif defined(__GNUC__)
-#define MZ_FORCEINLINE __inline__ __attribute__((__always_inline__))
-#else
-#define MZ_FORCEINLINE inline
-#endif
-
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
-extern MINIZ_EXPORT void *miniz_def_alloc_func(void *opaque, size_t items, size_t size);
-extern MINIZ_EXPORT void miniz_def_free_func(void *opaque, void *address);
-extern MINIZ_EXPORT void *miniz_def_realloc_func(void *opaque, void *address, size_t items, size_t size);
+    extern MINIZ_EXPORT void *miniz_def_alloc_func(void *opaque, size_t items, size_t size);
+    extern MINIZ_EXPORT void miniz_def_free_func(void *opaque, void *address);
+    extern MINIZ_EXPORT void *miniz_def_realloc_func(void *opaque, void *address, size_t items, size_t size);
 
 #define MZ_UINT16_MAX (0xFFFFU)
 #define MZ_UINT32_MAX (0xFFFFFFFFU)
